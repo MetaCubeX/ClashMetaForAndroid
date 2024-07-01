@@ -14,7 +14,7 @@ class AppListCacheModule(service: Service) : Module<Unit>(service) {
         if (sharedUserId != null && sharedUserId.isNotBlank()) sharedUserId else packageName
 
     private fun reload() {
-        val packages = service.packageManager.getInstalledPackages(0)
+        val packages = service.packageManager.getInstalledPackages()
             .groupBy { it.uniqueUidName() }
             .map { (_, v) ->
                 val info = v[0]
