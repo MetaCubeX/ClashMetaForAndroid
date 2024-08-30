@@ -31,6 +31,7 @@
     <string name="url">URL</string>
     <string name="import_from_url">URL에서 가져오기</string>
     <string name="external">외부</string>
+    <string name="import_from_qr">QR코드에서 가져오기</string>
     <string name="format_type_unsaved">%s (저장되지 않음)</string>
     <string name="application_broken">앱 오류</string>
     <string name="application_crashed">앱 중지</string>
@@ -250,4 +251,6 @@
     <string name="force_dns_mapping">Force DNS Mapping</string>
     <string name="parse_pure_ip">Parse Pure IP</string>
     <string name="override_destination">Override Destination</string>
+    <string name="import_from_qr_no_permission">카메라 접근이 제한되었습니다. 설정에서 허용해 주세요.</string>
+    <string name="import_from_qr_exception">처리되지 않은 시스템 예외가 발생했습니다.</string>
 </resources>

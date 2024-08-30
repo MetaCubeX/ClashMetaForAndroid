@@ -40,6 +40,7 @@
     <string name="history">歷史</string>
     <string name="import_from_file">從檔案匯入</string>
     <string name="import_from_url">從 URL 匯入</string>
+    <string name="import_from_qr">從二維碼導入</string>
     <string name="interface_">介面</string>
     <string name="invalid_url">無效 URL</string>
     <string name="logcat">Logcat</string>
@@ -247,4 +248,6 @@
     <string name="force_dns_mapping">Force DNS Mapping</string>
     <string name="parse_pure_ip">Parse Pure IP</string>
     <string name="override_destination">Override Destination</string>
+    <string name="import_from_qr_no_permission">相機權限受限，請前往設定開啟。</string>
+    <string name="import_from_qr_exception">發生系統未知異常，操作失敗。</string>
 </resources>
