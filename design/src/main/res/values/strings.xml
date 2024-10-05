@@ -41,7 +41,9 @@
     <string name="file">File</string>
     <string name="import_from_file">Import from File</string>
     <string name="url">URL</string>
+    <string name="qr" translatable="false">QR</string>
     <string name="import_from_url">Import from URL</string>
+    <string name="import_from_qr">Import from QR</string>
     <string name="external">External</string>
     <string name="format_type_unsaved">%s (Unsaved)</string>
 
