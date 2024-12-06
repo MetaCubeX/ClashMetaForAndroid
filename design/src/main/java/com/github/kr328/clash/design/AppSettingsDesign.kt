@@ -1,5 +1,6 @@
 package com.github.kr328.clash.design
 
+import android.app.ActivityManager
 import android.content.Context
 import android.view.View
 import com.github.kr328.clash.design.databinding.DesignSettingsCommonBinding
@@ -62,6 +63,21 @@ class AppSettingsDesign(
             ) {
                 listener = OnChangedListener {
                     requests.trySend(Request.ReCreateAllActivities)
+                }
+            }
+
+            switch(
+                value = uiStore::excludeFromRecents,
+                icon = R.drawable.eye_off,
+                title = R.string.exclude_from_recents,
+                summary = R.string.exclude_from_recents_summary,
+            ) {
+                listener = OnChangedListener {
+                    (context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager).let { manager ->
+                        manager.appTasks.forEach { task ->
+                            task?.setExcludeFromRecents(uiStore.excludeFromRecents)
+                        }
+                    }
                 }
             }
 
