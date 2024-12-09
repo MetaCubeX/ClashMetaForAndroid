@@ -56,6 +56,8 @@
     <string name="properties">参数</string>
     <string name="proxy">代理</string>
     <string name="recently">近期</string>
+    <string name="exclude_from_recents">后台隐藏</string>
+    <string name="exclude_from_recents_summary">在[最近任务]中隐藏本应用</string>
     <string name="route_system_traffic">自动路由系统流量</string>
     <string name="routing_via_vpn_service">通过 VpnService 自动路由所有系统流量</string>
     <string name="rule_mode">规则模式</string>

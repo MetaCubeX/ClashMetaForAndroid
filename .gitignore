@@ -26,6 +26,7 @@ gradle-app.setting
 !/core/src/foss/golang/.idea/codeStyles
 /core/src/premium/golang/.idea/*
 !/core/src/premium/golang/.idea/codeStyles
+/core/src/main/cpp/version.h
 
 # Ignore builtin geofiles
 app/src/main/assets
