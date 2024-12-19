@@ -1,8 +1,8 @@
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="PluralsCandidate">
-    <string name="launch_name_meta">Clash Meta</string>
-    <string name="launch_name_alpha">Clash Meta Alpha</string>
-    <string name="application_name_meta">Clash Meta for Android</string>
-    <string name="application_name_alpha">Clash Meta for Android Alpha</string>
+    <string name="launch_name_meta" translatable="false">Clash Meta</string>
+    <string name="launch_name_alpha" translatable="false">Clash Meta Alpha</string>
+    <string name="application_name_meta" translatable="false">Clash Meta for Android</string>
+    <string name="application_name_alpha" translatable="false">Clash Meta for Android Alpha</string>
 
     <string name="stopped">Stopped</string>
     <string name="tap_to_start">Tap to start</string>
@@ -111,6 +111,9 @@
 
     <string name="auto_restart">Auto Restart</string>
     <string name="allow_clash_auto_restart">Allow clash auto restart</string>
+
+    <string name="exclude_from_recents">Exclude From Recents</string>
+    <string name="exclude_from_recents_summary">Hide this app in Recent Tasks</string>
 
     <string name="route_system_traffic">Route System Traffic</string>
     <string name="routing_via_vpn_service">Auto routing all system traffic via VpnService</string>

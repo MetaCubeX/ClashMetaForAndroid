@@ -11,13 +11,9 @@
     <string name="tun_stack_mixed">Mixed</string>
     <string name="tun_stack_mode">Chế độ xếp chồng dữ liệu</string>
     <string name="tun_stack_system">Hệ thống</string>
-    <string name="application_name_alpha">Clash Meta</string>
-    <string name="application_name_meta">Clash Meta</string>
     <string name="clash_meta_core">Clash Meta Core</string>
     <string name="clash_meta_for_android">Clash Meta</string>
     <string name="clash_meta_wiki">Clash Meta Wiki</string>
-    <string name="launch_name_alpha">Clash Meta</string>
-    <string name="launch_name_meta">Clash Meta</string>
     <string name="_new">Mới</string>
     <string name="about">Thông tin</string>
     <string name="accept_http_content">Chỉ chấp nhận http(s)</string>
