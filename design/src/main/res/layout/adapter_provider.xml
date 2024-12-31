@@ -58,6 +58,7 @@
             android:text="@{IntervalKt.elapsedIntervalString(currentTime.value - state.updatedAt, context)}" />
 
         <View
+            android:id="@+id/divider"
             android:layout_width="@dimen/divider_size"
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
