@@ -47,6 +47,14 @@ class NewProfileActivity : BaseActivity<NewProfileDesign>() {
                                         create(Profile.Type.File, name)
                                     is ProfileProvider.Url ->
                                         create(Profile.Type.Url, name)
+                                    is ProfileProvider.QR -> {
+                                        val provider = it.provider as ProfileProvider.QR
+                                        if (provider.url!=null){
+                                            create(Profile.Type.Url, name, provider.url!!)
+                                        }else{
+                                            null
+                                        }
+                                    }
                                     is ProfileProvider.External -> {
                                         val data = p.get()
 
@@ -138,7 +146,7 @@ class NewProfileActivity : BaseActivity<NewProfileDesign>() {
                 ProfileProvider.External(name.toString(), summary.toString(), icon, intent)
             }
 
-            listOf(ProfileProvider.File(self), ProfileProvider.Url(self)) + providers
+            listOf(ProfileProvider.File(self), ProfileProvider.Url(self),ProfileProvider.QR(self)) + providers
         }
     }
 }
