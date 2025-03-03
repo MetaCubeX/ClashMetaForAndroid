@@ -56,7 +56,7 @@ class LogsActivity : BaseActivity<LogsDesign>() {
     }
 
     private fun loadFiles(): List<LogFile> {
-        val list = cacheDir.resolve("logs").listFiles()?.toList() ?: emptyList()
+        val list = logsDir.listFiles()?.toList() ?: emptyList()
 
         return list.mapNotNull { LogFile.parseFromFileName(it.name) }
     }
