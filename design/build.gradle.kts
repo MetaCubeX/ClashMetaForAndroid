@@ -18,4 +18,5 @@ dependencies {
     implementation(libs.androidx.fragment)
     implementation(libs.androidx.viewpager)
     implementation(libs.google.material)
+    implementation("com.google.android.gms:play-services-code-scanner:16.1.0")
 }
