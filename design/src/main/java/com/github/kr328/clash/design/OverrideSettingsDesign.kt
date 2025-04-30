@@ -89,22 +89,6 @@ class OverrideSettingsDesign(
             )
 
             editableText(
-                value = configuration::redirectPort,
-                adapter = NullableTextAdapter.Port,
-                title = R.string.redirect_port,
-                placeholder = R.string.dont_modify,
-                empty = R.string.disabled,
-            )
-
-            editableText(
-                value = configuration::tproxyPort,
-                adapter = NullableTextAdapter.Port,
-                title = R.string.tproxy_port,
-                placeholder = R.string.dont_modify,
-                empty = R.string.disabled,
-            )
-
-            editableText(
                 value = configuration::mixedPort,
                 adapter = NullableTextAdapter.Port,
                 title = R.string.mixed_port,
@@ -119,18 +103,18 @@ class OverrideSettingsDesign(
                 placeholder = R.string.dont_modify,
             )
 
+            editableTextList(
+                value = configuration::skipAuthPrefixes,
+                adapter = TextAdapter.String,
+                title = R.string.skip_auth_prefixes,
+                placeholder = R.string.dont_modify,
+            )
+
             selectableList(
                 value = configuration::allowLan,
                 values = booleanValues,
                 valuesText = booleanValuesText,
                 title = R.string.allow_lan,
-            )
-
-            selectableList(
-                value = configuration::ipv6,
-                values = booleanValues,
-                valuesText = booleanValuesText,
-                title = R.string.ipv6,
             )
 
             editableText(
@@ -139,6 +123,20 @@ class OverrideSettingsDesign(
                 title = R.string.bind_address,
                 placeholder = R.string.dont_modify,
                 empty = R.string.default_
+            )
+
+            editableTextList(
+                value = configuration::lanAllowedIps,
+                adapter = TextAdapter.String,
+                title = R.string.lan_allowed_ips,
+                placeholder = R.string.dont_modify,
+            )
+
+            editableTextList(
+                value = configuration::lanDisallowedIps,
+                adapter = TextAdapter.String,
+                title = R.string.lan_disallowed_ips,
+                placeholder = R.string.dont_modify,
             )
 
             editableText(
@@ -215,6 +213,13 @@ class OverrideSettingsDesign(
                     R.string.silent,
                 ),
                 title = R.string.log_level,
+            )
+
+            selectableList(
+                value = configuration::ipv6,
+                values = booleanValues,
+                valuesText = booleanValuesText,
+                title = R.string.ipv6,
             )
 
             editableTextMap(

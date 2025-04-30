@@ -14,23 +14,26 @@ data class ConfigurationOverride(
     @SerialName("socks-port")
     var socksPort: Int? = null,
 
-    @SerialName("redir-port")
-    var redirectPort: Int? = null,
-
-    @SerialName("tproxy-port")
-    var tproxyPort: Int? = null,
-
     @SerialName("mixed-port")
     var mixedPort: Int? = null,
 
     @SerialName("authentication")
     var authentication: List<String>? = null,
 
+    @SerialName("skip-auth-prefixes")
+    var skipAuthPrefixes: List<String>? = null,
+
     @SerialName("allow-lan")
     var allowLan: Boolean? = null,
 
     @SerialName("bind-address")
     var bindAddress: String? = null,
+
+    @SerialName("lan-allowed-ips")
+    var lanAllowedIps: List<String>? = null,
+
+    @SerialName("lan-disallowed-ips")
+    var lanDisallowedIps: List<String>? = null,
 
     @SerialName("mode")
     var mode: TunnelState.Mode? = null,
