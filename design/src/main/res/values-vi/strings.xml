@@ -44,7 +44,7 @@
     <string name="auto_update">Thời gian tự động cập nhật</string>
     <string name="auto_update_minutes">Tự động cập nhật (Phút)</string>
     <string name="behavior">Điều hướng</string>
-    <string name="bind_address">Địa chỉ ràng buộc</string>
+    <string name="bind_address">địa chỉ liên kết</string>
     <string name="block_loopback">Chặn lặp</string>
     <string name="block_loopback_summary">Chặn kết nối lặp lại</string>
     <string name="browse_configuration_providers">Duyệt qua tệp cấu hình và nhà cung cấp</string>
@@ -181,7 +181,6 @@
     <string name="proxy">Proxy</string>
     <string name="proxy_empty_tips">Không có nhóm nào được hiển thị</string>
     <string name="recently">Vừa xong</string>
-    <string name="redirect_port">Cổng Redirect</string>
     <string name="reinstall">Cài đặt lại</string>
     <string name="rename">Đổi tên</string>
     <string name="reset">Đặt lại</string>
@@ -219,7 +218,6 @@
     <string name="tap_to_start">Chạm để kết nối</string>
     <string name="tips_help">Clash Meta là một phần mềm miễn phí và chúng tôi KHÔNG cung cấp bất kỳ dịch vụ trả phí nào cho nó</string>
     <string name="tips_properties">Chỉ chấp nhận cấu hình Clash bao gồm Proxy và Quy tắc</string>
-    <string name="tproxy_port">Cổng TProxy</string>
     <string name="unable_to_start_vpn">Không thể khởi động thành phần VPN</string>
     <string name="unavailable">Không có sẵn</string>
     <string name="update">Cập nhật</string>

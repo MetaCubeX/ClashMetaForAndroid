@@ -107,12 +107,10 @@
     <string name="prefer_h3">Prefer h3</string>
     <string name="http_port">HTTPポート</string>
     <string name="socks_port">SOCKSポート</string>
-    <string name="redirect_port">リダイレクトポート</string>
     <string name="mixed_port">複合ポート</string>
-    <string name="tproxy_port">TProxyポート</string>
     <string name="authentication">認証</string>
     <string name="allow_lan">LANからの接続を許可</string>
-    <string name="bind_address">リスニングアドレス</string>
+    <string name="bind_address">バインドアドレス</string>
     <string name="mode">モード</string>
     <string name="log_level">ログレベル</string>
     <string name="ipv6">IPv6</string>

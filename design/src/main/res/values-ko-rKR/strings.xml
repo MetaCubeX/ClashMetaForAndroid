@@ -107,12 +107,10 @@
     <string name="prefer_h3">h3 선호</string>
     <string name="http_port">HTTP 포트</string>
     <string name="socks_port">Socks 포트</string>
-    <string name="redirect_port">Redirect 포트</string>
     <string name="mixed_port">혼합 포트</string>
-    <string name="tproxy_port">TProxy 포트</string>
     <string name="authentication">인증</string>
     <string name="allow_lan">LAN 허용</string>
-    <string name="bind_address">수신 주소</string>
+    <string name="bind_address">바인드 주소</string>
     <string name="mode">모드</string>
     <string name="log_level">로그 레벨</string>
     <string name="ipv6">IPv6</string>
