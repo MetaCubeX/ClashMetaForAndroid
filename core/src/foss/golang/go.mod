@@ -53,7 +53,7 @@ require (
 	github.com/metacubex/gvisor v0.0.0-20250324165734-5857f47bd43b // indirect
 	github.com/metacubex/mihomo v1.7.0 // indirect
 	github.com/metacubex/nftables v0.0.0-20250503052935-30a69ab87793 // indirect
-	github.com/metacubex/quic-go v0.51.1-0.20250511032541-4e34341cf18b // indirect
+	github.com/metacubex/quic-go v0.52.1-0.20250522021943-aef454b9e639 // indirect
 	github.com/metacubex/randv2 v0.2.0 // indirect
 	github.com/metacubex/sing v0.5.3-0.20250504031621-1f99e54c15b7 // indirect
 	github.com/metacubex/sing-mux v0.3.2 // indirect
