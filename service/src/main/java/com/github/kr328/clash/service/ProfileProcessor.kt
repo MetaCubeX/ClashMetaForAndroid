@@ -72,6 +72,8 @@ object ProfileProcessor {
                         var download: Long = 0
                         var total: Long = 0
                         var expire: Long = 0
+                        var interval = snapshot.interval
+
                         if (snapshot?.type == Profile.Type.Url) {
                             if (snapshot.source.startsWith("https://", true)) {
                                 val client = OkHttpClient()
@@ -82,6 +84,17 @@ object ProfileProcessor {
 
                                 client.newCall(request).execute().use { response ->
                                     val userinfo = response.headers["subscription-userinfo"]
+                                    val updateInterval = response.headers["profile-update-interval"]
+
+                                    if (updateInterval != null) {
+                                        try {
+                                            val minutes = updateInterval.toInt() * 60 // Convert hours to minutes
+                                            interval = TimeUnit.MINUTES.toMillis(minutes.toLong())
+                                        } catch (e: NumberFormatException) {
+                                            Log.w("Invalid profile update interval value: $updateInterval", e)
+                                        }
+                                    }
+
                                     if (response.isSuccessful && userinfo != null) {
                                         val flags = userinfo.split(";")
                                         for (flag in flags) {
@@ -108,7 +121,7 @@ object ProfileProcessor {
                                 snapshot.name,
                                 snapshot.type,
                                 snapshot.source,
-                                snapshot.interval,
+                                interval,
                                 upload,
                                 download,
                                 total,
