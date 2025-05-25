@@ -8,7 +8,6 @@
     <string name="profile_process_result">Результат обработки профиля</string>
     <string name="update_successfully">Успешно обновлено</string>
     <string name="update_failure">Не удалось обновить</string>
-    <string name="format_update_complete">Обновление %s завершено</string>
     <string name="format_update_failure">Обновление %1$s: %2$s</string>
     <string name="running">Работает</string>
     <string name="loading">Загружается</string>

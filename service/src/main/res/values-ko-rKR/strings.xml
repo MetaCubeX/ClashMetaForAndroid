@@ -6,7 +6,6 @@
     <string name="profile_process_result">구성 파일 처리 결과</string>
     <string name="update_successfully">업데이트 성공</string>
     <string name="update_failure">업데이트 실패</string>
-    <string name="format_update_complete">%s 업데이트 성공</string>
     <string name="format_update_failure">업데이트 %1$s: %2$s</string>
     <string name="running">연결됨</string>
     <string name="loading">로딩중</string>
