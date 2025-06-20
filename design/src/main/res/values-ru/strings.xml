@@ -132,12 +132,10 @@
     <string name="prefer_h3">Предпочитать HTTP/3</string>
     <string name="http_port">Порт HTTP</string>
     <string name="socks_port">Порт Socks</string>
-    <string name="redirect_port">Порт перенаправления</string>
     <string name="mixed_port">Смешанный порт</string>
-    <string name="tproxy_port">Порт TProxy</string>
     <string name="authentication">Аутентификация</string>
     <string name="allow_lan">Разрешить LAN</string>
-    <string name="bind_address">Задать адрес</string>
+    <string name="bind_address">привязать адрес</string>
     <string name="mode">Режим</string>
     <string name="log_level">Уровень логов</string>
     <string name="ipv6">IPv6</string>
