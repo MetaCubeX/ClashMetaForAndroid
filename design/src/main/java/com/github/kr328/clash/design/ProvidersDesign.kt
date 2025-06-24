@@ -55,8 +55,9 @@ class ProvidersDesign(
     fun requestUpdateAll() {
         adapter.states.filter { !it.updating }.forEachIndexed { index, state ->
             state.updating = true
-
-            requests.trySend(Request.Update(index, state.provider))
+            if (state.provider.vehicleType != Provider.VehicleType.Inline) {
+                requests.trySend(Request.Update(index, state.provider))
+            }
         }
     }
 }

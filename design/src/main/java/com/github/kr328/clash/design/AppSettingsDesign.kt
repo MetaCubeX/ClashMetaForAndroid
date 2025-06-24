@@ -19,6 +19,7 @@ class AppSettingsDesign(
     srvStore: ServiceStore,
     behavior: Behavior,
     running: Boolean,
+    onHideIconChange: (hide: Boolean) -> Unit,
 ) : Design<AppSettingsDesign.Request>(context) {
     enum class Request {
         ReCreateAllActivities
@@ -62,6 +63,17 @@ class AppSettingsDesign(
             ) {
                 listener = OnChangedListener {
                     requests.trySend(Request.ReCreateAllActivities)
+                }
+            }
+
+            switch(
+                value = uiStore::hideAppIcon,
+                icon = R.drawable.ic_baseline_hide,
+                title = R.string.hide_app_icon_title,
+                summary = R.string.hide_app_icon_desc,
+            ) {
+                listener = OnChangedListener {
+                    onHideIconChange(uiStore::hideAppIcon.get())
                 }
             }
 

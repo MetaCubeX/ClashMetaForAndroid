@@ -21,6 +21,7 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import java.math.BigDecimal
 import java.net.URL
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -88,13 +89,13 @@ object ProfileProcessor {
                                             val info = flag.split("=")
                                             when {
                                                 info[0].contains("upload") && info[1].isNotEmpty() -> upload =
-                                                    info[1].toLong()
+                                                    BigDecimal(info[1].split('.').first()).longValueExact()
 
                                                 info[0].contains("download") && info[1].isNotEmpty() -> download =
-                                                    info[1].toLong()
+                                                    BigDecimal(info[1].split('.').first()).longValueExact()
 
                                                 info[0].contains("total") && info[1].isNotEmpty() -> total =
-                                                    info[1].toLong()
+                                                    BigDecimal(info[1].split('.').first()).longValueExact()
 
                                                 info[0].contains("expire") && info[1].isNotEmpty() ->  expire =
                                                     (info[1].toDouble() * 1000).toLong()

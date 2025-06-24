@@ -55,10 +55,17 @@ class ProviderAdapter(
 
         holder.binding.provider = state.provider
         holder.binding.state = state
-        holder.binding.update = View.OnClickListener {
-            state.updating = true
-
-            requestUpdate(position, state.provider)
+        if (state.provider.vehicleType == Provider.VehicleType.Inline) {
+            holder.binding.endView.visibility = View.GONE
+            holder.binding.elapsedView.visibility = View.GONE
+            holder.binding.divider.visibility = View.GONE
+        } else {
+            holder.binding.endView.visibility = View.VISIBLE
+            holder.binding.elapsedView.visibility = View.VISIBLE
+            holder.binding.update = View.OnClickListener {
+                state.updating = true
+                requestUpdate(position, state.provider)
+            }
         }
     }
 

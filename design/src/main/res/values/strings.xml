@@ -305,13 +305,19 @@
 
     <string name="sniffer_setting">Sniffer Setting</string>
     <string name="sniffer">Sniffer</string>
-    <string name="sniffing">Sniffer Mode</string>
+    <string name="force_dns_mapping">Force DNS Mapping</string>
+    <string name="parse_pure_ip">Parse Pure IP</string>
+    <string name="override_destination">Override Destination</string>
     <string name="force_domain">Force Domain</string>
     <string name="skip_domain">Skip Domain</string>
-    <string name="port_whitelist">Port Whitelist</string>
-    <string name="disable_sniffer">Disable Sniffer</string>
-    <string name="sniffer_config">Load Sniffer From Config</string>
-    <string name="sniffer_override">Override Sniffer Config</string>
+    <string name="skip_src_address">Skip Src Address</string>
+    <string name="skip_dst_address">Skip Dst Address</string>
+    <string name="sniff_http_ports">Sniff HTTP Ports</string>
+    <string name="sniff_tls_ports">Sniff TLS Ports</string>
+    <string name="sniff_quic_ports">Sniff QUIC Ports</string>
+    <string name="sniff_http_override_destination">Sniff HTTP Override Destination</string>
+    <string name="sniff_tls_override_destination">Sniff TLS Override Destination</string>
+    <string name="sniff_quic_override_destination">Sniff QUIC Override Destination</string>
 
     <string name="geox_url_setting">GeoX Url Setting</string>
     <string name="geox_geoip">GeoIp Url</string>
@@ -322,10 +328,10 @@
     <string name="geosite_url" translatable="false">https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/release/geosite.dat</string>
     <string name="geox_files" >Geo Files</string>
     <string name="import_geoip_file">Import GeoIP Database</string>
-    <string name="press_to_import">Press to import...</string>
     <string name="import_geosite_file">Import GeoSite Database</string>
     <string name="import_country_file">Import Country Database</string>
     <string name="import_asn_file">Import ASN Database</string>
+    <string name="press_to_import">Press to import...</string>
     <string name="geofile_import_failed">Import failed</string>
     <string name="geofile_unknown_db_format">Unknown Database format</string>
     <string name="geofile_unknown_db_format_message">Only %1$s are supported</string>
@@ -335,7 +341,7 @@
     <string name="external_control_activity">External Control</string>
     <string name="external_control_started">Clash.Meta service started</string>
     <string name="external_control_stopped">Clash.Meta service stopped</string>
-    <string name="force_dns_mapping">Force DNS Mapping</string>
-    <string name="parse_pure_ip">Parse Pure IP</string>
-    <string name="override_destination">Override Destination</string>
+
+    <string name="hide_app_icon_title">Hide App Icon</string>
+    <string name="hide_app_icon_desc">You can dial *#*#252746382#*#* to open this App</string>
 </resources>
