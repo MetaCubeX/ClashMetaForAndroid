@@ -101,8 +101,8 @@ github.com/metacubex/bart v0.20.5 h1:XkgLZ17QxfxkqKdGsojoM2Zu01mmHyyQSFzt2/calTM
 github.com/metacubex/bart v0.20.5/go.mod h1:DCcyfP4MC+Zy7sLK7XeGuMw+P5K9mIRsYOBgiE8icsI=
 github.com/metacubex/bbolt v0.0.0-20240822011022-aed6d4850399 h1:oBowHVKZycNtAFbZ6avaCSZJYeme2Nrj+4RpV2cNJig=
 github.com/metacubex/bbolt v0.0.0-20240822011022-aed6d4850399/go.mod h1:4xcieuIK+M4bGQmQYZVqEaIYqjS1ahO4kXG7EmDgEro=
-github.com/metacubex/chacha v0.1.2 h1:QulCq3eVm3TO6+4nVIWJtmSe7BT2GMrgVHuAoqRQnlc=
-github.com/metacubex/chacha v0.1.2/go.mod h1:Djn9bPZxLTXbJFSeyo0/qzEzQI+gUSSzttuzZM75GH8=
+github.com/metacubex/chacha v0.1.5 h1:fKWMb/5c7ZrY8Uoqi79PPFxl+qwR7X/q0OrsAubyX2M=
+github.com/metacubex/chacha v0.1.5/go.mod h1:Djn9bPZxLTXbJFSeyo0/qzEzQI+gUSSzttuzZM75GH8=
 github.com/metacubex/fswatch v0.1.1 h1:jqU7C/v+g0qc2RUFgmAOPoVvfl2BXXUXEumn6oQuxhU=
 github.com/metacubex/fswatch v0.1.1/go.mod h1:czrTT7Zlbz7vWft8RQu9Qqh+JoX+Nnb+UabuyN1YsgI=
 github.com/metacubex/gopacket v1.1.20-0.20230608035415-7e2f98a3e759 h1:cjd4biTvOzK9ubNCCkQ+ldc4YSH/rILn53l/xGBFHHI=
@@ -122,10 +122,10 @@ github.com/metacubex/sing-mux v0.3.2 h1:nJv52pyRivHcaZJKk2JgxpaVvj1GAXG81scSa9N7
 github.com/metacubex/sing-mux v0.3.2/go.mod h1:3rt1soewn0O6j89GCLmwAQFsq257u0jf2zQSPhTL3Bw=
 github.com/metacubex/sing-quic v0.0.0-20250523120938-f1a248e5ec7f h1:mP3vIm+9hRFI0C0Vl3pE0NESF/L85FDbuB0tGgUii6I=
 github.com/metacubex/sing-quic v0.0.0-20250523120938-f1a248e5ec7f/go.mod h1:JPTpf7fpnojsSuwRJExhSZSy63pVbp3VM39+zj+sAJM=
-github.com/metacubex/sing-shadowsocks v0.2.11-0.20250531133822-e545de386d4c h1:ZfgQx24XIN807046dp9CVBjAh0t9NJIzXG3X5jk+PEM=
-github.com/metacubex/sing-shadowsocks v0.2.11-0.20250531133822-e545de386d4c/go.mod h1:MtRM0ZZjR0kaDOzy9zWSt6/4/UlrnsNBq+1FNAF4vBk=
-github.com/metacubex/sing-shadowsocks2 v0.2.5-0.20250531133559-f4d53bd59335 h1:nSSdMV+I7Tjcb7s6FzNDMj7jH/ZdryY1DHPlgtFjW98=
-github.com/metacubex/sing-shadowsocks2 v0.2.5-0.20250531133559-f4d53bd59335/go.mod h1:WP8+S0kqtnSbX1vlIpo5i8Irm/ijZITEPBcZ26B5unY=
+github.com/metacubex/sing-shadowsocks v0.2.11-0.20250621023810-0e9ef9dd0c92 h1:Y9ebcKya6ow7VHoESCN5+l4zZvg5eaL2IhI5LLCQxQA=
+github.com/metacubex/sing-shadowsocks v0.2.11-0.20250621023810-0e9ef9dd0c92/go.mod h1:/squZ38pXrYjqtg8qn+joVvwbpGNYQNp8yxKsMVbCto=
+github.com/metacubex/sing-shadowsocks2 v0.2.5-0.20250621023950-93d605a2143d h1:Ey3A1tA8lVkRbK1FDmwuWj/57Nr8JMdpoVqe45mFzJg=
+github.com/metacubex/sing-shadowsocks2 v0.2.5-0.20250621023950-93d605a2143d/go.mod h1:+ukTd0OPFglT3bnKAYTJWYPbuox6HYNXE235r5tHdUk=
 github.com/metacubex/sing-shadowtls v0.0.0-20250503063515-5d9f966d17a2 h1:gXU+MYPm7Wme3/OAY2FFzVq9d9GxPHOqu5AQfg/ddhI=
 github.com/metacubex/sing-shadowtls v0.0.0-20250503063515-5d9f966d17a2/go.mod h1:mbfboaXauKJNIHJYxQRa+NJs4JU9NZfkA+I33dS2+9E=
 github.com/metacubex/sing-tun v0.4.7-0.20250611091011-60774779fdd8 h1:4zWKqxTx75TbfW2EmlQ3hxM6RTRg2PYOAVMCnU4I61I=
