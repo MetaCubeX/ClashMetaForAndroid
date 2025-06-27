@@ -46,6 +46,7 @@ class AccessControlActivity : BaseActivity<AccessControlDesign>() {
                         AccessControlDesign.Request.ReloadApps -> {
                             design.patchApps(loadApps(selected))
                         }
+
                         AccessControlDesign.Request.SelectAll -> {
                             val all = withContext(Dispatchers.Default) {
                                 design.apps.map(AppInfo::packageName)
@@ -56,11 +57,13 @@ class AccessControlActivity : BaseActivity<AccessControlDesign>() {
 
                             design.rebindAll()
                         }
+
                         AccessControlDesign.Request.SelectNone -> {
                             selected.clear()
 
                             design.rebindAll()
                         }
+
                         AccessControlDesign.Request.SelectInvert -> {
                             val all = withContext(Dispatchers.Default) {
                                 design.apps.map(AppInfo::packageName).toSet() - selected
@@ -71,6 +74,7 @@ class AccessControlActivity : BaseActivity<AccessControlDesign>() {
 
                             design.rebindAll()
                         }
+
                         AccessControlDesign.Request.Import -> {
                             val clipboard = getSystemService<ClipboardManager>()
                             val data = clipboard?.primaryClip
@@ -85,6 +89,7 @@ class AccessControlActivity : BaseActivity<AccessControlDesign>() {
 
                             design.rebindAll()
                         }
+
                         AccessControlDesign.Request.Export -> {
                             val clipboard = getSystemService<ClipboardManager>()
 
@@ -118,10 +123,10 @@ class AccessControlActivity : BaseActivity<AccessControlDesign>() {
                     it.packageName != packageName
                 }
                 .filter {
-                    it.packageName == "android" || it.requestedPermissions?.contains(INTERNET) == true
+                    it.applicationInfo != null
                 }
                 .filter {
-                    it.applicationInfo != null
+                    it.requestedPermissions?.contains(INTERNET) == true || it.applicationInfo!!.uid < android.os.Process.FIRST_APPLICATION_UID
                 }
                 .filter {
                     systemApp || !it.isSystemApp
