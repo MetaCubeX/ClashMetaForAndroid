@@ -6,123 +6,150 @@ import android.os.Build
 import androidx.core.content.getSystemService
 import com.github.kr328.clash.common.log.Log
 import com.github.kr328.clash.core.Clash
-import com.github.kr328.clash.service.util.resolveDns
+import com.github.kr328.clash.service.util.asSocketAddressText
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.channels.trySendBlocking
+import kotlinx.coroutines.selects.select
 import kotlinx.coroutines.withContext
+import java.net.InetAddress
+import java.util.concurrent.ConcurrentHashMap
 
-class NetworkObserveModule(service: Service) : Module<Network?>(service) {
-    private data class Action(val type: Type, val network: Network) {
-        enum class Type { Available, Lost, Changed }
-    }
-
+class NetworkObserveModule(service: Service) : Module<Network>(service) {
     private val connectivity = service.getSystemService<ConnectivityManager>()!!
-    private val actions = Channel<Action>(Channel.UNLIMITED)
+    private val networks: Channel<Network> = Channel(Channel.UNLIMITED)
     private val request = NetworkRequest.Builder().apply {
         addCapability(NetworkCapabilities.NET_CAPABILITY_NOT_VPN)
         addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            addCapability(NetworkCapabilities.NET_CAPABILITY_FOREGROUND)
+        }
         addCapability(NetworkCapabilities.NET_CAPABILITY_NOT_RESTRICTED)
     }.build()
+
+    private data class NetworkInfo(
+        @Volatile var losingMs: Long = 0,
+        @Volatile var dnsList: List<InetAddress> = emptyList()
+    ) {
+        fun isAvailable(): Boolean = losingMs < System.currentTimeMillis()
+    }
+
+    private val networkInfos = ConcurrentHashMap<Network, NetworkInfo>()
+
+    @Volatile
+    private var curDnsList = emptyList<String>()
+
     private val callback = object : ConnectivityManager.NetworkCallback() {
         override fun onAvailable(network: Network) {
-            actions.trySendBlocking(Action(Action.Type.Available, network))
+            Log.i("NetworkObserve onAvailable network=$network")
+            networkInfos[network] = NetworkInfo()
+        }
+
+        override fun onLosing(network: Network, maxMsToLive: Int) {
+            Log.i("NetworkObserve onLosing network=$network")
+            networkInfos[network]?.losingMs = System.currentTimeMillis() + maxMsToLive
+            notifyDnsChange()
+
+            networks.trySend(network)
         }
 
         override fun onLost(network: Network) {
-            actions.trySendBlocking(Action(Action.Type.Lost, network))
+            Log.i("NetworkObserve onLost network=$network")
+            networkInfos.remove(network)
+            notifyDnsChange()
+
+            networks.trySend(network)
         }
 
         override fun onLinkPropertiesChanged(network: Network, linkProperties: LinkProperties) {
-            actions.trySendBlocking(Action(Action.Type.Changed, network))
+            Log.i("NetworkObserve onLinkPropertiesChanged network=$network $linkProperties")
+            networkInfos[network]?.dnsList = linkProperties.dnsServers
+            notifyDnsChange()
+
+            networks.trySend(network)
+        }
+
+        override fun onUnavailable() {
+            Log.i("NetworkObserve onUnavailable")
+        }
+    }
+
+    private fun register(): Boolean {
+        Log.i("NetworkObserve start register")
+        return try {
+            connectivity.registerNetworkCallback(request, callback)
+
+            true
+        } catch (e: Exception) {
+            Log.w("NetworkObserve register failed", e)
+
+            false
+        }
+    }
+
+    private fun unregister(): Boolean {
+        Log.i("NetworkObserve start unregister")
+        try {
+            connectivity.unregisterNetworkCallback(callback)
+        } catch (e: Exception) {
+            Log.w("NetworkObserve unregister failed", e)
+        }
+
+        return false
+    }
+
+    private fun networkToInt(entry: Map.Entry<Network, NetworkInfo>): Int {
+        val capabilities = connectivity.getNetworkCapabilities(entry.key)
+        // calculate priority based on transport type, available state
+        // lower value means higher priority
+        // wifi > ethernet > usb tethering > bluetooth tethering > cellular > satellite > other
+        return when {
+            capabilities == null -> 100
+            capabilities.hasTransport(NetworkCapabilities.TRANSPORT_VPN) -> 90
+            capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> 0
+            capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> 1
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && capabilities.hasTransport(NetworkCapabilities.TRANSPORT_USB) -> 2
+            capabilities.hasTransport(NetworkCapabilities.TRANSPORT_BLUETOOTH) -> 3
+            capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> 4
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM && capabilities.hasTransport(NetworkCapabilities.TRANSPORT_SATELLITE) -> 5
+            // TRANSPORT_LOWPAN / TRANSPORT_THREAD / TRANSPORT_WIFI_AWARE are not for general internet access, which will not set as default route.
+            else -> 20
+        } + (if (entry.value.isAvailable()) 0 else 10)
+    }
+
+    private fun notifyDnsChange() {
+        val dnsList = (networkInfos.asSequence().minByOrNull { networkToInt(it) }?.value?.dnsList
+            ?: emptyList()).map { x -> x.asSocketAddressText(53) }
+        val prevDnsList = curDnsList
+        if (dnsList.isNotEmpty() && prevDnsList != dnsList) {
+            Log.i("notifyDnsChange $prevDnsList -> $dnsList")
+            curDnsList = dnsList
+            Clash.notifyDnsChanged(dnsList)
         }
     }
 
     override suspend fun run() {
-        try {
-            connectivity.registerNetworkCallback(request, callback)
-        } catch (e: Exception) {
-            Log.w("Observe network failed: $e", e)
-
-            return
-        }
+        register()
 
         try {
-            val networks = mutableSetOf<Network>()
-
             while (true) {
-                val action = actions.receive()
+                val quit = select {
+                    networks.onReceive {
+                        enqueueEvent(it)
 
-                val resolveDefault = when (action.type) {
-                    Action.Type.Available -> {
-                        networks.add(action.network)
-
-                        true
-                    }
-                    Action.Type.Lost -> {
-                        networks.remove(action.network)
-
-                        true
-                    }
-                    Action.Type.Changed -> {
                         false
                     }
                 }
-
-                val dns = networks.flatMap { network ->
-                    connectivity?.resolveDns(network) ?: emptyList()
-                }
-
-                Clash.notifyDnsChanged(dns)
-
-                Log.d("DNS: $dns")
-
-                if (resolveDefault) {
-                    val network = networks.maxByOrNull { net ->
-                        connectivity.getNetworkCapabilities(net)?.let { cap ->
-                            TRANSPORT_PRIORITY.indexOfFirst { cap.hasTransport(it) }
-                        } ?: -1
-                    }
-
-                    enqueueEvent(network)
-
-                    Log.d("Network: $network of $networks")
+                if (quit) {
+                    return
                 }
             }
         } finally {
             withContext(NonCancellable) {
-                enqueueEvent(null)
+                unregister()
 
+                Log.i("NetworkObserve dns = []")
                 Clash.notifyDnsChanged(emptyList())
-
-                runCatching {
-                    connectivity.unregisterNetworkCallback(callback)
-                }
             }
         }
-    }
-
-    companion object {
-        private val TRANSPORT_PRIORITY = sequence {
-            yield(NetworkCapabilities.TRANSPORT_CELLULAR)
-
-            if (Build.VERSION.SDK_INT >= 27) {
-                yield(NetworkCapabilities.TRANSPORT_LOWPAN)
-            }
-
-            yield(NetworkCapabilities.TRANSPORT_BLUETOOTH)
-
-            if (Build.VERSION.SDK_INT >= 26) {
-                yield(NetworkCapabilities.TRANSPORT_WIFI_AWARE)
-            }
-
-            yield(NetworkCapabilities.TRANSPORT_WIFI)
-
-            if (Build.VERSION.SDK_INT >= 31) {
-                yield(NetworkCapabilities.TRANSPORT_USB)
-            }
-
-            yield(NetworkCapabilities.TRANSPORT_ETHERNET)
-        }.toList()
     }
 }
