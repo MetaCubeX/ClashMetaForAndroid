@@ -128,8 +128,6 @@ class NetworkSettingsDesign(
                 clicked {
                     requests.trySend(Request.StartAccessControlList)
                 }
-
-                vpnDependencies.add(this)
             }
 
             if (running) {

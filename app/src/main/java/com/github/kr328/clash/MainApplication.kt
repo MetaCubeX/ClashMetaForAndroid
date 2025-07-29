@@ -10,9 +10,6 @@ import com.github.kr328.clash.service.util.sendServiceRecreated
 import com.github.kr328.clash.util.clashDir
 import java.io.File
 import java.io.FileOutputStream
-import java.io.IOException
-import java.io.InputStream
-import java.io.OutputStream
 
 
 @Suppress("unused")
@@ -39,26 +36,36 @@ class MainApplication : Application() {
     }
 
     private fun extractGeoFiles() {
-        clashDir.mkdirs();
+        clashDir.mkdirs()
 
+        val updateDate = packageManager.getPackageInfo(packageName, 0).lastUpdateTime
         val geoipFile = File(clashDir, "geoip.metadb")
-        if(!geoipFile.exists()) {
+        if (geoipFile.exists() && geoipFile.lastModified() < updateDate) {
+            geoipFile.delete()
+        }
+        if (!geoipFile.exists()) {
             FileOutputStream(geoipFile).use {
-                assets.open("geoip.metadb").copyTo(it);
+                assets.open("geoip.metadb").copyTo(it)
             }
         }
 
         val geositeFile = File(clashDir, "geosite.dat")
-        if(!geositeFile.exists()) {
+        if (geositeFile.exists() && geositeFile.lastModified() < updateDate) {
+            geositeFile.delete()
+        }
+        if (!geositeFile.exists()) {
             FileOutputStream(geositeFile).use {
-                assets.open("geosite.dat").copyTo(it);
+                assets.open("geosite.dat").copyTo(it)
             }
         }
-        
-        val ASNFile = File(clashDir, "ASN.mmdb")
-        if(!ASNFile.exists()) {
-            FileOutputStream(ASNFile).use {
-                assets.open("ASN.mmdb").copyTo(it);
+
+        val asnFile = File(clashDir, "ASN.mmdb")
+        if (asnFile.exists() && asnFile.lastModified() < updateDate) {
+            asnFile.delete()
+        }
+        if (!asnFile.exists()) {
+            FileOutputStream(asnFile).use {
+                assets.open("ASN.mmdb").copyTo(it)
             }
         }
     }
