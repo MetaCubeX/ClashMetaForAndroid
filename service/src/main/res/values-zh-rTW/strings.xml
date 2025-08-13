@@ -2,7 +2,6 @@
 <resources>
     <string name="clash_service_status_channel">Clash 狀態</string>
     <string name="running">正在運作</string>
-    <string name="format_update_complete">更新 %s 成功</string>
     <string name="format_update_failure">"更新 %1$s: %2$s "</string>
     <string name="clash_meta_for_android">Clash Meta for Android</string>
     <string name="profiles_and_providers">設定檔和外部資源</string>
