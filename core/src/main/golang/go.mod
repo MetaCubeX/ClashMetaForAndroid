@@ -12,7 +12,6 @@ require (
 replace github.com/metacubex/mihomo => ../../foss/golang/clash
 
 require (
-	github.com/3andne/restls-client-go v0.1.6 // indirect
 	github.com/RyuaNerin/go-krypto v1.3.0 // indirect
 	github.com/Yawning/aez v0.0.0-20211027044916-e49e68abd344 // indirect
 	github.com/ajg/form v1.5.1 // indirect
@@ -44,34 +43,35 @@ require (
 	github.com/insomniacslk/dhcp v0.0.0-20250109001534-8abf58130905 // indirect
 	github.com/josharian/native v1.1.0 // indirect
 	github.com/klauspost/compress v1.17.9 // indirect
-	github.com/klauspost/cpuid/v2 v2.2.9 // indirect
 	github.com/lufia/plan9stats v0.0.0-20211012122336-39d0f177ccd0 // indirect
-	github.com/lunixbochs/struc v0.0.0-20200707160740-784aaebc1d40 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mdlayher/netlink v1.7.2 // indirect
 	github.com/mdlayher/socket v0.4.1 // indirect
 	github.com/metacubex/amneziawg-go v0.0.0-20240922133038-fdf3a4d5a4ab // indirect
+	github.com/metacubex/ascon v0.1.0 // indirect
 	github.com/metacubex/bart v0.20.5 // indirect
 	github.com/metacubex/bbolt v0.0.0-20250725135710-010dbbbb7a5b // indirect
+	github.com/metacubex/blake3 v0.1.0 // indirect
 	github.com/metacubex/chacha v0.1.5 // indirect
 	github.com/metacubex/fswatch v0.1.1 // indirect
 	github.com/metacubex/gopacket v1.1.20-0.20230608035415-7e2f98a3e759 // indirect
 	github.com/metacubex/gvisor v0.0.0-20250324165734-5857f47bd43b // indirect
 	github.com/metacubex/nftables v0.0.0-20250503052935-30a69ab87793 // indirect
-	github.com/metacubex/quic-go v0.53.1-0.20250628094454-fda5262d1d9c // indirect
+	github.com/metacubex/quic-go v0.54.1-0.20250730114134-a1ae705fe295 // indirect
 	github.com/metacubex/randv2 v0.2.0 // indirect
-	github.com/metacubex/sing v0.5.4 // indirect
-	github.com/metacubex/sing-mux v0.3.2 // indirect
+	github.com/metacubex/restls-client-go v0.1.7 // indirect
+	github.com/metacubex/sing v0.5.5 // indirect
+	github.com/metacubex/sing-mux v0.3.3-0.20250813083925-d7c9aeaeeaac // indirect
 	github.com/metacubex/sing-quic v0.0.0-20250718154553-1b193bec4cbb // indirect
-	github.com/metacubex/sing-shadowsocks v0.2.11 // indirect
-	github.com/metacubex/sing-shadowsocks2 v0.2.5 // indirect
+	github.com/metacubex/sing-shadowsocks v0.2.12 // indirect
+	github.com/metacubex/sing-shadowsocks2 v0.2.6 // indirect
 	github.com/metacubex/sing-shadowtls v0.0.0-20250503063515-5d9f966d17a2 // indirect
-	github.com/metacubex/sing-tun v0.4.7-0.20250721020617-8e7c37ed3d97 // indirect
-	github.com/metacubex/sing-vmess v0.2.3 // indirect
+	github.com/metacubex/sing-tun v0.4.7 // indirect
+	github.com/metacubex/sing-vmess v0.2.4-0.20250731011226-ea28d589924d // indirect
 	github.com/metacubex/sing-wireguard v0.0.0-20250503063753-2dc62acc626f // indirect
 	github.com/metacubex/smux v0.0.0-20250503055512-501391591dee // indirect
 	github.com/metacubex/tfo-go v0.0.0-20250516165257-e29c16ae41d4 // indirect
-	github.com/metacubex/utls v1.8.0 // indirect
+	github.com/metacubex/utls v1.8.1-0.20250811145843-49b4f106169a // indirect
 	github.com/metacubex/wireguard-go v0.0.0-20240922131502-c182e7471181 // indirect
 	github.com/miekg/dns v1.1.63 // indirect
 	github.com/mroth/weightedrand/v2 v2.1.0 // indirect
@@ -111,5 +111,4 @@ require (
 	golang.org/x/time v0.7.0 // indirect
 	golang.org/x/tools v0.24.0 // indirect
 	google.golang.org/protobuf v1.34.2 // indirect
-	lukechampine.com/blake3 v1.3.0 // indirect
 )
