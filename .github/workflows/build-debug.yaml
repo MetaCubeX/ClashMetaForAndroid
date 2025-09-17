@@ -29,7 +29,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version: "1.24"
+          go-version: "1.25"
 
       - uses: actions/cache@v4
         with:
@@ -39,6 +39,12 @@ jobs:
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-
+
+      - name: Update CA
+        run: |
+          sudo apt-get update && sudo apt-get install ca-certificates
+          sudo update-ca-certificates
+          cp -f /etc/ssl/certs/ca-certificates.crt core/src/foss/golang/clash/component/ca/ca-certificates.crt
 
       # - name: Signing properties
       #   env:

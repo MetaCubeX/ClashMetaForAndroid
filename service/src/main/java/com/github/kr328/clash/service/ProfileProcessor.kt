@@ -76,9 +76,10 @@ object ProfileProcessor {
                         if (snapshot?.type == Profile.Type.Url) {
                             if (snapshot.source.startsWith("https://", true)) {
                                 val client = OkHttpClient()
+                                val versionName = context.packageManager.getPackageInfo(context.packageName, 0).versionName
                                 val request = Request.Builder()
                                     .url(snapshot.source)
-                                    .header("User-Agent", "ClashforWindows/0.19.23")
+                                    .header("User-Agent", "ClashMetaForAndroid/$versionName")
                                     .build()
 
                                 client.newCall(request).execute().use { response ->
