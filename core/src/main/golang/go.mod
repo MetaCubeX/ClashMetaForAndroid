@@ -59,7 +59,7 @@ require (
 	github.com/metacubex/gvisor v0.0.0-20250919004547-6122b699a301 // indirect
 	github.com/metacubex/kcp-go v0.0.0-20250923001605-1ba6f691c45b // indirect
 	github.com/metacubex/nftables v0.0.0-20250503052935-30a69ab87793 // indirect
-	github.com/metacubex/quic-go v0.54.1-0.20250730114134-a1ae705fe295 // indirect
+	github.com/metacubex/quic-go v0.54.1-0.20250926001022-e2a3ce003b3a // indirect
 	github.com/metacubex/randv2 v0.2.0 // indirect
 	github.com/metacubex/restls-client-go v0.1.7 // indirect
 	github.com/metacubex/sing v0.5.6 // indirect

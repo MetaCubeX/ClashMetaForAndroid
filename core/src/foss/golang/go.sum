@@ -108,8 +108,8 @@ github.com/metacubex/kcp-go v0.0.0-20250923001605-1ba6f691c45b h1:z7JLKjugnQ1qvD
 github.com/metacubex/kcp-go v0.0.0-20250923001605-1ba6f691c45b/go.mod h1:HIJZW4QMhbBqXuqC1ly6Hn0TEYT2SzRw58ns1yGhXTs=
 github.com/metacubex/nftables v0.0.0-20250503052935-30a69ab87793 h1:1Qpuy+sU3DmyX9HwI+CrBT/oLNJngvBorR2RbajJcqo=
 github.com/metacubex/nftables v0.0.0-20250503052935-30a69ab87793/go.mod h1:RjRNb4G52yAgfR+Oe/kp9G4PJJ97Fnj89eY1BFO3YyA=
-github.com/metacubex/quic-go v0.54.1-0.20250730114134-a1ae705fe295 h1:8JVlYuE8uSJAvmyCd4TjvDxs57xjb0WxEoaWafK5+qs=
-github.com/metacubex/quic-go v0.54.1-0.20250730114134-a1ae705fe295/go.mod h1:1lktQFtCD17FZliVypbrDHwbsFSsmz2xz2TRXydvB5c=
+github.com/metacubex/quic-go v0.54.1-0.20250926001022-e2a3ce003b3a h1:l7BWjOifmqM2zMi+AMrgIx1z4KJt0oY/6cHW11kA9IQ=
+github.com/metacubex/quic-go v0.54.1-0.20250926001022-e2a3ce003b3a/go.mod h1:1lktQFtCD17FZliVypbrDHwbsFSsmz2xz2TRXydvB5c=
 github.com/metacubex/randv2 v0.2.0 h1:uP38uBvV2SxYfLj53kuvAjbND4RUDfFJjwr4UigMiLs=
 github.com/metacubex/randv2 v0.2.0/go.mod h1:kFi2SzrQ5WuneuoLLCMkABtiBu6VRrMrWFqSPyj2cxY=
 github.com/metacubex/restls-client-go v0.1.7 h1:eCwiXCTQb5WJu9IlgYvDBA1OgrINv58dEe7hcN5H15k=
