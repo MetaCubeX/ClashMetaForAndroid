@@ -8,4 +8,7 @@ object Components {
 
     val MAIN_ACTIVITY = ComponentName(packageName, "$componentsPackageName.MainActivity")
     val PROPERTIES_ACTIVITY = ComponentName(packageName, "$componentsPackageName.PropertiesActivity")
+
+    // 新建/编辑配置页
+    val NEW_PROFILE_ACTIVITY = ComponentName(packageName, "$componentsPackageName.NewProfileActivity")
 }

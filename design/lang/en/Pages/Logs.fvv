@@ -1,0 +1,36 @@
+<Logs Page>
+logs_page_title = "Logs"
+logs_start_recording = "Start Logging"
+
+<Sections>
+logs_section_filter = "Log Level Filter"
+
+<Log Levels>
+logs_level_label = "Log Level"
+logs_level_all = "All"
+logs_level_error = "Error"
+logs_level_warning = "Warning"
+logs_level_info = "Info"
+logs_level_debug = "Debug"
+logs_level_silent = "Silent"
+
+<Log Files>
+logs_files_title = "Log Files (%d)"
+logs_files_title_recording = "Log Files (%d) - Recording..."
+logs_delete_all = "Delete All Logs (%d)"
+
+<Log File Info>
+logs_type_label = "Type: "
+logs_create_time_label = "Created: "
+logs_size_label = "Size: "
+logs_type_error = "Error"
+logs_type_warning = "Warning"
+logs_type_info = "Info"
+logs_type_debug = "Debug"
+logs_type_silent = "Silent"
+logs_type_all = "All Logs"
+logs_unknown_size = "Unknown Size"
+
+<Dialog>
+logs_dialog_delete_title = "Delete All Logs"
+

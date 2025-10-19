@@ -1,0 +1,26 @@
+<Proxy Page>
+proxy_page_title = "节点"
+group_selector = "节点组"
+test_speed = "测速"
+more_options = "更多操作"
+
+<Empty States>
+loading_groups = "正在加载代理组..."
+empty_text = "暂无代理组（´･ω･`）"
+empty_hint = "请检查配置文件或启动状态"
+
+<Menu Options>
+menu_default_order = "默认顺序"
+menu_sort_by_delay = "按延迟排序"
+menu_dual_column = "双列排列"
+menu_single_column = "单列排列"
+
+<Mode Selection>
+mode_title = "模式选择"
+mode_direct = "直连"
+mode_global = "全局"
+mode_rule = "规则"
+mode_script = "脚本"
+
+<Proxy Card>
+delay_ms = "%dms"

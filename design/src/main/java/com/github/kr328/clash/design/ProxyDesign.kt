@@ -1,67 +1,79 @@
 package com.github.kr328.clash.design
 
 import android.content.Context
-import android.content.res.ColorStateList
-import android.view.View
-import android.widget.Toast
-import androidx.viewpager2.widget.ViewPager2
+import androidx.compose.runtime.*
 import com.github.kr328.clash.core.model.Proxy
 import com.github.kr328.clash.core.model.TunnelState
-import com.github.kr328.clash.design.adapter.ProxyAdapter
-import com.github.kr328.clash.design.adapter.ProxyPageAdapter
-import com.github.kr328.clash.design.component.ProxyMenu
-import com.github.kr328.clash.design.component.ProxyViewConfig
-import com.github.kr328.clash.design.databinding.DesignProxyBinding
+import com.github.kr328.clash.design.constants.ProxyConstants
 import com.github.kr328.clash.design.model.ProxyState
+import com.github.kr328.clash.design.proxy.ProxyGroupState
 import com.github.kr328.clash.design.store.UiStore
-import com.github.kr328.clash.design.util.applyFrom
-import com.github.kr328.clash.design.util.layoutInflater
-import com.github.kr328.clash.design.util.resolveThemedColor
-import com.github.kr328.clash.design.util.root
-import com.google.android.material.tabs.TabLayoutMediator
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 
 class ProxyDesign(
     context: Context,
-    overrideMode: TunnelState.Mode?,
-    groupNames: List<String>,
-    uiStore: UiStore,
+    val overrideMode: TunnelState.Mode?,
+    initialGroupNames: List<String>,
+    val uiStore: UiStore,
 ) : Design<ProxyDesign.Request>(context) {
+
     sealed class Request {
         object ReloadAll : Request()
         object ReLaunch : Request()
-
         data class PatchMode(val mode: TunnelState.Mode?) : Request()
         data class Reload(val index: Int) : Request()
         data class Select(val index: Int, val name: String) : Request()
         data class UrlTest(val index: Int) : Request()
     }
 
-    private val binding = DesignProxyBinding
-        .inflate(context.layoutInflater, context.root, false)
+    val proxyGroups = mutableStateMapOf<Int, ProxyGroupState>()
 
-    private var config = ProxyViewConfig(context, uiStore.proxyLine)
+    var currentPage by mutableStateOf(0)
 
-    private val menu: ProxyMenu by lazy {
-        ProxyMenu(context, binding.menuView, overrideMode, uiStore, requests) {
-            config.proxyLine = uiStore.proxyLine
+    var sortByDelay by mutableStateOf(false)
+
+    private var isUrlTestingByPage = mutableStateMapOf<Int, Boolean>()
+    private var testingStartTimeByPage = mutableStateMapOf<Int, Long>()
+    private var showMenu by mutableStateOf(false)
+
+    internal var groupNames by mutableStateOf(initialGroupNames)
+
+    var proxyLayoutType by mutableStateOf(1)
+    internal val modes = TunnelState.Mode.values()
+    internal var currentMode by mutableStateOf(TunnelState.Mode.Rule)
+
+    init {
+        sortByDelay = uiStore.proxySortByDelay
+        proxyLayoutType = uiStore.proxyLayoutType
+        currentMode = overrideMode ?: TunnelState.Mode.Rule
+        val lastGroupName = uiStore.proxyLastGroup
+        if (lastGroupName.isNotEmpty()) {
+            val idx = groupNames.indexOf(lastGroupName)
+            if (idx >= 0) {
+                currentPage = idx
+            }
         }
     }
 
-    private val adapter: ProxyPageAdapter
-        get() = binding.pagesView.adapter!! as ProxyPageAdapter
+    fun toggleSortByDelay() {
+        sortByDelay = !sortByDelay
+        uiStore.proxySortByDelay = sortByDelay
+    }
 
-    private var horizontalScrolling = false
-    private val verticalBottomScrolled: Boolean
-        get() = adapter.states[binding.pagesView.currentItem].bottom
-    private var urlTesting: Boolean
-        get() = adapter.states[binding.pagesView.currentItem].urlTesting
-        set(value) {
-            adapter.states[binding.pagesView.currentItem].urlTesting = value
-        }
+    fun toggleProxyLayoutType() {
+        proxyLayoutType = (proxyLayoutType + 1) % ProxyConstants.UI.LAYOUT_TYPE_COUNT
+        uiStore.proxyLayoutType = proxyLayoutType
+    }
 
-    override val root: View = binding.root
+    @Composable
+    override fun Content() {
+        com.github.kr328.clash.design.screen.ProxyScreen(
+            proxyDesign = this,
+            running = true
+        )
+    }
 
     suspend fun updateGroup(
         position: Int,
@@ -69,109 +81,265 @@ class ProxyDesign(
         selectable: Boolean,
         parent: ProxyState,
         links: Map<String, ProxyState>
-    ) {
-        adapter.updateAdapter(position, proxies, selectable, parent, links)
-
-        adapter.states[position].urlTesting = false
-
-        updateUrlTestButtonStatus()
+    ) = updateStateOnMain {
+        proxyGroups[position] = ProxyGroupState(
+            proxies = proxies,
+            selectable = selectable,
+            parent = parent,
+            links = links,
+            urlTesting = false,
+            testingUpdatedDelays = false
+        )
     }
 
-    suspend fun requestRedrawVisible() {
-        withContext(Dispatchers.Main) {
-            adapter.requestRedrawVisible()
+    fun requestRedrawVisible() {
+    }
+
+    fun requestUrlTesting(pageIndex: Int = currentPage) {
+        if (isUrlTestingByPage[pageIndex] == true) {
+            val startTime = testingStartTimeByPage[pageIndex] ?: 0
+            if (System.currentTimeMillis() - startTime < ProxyConstants.DelayTest.TEST_IN_PROGRESS_TIMEOUT) {
+                return
+            }
+        }
+
+        val targetGroup = proxyGroups[pageIndex]
+        if (targetGroup == null || targetGroup.proxies.isEmpty()) {
+            return
+        }
+        isUrlTestingByPage[pageIndex] = true
+        testingStartTimeByPage[pageIndex] = System.currentTimeMillis()
+        val updatedGroup = targetGroup.copy(urlTesting = true, testingUpdatedDelays = true)
+        proxyGroups[pageIndex] = updatedGroup
+        requests.trySend(Request.UrlTest(pageIndex))
+    }
+
+    fun stopUrlTesting(pageIndex: Int = currentPage) {
+        runOnMain {
+            isUrlTestingByPage[pageIndex] = false
+            testingStartTimeByPage.remove(pageIndex)
+            val targetGroup = proxyGroups[pageIndex]?.copy(urlTesting = false, testingUpdatedDelays = false)
+            if (targetGroup != null) {
+                proxyGroups[pageIndex] = targetGroup
+            }
         }
     }
 
-    suspend fun showModeSwitchTips() {
-        withContext(Dispatchers.Main) {
-            Toast.makeText(context, R.string.mode_switch_tips, Toast.LENGTH_LONG).show()
+    fun isPageTesting(pageIndex: Int): Boolean {
+        return isUrlTestingByPage[pageIndex] == true
+    }
+
+    fun cleanupTimeoutTests() {
+        val currentTime = System.currentTimeMillis()
+        val timeoutPages = mutableListOf<Int>()
+
+        testingStartTimeByPage.forEach { (pageIndex, startTime) ->
+            if (currentTime - startTime > ProxyConstants.DelayTest.TEST_CLEANUP_TIMEOUT) {
+                timeoutPages.add(pageIndex)
+            }
+        }
+
+        timeoutPages.forEach { pageIndex ->
+            stopUrlTesting(pageIndex)
         }
     }
 
-    init {
-        binding.self = this
+    fun updateProxyDelay(groupIndex: Int, proxyName: String, delay: Int) {
+        val group = proxyGroups[groupIndex] ?: return
+        val state = group.links[proxyName] ?: return
+        val currentDelay = state.delay
+        if (currentDelay == delay) return
 
-        binding.activityBarLayout.applyFrom(context)
-
-        binding.menuView.setOnClickListener {
-            menu.show()
-        }
-
-        if (groupNames.isEmpty()) {
-            binding.emptyView.visibility = View.VISIBLE
-
-            binding.urlTestView.visibility = View.GONE
-            binding.tabLayoutView.visibility = View.GONE
-            binding.elevationView.visibility = View.GONE
-            binding.pagesView.visibility = View.GONE
-            binding.urlTestFloatView.visibility = View.GONE
-        } else {
-            binding.urlTestFloatView.supportImageTintList = ColorStateList.valueOf(
-                context.resolveThemedColor(com.google.android.material.R.attr.colorOnPrimary)
-            )
-
-            binding.pagesView.apply {
-                adapter = ProxyPageAdapter(
-                    surface,
-                    config,
-                    List(groupNames.size) { index ->
-                        ProxyAdapter(config) { name ->
-                            requests.trySend(Request.Select(index, name))
-                        }
+        runOnMain {
+            val freshGroup = proxyGroups[groupIndex]
+            if (freshGroup != null) {
+                val targetState = freshGroup.links[proxyName]
+                if (targetState != null) {
+                    val newLinks = freshGroup.links.toMutableMap().apply {
+                        this[proxyName] = targetState.copy(delay = delay)
                     }
-                ) {
-                    if (it == currentItem)
-                        updateUrlTestButtonStatus()
+                    proxyGroups[groupIndex] = freshGroup.copy(links = newLinks)
+                }
+            }
+        }
+    }
+
+    fun updateProxyDelays(groupIndex: Int, delays: Map<String, Int>) {
+        if (delays.isEmpty()) return
+        val group = proxyGroups[groupIndex] ?: return
+
+        runOnMain {
+            val fresh = proxyGroups[groupIndex]
+            if (fresh != null) {
+                val newLinks = fresh.links.toMutableMap()
+                var changed = false
+                delays.forEach { (name, d) ->
+                    val st = newLinks[name]
+                    if (st != null && st.delay != d) {
+                        newLinks[name] = st.copy(delay = d)
+                        changed = true
+                    }
+                }
+                if (changed) {
+                    proxyGroups[groupIndex] = fresh.copy(
+                        links = newLinks,
+                        testingUpdatedDelays = fresh.testingUpdatedDelays
+                    )
+                }
+            }
+        }
+    }
+
+    fun applyNewGroupNames(newNames: List<String>) {
+        if (newNames == groupNames) return
+        groupNames = newNames
+        proxyGroups.clear()
+        isUrlTestingByPage.clear()
+        testingStartTimeByPage.clear()
+
+        requests.trySend(Request.ReloadAll)
+        val last = uiStore.proxyLastGroup
+        currentPage = if (last.isNotEmpty()) {
+            val idx = groupNames.indexOf(last)
+            if (idx >= 0) idx else 0
+        } else 0
+    }
+
+    fun updateProxySelection(groupIndex: Int, selectedProxyName: String) {
+        val group = proxyGroups[groupIndex] ?: return
+        val updatedParent = group.parent?.copy(now = selectedProxyName)
+        if (updatedParent != null) {
+            proxyGroups[groupIndex] = group.copy(parent = updatedParent)
+        }
+    }
+
+    fun isCurrentPageTesting(): Boolean {
+        return isPageTesting(currentPage)
+    }
+
+    fun stopAllTesting() {
+        val testingPages = isUrlTestingByPage.keys.toList()
+        testingPages.forEach { pageIndex ->
+            stopUrlTesting(pageIndex)
+        }
+    }
+
+    private val delayCache = mutableMapOf<String, Pair<Int, Long>>()
+
+    fun getProxyDelayWithCache(proxyName: String): Int? {
+        val cached = delayCache[proxyName]
+        return if (cached != null && System.currentTimeMillis() - cached.second < ProxyConstants.DelayTest.CACHE_VALID_TIME) {
+            cached.first
+        } else null
+    }
+
+    fun cacheProxyDelay(proxyName: String, delay: Int) {
+        delayCache[proxyName] = delay to System.currentTimeMillis()
+    }
+
+    fun startBackgroundDelayTest(pageIndex: Int) {
+        this.launch {
+            val group = proxyGroups[pageIndex] ?: return@launch
+            val proxies = group.proxies
+
+            if (proxies.isEmpty()) return@launch
+
+            isUrlTestingByPage[pageIndex] = true
+            testingStartTimeByPage[pageIndex] = System.currentTimeMillis()
+
+            try {
+                val concurrency = ProxyConstants.Concurrency.getConcurrency(proxies.size)
+
+                val gName = context.let {
+                    groupNames.getOrNull(pageIndex)
+                } ?: return@launch
+
+                requests.trySend(Request.UrlTest(pageIndex))
+
+                val maxWaitTime = ProxyConstants.WaitTime.getMaxWaitTime(proxies.size)
+
+                withTimeoutOrNull(maxWaitTime) {
+                    while (isUrlTestingByPage[pageIndex] == true) {
+                        delay(ProxyConstants.DelayTest.TEST_CHECK_INTERVAL)
+                    }
                 }
 
-                registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
-                    override fun onPageScrollStateChanged(state: Int) {
-                        horizontalScrolling = state != ViewPager2.SCROLL_STATE_IDLE
-
-                        updateUrlTestButtonStatus()
-                    }
-
-                    override fun onPageSelected(position: Int) {
-                        uiStore.proxyLastGroup = groupNames[position]
-                    }
-                })
-            }
-
-            TabLayoutMediator(binding.tabLayoutView, binding.pagesView) { tab, index ->
-                tab.text = groupNames[index]
-            }.attach()
-
-            val initialPosition = groupNames.indexOf(uiStore.proxyLastGroup)
-
-            binding.pagesView.post {
-                if (initialPosition > 0)
-                    binding.pagesView.setCurrentItem(initialPosition, false)
+            } finally {
+                stopUrlTesting(pageIndex)
             }
         }
     }
 
-    fun requestUrlTesting() {
-        urlTesting = true
+    fun updateProxyDelayRealtime(groupIndex: Int, proxyName: String, delay: Int) {
+        val group = proxyGroups[groupIndex] ?: return
+        val currentLinks = group.links.toMutableMap()
+        val currentState = currentLinks[proxyName]
 
-        requests.trySend(Request.UrlTest(binding.pagesView.currentItem))
+        if (currentState != null && currentState.delay != delay) {
+            cacheProxyDelay(proxyName, delay)
+            currentLinks[proxyName] = currentState.copy(delay = delay)
+            proxyGroups[groupIndex] = group.copy(
+                links = currentLinks,
+                testingUpdatedDelays = true
+            )
 
-        updateUrlTestButtonStatus()
+            if (sortByDelay) {
+                triggerRealtimeSort(groupIndex)
+            }
+        }
     }
 
-    private fun updateUrlTestButtonStatus() {
-        if (verticalBottomScrolled || horizontalScrolling || urlTesting) {
-            binding.urlTestFloatView.hide()
-        } else {
-            binding.urlTestFloatView.show()
+    private fun triggerRealtimeSort(groupIndex: Int) {
+        this.launch {
+            delay(ProxyConstants.UI.SORT_DEBOUNCE_DELAY)
+            val group = proxyGroups[groupIndex]
+            if (group != null && !group.urlTesting) {
+                requestRedrawVisible()
+            }
+        }
+    }
+
+    fun updateProxyDelaysRealtime(groupIndex: Int, delays: Map<String, Int>) {
+        if (delays.isEmpty()) return
+        val group = proxyGroups[groupIndex] ?: return
+
+        val currentLinks = group.links.toMutableMap()
+        var hasChanges = false
+
+        delays.forEach { (proxyName, delay) ->
+            val currentState = currentLinks[proxyName]
+            if (currentState != null && currentState.delay != delay) {
+                cacheProxyDelay(proxyName, delay)
+                currentLinks[proxyName] = currentState.copy(delay = delay)
+                hasChanges = true
+            }
         }
 
-        if (urlTesting) {
-            binding.urlTestView.visibility = View.GONE
-            binding.urlTestProgressView.visibility = View.VISIBLE
-        } else {
-            binding.urlTestView.visibility = View.VISIBLE
-            binding.urlTestProgressView.visibility = View.GONE
+        if (hasChanges) {
+            proxyGroups[groupIndex] = group.copy(
+                links = currentLinks,
+                testingUpdatedDelays = true
+            )
+
+            if (sortByDelay) {
+                triggerRealtimeSort(groupIndex)
+            }
         }
+    }
+
+    fun cleanupExpiredCache() {
+        val currentTime = System.currentTimeMillis()
+        val expiredKeys = delayCache.filter { (_, pair) ->
+            currentTime - pair.second > ProxyConstants.DelayTest.CACHE_VALID_TIME
+        }.keys
+        expiredKeys.forEach { delayCache.remove(it) }
+    }
+
+    override fun onDestroy() {
+        stopAllTesting()
+        isUrlTestingByPage.clear()
+        testingStartTimeByPage.clear()
+        delayCache.clear()
+        super.onDestroy()
     }
 }

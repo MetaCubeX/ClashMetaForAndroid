@@ -1,0 +1,46 @@
+<Meta Feature Settings>
+meta_page_title = "Meta機能"
+
+<Sections>
+section_settings = "設定"
+section_sniffer = "スニファー設定"
+
+<Settings>
+unified_delay = "統一遅延"
+unified_delay_summary = "統一された遅延測定、より正確ですが遅い場合があります"
+geodata_mode = "GeoDataモード"
+geodata_mode_summary = "GeoDataデータベース形式を使用"
+tcp_concurrent = "TCP同時接続"
+tcp_concurrent_summary = "TCP同時接続を有効化"
+find_process_mode = "プロセス検索モード"
+force_dns_mapping = "強制DNSマッピング"
+parse_pure_ip = "純粋なIP接続を解析"
+
+<Find Process Mode Options>
+process_mode_off = "オフ"
+process_mode_strict = "厳格"
+process_mode_always = "常に"
+
+<Sniffer Settings>
+sniff_policy = "ポリシー"
+http_ports = "HTTP"
+tls_ports = "TLS"
+quic_ports = "QUIC"
+override_dest_addr = "宛先アドレスを上書き"
+force_resolve_domain = "ドメインの強制解決"
+skip_domain = "ドメインをスキップ"
+skip_src_address = "送信元アドレスをスキップ"
+skip_dst_address = "宛先アドレスをスキップ"
+
+<Geo Files>
+section_geo_files = "Geoファイル"
+import_geoip = "GeoIPデータベースをインポート"
+import_geosite = "GeoSiteデータベースをインポート"
+import_country = "Countryデータベースをインポート"
+import_asn = "ASNデータベースをインポート"
+import_hint = "タップしてインポート..."
+
+<Dialogs>
+dialog_reset_title = "すべてのオーバーライドをリセット"
+dialog_reset_confirm = "リセットを確認"
+

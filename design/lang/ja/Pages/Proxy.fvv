@@ -1,0 +1,27 @@
+<Proxy Page>
+proxy_page_title = "プロキシ"
+group_selector = "ノードグループ"
+test_speed = "速度テスト"
+more_options = "その他のオプション"
+
+<Empty States>
+loading_groups = "プロキシグループを読み込み中..."
+empty_text = "プロキシグループがありません（´･ω･`）"
+empty_hint = "設定ファイルまたは起動状態を確認してください"
+
+<Menu Options>
+menu_default_order = "デフォルト順序"
+menu_sort_by_delay = "遅延でソート"
+menu_dual_column = "2列表示"
+menu_single_column = "1列表示"
+
+<Mode Selection>
+mode_title = "モード選択"
+mode_direct = "ダイレクト"
+mode_global = "グローバル"
+mode_rule = "ルール"
+mode_script = "スクリプト"
+
+<Proxy Card>
+delay_ms = "%dms"
+

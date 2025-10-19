@@ -1,0 +1,16 @@
+<List Editor>
+validation_invalid = "Invalid format"
+
+<Empty State>
+empty_message = "No entries"
+empty_hint = "Tap + in the top right corner to add"
+
+<Dialog>
+dialog_add_title = "Add Entry"
+dialog_edit_title = "Edit Entry"
+input_hint = "Please enter content"
+input_label = "Please enter content"
+
+<Summary>
+total_items = "%d entries in total"
+

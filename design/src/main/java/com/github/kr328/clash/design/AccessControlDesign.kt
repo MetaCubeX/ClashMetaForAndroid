@@ -1,134 +1,60 @@
-package com.github.kr328.clash.design
+﻿package com.github.kr328.clash.design
 
 import android.content.Context
-import android.view.View
-import androidx.core.widget.addTextChangedListener
-import com.github.kr328.clash.design.adapter.AppAdapter
-import com.github.kr328.clash.design.component.AccessControlMenu
-import com.github.kr328.clash.design.databinding.DesignAccessControlBinding
-import com.github.kr328.clash.design.databinding.DialogSearchBinding
-import com.github.kr328.clash.design.dialog.FullScreenDialog
+import androidx.compose.runtime.*
 import com.github.kr328.clash.design.model.AppInfo
 import com.github.kr328.clash.design.store.UiStore
-import com.github.kr328.clash.design.util.*
-import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.Channel
 
 class AccessControlDesign(
     context: Context,
-    uiStore: UiStore,
-    private val selected: MutableSet<String>,
+    val uiStore: UiStore,
+    initialSelected: Set<String>,
 ) : Design<AccessControlDesign.Request>(context) {
-    enum class Request {
-        ReloadApps,
-        SelectAll,
-        SelectNone,
-        SelectInvert,
-        Import,
-        Export,
+    sealed class Request {
+        object ReloadApps : Request()
+        object ImportFromClipboard : Request()
+        object ExportToClipboard : Request()
+        object RequestPermission : Request()
     }
 
-    private val binding = DesignAccessControlBinding
-        .inflate(context.layoutInflater, context.root, false)
+    internal var apps by mutableStateOf<List<AppInfo>>(emptyList())
+    val selected = mutableStateMapOf<String, Boolean>().apply {
+        initialSelected.forEach { put(it, true) }
+    }
+    internal var query by mutableStateOf("")
+    var isLoading by mutableStateOf(true)
+    var hasPermission by mutableStateOf(true)
 
-    private val adapter = AppAdapter(context, selected)
-
-    private val menu: AccessControlMenu by lazy {
-        AccessControlMenu(context, binding.menuView, uiStore, requests)
+    @Composable
+    override fun Content() {
+        com.github.kr328.clash.design.screen.AccessControlScreen(design = this)
     }
 
-    val apps: List<AppInfo>
-        get() = adapter.apps
-
-    override val root: View
-        get() = binding.root
-
-    suspend fun patchApps(apps: List<AppInfo>) {
-        adapter.swapDataSet(adapter::apps, apps, false)
+    fun updateApps(newApps: List<AppInfo>) {
+        apps = newApps
+        isLoading = false
     }
 
-    suspend fun rebindAll() {
-        withContext(Dispatchers.Main) {
-            adapter.rebindAll()
-        }
+    fun selectAll() {
+        apps.forEach { selected[it.packageName] = true }
     }
 
-    init {
-        binding.self = this
-
-        binding.activityBarLayout.applyFrom(context)
-
-        binding.mainList.recyclerList.also {
-            it.bindAppBarElevation(binding.activityBarLayout)
-            it.applyLinearAdapter(context, adapter)
-        }
-
-        binding.menuView.setOnClickListener {
-            menu.show()
-        }
-
-        binding.searchView.setOnClickListener {
-            launch {
-                try {
-                    requestSearch()
-                } finally {
-                    withContext(NonCancellable) {
-                        rebindAll()
-                    }
-                }
-            }
-        }
+    fun selectNone() {
+        selected.clear()
     }
 
-    private suspend fun requestSearch() {
-        coroutineScope {
-            val binding = DialogSearchBinding
-                .inflate(context.layoutInflater, context.root, false)
-            val adapter = AppAdapter(context, selected)
-            val dialog = FullScreenDialog(context)
-            val filter = Channel<Unit>(Channel.CONFLATED)
+    fun invertSelection() {
+        val currentApps = apps.map { it.packageName }.toSet()
+        val currentSelected = selected.keys.intersect(currentApps)
+        val inverted = currentApps - currentSelected
+        selected.clear()
+        inverted.forEach { selected[it] = true }
+    }
 
-            dialog.setContentView(binding.root)
-
-            binding.surface = dialog.surface
-            binding.mainList.applyLinearAdapter(context, adapter)
-            binding.keywordView.addTextChangedListener {
-                filter.trySend(Unit)
-            }
-            binding.closeView.setOnClickListener {
-                dialog.dismiss()
-            }
-
-            dialog.setOnDismissListener {
-                cancel()
-            }
-
-            dialog.setOnShowListener {
-                binding.keywordView.requestTextInput()
-            }
-
-            dialog.show()
-
-            while (isActive) {
-                filter.receive()
-
-                val keyword = binding.keywordView.text?.toString() ?: ""
-
-                val apps: List<AppInfo> = if (keyword.isEmpty()) {
-                    emptyList()
-                } else {
-                    withContext(Dispatchers.Default) {
-                        apps.filter {
-                            it.label.contains(keyword, ignoreCase = true) ||
-                                    it.packageName.contains(keyword, ignoreCase = true)
-                        }
-                    }
-                }
-
-                adapter.patchDataSet(adapter::apps, apps, false, AppInfo::packageName)
-
-                delay(200)
-            }
-        }
+    fun importSelection(packages: Set<String>) {
+        val currentApps = apps.map { it.packageName }.toSet()
+        selected.clear()
+        packages.intersect(currentApps).forEach { selected[it] = true }
     }
 }
+

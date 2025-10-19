@@ -18,4 +18,6 @@
     <string name="provider_files">Provider Files</string>
     <string name="profile_updater">Profile Updater</string>
     <string name="profile_updating">Profile Updating</string>
+    <string name="application_name_alpha">YumeBox Alpha</string>
+    <string name="launch_name_alpha">YumeBox Alpha</string>
 </resources>

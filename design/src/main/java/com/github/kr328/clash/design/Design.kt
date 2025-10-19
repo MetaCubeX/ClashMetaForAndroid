@@ -1,28 +1,32 @@
 package com.github.kr328.clash.design
 
 import android.content.Context
-import android.view.View
-import androidx.appcompat.app.AppCompatActivity
-import com.github.kr328.clash.design.ui.Surface
+import androidx.compose.runtime.Composable
+import com.github.kr328.clash.design.ui.ToastConfiguration
 import com.github.kr328.clash.design.ui.ToastDuration
-import com.github.kr328.clash.design.util.setOnInsertsChangedListener
-import com.google.android.material.snackbar.Snackbar
+import com.github.kr328.clash.design.util.MiuixToastHelper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.withContext
 
-abstract class Design<R>(val context: Context) :
-    CoroutineScope by CoroutineScope(Dispatchers.Unconfined) {
-    abstract val root: View
+abstract class Design<R>(val context: Context) : CoroutineScope {
 
-    val surface = Surface()
+    private val job = SupervisorJob()
+    override val coroutineContext = Dispatchers.Main + job
+
+    @Composable
+    abstract fun Content()
+
     val requests: Channel<R> = Channel(Channel.UNLIMITED)
+
+    private val miuixToastHelper = MiuixToastHelper(context)
 
     suspend fun showToast(
         resId: Int,
         duration: ToastDuration,
-        configure: Snackbar.() -> Unit = {}
+        configure: ToastConfiguration.() -> Unit = {}
     ) {
         return showToast(context.getString(resId), duration, configure)
     }
@@ -30,30 +34,27 @@ abstract class Design<R>(val context: Context) :
     suspend fun showToast(
         message: CharSequence,
         duration: ToastDuration,
-        configure: Snackbar.() -> Unit = {}
+        configure: ToastConfiguration.() -> Unit = {}
     ) {
+        miuixToastHelper.showToast(message, duration, configure)
+    }
+
+    protected suspend fun updateStateOnMain(block: () -> Unit) {
         withContext(Dispatchers.Main) {
-            Snackbar.make(
-                root,
-                message,
-                when (duration) {
-                    ToastDuration.Short -> Snackbar.LENGTH_SHORT
-                    ToastDuration.Long -> Snackbar.LENGTH_LONG
-                    ToastDuration.Indefinite -> Snackbar.LENGTH_INDEFINITE
-                }
-            ).apply(configure).show()
+            block()
         }
     }
 
-    init {
-        when (context) {
-            is AppCompatActivity -> {
-                context.window.decorView.setOnInsertsChangedListener {
-                    if (surface.insets != it) {
-                        surface.insets = it
-                    }
-                }
-            }
+    protected fun runOnMain(block: () -> Unit) {
+        if (android.os.Looper.myLooper() == android.os.Looper.getMainLooper()) {
+            block()
+        } else {
+            android.os.Handler(android.os.Looper.getMainLooper()).post(block)
         }
+    }
+
+    open fun onDestroy() {
+        job.cancel()
+        requests.close()
     }
 }

@@ -1,0 +1,89 @@
+<Override Settings Page>
+override_page_title = "オーバーライド"
+
+<Sections>
+section_general = "一般"
+section_dns = "DNS"
+
+<General Options>
+http_port = "HTTPポート"
+socks_port = "Socksポート"
+redirect_port = "リダイレクトポート"
+tproxy_port = "TProxyポート"
+mixed_port = "混合ポート"
+authentication = "認証"
+allow_lan = "LAN接続を許可"
+ipv6 = "IPv6"
+bind_address = "バインドアドレス"
+external_controller = "External Controller"
+external_controller_tls = "External Controller TLS"
+external_controller_allow_origins = "External Controller Allow Origins"
+external_controller_allow_private = "External Controller Allow Private Network"
+secret = "Secret"
+mode = "モード"
+log_level = "ログレベル"
+hosts = "Hosts"
+
+<DNS Options>
+sniffer = "スニファー"
+h3_prefer = "H3優先"
+dns_listen = "リッスン"
+append_system_dns = "システムDNSを追加"
+dns_ipv6 = "IPv6"
+use_hosts = "Hostsを使用"
+enhanced_mode = "拡張モード"
+name_server = "Name Server"
+fallback_name_server = "Fallback Name Server"
+default_name_server = "Default Name Server"
+fakeip_filter = "FakeIPフィルター"
+fakeip_filter_mode = "FakeIPフィルターモード"
+geoip_fallback = "GeoIP Fallback"
+geoip_fallback_whitelist = "GeoIP Fallback ホワイトリストのみ"
+domain_fallback = "ドメインFallback"
+ipcidr_fallback = "IPCIDR Fallback"
+nameserver_policy = "Name Serverポリシー"
+
+<Status Text>
+secret_hidden = "••••••"
+
+<Mode Options>
+mode_direct = "ダイレクト"
+mode_global = "グローバル"
+mode_rule = "ルール"
+mode_script = "スクリプト"
+
+<Log Level Options>
+log_info = "情報"
+log_warning = "警告"
+log_error = "エラー"
+log_debug = "デバッグ"
+log_silent = "サイレント"
+log_unknown = "不明"
+
+<Enhanced Mode Options>
+enhanced_none = "オフ"
+enhanced_fakeip = "FakeIP"
+enhanced_mapping = "Mapping"
+
+<Filter Mode Options>
+filter_blacklist = "ブラックリスト"
+filter_whitelist = "ホワイトリスト"
+
+<Dialogs>
+dialog_reset_title = "すべてのオーバーライドをリセット"
+dialog_reset_confirm = "リセットを確認"
+dialog_edit_title = "%s を編集"
+
+<Input Labels>
+input_port_label = "ポート番号を入力してください (1-65535)"
+input_bind_address_label = "バインドアドレスを入力してください"
+input_external_controller_label = "アドレスを入力してください (例: 0.0.0.0:9090)"
+input_external_controller_tls_label = "TLSアドレスを入力してください"
+input_secret_label = "シークレットを入力してください"
+input_dns_listen_label = "リッスンアドレスを入力してください"
+input_geoip_code_label = "GeoIPコードを入力してください (例: CN)"
+
+<Validation>
+validation_invalid_number = "有効な数字を入力してください"
+validation_port_range = "ポートは1〜65535の範囲でなければなりません"
+

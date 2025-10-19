@@ -1,0 +1,17 @@
+<Settings Page>
+settings_page_title = "设置"
+
+<Sections>
+section_global = "全局"
+section_proxy = "代理"
+section_other = "其他"
+
+<Entries>
+entry_app = "应用"
+entry_network = "网络"
+entry_override = "覆写"
+entry_meta_features = "Meta 特性"
+entry_profiles = "配置"
+entry_providers = "外部资源"
+entry_logs = "日志"
+entry_about = "关于"

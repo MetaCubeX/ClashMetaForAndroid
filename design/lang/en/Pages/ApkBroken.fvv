@@ -1,0 +1,7 @@
+<Apk Broken>
+apk_broken_page_title = "App Broken"
+apk_broken_tips = "The app is missing necessary runtime components, usually caused by downloading an incomplete apk."
+section_reinstall = "Reinstall"
+github_releases = "GitHub Releases"
+meta_github_url = "https://github.com/MetaCubeX/ClashMetaForAndroid"
+

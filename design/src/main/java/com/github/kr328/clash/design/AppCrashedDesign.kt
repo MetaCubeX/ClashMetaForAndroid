@@ -1,29 +1,16 @@
 package com.github.kr328.clash.design
 
 import android.content.Context
-import android.view.View
-import com.github.kr328.clash.design.databinding.DesignAppCrashedBinding
-import com.github.kr328.clash.design.util.applyFrom
-import com.github.kr328.clash.design.util.bindAppBarElevation
-import com.github.kr328.clash.design.util.layoutInflater
-import com.github.kr328.clash.design.util.root
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 
 class AppCrashedDesign(context: Context) : Design<Unit>(context) {
-    private val binding = DesignAppCrashedBinding
-        .inflate(context.layoutInflater, context.root, false)
+    var appLogs by mutableStateOf("")
 
-    override val root: View
-        get() = binding.root
-
-    fun setAppLogs(logs: String) {
-        binding.logsView.text = logs
-    }
-
-    init {
-        binding.self = this
-
-        binding.activityBarLayout.applyFrom(context)
-
-        binding.scrollRoot.bindAppBarElevation(binding.activityBarLayout)
+    @Composable
+    override fun Content() {
+        com.github.kr328.clash.design.screen.AppCrashedScreen(appLogs)
     }
 }

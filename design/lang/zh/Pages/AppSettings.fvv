@@ -1,0 +1,24 @@
+<App Settings>
+app_settings_page_title = "设置"
+
+<Sections>
+section_behavior = "行为"
+section_interface = "界面"
+section_service = "服务"
+
+<Behavior>
+auto_restart = "自动重启"
+auto_restart_summary = "允许 YumeBox 自动重启"
+
+<Interface>
+theme = "APP 主题"
+theme_summary = "界面的主题模式"
+theme_follow_system = "跟随系统(Android 10+)"
+theme_always_light = "始终浅色"
+theme_always_dark = "始终深色"
+hide_icon = "隐藏应用图标"
+hide_icon_desc = "可在拨号键盘输入 *#*#114514#*#* 打开应用"
+
+<Service>
+show_traffic = "显示流量通知"
+show_traffic_summary = "允许显示应用流量使用情况"

@@ -1,0 +1,43 @@
+<Profiles Page>
+profiles_page_title = "Profiles"
+
+<Mode>
+mode_title = "Mode"
+mode_summary = "Select profile operation mode"
+mode_activate = "Activate Mode"
+mode_edit = "Edit Mode"
+
+<Empty State>
+empty_message = "No profiles (´･ω･`)"
+empty_hint = "Tap the + button in the top right corner to add a profile"
+
+<Unsaved Dialog>
+unsaved_title = "Unsaved Profile"
+unsaved_summary = "The current profile has not been saved, do you want to edit it?"
+unsaved_label = "Unsaved"
+
+<Edit Actions>
+action_update_config = "Update Config"
+action_update_summary = "Re-download the latest config file"
+action_edit_config = "Edit Config"
+action_edit_summary = "Modify profile name and settings"
+action_copy_config = "Copy Config"
+action_copy_summary = "Create a copy of this profile"
+action_delete_config = "Delete Config"
+action_delete_summary = "This action cannot be undone"
+action_edit = "Edit"
+
+<Profile Types>
+type_local = "Local File"
+type_url = "Subscription URL"
+type_external = "External Import"
+
+<Time Format>
+time_minutes_ago = "%d minutes ago"
+time_hours_ago = "%d hours ago"
+time_days_ago = "%d days ago"
+
+<Traffic>
+expires_at = "Expires: %s"
+traffic_summary = "%d entries in total"
+

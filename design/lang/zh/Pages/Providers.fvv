@@ -1,0 +1,12 @@
+<Providers Page>
+providers_page_title = "覆写"
+
+<Empty State>
+empty_title = "外部资源"
+empty_text = "暂无外部资源（´･ω･`）"
+empty_hint = "请启动代理后刷新"
+
+<Provider Row>
+type_label = "类型："
+vehicle_label = "载体："
+update_time_label = "更新时间："

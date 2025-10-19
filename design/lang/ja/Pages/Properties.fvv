@@ -1,0 +1,13 @@
+<Properties>
+properties_page_title = "プロパティ"
+profile_name_label = "プロファイル名"
+url_label = "URL"
+accept_http_content = "http(s)のみ受け入れる"
+auto_update_label = "自動更新"
+disabled = "無効"
+format_minutes = "%d 分"
+browse_files = "ファイルを参照"
+browse_files_summary = "設定ファイルとプロバイダーを参照"
+action_save = "保存"
+tips_properties = "Clash設定のみ受け入れます（Proxy/Rulesを含む）"
+

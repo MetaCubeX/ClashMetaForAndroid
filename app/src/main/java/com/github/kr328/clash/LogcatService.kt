@@ -8,7 +8,6 @@ import android.content.Intent
 import android.content.ServiceConnection
 import android.os.Binder
 import android.os.IBinder
-import android.os.IInterface
 import androidx.core.app.NotificationChannelCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -28,9 +27,8 @@ import com.github.kr328.clash.util.logsDir
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import java.io.IOException
-import java.util.*
 
-class LogcatService : Service(), CoroutineScope by CoroutineScope(Dispatchers.Default), IInterface {
+class LogcatService : Service(), CoroutineScope by CoroutineScope(Dispatchers.Default) {
     private val cache = LogcatCache()
 
     private val connection = object : ServiceConnection {
@@ -60,23 +58,21 @@ class LogcatService : Service(), CoroutineScope by CoroutineScope(Dispatchers.De
 
         unbindService(connection)
 
-        stopForeground(true)
+        stopForeground(Service.STOP_FOREGROUND_REMOVE)
 
         running = false
 
         super.onDestroy()
     }
 
+    private val binder = LocalBinder()
+
     override fun onBind(intent: Intent?): IBinder {
-        return this.asBinder()
+        return binder
     }
 
-    override fun asBinder(): IBinder {
-        return object : Binder() {
-            override fun queryLocalInterface(descriptor: String): IInterface {
-                return this@LogcatService
-            }
-        }
+    inner class LocalBinder : Binder() {
+        fun getService(): LogcatService = this@LogcatService
     }
 
     suspend fun snapshot(full: Boolean): LogcatCache.Snapshot? {

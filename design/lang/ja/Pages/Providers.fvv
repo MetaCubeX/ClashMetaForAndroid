@@ -1,0 +1,13 @@
+<Providers Page>
+providers_page_title = "オーバーライド"
+
+<Empty State>
+empty_title = "外部リソース"
+empty_text = "外部リソースがありません（´･ω･`）"
+empty_hint = "プロキシを起動して更新してください"
+
+<Provider Row>
+type_label = "タイプ:"
+vehicle_label = "ビークル:"
+update_time_label = "更新時刻:"
+

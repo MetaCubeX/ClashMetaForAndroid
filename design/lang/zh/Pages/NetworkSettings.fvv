@@ -1,0 +1,40 @@
+<Network Settings>
+network_page_title = "网络设置"
+
+<Dialog>
+network_dialog_unavailable_title = "选项在 YumeBox 运行时不可用"
+
+<Sections>
+section_vpn = "VPN 服务"
+section_vpn_options = "VPN 服务选项"
+section_proxy_options = "代理选项"
+
+<VPN Service>
+route_traffic = "路由系统流量"
+route_traffic_summary = "通过 VPN 服务路由所有流量"
+
+<VPN Options>
+bypass_private = "绕过私有网络"
+bypass_private_summary = "绕过私有网络和本地地址"
+dns_hijacking = "DNS 劫持"
+dns_hijacking_summary = "将所有 DNS 请求重定向到 Clash"
+allow_bypass = "允许绕过"
+allow_bypass_summary = "允许应用绕过 VPN"
+allow_ipv6 = "允许 IPv6"
+allow_ipv6_summary = "允许通过 VPN 路由 IPv6 流量"
+system_proxy = "系统代理"
+system_proxy_summary = "为不支持 VPN 的应用设置系统 HTTP 代理"
+
+<Proxy Options>
+tun_stack = "TUN 协议栈"
+tun_stack_system = "system"
+tun_stack_gvisor = "GVisor"
+tun_stack_mixed = "mixed"
+access_control_mode = "访问控制模式"
+access_control_list = "访问控制应用列表"
+access_control_list_summary = "管理访问控制中的应用"
+
+<Access Control Modes>
+access_mode_allow_all = "允许所有应用"
+access_mode_allow_selected = "允许所选应用"
+access_mode_deny_selected = "拒绝所选应用"

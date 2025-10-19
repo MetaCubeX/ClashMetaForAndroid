@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 基础占位字符串；原文件被清空导致资源合并失败 -->
+    <string name="application_name" translatable="false">ClashMeta</string>
+    <string name="launch_name" translatable="false">ClashMeta</string>
+    <string name="release_name" translatable="false">ClashMeta</string>
+    <string name="application_name_alpha">YumeBox Alpha</string>
+    <string name="launch_name_alpha">YumeBox Alpha</string>
+    <string name="application_name_meta">YumeBox Meta</string>
+    <string name="launch_name_meta">YumeBox Meta</string>
+</resources>
+

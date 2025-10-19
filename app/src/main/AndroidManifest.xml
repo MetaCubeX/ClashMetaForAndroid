@@ -16,23 +16,26 @@
         tools:ignore="QueryAllPackagesPermission" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <!-- For haptic feedback when toggling status on the home screen -->
+    <uses-permission android:name="android.permission.VIBRATE"/>
 
     <application
         android:name=".MainApplication"
         android:allowBackup="true"
-        android:banner="@mipmap/ic_banner"
+        android:banner="@mipmap/yume"
         android:fullBackupContent="@xml/full_backup_content"
-        android:icon="@mipmap/ic_launcher"
-        android:label="@string/application_name"
+        android:icon="@mipmap/yume"
+        android:label="YumeBox"
         android:networkSecurityConfig="@xml/network_security_config"
-        android:roundIcon="@mipmap/ic_launcher_round"
+        android:roundIcon="@mipmap/yume_round"
         android:supportsRtl="true"
         android:theme="@style/BootstrapTheme"
         tools:ignore="GoogleAppIndexingWarning"
         tools:targetApi="N">
+
         <meta-data
             android:name="releaseName"
-            android:value="@string/release_name" />
+            android:value="YumeBox"/>
         <meta-data
             android:name="releaseCode"
             android:value="@integer/release_code" />
@@ -41,7 +44,7 @@
             android:name=".MainActivity"
             android:configChanges="uiMode"
             android:exported="true"
-            android:label="@string/launch_name"
+            android:label="YumeBox"
             android:launchMode="singleTop">
             <intent-filter>
                 <action android:name="android.intent.action.APPLICATION_PREFERENCES" />
@@ -116,7 +119,7 @@
             android:name=".PropertiesActivity"
             android:configChanges="uiMode"
             android:exported="false"
-            android:label="@string/profile" />
+            android:label="Profile Properties"/>
         <activity
             android:name=".ProxyActivity"
             android:configChanges="uiMode"
@@ -156,11 +159,13 @@
             android:name=".OverrideSettingsActivity"
             android:configChanges="uiMode"
             android:exported="false"
+            android:windowSoftInputMode="adjustResize"
             android:label="@string/override" />
         <activity
             android:name=".MetaFeatureSettingsActivity"
             android:configChanges="uiMode"
             android:exported="false"
+            android:windowSoftInputMode="adjustResize"
             android:label="@string/meta_features" />
         <activity
             android:name=".AccessControlActivity"
@@ -173,10 +178,22 @@
             android:exported="false"
             android:label="@string/help" />
         <activity
-            android:name=".FilesActivity"
+            android:name=".AboutActivity"
             android:configChanges="uiMode"
             android:exported="false"
-            android:label="@string/files" />
+            android:label="@string/about"/>
+        <activity
+            android:name=".ListEditorActivity"
+            android:configChanges="uiMode"
+            android:exported="false"
+            android:label="列表编辑器"
+            android:windowSoftInputMode="adjustResize"/>
+        <activity
+            android:name=".KeyValueEditorActivity"
+            android:configChanges="uiMode"
+            android:exported="false"
+            android:label="键值对编辑器"
+            android:windowSoftInputMode="adjustResize"/>
 
         <service
             android:name=".LogcatService"
@@ -190,7 +207,7 @@
             android:name=".TileService"
             android:exported="true"
             android:icon="@drawable/ic_logo_service"
-            android:label="@string/launch_name"
+            android:label="YumeBox"
             android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
             <intent-filter>
                 <action android:name="android.service.quicksettings.action.QS_TILE" />
@@ -212,8 +229,18 @@
             <intent-filter>
                 <action android:name="android.provider.Telephony.SECRET_CODE" />
                 <!-- 252746382 is the name of Clash Meta in T9 -->
-                <data android:scheme="android_secret_code" android:host="252746382" />
+                <data android:host="114514" android:scheme="android_secret_code"/>
             </intent-filter>
         </receiver>
+
+        <meta-data
+            android:name="org.chromium.webapk.shell_apk"
+            android:value=""/>
+        <meta-data
+            android:name="com.android.stamp.type"
+            android:value="STAMP_TYPE_DISTRIBUTION_APK"/>
+        <meta-data
+            android:name="com.android.stamp.source"
+            android:value="https://play.google.com/store"/>
     </application>
 </manifest>

@@ -2,14 +2,16 @@
 
 import com.android.build.gradle.AppExtension
 import com.android.build.gradle.BaseExtension
-import java.net.URL
 import java.util.*
 
 buildscript {
     repositories {
-        mavenCentral()
         google()
+        mavenCentral()
+        maven("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/bootstrap")
+        maven("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/dev")
         maven("https://raw.githubusercontent.com/MetaCubeX/maven-backup/main/releases")
+        maven("https://jitpack.io")
     }
     dependencies {
         classpath(libs.build.android)
@@ -17,15 +19,11 @@ buildscript {
         classpath(libs.build.kotlin.serialization)
         classpath(libs.build.ksp)
         classpath(libs.build.golang)
+        classpath("dev.oom-wg.PureJoy-MultiLang:plugin:-SNAPSHOT")
     }
 }
 
 subprojects {
-    repositories {
-        mavenCentral()
-        google()
-        maven("https://raw.githubusercontent.com/MetaCubeX/maven-backup/main/releases")
-    }
 
     val isApp = name == "app"
 
@@ -35,16 +33,17 @@ subprojects {
         buildFeatures.buildConfig = true
         defaultConfig {
             if (isApp) {
-                applicationId = "com.github.metacubex.clash"
+                applicationId = "plus.yumeyuka.yumebox"
             }
 
+            // 命名空间配置
             project.name.let { name ->
                 namespace = if (name == "app") "com.github.kr328.clash"
                 else "com.github.kr328.clash.$name"
             }
 
-            minSdk = 21
-            targetSdk = 35
+            minSdk = 26
+            targetSdk = 36
 
             versionName = "2.11.17"
             versionCode = 211017
@@ -56,6 +55,7 @@ subprojects {
                 abiFilters += listOf("arm64-v8a", "armeabi-v7a", "x86", "x86_64")
             }
 
+            @Suppress("UnstableApiUsage")
             externalNativeBuild {
                 cmake {
                     abiFilters("arm64-v8a", "armeabi-v7a", "x86", "x86_64")
@@ -65,7 +65,7 @@ subprojects {
             if (!isApp) {
                 consumerProguardFiles("consumer-rules.pro")
             } else {
-                setProperty("archivesBaseName", "cmfa-$versionName")
+                setProperty("archivesBaseName", "YumeBox")
             }
         }
 
@@ -78,39 +78,49 @@ subprojects {
                 resources {
                     excludes.add("DebugProbesKt.bin")
                 }
+                jniLibs {
+                    useLegacyPackaging = true
+                }
             }
         }
 
+        flavorDimensions("feature")
+        
         productFlavors {
-            flavorDimensions("feature")
+            create("alpha")
+            create("meta")
+        }
 
-            create("alpha") {
-                isDefault = true
-                dimension = flavorDimensionList[0]
-                versionNameSuffix = ".Alpha"
+        productFlavors.named("alpha") {
+            dimension = "feature"
+            versionNameSuffix = ".Alpha"
 
-                buildConfigField("boolean", "PREMIUM", "Boolean.parseBoolean(\"false\")")
+            buildConfigField("boolean", "PREMIUM", "Boolean.parseBoolean(\"false\")")
 
-                resValue("string", "launch_name", "@string/launch_name_alpha")
-                resValue("string", "application_name", "@string/application_name_alpha")
+            resValue("string", "launch_name", "@string/launch_name_alpha")
+            resValue("string", "application_name", "@string/application_name_alpha")
+        }
 
-                if (isApp) {
-                    applicationIdSuffix = ".alpha"
+        productFlavors.named("meta") {
+            dimension = "feature"
+            versionNameSuffix = ".Meta"
+
+            buildConfigField("boolean", "PREMIUM", "Boolean.parseBoolean(\"false\")")
+        }
+
+        if (isApp) {
+            (this as com.android.build.gradle.internal.dsl.BaseAppModuleExtension).apply {
+                productFlavors.named("alpha") {
+                    this.apply {
+                        isDefault = true
+                        applicationIdSuffix = ".alpha"
+                    }
                 }
-            }
 
-            create("meta") {
-
-                dimension = flavorDimensionList[0]
-                versionNameSuffix = ".Meta"
-
-                buildConfigField("boolean", "PREMIUM", "Boolean.parseBoolean(\"false\")")
-
-                resValue("string", "launch_name", "@string/launch_name_meta")
-                resValue("string", "application_name", "@string/application_name_meta")
-
-                if (isApp) {
-                    applicationIdSuffix = ".meta"
+                productFlavors.named("meta") {
+                    this.apply {
+                        applicationIdSuffix = ".meta"
+                    }
                 }
             }
         }
@@ -127,9 +137,9 @@ subprojects {
         signingConfigs {
             val keystore = rootProject.file("signing.properties")
             if (keystore.exists()) {
-                create("release") {
+                create("release").apply {
                     val prop = Properties().apply {
-                        keystore.inputStream().use(this::load)
+                        keystore.inputStream().use { load(it) }
                     }
 
                     storeFile = rootProject.file("release.keystore")
@@ -156,9 +166,7 @@ subprojects {
         }
 
         buildFeatures.apply {
-            dataBinding {
-                isEnabled = name != "hideapi"
-            }
+            viewBinding = false
         }
 
         if (isApp) {
@@ -175,21 +183,29 @@ subprojects {
         }
 
         compileOptions {
-            sourceCompatibility = JavaVersion.VERSION_21
-            targetCompatibility = JavaVersion.VERSION_21
+            sourceCompatibility = JavaVersion.VERSION_23
+            targetCompatibility = JavaVersion.VERSION_23
+        }
+
+        tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+            compilerOptions {
+                jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_23)
+                freeCompilerArgs.add("-Xskip-metadata-version-check")
+                freeCompilerArgs.add("-Xsuppress-version-warnings")
+            }
         }
     }
 }
 
-task("clean", type = Delete::class) {
-    delete(rootProject.buildDir)
+tasks.register<Delete>("clean") {
+    delete(rootProject.layout.buildDirectory)
 }
 
 tasks.wrapper {
     distributionType = Wrapper.DistributionType.ALL
 
     doLast {
-        val sha256 = URL("$distributionUrl.sha256").openStream()
+        val sha256 = java.net.URI("$distributionUrl.sha256").toURL().openStream()
             .use { it.reader().readText().trim() }
 
         file("gradle/wrapper/gradle-wrapper.properties")

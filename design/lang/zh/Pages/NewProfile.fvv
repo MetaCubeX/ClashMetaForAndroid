@@ -1,0 +1,34 @@
+<New Profile>
+new_profile_page_title = "添加配置"
+
+<Import Method>
+import_method = "导入方式"
+import_method_summary = "选择添加配置的来源"
+
+<File Section>
+section_file = "本地配置"
+name_label = "配置名称"
+import_config = "导入配置"
+import_hint = "选择配置文件"
+reimport = "重新导入"
+reimport_hint = "重新选择配置文件"
+
+<URL Section>
+section_url = "订阅配置"
+url_label = "订阅链接 (URL)"
+auto_update = "自动更新"
+auto_update_summary = "选择自动更新的时间间隔"
+
+<External Section>
+section_external = "外部应用"
+
+<Interval Options>
+interval_none = "不自动"
+interval_1h = "1 小时"
+interval_3h = "3 小时"
+interval_6h = "6 小时"
+interval_12h = "12 小时"
+interval_24h = "24 小时"
+
+<Progress>
+loading = "正在加载..."

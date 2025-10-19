@@ -1,13 +1,13 @@
 package com.github.kr328.clash.design
 
 import android.content.Context
-import android.view.View
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import com.github.kr328.clash.core.model.FetchStatus
-import com.github.kr328.clash.design.databinding.DesignPropertiesBinding
-import com.github.kr328.clash.design.dialog.ModelProgressBarConfigure
 import com.github.kr328.clash.design.dialog.requestModelTextInput
-import com.github.kr328.clash.design.dialog.withModelProgressBar
-import com.github.kr328.clash.design.util.*
+import com.github.kr328.clash.design.util.ValidatorsUnified
 import com.github.kr328.clash.service.model.Profile
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.Dispatchers
@@ -23,39 +23,47 @@ class PropertiesDesign(context: Context) : Design<PropertiesDesign.Request>(cont
         object BrowseFiles : Request()
     }
 
-    private val binding = DesignPropertiesBinding
-        .inflate(context.layoutInflater, context.root, false)
+    internal var profile by mutableStateOf<Profile?>(null)
+    internal var progressing by mutableStateOf(false)
+    internal var fetchStatusText by mutableStateOf("")
+    internal var fetchProgress by mutableStateOf(0f)
+    internal var fetchIndeterminate by mutableStateOf(true)
 
-    override val root: View
-        get() = binding.root
-
-    var profile: Profile
-        get() = binding.profile!!
-        set(value) {
-            binding.profile = value
-        }
-
-    val progressing: Boolean
-        get() = binding.processing
+    @Composable
+    override fun Content() {
+        com.github.kr328.clash.design.screen.PropertiesScreen(this)
+    }
 
     suspend fun withProcessing(executeTask: suspend (suspend (FetchStatus) -> Unit) -> Unit) {
         try {
-            binding.processing = true
+            progressing = true
+            fetchIndeterminate = true
+            fetchStatusText = context.getString(R.string.initializing)
 
-            context.withModelProgressBar {
-                configure {
-                    isIndeterminate = true
-                    text = context.getString(R.string.initializing)
-                }
+            executeTask { status ->
+                withContext(Dispatchers.Main) {
+                    when (status.action) {
+                        FetchStatus.Action.FetchConfiguration -> {
+                            fetchStatusText = context.getString(R.string.format_fetching_configuration, status.args[0])
+                            fetchIndeterminate = true
+                        }
 
-                executeTask {
-                    configure {
-                        applyFrom(it)
+                        FetchStatus.Action.FetchProviders -> {
+                            fetchStatusText = context.getString(R.string.format_fetching_provider, status.args[0])
+                            fetchIndeterminate = false
+                            fetchProgress = if (status.max > 0) status.progress.toFloat() / status.max else 0f
+                        }
+
+                        FetchStatus.Action.Verifying -> {
+                            fetchStatusText = context.getString(R.string.verifying)
+                            fetchIndeterminate = false
+                            fetchProgress = if (status.max > 0) status.progress.toFloat() / status.max else 0f
+                        }
                     }
                 }
             }
         } finally {
-            binding.processing = false
+            progressing = false
         }
     }
 
@@ -76,67 +84,59 @@ class PropertiesDesign(context: Context) : Design<PropertiesDesign.Request>(cont
         }
     }
 
-    init {
-        binding.self = this
-
-        binding.activityBarLayout.applyFrom(context)
-
-        binding.tips.text = context.getHtml(R.string.tips_properties)
-
-        binding.scrollRoot.bindAppBarElevation(binding.activityBarLayout)
-    }
-
     fun inputName() {
         launch {
+            val currentProfile = profile ?: return@launch
             val name = context.requestModelTextInput(
-                initial = profile.name,
+                initial = currentProfile.name,
                 title = context.getText(R.string.name),
                 hint = context.getText(R.string.properties),
                 error = context.getText(R.string.should_not_be_blank),
-                validator = ValidatorNotBlank
+                validator = { input -> !input.isBlank() }
             )
 
-            if (name != profile.name) {
-                profile = profile.copy(name = name)
+            if (name != currentProfile.name) {
+                profile = currentProfile.copy(name = name)
             }
         }
     }
 
     fun inputUrl() {
-        if (profile.type == Profile.Type.External)
-            return
+        val currentProfile = profile ?: return
+        if (currentProfile.type == Profile.Type.External) return
 
         launch {
             val url = context.requestModelTextInput(
-                initial = profile.source,
+                initial = currentProfile.source,
                 title = context.getText(R.string.url),
                 hint = context.getText(R.string.profile_url),
                 error = context.getText(R.string.accept_http_content),
-                validator = ValidatorHttpUrl
+                validator = ValidatorsUnified::httpUrlLegacy
             )
 
-            if (url != profile.source) {
-                profile = profile.copy(source = url)
+            if (url != currentProfile.source) {
+                profile = currentProfile.copy(source = url)
             }
         }
     }
 
     fun inputInterval() {
         launch {
-            var minutes = TimeUnit.MILLISECONDS.toMinutes(profile.interval)
+            val currentProfile = profile ?: return@launch
+            var minutes = TimeUnit.MILLISECONDS.toMinutes(currentProfile.interval)
 
             minutes = context.requestModelTextInput(
                 initial = if (minutes == 0L) "" else minutes.toString(),
                 title = context.getText(R.string.auto_update),
                 hint = context.getText(R.string.auto_update_minutes),
                 error = context.getText(R.string.at_least_15_minutes),
-                validator = ValidatorAutoUpdateInterval
+                validator = ValidatorsUnified::autoUpdateIntervalLegacy
             ).toLongOrNull() ?: 0
 
             val interval = TimeUnit.MINUTES.toMillis(minutes)
 
-            if (interval != profile.interval) {
-                profile = profile.copy(interval = interval)
+            if (interval != currentProfile.interval) {
+                profile = currentProfile.copy(interval = interval)
             }
         }
     }
@@ -147,26 +147,5 @@ class PropertiesDesign(context: Context) : Design<PropertiesDesign.Request>(cont
 
     fun requestBrowseFiles() {
         requests.trySend(Request.BrowseFiles)
-    }
-
-    private fun ModelProgressBarConfigure.applyFrom(status: FetchStatus) {
-        when (status.action) {
-            FetchStatus.Action.FetchConfiguration -> {
-                text = context.getString(R.string.format_fetching_configuration, status.args[0])
-                isIndeterminate = true
-            }
-            FetchStatus.Action.FetchProviders -> {
-                text = context.getString(R.string.format_fetching_provider, status.args[0])
-                isIndeterminate = false
-                max = status.max
-                progress = status.progress
-            }
-            FetchStatus.Action.Verifying -> {
-                text = context.getString(R.string.verifying)
-                isIndeterminate = false
-                max = status.max
-                progress = status.progress
-            }
-        }
     }
 }

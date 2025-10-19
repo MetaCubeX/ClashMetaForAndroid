@@ -1,0 +1,25 @@
+<App Settings>
+app_settings_page_title = "設定"
+
+<Sections>
+section_behavior = "動作"
+section_interface = "インターフェース"
+section_service = "サービス"
+
+<Behavior>
+auto_restart = "自動再起動"
+auto_restart_summary = "YumeBoxの自動再起動を許可"
+
+<Interface>
+theme = "アプリテーマ"
+theme_summary = "インターフェースのテーマモード"
+theme_follow_system = "システムに従う (Android 10+)"
+theme_always_light = "常にライト"
+theme_always_dark = "常にダーク"
+hide_icon = "アプリアイコンを非表示"
+hide_icon_desc = "*#*#114514#*#* をダイヤルしてアプリを開くことができます"
+
+<Service>
+show_traffic = "トラフィック通知を表示"
+show_traffic_summary = "アプリのトラフィック使用状況の表示を許可"
+

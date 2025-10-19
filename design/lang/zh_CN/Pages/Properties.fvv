@@ -1,0 +1,12 @@
+<Properties>
+properties_page_title = "属性"
+profile_name_label = "配置名称"
+url_label = "URL"
+accept_http_content = "仅接受 http(s)"
+auto_update_label = "自动更新"
+disabled = "已禁用"
+format_minutes = "%d 分钟"
+browse_files = "浏览文件"
+browse_files_summary = "浏览配置文件和提供商"
+action_save = "保存"
+tips_properties = "仅接受 Clash 配置（包括 Proxy/Rules）"

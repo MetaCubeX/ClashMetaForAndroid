@@ -1,0 +1,88 @@
+<Override Settings Page>
+override_page_title = "覆写"
+
+<Sections>
+section_general = "通用"
+section_dns = "DNS"
+
+<General Options>
+http_port = "HTTP 端口"
+socks_port = "Socks 端口"
+redirect_port = "Redirect 端口"
+tproxy_port = "TProxy 端口"
+mixed_port = "混合端口"
+authentication = "认证"
+allow_lan = "允许局域网访问的连接"
+ipv6 = "IPv6"
+bind_address = "绑定地址"
+external_controller = "External Controller"
+external_controller_tls = "External Controller TLS"
+external_controller_allow_origins = "External Controller Allow Origins"
+external_controller_allow_private = "External Controller Allow Private Network"
+secret = "Secret"
+mode = "模式"
+log_level = "日志级别"
+hosts = "Hosts"
+
+<DNS Options>
+sniffer = "嗅探"
+h3_prefer = "H3 优先"
+dns_listen = "监听"
+append_system_dns = "追加系统 DNS"
+dns_ipv6 = "IPv6"
+use_hosts = "使用 Hosts"
+enhanced_mode = "增强模式"
+name_server = "Name Server"
+fallback_name_server = "Fallback Name Server"
+default_name_server = "Default Name Server"
+fakeip_filter = "FakeIP 过滤器"
+fakeip_filter_mode = "FakeIP 过滤器模式"
+geoip_fallback = "GeoIP Fallback"
+geoip_fallback_whitelist = "GeoIP Fallback 仅匹配白名单"
+domain_fallback = "域名 Fallback"
+ipcidr_fallback = "IPCIDR Fallback"
+nameserver_policy = "Name Server 策略"
+
+<Status Text>
+secret_hidden = "••••••"
+
+<Mode Options>
+mode_direct = "直连"
+mode_global = "全局"
+mode_rule = "规则"
+mode_script = "脚本"
+
+<Log Level Options>
+log_info = "信息"
+log_warning = "警告"
+log_error = "错误"
+log_debug = "调试"
+log_silent = "静默"
+log_unknown = "未知"
+
+<Enhanced Mode Options>
+enhanced_none = "关闭"
+enhanced_fakeip = "FakeIP"
+enhanced_mapping = "Mapping"
+
+<Filter Mode Options>
+filter_blacklist = "黑名单"
+filter_whitelist = "白名单"
+
+<Dialogs>
+dialog_reset_title = "重置所有覆写"
+dialog_reset_confirm = "确定重置"
+dialog_edit_title = "编辑 %s"
+
+<Input Labels>
+input_port_label = "请输入端口号 (1-65535)"
+input_bind_address_label = "请输入绑定地址"
+input_external_controller_label = "请输入地址 (如 0.0.0.0:9090)"
+input_external_controller_tls_label = "请输入 TLS 地址"
+input_secret_label = "请输入密钥"
+input_dns_listen_label = "请输入监听地址"
+input_geoip_code_label = "请输入 GeoIP 代码 (如 CN)"
+
+<Validation>
+validation_invalid_number = "请输入有效的数字"
+validation_port_range = "端口号必须在 1-65535 之间"

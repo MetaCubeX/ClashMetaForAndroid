@@ -1,0 +1,36 @@
+<Logcat>
+logcat_page_title = "Live Log"
+logcat_stop_recording = "Stop Recording"
+
+<Sections>
+logcat_section_filter = "Log Level Filter"
+
+<Log Levels>
+logcat_level_label = "Start Recording Level"
+logcat_level_all = ""
+logcat_level_error = "Error"
+logcat_level_warning = "Warning"
+logcat_level_info = "Info"
+logcat_level_debug = "Debug"
+logcat_level_silent = "Silent"
+
+<Display>
+logcat_current_display = "Currently displaying: %d/%d messages"
+logcat_delete_current_log = "Delete Current Log"
+logcat_delete_current_log_summary = "Tap to delete the currently displayed log file"
+
+<Dialogs>
+logcat_copied_title = "Copied"
+logcat_delete_title = "Delete All Logs"
+logcat_delete_summary = "Are you sure you want to delete all log records? This action cannot be undone."
+logcat_export_title = "Export Log"
+logcat_export_summary = "Are you sure you want to export all current log records?"
+
+<Log Levels Names>
+logcat_log_error = "Error"
+logcat_log_warning = "Warning"
+logcat_log_info = "Info"
+logcat_log_debug = "Debug"
+logcat_log_silent = "Silent"
+logcat_log_unknown = "Unknown"
+

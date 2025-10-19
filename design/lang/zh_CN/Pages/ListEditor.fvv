@@ -1,0 +1,15 @@
+<List Editor>
+validation_invalid = "格式不正确"
+
+<Empty State>
+empty_message = "暂无条目"
+empty_hint = "点击右上角 + 添加"
+
+<Dialog>
+dialog_add_title = "添加条目"
+dialog_edit_title = "编辑条目"
+input_hint = "请输入内容"
+input_label = "请输入内容"
+
+<Summary>
+total_items = "共 %d 个条目"

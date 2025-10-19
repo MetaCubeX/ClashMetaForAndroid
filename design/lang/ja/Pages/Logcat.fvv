@@ -1,0 +1,36 @@
+<Logcat>
+logcat_page_title = "リアルタイムログ"
+logcat_stop_recording = "記録を停止"
+
+<Sections>
+logcat_section_filter = "ログレベルフィルター"
+
+<Log Levels>
+logcat_level_label = "記録開始レベル"
+logcat_level_all = ""
+logcat_level_error = "エラー"
+logcat_level_warning = "警告"
+logcat_level_info = "情報"
+logcat_level_debug = "デバッグ"
+logcat_level_silent = "サイレント"
+
+<Display>
+logcat_current_display = "現在の表示: %d/%d メッセージ"
+logcat_delete_current_log = "現在のログを削除"
+logcat_delete_current_log_summary = "タップして現在表示されているログファイルを削除"
+
+<Dialogs>
+logcat_copied_title = "コピーしました"
+logcat_delete_title = "すべてのログを削除"
+logcat_delete_summary = "すべてのログ記録を削除してもよろしいですか？この操作は元に戻せません。"
+logcat_export_title = "ログをエクスポート"
+logcat_export_summary = "現在のすべてのログ記録をエクスポートしてもよろしいですか？"
+
+<Log Levels Names>
+logcat_log_error = "エラー"
+logcat_log_warning = "警告"
+logcat_log_info = "情報"
+logcat_log_debug = "デバッグ"
+logcat_log_silent = "サイレント"
+logcat_log_unknown = "不明"
+

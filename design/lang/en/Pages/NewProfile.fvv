@@ -1,0 +1,35 @@
+<New Profile>
+new_profile_page_title = "Add Profile"
+
+<Import Method>
+import_method = "Import Method"
+import_method_summary = "Select the source for adding profile"
+
+<File Section>
+section_file = "Local Profile"
+name_label = "Profile Name"
+import_config = "Import Config"
+import_hint = "Select config file"
+reimport = "Reimport"
+reimport_hint = "Reselect config file"
+
+<URL Section>
+section_url = "Subscription Profile"
+url_label = "Subscription URL"
+auto_update = "Auto Update"
+auto_update_summary = "Select auto update interval"
+
+<External Section>
+section_external = "External App"
+
+<Interval Options>
+interval_none = "Manual"
+interval_1h = "1 Hour"
+interval_3h = "3 Hours"
+interval_6h = "6 Hours"
+interval_12h = "12 Hours"
+interval_24h = "24 Hours"
+
+<Progress>
+loading = "Loading..."
+

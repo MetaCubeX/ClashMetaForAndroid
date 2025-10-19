@@ -1,0 +1,13 @@
+<About Page>
+about_page_title = "について"
+app_description = "YumeBoxはNGA × CUからインスピレーションを得て、ミニマルでありながら魂のあるデザイン哲学を継続しています"
+
+<Sections>
+section_project_links = "プロジェクトリンク"
+section_join_groups = "グループに参加"
+section_license = "オープンソースライセンス"
+
+<Groups>
+join_qq_group = "QQグループに参加"
+join_tg_group = "Telegramグループに参加"
+

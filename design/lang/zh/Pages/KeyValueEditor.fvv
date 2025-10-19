@@ -1,0 +1,14 @@
+<Key Value Editor>
+empty_text = "暂无条目"
+empty_hint = "点击右上角 + 添加"
+count_summary = "共 %d 个条目"
+item_count = "共 %d 个条目"
+
+<Dialogs>
+dialog_add_title = "添加条目"
+dialog_edit_title = "编辑条目"
+
+<Validation>
+error_key_empty = "键不能为空"
+error_value_empty = "值不能为空"
+error_key_exists = "键已存在"

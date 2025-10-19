@@ -8,6 +8,7 @@ import java.util.*
 interface IProfileManager {
     suspend fun create(type: Profile.Type, name: String, source: String = ""): UUID
     suspend fun clone(uuid: UUID): UUID
+    suspend fun duplicate(uuid: UUID): UUID
     suspend fun commit(uuid: UUID, callback: IFetchObserver? = null)
     suspend fun release(uuid: UUID)
     suspend fun delete(uuid: UUID)

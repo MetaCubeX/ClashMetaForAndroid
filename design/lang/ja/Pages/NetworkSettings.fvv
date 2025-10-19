@@ -1,0 +1,41 @@
+<Network Settings>
+network_page_title = "ネットワーク設定"
+
+<Dialog>
+network_dialog_unavailable_title = "YumeBox実行中はオプションを使用できません"
+
+<Sections>
+section_vpn = "VPNサービス"
+section_vpn_options = "VPNサービスオプション"
+section_proxy_options = "プロキシオプション"
+
+<VPN Service>
+route_traffic = "システムトラフィックをルーティング"
+route_traffic_summary = "VPNサービス経由ですべてのトラフィックをルーティング"
+
+<VPN Options>
+bypass_private = "プライベートネットワークをバイパス"
+bypass_private_summary = "プライベートネットワークとローカルアドレスをバイパス"
+dns_hijacking = "DNSハイジャック"
+dns_hijacking_summary = "すべてのDNSリクエストをClashにリダイレクト"
+allow_bypass = "バイパスを許可"
+allow_bypass_summary = "アプリがVPNをバイパスすることを許可"
+allow_ipv6 = "IPv6を許可"
+allow_ipv6_summary = "VPN経由でIPv6トラフィックをルーティングすることを許可"
+system_proxy = "システムプロキシ"
+system_proxy_summary = "VPNをサポートしていないアプリ用にシステムHTTPプロキシを設定"
+
+<Proxy Options>
+tun_stack = "TUNスタック"
+tun_stack_system = "system"
+tun_stack_gvisor = "GVisor"
+tun_stack_mixed = "mixed"
+access_control_mode = "アクセス制御モード"
+access_control_list = "アクセス制御アプリリスト"
+access_control_list_summary = "アクセス制御内のアプリを管理"
+
+<Access Control Modes>
+access_mode_allow_all = "すべてのアプリを許可"
+access_mode_allow_selected = "選択したアプリを許可"
+access_mode_deny_selected = "選択したアプリを拒否"
+

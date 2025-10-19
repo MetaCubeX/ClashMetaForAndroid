@@ -1,0 +1,7 @@
+<Apk Broken>
+apk_broken_page_title = "アプリが破損しています"
+apk_broken_tips = "アプリに必要なランタイムコンポーネントがありません。通常、不完全なapkをダウンロードしたことが原因です。"
+section_reinstall = "再インストール"
+github_releases = "GitHub Releases"
+meta_github_url = "https://github.com/MetaCubeX/ClashMetaForAndroid"
+

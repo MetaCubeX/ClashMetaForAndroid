@@ -1,6 +1,7 @@
 package com.github.kr328.clash.service
 
 import android.app.PendingIntent
+import android.app.Service
 import android.content.Intent
 import android.os.Binder
 import android.os.IBinder
@@ -47,7 +48,7 @@ class ProfileWorker : BaseService() {
     }
 
     override fun onDestroy() {
-        stopForeground(true)
+        stopForeground(Service.STOP_FOREGROUND_REMOVE)
 
         super.onDestroy()
     }
@@ -156,7 +157,7 @@ class ProfileWorker : BaseService() {
         val intent = PendingIntent.getActivity(
             this,
             id,
-            Intent().setComponent(Components.PROPERTIES_ACTIVITY).setUUID(uuid),
+            Intent().setComponent(Components.NEW_PROFILE_ACTIVITY).setUUID(uuid),
             pendingIntentFlags(PendingIntent.FLAG_UPDATE_CURRENT)
         )
 

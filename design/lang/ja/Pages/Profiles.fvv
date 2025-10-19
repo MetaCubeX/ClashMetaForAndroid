@@ -1,0 +1,43 @@
+<Profiles Page>
+profiles_page_title = "プロファイル"
+
+<Mode>
+mode_title = "モード"
+mode_summary = "プロファイル操作モードを選択"
+mode_activate = "アクティベートモード"
+mode_edit = "編集モード"
+
+<Empty State>
+empty_message = "プロファイルがありません（´･ω･`）"
+empty_hint = "右上の + ボタンをタップしてプロファイルを追加"
+
+<Unsaved Dialog>
+unsaved_title = "未保存のプロファイル"
+unsaved_summary = "現在のプロファイルは保存されていません。編集しますか？"
+unsaved_label = "未保存"
+
+<Edit Actions>
+action_update_config = "設定を更新"
+action_update_summary = "最新の設定ファイルを再ダウンロード"
+action_edit_config = "設定を編集"
+action_edit_summary = "プロファイル名と設定を変更"
+action_copy_config = "設定をコピー"
+action_copy_summary = "このプロファイルのコピーを作成"
+action_delete_config = "設定を削除"
+action_delete_summary = "この操作は元に戻せません"
+action_edit = "編集"
+
+<Profile Types>
+type_local = "ローカルファイル"
+type_url = "サブスクリプションURL"
+type_external = "外部インポート"
+
+<Time Format>
+time_minutes_ago = "%d分前"
+time_hours_ago = "%d時間前"
+time_days_ago = "%d日前"
+
+<Traffic>
+expires_at = "有効期限: %s"
+traffic_summary = "合計 %d エントリ"
+

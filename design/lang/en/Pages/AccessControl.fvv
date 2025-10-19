@@ -1,0 +1,31 @@
+<Access Control>
+access_control_page_title = "Access Control"
+search_label = "Search Apps"
+
+<Permission>
+no_permission = "App list permission required"
+grant_permission = "Grant Permission"
+
+<Empty States>
+no_apps = "No apps found"
+no_match = "No matching apps"
+
+<More Options Menu>
+more_title = "More Options"
+select_all = "Select All"
+select_none = "Select None"
+select_invert = "Invert Selection"
+export_clipboard = "Export to Clipboard"
+show_system = "Show System Apps"
+show_system_summary = "Display system apps in the list"
+reverse_order = "Reverse Order"
+reverse_order_summary = "Reverse the sorting order of the app list"
+sort_method = "Sort Method"
+sort_method_summary = "Choose the sorting method for the app list"
+
+<Sort Methods>
+sort_name = "App Name"
+sort_package = "Package Name"
+sort_install = "Install Time"
+sort_update = "Update Time"
+

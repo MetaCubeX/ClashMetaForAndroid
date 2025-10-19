@@ -1,0 +1,126 @@
+<App Info>
+app_name = "YumeBox"
+
+<Common Actions>
+action_back = "戻る"
+action_save = "保存"
+action_cancel = "キャンセル"
+action_confirm = "確認"
+action_ok = "OK"
+action_delete = "削除"
+action_edit = "編集"
+action_add = "追加"
+action_update = "更新"
+action_update_all = "すべて更新"
+action_refresh = "更新"
+action_import = "インポート"
+action_export = "エクスポート"
+action_reset = "リセット"
+action_rename = "名前を変更"
+action_open = "開く"
+action_close = "閉じる"
+action_search = "検索"
+action_clear = "クリア"
+action_more = "もっと見る"
+action_start_logging = "ログ記録を開始"
+action_stop_logging = "記録を停止"
+action_speed_test = "速度テスト"
+action_more_actions = "その他の操作"
+action_switch_group = "ノードグループ"
+
+<Connection Status>
+status_connected = "接続済み"
+status_connecting = "接続中"
+status_disconnected = "切断済み"
+action_connect = "タップして接続"
+action_disconnect = "タップして切断"
+
+<Common Status>
+status_loading = "読み込み中…"
+status_loading_wait = "しばらくお待ちください"
+status_not_set = "未設定"
+status_not_configured = "未構成"
+status_empty = "データなし"
+status_unknown = "不明"
+status_completed = "完了"
+status_no_node_selected = "ノードが選択されていません"
+status_no_profile_selected = "プロファイルが選択されていません"
+
+<Common Labels>
+label_name = "名前"
+label_type = "タイプ"
+label_status = "状態"
+label_time = "時間"
+label_size = "サイズ"
+label_mode = "モード"
+label_title = "タイトル"
+label_summary = "概要"
+label_description = "説明"
+label_country_flag = "国旗"
+label_protocol = "プロトコル"
+label_unknown_protocol = "不明なプロトコル"
+
+<Traffic Labels>
+label_upload = "アップロード"
+label_download = "ダウンロード"
+label_upload_node = "アップロードノード"
+label_download_node = "ダウンロードノード"
+
+<Time Format>
+time_minutes_ago = "%d分前"
+time_hours_ago = "%d時間前"
+time_days_ago = "%d日前"
+time_unknown = "--"
+time_format_hms = "HH:mm:ss"
+
+<Common Counts>
+count_items = "%d 項目"
+count_files = "%d ファイル"
+count_domains = "%d ドメイン"
+count_servers = "%d サーバー"
+count_ports = "%d ポート"
+count_addresses = "%d アドレス"
+count_mappings = "%d マッピング"
+count_policies = "%d ポリシー"
+count_segments = "%d セグメント"
+
+<Tristate Options>
+tristate_not_modify = "変更しない"
+tristate_enabled = "有効"
+tristate_disabled = "無効"
+
+<Common Dialogs>
+dialog_confirm_title = "操作の確認"
+dialog_cancel = "キャンセル"
+dialog_confirm = "確認"
+
+<Pull to Refresh>
+pull_to_refresh = "引いて更新"
+release_to_refresh = "離して更新"
+refreshing = "更新中"
+refresh_complete = "完了"
+
+<Empty States>
+empty_text_generic = "データがありません（´･ω･`）"
+empty_hint_generic = "コンテンツを追加してください"
+empty_text_loading = "読み込み中…"
+empty_hint_loading = "長時間応答がない場合は更新してください"
+
+<Validation>
+validation_required = "この項目は必須です"
+validation_invalid = "形式が正しくありません"
+validation_empty = "空にできません"
+validation_invalid_number = "有効な数字を入力してください"
+validation_port_range = "ポートは1〜65535の範囲でなければなりません"
+validation_invalid_ip = "IPアドレスの形式が正しくありません"
+validation_invalid_url = "URLの形式が正しくありません"
+validation_url_too_long = "URLが長すぎます"
+validation_invalid_domain = "ドメインの形式が正しくありません"
+validation_invalid_cidr = "CIDRの形式が正しくありません"
+validation_must_be_positive = "正の整数でなければなりません"
+validation_must_be_non_negative = "非負の整数でなければなりません"
+validation_invalid_filename = "ファイル名の形式が正しくありません"
+validation_invalid_http_url = "URLはhttp://またはhttps://で始まる必要があります"
+validation_interval_too_short = "更新間隔は少なくとも15分必要です"
+validation_text_too_long = "入力が長すぎます、最大%d文字"
+

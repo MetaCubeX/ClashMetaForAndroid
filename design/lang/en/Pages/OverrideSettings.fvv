@@ -1,0 +1,89 @@
+<Override Settings Page>
+override_page_title = "Override"
+
+<Sections>
+section_general = "General"
+section_dns = "DNS"
+
+<General Options>
+http_port = "HTTP Port"
+socks_port = "Socks Port"
+redirect_port = "Redirect Port"
+tproxy_port = "TProxy Port"
+mixed_port = "Mixed Port"
+authentication = "Authentication"
+allow_lan = "Allow LAN Connections"
+ipv6 = "IPv6"
+bind_address = "Bind Address"
+external_controller = "External Controller"
+external_controller_tls = "External Controller TLS"
+external_controller_allow_origins = "External Controller Allow Origins"
+external_controller_allow_private = "External Controller Allow Private Network"
+secret = "Secret"
+mode = "Mode"
+log_level = "Log Level"
+hosts = "Hosts"
+
+<DNS Options>
+sniffer = "Sniffer"
+h3_prefer = "H3 Prefer"
+dns_listen = "Listen"
+append_system_dns = "Append System DNS"
+dns_ipv6 = "IPv6"
+use_hosts = "Use Hosts"
+enhanced_mode = "Enhanced Mode"
+name_server = "Name Server"
+fallback_name_server = "Fallback Name Server"
+default_name_server = "Default Name Server"
+fakeip_filter = "FakeIP Filter"
+fakeip_filter_mode = "FakeIP Filter Mode"
+geoip_fallback = "GeoIP Fallback"
+geoip_fallback_whitelist = "GeoIP Fallback Whitelist Only"
+domain_fallback = "Domain Fallback"
+ipcidr_fallback = "IPCIDR Fallback"
+nameserver_policy = "Name Server Policy"
+
+<Status Text>
+secret_hidden = "••••••"
+
+<Mode Options>
+mode_direct = "Direct"
+mode_global = "Global"
+mode_rule = "Rule"
+mode_script = "Script"
+
+<Log Level Options>
+log_info = "Info"
+log_warning = "Warning"
+log_error = "Error"
+log_debug = "Debug"
+log_silent = "Silent"
+log_unknown = "Unknown"
+
+<Enhanced Mode Options>
+enhanced_none = "Off"
+enhanced_fakeip = "FakeIP"
+enhanced_mapping = "Mapping"
+
+<Filter Mode Options>
+filter_blacklist = "Blacklist"
+filter_whitelist = "Whitelist"
+
+<Dialogs>
+dialog_reset_title = "Reset All Overrides"
+dialog_reset_confirm = "Confirm Reset"
+dialog_edit_title = "Edit %s"
+
+<Input Labels>
+input_port_label = "Please enter port number (1-65535)"
+input_bind_address_label = "Please enter bind address"
+input_external_controller_label = "Please enter address (e.g. 0.0.0.0:9090)"
+input_external_controller_tls_label = "Please enter TLS address"
+input_secret_label = "Please enter secret"
+input_dns_listen_label = "Please enter listen address"
+input_geoip_code_label = "Please enter GeoIP code (e.g. CN)"
+
+<Validation>
+validation_invalid_number = "Please enter a valid number"
+validation_port_range = "Port must be between 1-65535"
+

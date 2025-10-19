@@ -1,0 +1,36 @@
+<Logs Page>
+logs_page_title = "ログ"
+logs_start_recording = "ログ記録を開始"
+
+<Sections>
+logs_section_filter = "ログレベルフィルター"
+
+<Log Levels>
+logs_level_label = "ログレベル"
+logs_level_all = "すべて"
+logs_level_error = "エラー"
+logs_level_warning = "警告"
+logs_level_info = "情報"
+logs_level_debug = "デバッグ"
+logs_level_silent = "サイレント"
+
+<Log Files>
+logs_files_title = "ログファイル (%d)"
+logs_files_title_recording = "ログファイル (%d) - 記録中..."
+logs_delete_all = "すべてのログを削除 (%d)"
+
+<Log File Info>
+logs_type_label = "タイプ: "
+logs_create_time_label = "作成日時: "
+logs_size_label = "サイズ: "
+logs_type_error = "エラー"
+logs_type_warning = "警告"
+logs_type_info = "情報"
+logs_type_debug = "デバッグ"
+logs_type_silent = "サイレント"
+logs_type_all = "すべてのログ"
+logs_unknown_size = "不明なサイズ"
+
+<Dialog>
+logs_dialog_delete_title = "すべてのログを削除"
+

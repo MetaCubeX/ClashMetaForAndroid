@@ -1,0 +1,15 @@
+<Key Value Editor>
+empty_text = "エントリがありません"
+empty_hint = "右上の + をタップして追加"
+count_summary = "合計 %d エントリ"
+item_count = "合計 %d エントリ"
+
+<Dialogs>
+dialog_add_title = "エントリを追加"
+dialog_edit_title = "エントリを編集"
+
+<Validation>
+error_key_empty = "キーは空にできません"
+error_value_empty = "値は空にできません"
+error_key_exists = "キーは既に存在します"
+

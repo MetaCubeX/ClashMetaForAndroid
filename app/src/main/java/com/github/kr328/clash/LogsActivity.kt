@@ -1,67 +1,135 @@
 package com.github.kr328.clash
 
+import android.content.ComponentName
+import android.content.Context
+import android.content.Intent
+import android.content.ServiceConnection
+import android.os.IBinder
+import androidx.lifecycle.lifecycleScope
 import com.github.kr328.clash.common.util.intent
 import com.github.kr328.clash.common.util.setFileName
 import com.github.kr328.clash.design.LogsDesign
-import com.github.kr328.clash.design.model.LogFile
-import com.github.kr328.clash.util.logsDir
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.selects.select
-import kotlinx.coroutines.withContext
+import com.github.kr328.clash.service.store.ServiceStore
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 class LogsActivity : BaseActivity<LogsDesign>() {
+    private lateinit var serviceStore: ServiceStore
+    private var logsDesign: LogsDesign? = null
+    private var logcatServiceBound = false
+
+    private val serviceConnection = object : ServiceConnection {
+        override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
+            logcatServiceBound = true
+            logsDesign?.isLogcatRunning = true
+        }
+
+        override fun onServiceDisconnected(name: ComponentName?) {
+            logcatServiceBound = false
+            logsDesign?.isLogcatRunning = false
+        }
+    }
 
     override suspend fun main() {
-        val design = LogsDesign(this)
+        serviceStore = ServiceStore(this)
 
-        setContentDesign(design)
+        val currentDesign = LogsDesign(this)
+        logsDesign = currentDesign
+        setContentDesign(currentDesign)
 
-        while (isActive) {
-            select<Unit> {
-                events.onReceive {
-                    when (it) {
-                        Event.ActivityStart -> {
-                            val files = withContext(Dispatchers.IO) {
-                                loadFiles()
-                            }
 
-                            design.patchLogs(files)
-                        }
-                        else -> Unit
-                    }
+        updateLogcatStatus()
+
+        for (request in currentDesign.requests) {
+            when (request) {
+                LogsDesign.Request.OpenLogcat -> {
+                    startActivity(LogcatActivity::class.intent)
+                    finish()
                 }
-                design.requests.onReceive {
-                    when (it) {
-                        LogsDesign.Request.StartLogcat -> {
-                            startActivity(LogcatActivity::class.intent)
-                            finish()
-                        }
-                        LogsDesign.Request.DeleteAll -> {
-                            if (design.requestDeleteAll()) {
-                                withContext(Dispatchers.IO) {
-                                    deleteAllLogs()
-                                }
 
-                                events.trySend(Event.ActivityStart)
-                            }
-                        }
-                        is LogsDesign.Request.OpenFile -> {
-                            startActivity(LogcatActivity::class.intent.setFileName(it.file.fileName))
-                        }
-                    }
+                LogsDesign.Request.DeleteAll -> {
+
+                }
+
+                LogsDesign.Request.StartLogcat -> {
+                    startLogcatService()
+                }
+
+                LogsDesign.Request.StopLogcat -> {
+                    stopLogcatService()
+                }
+
+                is LogsDesign.Request.OpenLogFile -> {
+                    startActivity(LogcatActivity::class.intent.setFileName(request.file.fileName))
                 }
             }
         }
     }
 
-    private fun loadFiles(): List<LogFile> {
-        val list = cacheDir.resolve("logs").listFiles()?.toList() ?: emptyList()
+    private fun updateLogcatStatus() {
+        lifecycleScope.launch {
 
-        return list.mapNotNull { LogFile.parseFromFileName(it.name) }
+            delay(100)
+            try {
+
+                val isRunning = try {
+
+                    logcatServiceBound
+                } catch (e: Exception) {
+                    false
+                }
+                logsDesign?.isLogcatRunning = isRunning
+            } catch (e: Exception) {
+                logsDesign?.isLogcatRunning = false
+            }
+        }
     }
 
-    private fun deleteAllLogs() {
-        logsDir.deleteRecursively()
+    private fun startLogcatService() {
+        try {
+            val intent = Intent(this, LogcatService::class.java)
+            startForegroundService(intent)
+            bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    private fun stopLogcatService() {
+        try {
+            if (logcatServiceBound) {
+                unbindService(serviceConnection)
+                logcatServiceBound = false
+            }
+            stopService(Intent(this, LogcatService::class.java))
+            logsDesign?.isLogcatRunning = false
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    override fun onStart() {
+        super.onStart()
+
+        updateLogcatStatus()
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        updateLogcatStatus()
+        logsDesign?.loadLogs()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        
+    }
+
+    override fun onDestroy() {
+        if (logcatServiceBound) {
+            unbindService(serviceConnection)
+        }
+        super.onDestroy()
     }
 }

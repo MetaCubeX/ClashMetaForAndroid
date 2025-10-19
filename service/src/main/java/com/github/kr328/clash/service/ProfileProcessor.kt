@@ -22,7 +22,6 @@ import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.math.BigDecimal
-import java.net.URL
 import java.util.*
 import java.util.concurrent.TimeUnit
 
@@ -195,6 +194,13 @@ object ProfileProcessor {
                         context.processingDir
                             .copyRecursively(context.importedDir.resolve(snapshot.uuid.toString()))
 
+                        // Preserve the user's custom name and interval after update
+                        val preservedImported = snapshot.copy(
+                            name = snapshot.name,
+                            interval = snapshot.interval
+                        )
+                        ImportedDao().update(preservedImported)
+
                         context.sendProfileChanged(snapshot.uuid)
                     }
                 }
@@ -253,7 +259,7 @@ object ProfileProcessor {
             source.isEmpty() && type != Profile.Type.File ->
                 throw IllegalArgumentException("Invalid url")
 
-            source.isNotEmpty() && scheme != "https" && scheme != "http" && scheme != "content" ->
+            source.isNotEmpty() && scheme != "https" && scheme != "http" && scheme != "content" && scheme != "file" ->
                 throw IllegalArgumentException("Unsupported url $source")
 
             interval != 0L && TimeUnit.MILLISECONDS.toMinutes(interval) < 15 ->

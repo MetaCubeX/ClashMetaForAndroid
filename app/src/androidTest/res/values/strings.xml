@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- AndroidTest 所需的字符串资源 -->
+    <!-- 这些字符串在 build.gradle.kts 中通过 resValue 动态生成，但 androidTest 需要静态定义 -->
+    <string name="application_name_alpha">YumeBox Alpha</string>
+    <string name="launch_name_alpha">YumeBox Alpha</string>
+    <string name="application_name_meta">YumeBox Meta</string>
+    <string name="launch_name_meta">YumeBox Meta</string>
+</resources>
+
+
+
+

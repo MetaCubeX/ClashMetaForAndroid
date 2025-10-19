@@ -1,0 +1,18 @@
+<Settings Page>
+settings_page_title = "Settings"
+
+<Sections>
+section_global = "Global"
+section_proxy = "Proxy"
+section_other = "Other"
+
+<Entries>
+entry_app = "App"
+entry_network = "Network"
+entry_override = "Override"
+entry_meta_features = "Meta Features"
+entry_profiles = "Profiles"
+entry_providers = "External Resources"
+entry_logs = "Logs"
+entry_about = "About"
+

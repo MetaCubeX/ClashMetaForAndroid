@@ -1,0 +1,6 @@
+<Apk Broken>
+apk_broken_page_title = "应用损坏"
+apk_broken_tips = "应用缺少必要的运行时组件，通常是由于下载了不完整的 apk 导致的。"
+section_reinstall = "重新安装"
+github_releases = "GitHub Releases"
+meta_github_url = "https://github.com/MetaCubeX/ClashMetaForAndroid"

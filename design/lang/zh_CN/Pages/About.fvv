@@ -1,0 +1,12 @@
+<About Page>
+about_page_title = "关于"
+app_description = "YumeBox 灵感源自 NGA × CU，延续极简却充满灵魂的设计理念"
+
+<Sections>
+section_project_links = "项目链接"
+section_join_groups = "加入群组"
+section_license = "开放源代码许可"
+
+<Groups>
+join_qq_group = "加入 QQ 群组"
+join_tg_group = "加入 Tg 群组"

@@ -1,0 +1,45 @@
+<Meta Feature Settings>
+meta_page_title = "Meta 特性"
+
+<Sections>
+section_settings = "设置"
+section_sniffer = "嗅探设置"
+
+<Settings>
+unified_delay = "统一延迟"
+unified_delay_summary = "统一测量延迟，更准确但可能更慢"
+geodata_mode = "GeoData 模式"
+geodata_mode_summary = "使用 GeoData 数据库格式"
+tcp_concurrent = "TCP 并发"
+tcp_concurrent_summary = "启用 TCP 并发连接"
+find_process_mode = "查找进程模式"
+force_dns_mapping = "强制 DNS 映射"
+parse_pure_ip = "解析纯 IP 连接"
+
+<Find Process Mode Options>
+process_mode_off = "关闭"
+process_mode_strict = "严格"
+process_mode_always = "总是"
+
+<Sniffer Settings>
+sniff_policy = "策略"
+http_ports = "HTTP"
+tls_ports = "TLS"
+quic_ports = "QUIC"
+override_dest_addr = "覆盖目标地址"
+force_resolve_domain = "强制解析域名"
+skip_domain = "跳过域名"
+skip_src_address = "跳过源地址"
+skip_dst_address = "跳过目标地址"
+
+<Geo Files>
+section_geo_files = "Geo 文件"
+import_geoip = "导入 GeoIP 数据库"
+import_geosite = "导入 GeoSite 数据库"
+import_country = "导入 Country 数据库"
+import_asn = "导入 ASN 数据库"
+import_hint = "点击导入..."
+
+<Dialogs>
+dialog_reset_title = "重置所有覆写"
+dialog_reset_confirm = "确定重置"

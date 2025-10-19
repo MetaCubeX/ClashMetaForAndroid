@@ -1,0 +1,13 @@
+<Providers Page>
+providers_page_title = "Override"
+
+<Empty State>
+empty_title = "External Resources"
+empty_text = "No external resources (´･ω･`)"
+empty_hint = "Please start the proxy and refresh"
+
+<Provider Row>
+type_label = "Type:"
+vehicle_label = "Vehicle:"
+update_time_label = "Update Time:"
+

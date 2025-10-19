@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">YumeBox</string>
+    <string name="application_name_alpha">YumeBox Alpha</string>
+    <string name="launch_name_alpha">YumeBox Alpha</string>
+    <string name="application_name_meta">YumeBox Meta</string>
+    <string name="launch_name_meta">YumeBox Meta</string>
+    <string name="hint_name">名称</string>
+    <string name="hint_update_interval">更新间隔(小时)</string>
+    <string name="saving_profile">正在保存配置…</string>
+    <string name="fetching_configuration_from">正在从 %1$s 下载配置</string>
+    <string name="fetching_providers">正在下载外部资源 %1$s</string>
+    <string name="verifying">正在校验</string>
+    <string name="saving">正在保存…</string>
+    <string name="please_import_config">请先导入并填写 config.yaml</string>
+    <string name="importing_file">正在导入文件…</string>
+    <string name="exporting_file">正在导出文件…</string>
+    <string name="properties_title">配置属性</string>
+    <string name="label_name">名称</string>
+    <string name="label_url">URL</string>
+    <string name="label_update_interval_minutes">自动更新间隔(分钟)</string>
+    <string name="not_enabled">未启用</string>
+    <string name="import_config">导入 config.yaml</string>
+    <string name="export_config">导出 config.yaml</string>
+    <string name="config_not_found">未找到 config.yaml</string>
+    <string name="save">保存</string>
+    <string name="unsaved_state">当前为未保存状态</string>
+    <string name="processing">处理中...</string>
+    <string name="run_in_background">后台运行</string>
+    <string name="ok">确定</string>
+    <string name="cancel">取消</string>
+    <string name="rename">重命名</string>
+    <string name="delete">删除</string>
+    <string name="export">导出</string>
+</resources>

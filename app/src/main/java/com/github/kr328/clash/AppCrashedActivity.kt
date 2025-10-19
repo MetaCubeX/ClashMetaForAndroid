@@ -24,7 +24,7 @@ class AppCrashedActivity : BaseActivity<AppCrashedDesign>() {
             SystemLogcat.dumpCrash()
         }
 
-        design.setAppLogs(logs)
+        design.appLogs = logs
 
         while (isActive) {
             events.receive()

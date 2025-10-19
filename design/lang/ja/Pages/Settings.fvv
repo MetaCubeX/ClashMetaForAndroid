@@ -1,0 +1,18 @@
+<Settings Page>
+settings_page_title = "設定"
+
+<Sections>
+section_global = "グローバル"
+section_proxy = "プロキシ"
+section_other = "その他"
+
+<Entries>
+entry_app = "アプリ"
+entry_network = "ネットワーク"
+entry_override = "オーバーライド"
+entry_meta_features = "Meta機能"
+entry_profiles = "プロファイル"
+entry_providers = "外部リソース"
+entry_logs = "ログ"
+entry_about = "について"
+

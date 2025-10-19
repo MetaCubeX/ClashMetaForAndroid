@@ -1,81 +1,250 @@
 package com.github.kr328.clash
 
-import android.database.Cursor
 import android.net.Uri
+import android.os.Bundle
 import android.provider.OpenableColumns
 import android.widget.Toast
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import com.github.kr328.clash.core.Clash
+import com.github.kr328.clash.core.model.ConfigurationOverride
 import com.github.kr328.clash.design.MetaFeatureSettingsDesign
+import com.github.kr328.clash.design.R
+import com.github.kr328.clash.design.theme.YumeTheme
 import com.github.kr328.clash.util.clashDir
 import com.github.kr328.clash.util.withClash
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.selects.select
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 import java.io.File
 import java.io.FileOutputStream
-import com.github.kr328.clash.design.R
 
+class MetaFeatureSettingsActivity : ComponentActivity() {
+    private val scope = MainScope()
+    private val validDatabaseExtensions = listOf(
+        ".metadb", ".db", ".dat", ".mmdb"
+    )
+    private lateinit var configuration: ConfigurationOverride
 
-class MetaFeatureSettingsActivity : BaseActivity<MetaFeatureSettingsDesign>() {
-    override suspend fun main() {
-        val configuration = withClash { queryOverride(Clash.OverrideSlot.Persist) }
+    private var currentImportType: MetaImport? = null
+    private val importLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        val type = currentImportType
+        if (uri != null && type != null) {
+            importGeoFile(uri, type)
+        }
+        currentImportType = null
+    }
 
-        defer {
-            withClash {
-                patchOverride(Clash.OverrideSlot.Persist, configuration)
+    private lateinit var design: MetaFeatureSettingsDesign
+    private var currentListEditorCallback: ((List<String>) -> Unit)? = null
+    private val listEditorLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == RESULT_OK) {
+                val items = result.data?.getStringArrayListExtra(ListEditorActivity.RESULT_ITEMS)
+                if (items != null && currentListEditorCallback != null) {
+                    currentListEditorCallback?.invoke(items)
+                    currentListEditorCallback = null
             }
         }
+    }
 
-        val design = MetaFeatureSettingsDesign(
-            this,
-            configuration
+    private fun pickAndImport(type: MetaImport) {
+        currentImportType = type
+        importLauncher.launch("*/*")
+    }
+
+    private fun launchListEditor(
+        title: String,
+        items: List<String>,
+        validatorType: String,
+        callback: (List<String>) -> Unit
+    ) {
+        currentListEditorCallback = callback
+        val intent = ListEditorActivity.start(
+            this@MetaFeatureSettingsActivity,
+            title,
+            ArrayList(items),
+            validatorType
         )
+        listEditorLauncher.launch(intent)
+    }
 
-        setContentDesign(design)
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
 
-        while (isActive) {
-            select<Unit> {
-                events.onReceive {
+        scope.launch {
+            val config = withClash { queryOverride(Clash.OverrideSlot.Persist) } ?: ConfigurationOverride()
+            configuration = config
 
+            design = MetaFeatureSettingsDesign(
+                this@MetaFeatureSettingsActivity,
+                config,
+                onConfigChange = { newConfig ->
+                    configuration = newConfig
                 }
-                design.requests.onReceive {
-                    when (it) {
-                        MetaFeatureSettingsDesign.Request.ResetOverride -> {
-                            if (design.requestResetConfirm()) {
-                                defer {
-                                    withClash {
-                                        clearOverride(Clash.OverrideSlot.Persist)
-                                    }
+            )
+
+            withContext(Dispatchers.Main) {
+                setContent {
+                    YumeTheme {
+                        design.Content()
+                    }
+                }
+            }
+
+            for (req in design.requests) {
+                when (req) {
+                    MetaFeatureSettingsDesign.Request.Close -> finish()
+                    MetaFeatureSettingsDesign.Request.ImportGeoIp -> pickAndImport(MetaImport.GeoIp)
+                    MetaFeatureSettingsDesign.Request.ImportGeoSite -> pickAndImport(MetaImport.GeoSite)
+                    MetaFeatureSettingsDesign.Request.ImportCountry -> pickAndImport(MetaImport.Country)
+                    MetaFeatureSettingsDesign.Request.ImportASN -> pickAndImport(MetaImport.ASN)
+                    MetaFeatureSettingsDesign.Request.ResetOverride -> {
+                        scope.launch {
+                            try {
+                                withClash { clearOverride(Clash.OverrideSlot.Persist) }
+                                // 重置后重新加载配置
+                                val newConfig =
+                                    withClash { queryOverride(Clash.OverrideSlot.Persist) } ?: ConfigurationOverride()
+                                configuration = newConfig
+                                design.config = newConfig
+                                runOnUiThread {
+                                    Toast.makeText(this@MetaFeatureSettingsActivity, "重置成功", Toast.LENGTH_SHORT)
+                                        .show()
+                                    finish()
                                 }
-                                finish()
+                            } catch (e: Exception) {
+                                runOnUiThread {
+                                    Toast.makeText(
+                                        this@MetaFeatureSettingsActivity,
+                                        "重置失败: ${e.message}",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
                             }
                         }
-                        MetaFeatureSettingsDesign.Request.ImportGeoIp -> {
-                            val uri = startActivityForResult(
-                                ActivityResultContracts.GetContent(),
-                                "*/*")
-                            importGeoFile(uri, MetaFeatureSettingsDesign.Request.ImportGeoIp)
+                    }
+
+                    MetaFeatureSettingsDesign.Request.Save -> {
+                        scope.launch {
+                            try {
+                                withClash { patchOverride(Clash.OverrideSlot.Persist, design.config) }
+                                runOnUiThread {
+                                    Toast.makeText(this@MetaFeatureSettingsActivity, "保存成功", Toast.LENGTH_SHORT)
+                                        .show()
+                                    finish()
+                                }
+                            } catch (e: Exception) {
+                                runOnUiThread {
+                                    Toast.makeText(
+                                        this@MetaFeatureSettingsActivity,
+                                        "保存失败: ${e.message}",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                            }
                         }
-                        MetaFeatureSettingsDesign.Request.ImportGeoSite -> {
-                            val uri = startActivityForResult(
-                                ActivityResultContracts.GetContent(),
-                                "*/*")
-                            importGeoFile(uri, MetaFeatureSettingsDesign.Request.ImportGeoSite)
+                    }
+
+                    MetaFeatureSettingsDesign.Request.EditHttpPorts -> {
+                        launchListEditor(
+                            "Sniff HTTP Ports",
+                            design.config.sniffer.sniff.http.ports ?: emptyList(),
+                            ListEditorActivity.VALIDATOR_NONE
+                        ) { newItems ->
+                            design.config = design.config.copy(
+                                sniffer = design.config.sniffer.copy(
+                                    sniff = design.config.sniffer.sniff.copy(
+                                        http = design.config.sniffer.sniff.http.copy(ports = newItems)
+                                    )
+                                )
+                            )
+                            configuration = design.config
                         }
-                        MetaFeatureSettingsDesign.Request.ImportCountry -> {
-                            val uri = startActivityForResult(
-                                ActivityResultContracts.GetContent(),
-                                "*/*")
-                            importGeoFile(uri, MetaFeatureSettingsDesign.Request.ImportCountry)
+                    }
+
+                    MetaFeatureSettingsDesign.Request.EditTlsPorts -> {
+                        launchListEditor(
+                            "Sniff TLS Ports",
+                            design.config.sniffer.sniff.tls.ports ?: emptyList(),
+                            ListEditorActivity.VALIDATOR_NONE
+                        ) { newItems ->
+                            design.config = design.config.copy(
+                                sniffer = design.config.sniffer.copy(
+                                    sniff = design.config.sniffer.sniff.copy(
+                                        tls = design.config.sniffer.sniff.tls.copy(ports = newItems)
+                                    )
+                                )
+                            )
+                            configuration = design.config
                         }
-                        MetaFeatureSettingsDesign.Request.ImportASN -> {
-                            val uri = startActivityForResult(
-                                ActivityResultContracts.GetContent(),
-                                "*/*")
-                            importGeoFile(uri, MetaFeatureSettingsDesign.Request.ImportASN)
+                    }
+
+                    MetaFeatureSettingsDesign.Request.EditQuicPorts -> {
+                        launchListEditor(
+                            "Sniff QUIC Ports",
+                            design.config.sniffer.sniff.quic.ports ?: emptyList(),
+                            ListEditorActivity.VALIDATOR_NONE
+                        ) { newItems ->
+                            design.config = design.config.copy(
+                                sniffer = design.config.sniffer.copy(
+                                    sniff = design.config.sniffer.sniff.copy(
+                                        quic = design.config.sniffer.sniff.quic.copy(ports = newItems)
+                                    )
+                                )
+                            )
+                            configuration = design.config
+                        }
+                    }
+
+                    MetaFeatureSettingsDesign.Request.EditForceDomains -> {
+                        launchListEditor(
+                            "强制域名",
+                            design.config.sniffer.forceDomain ?: emptyList(),
+                            ListEditorActivity.VALIDATOR_DOMAIN
+                        ) { newItems ->
+                            design.config = design.config.copy(
+                                sniffer = design.config.sniffer.copy(forceDomain = newItems)
+                            )
+                            configuration = design.config
+                        }
+                    }
+
+                    MetaFeatureSettingsDesign.Request.EditSkipDomains -> {
+                        launchListEditor(
+                            "跳过域名",
+                            design.config.sniffer.skipDomain ?: emptyList(),
+                            ListEditorActivity.VALIDATOR_DOMAIN
+                        ) { newItems ->
+                            design.config = design.config.copy(
+                                sniffer = design.config.sniffer.copy(skipDomain = newItems)
+                            )
+                            configuration = design.config
+                        }
+                    }
+
+                    MetaFeatureSettingsDesign.Request.EditSkipSrcAddresses -> {
+                        launchListEditor(
+                            "跳过源地址",
+                            design.config.sniffer.skipSrcAddress ?: emptyList(),
+                            ListEditorActivity.VALIDATOR_CIDR
+                        ) { newItems ->
+                            design.config = design.config.copy(
+                                sniffer = design.config.sniffer.copy(skipSrcAddress = newItems)
+                            )
+                            configuration = design.config
+                        }
+                    }
+
+                    MetaFeatureSettingsDesign.Request.EditSkipDstAddresses -> {
+                        launchListEditor(
+                            "跳过目标地址",
+                            design.config.sniffer.skipDstAddress ?: emptyList(),
+                            ListEditorActivity.VALIDATOR_CIDR
+                        ) { newItems ->
+                            design.config = design.config.copy(
+                                sniffer = design.config.sniffer.copy(skipDstAddress = newItems)
+                            )
+                            configuration = design.config
                         }
                     }
                 }
@@ -83,55 +252,49 @@ class MetaFeatureSettingsActivity : BaseActivity<MetaFeatureSettingsDesign>() {
         }
     }
 
-    private val validDatabaseExtensions = listOf(
-        ".metadb", ".db", ".dat", ".mmdb"
-    )
-
-    private suspend fun importGeoFile(uri: Uri?, importType: MetaFeatureSettingsDesign.Request) {
-        val cursor: Cursor? = uri?.let {
-            contentResolver.query(it, null, null, null, null, null)
-        }
+    private fun importGeoFile(uri: Uri, importType: MetaImport) {
+        val cursor = contentResolver.query(uri, null, null, null, null, null)
         cursor?.use {
             if (it.moveToFirst()) {
                 val columnIndex = it.getColumnIndex(OpenableColumns.DISPLAY_NAME)
-                val displayName: String =
-                    if (columnIndex != -1) it.getString(columnIndex) else "";
-                val ext = "." + displayName.substringAfterLast(".")
+                val displayName: String = if (columnIndex != -1) it.getString(columnIndex) else ""
+                val ext = "." + displayName.substringAfterLast('.', "")
 
-                if (!validDatabaseExtensions.contains(ext)) {
-                    MaterialAlertDialogBuilder(this)
-                        .setTitle(R.string.geofile_unknown_db_format)
-                        .setMessage(getString(R.string.geofile_unknown_db_format_message,
-                            validDatabaseExtensions.joinToString("/")))
-                        .setPositiveButton("OK") { _, _ -> }
-                        .show()
+                if (ext == "." || !validDatabaseExtensions.contains(ext)) {
+                    Toast.makeText(
+                        this,
+                        getString(
+                            R.string.geofile_unknown_db_format_message,
+                            validDatabaseExtensions.joinToString("/")
+                        ),
+                        Toast.LENGTH_LONG
+                    ).show()
                     return
                 }
                 val outputFileName = when (importType) {
-                    MetaFeatureSettingsDesign.Request.ImportGeoIp ->
-                        "geoip$ext"
-                    MetaFeatureSettingsDesign.Request.ImportGeoSite ->
-                        "geosite$ext"
-                    MetaFeatureSettingsDesign.Request.ImportCountry ->
-                        "country$ext"
-                    MetaFeatureSettingsDesign.Request.ImportASN ->
-                        "ASN$ext"
-                    else -> ""
+                    MetaImport.GeoIp -> "geoip$ext"
+                    MetaImport.GeoSite -> "geosite$ext"
+                    MetaImport.Country -> "country$ext"
+                    MetaImport.ASN -> "ASN$ext"
                 }
 
-                withContext(Dispatchers.IO) {
-                    val outputFile = File(clashDir, outputFileName);
+                scope.launch(Dispatchers.IO) {
+                    val outputFile = File(clashDir, outputFileName)
                     contentResolver.openInputStream(uri).use { ins ->
-                        FileOutputStream(outputFile).use { outs ->
-                            ins?.copyTo(outs)
-                        }
+                        FileOutputStream(outputFile).use { outs -> ins?.copyTo(outs) }
                     }
                 }
-                Toast.makeText(this, getString(R.string.geofile_imported, displayName),
-                    Toast.LENGTH_LONG).show()
+                Toast.makeText(this, getString(R.string.geofile_imported, displayName), Toast.LENGTH_LONG).show()
                 return
             }
         }
         Toast.makeText(this, R.string.geofile_import_failed, Toast.LENGTH_LONG).show()
     }
+
+    override fun onDestroy() {
+        scope.cancel()
+        super.onDestroy()
+    }
 }
+
+private enum class MetaImport { GeoIp, GeoSite, Country, ASN }

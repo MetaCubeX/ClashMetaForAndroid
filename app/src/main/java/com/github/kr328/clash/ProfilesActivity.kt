@@ -1,14 +1,10 @@
 package com.github.kr328.clash
 
-import android.content.BroadcastReceiver
-import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
 import com.github.kr328.clash.common.util.intent
 import com.github.kr328.clash.common.util.setUUID
 import com.github.kr328.clash.common.util.ticker
 import com.github.kr328.clash.design.ProfilesDesign
-import com.github.kr328.clash.design.ui.ToastDuration
+import com.github.kr328.clash.design.R
 import com.github.kr328.clash.service.model.Profile
 import com.github.kr328.clash.util.withProfile
 import kotlinx.coroutines.Dispatchers
@@ -18,7 +14,6 @@ import kotlinx.coroutines.selects.select
 import kotlinx.coroutines.withContext
 import java.util.*
 import java.util.concurrent.TimeUnit
-import com.github.kr328.clash.design.R
 
 class ProfilesActivity : BaseActivity<ProfilesDesign>() {
     override suspend fun main() {
@@ -61,7 +56,7 @@ class ProfilesActivity : BaseActivity<ProfilesDesign>() {
                         is ProfilesDesign.Request.Delete ->
                             withProfile { delete(it.profile.uuid) }
                         is ProfilesDesign.Request.Edit ->
-                            startActivity(PropertiesActivity::class.intent.setUUID(it.profile.uuid))
+                            startActivity(NewProfileActivity::class.intent.setUUID(it.profile.uuid))
                         is ProfilesDesign.Request.Active -> {
                             withProfile {
                                 if (it.profile.imported)
@@ -71,9 +66,10 @@ class ProfilesActivity : BaseActivity<ProfilesDesign>() {
                             }
                         }
                         is ProfilesDesign.Request.Duplicate -> {
-                            val uuid = withProfile { clone(it.profile.uuid) }
+                            withProfile {
 
-                            startActivity(PropertiesActivity::class.intent.setUUID(uuid))
+                                duplicate(it.profile.uuid)
+                            }
                         }
                     }
                 }
@@ -100,10 +96,13 @@ class ProfilesActivity : BaseActivity<ProfilesDesign>() {
             withProfile {
                 name = queryByUUID(uuid)?.name
             }
-            design?.showToast(
-                getString(R.string.toast_profile_updated_complete, name),
-                ToastDuration.Long
-            )
+            withContext(Dispatchers.Main) {
+                android.widget.Toast.makeText(
+                    this@ProfilesActivity,
+                    getString(R.string.toast_profile_updated_complete, name),
+                    android.widget.Toast.LENGTH_LONG
+                ).show()
+            }
         }
     }
     override fun onProfileUpdateFailed(uuid: UUID?, reason: String?) {
@@ -114,13 +113,12 @@ class ProfilesActivity : BaseActivity<ProfilesDesign>() {
             withProfile {
                 name = queryByUUID(uuid)?.name
             }
-            design?.showToast(
-                getString(R.string.toast_profile_updated_failed, name, reason),
-                ToastDuration.Long
-            ){
-                setAction(R.string.edit) {
-                    startActivity(PropertiesActivity::class.intent.setUUID(uuid))
-                }
+            withContext(Dispatchers.Main) {
+                android.widget.Toast.makeText(
+                    this@ProfilesActivity,
+                    getString(R.string.toast_profile_updated_failed, name, reason),
+                    android.widget.Toast.LENGTH_LONG
+                ).show()
             }
         }
     }

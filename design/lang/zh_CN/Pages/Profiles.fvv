@@ -1,0 +1,42 @@
+<Profiles Page>
+profiles_page_title = "配置文件"
+
+<Mode>
+mode_title = "模式"
+mode_summary = "选择配置操作模式"
+mode_activate = "激活模式"
+mode_edit = "编辑模式"
+
+<Empty State>
+empty_message = "暂无配置文件 (´･ω･`)"
+empty_hint = "点击右上角的 + 按钮添加配置"
+
+<Unsaved Dialog>
+unsaved_title = "未保存的配置"
+unsaved_summary = "当前配置尚未保存，是否编辑？"
+unsaved_label = "未保存"
+
+<Edit Actions>
+action_update_config = "更新配置"
+action_update_summary = "重新下载最新配置文件"
+action_edit_config = "编辑配置"
+action_edit_summary = "修改配置名称和设置"
+action_copy_config = "复制配置"
+action_copy_summary = "创建此配置的副本"
+action_delete_config = "删除配置"
+action_delete_summary = "此操作不可撤销"
+action_edit = "编辑"
+
+<Profile Types>
+type_local = "本地文件"
+type_url = "订阅链接"
+type_external = "外部导入"
+
+<Time Format>
+time_minutes_ago = "%d分钟前"
+time_hours_ago = "%d小时前"
+time_days_ago = "%d天前"
+
+<Traffic>
+expires_at = "到期: %s"
+traffic_summary = "共 %d 个条目"

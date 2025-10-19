@@ -1,0 +1,27 @@
+<Proxy Page>
+proxy_page_title = "Proxy"
+group_selector = "Node Group"
+test_speed = "Speed Test"
+more_options = "More Options"
+
+<Empty States>
+loading_groups = "Loading proxy groups..."
+empty_text = "No proxy groups (´･ω･`)"
+empty_hint = "Please check the config file or startup status"
+
+<Menu Options>
+menu_default_order = "Default Order"
+menu_sort_by_delay = "Sort by Delay"
+menu_dual_column = "Dual Column"
+menu_single_column = "Single Column"
+
+<Mode Selection>
+mode_title = "Mode Selection"
+mode_direct = "Direct"
+mode_global = "Global"
+mode_rule = "Rule"
+mode_script = "Script"
+
+<Proxy Card>
+delay_ms = "%dms"
+

@@ -9,15 +9,38 @@ import java.io.FileWriter
 
 class LogcatWriter(context: Context) : AutoCloseable {
     private val file = LogFile.generate()
-    private val writer = BufferedWriter(FileWriter(context.logsDir.resolve(file.fileName)))
+    private val logFile = context.logsDir.resolve(file.fileName)
+    private var writer: BufferedWriter? = null
+    private var messageCount = 0
+    private var hasWrittenHeader = false
+
+    init {
+    }
 
     override fun close() {
-        writer.close()
+        writer?.close()
+        if (messageCount == 0 && logFile.exists()) {
+            logFile.delete()
+        }
     }
 
     fun appendMessage(message: LogMessage) {
-        writer.appendLine(FORMAT.format(message.time.time, message.level.name, message.message))
+        if (writer == null) {
+            logFile.parentFile?.mkdirs()
+            writer = BufferedWriter(FileWriter(logFile))
+        }
+
+        writer?.let { w ->
+            if (!hasWrittenHeader) {
+                hasWrittenHeader = true
+            }
+            w.appendLine(FORMAT.format(message.time.time, message.level.name, message.message))
+            w.flush()
+            messageCount++
+        }
     }
+
+    fun hasMessages(): Boolean = messageCount > 0
 
     companion object {
         private const val FORMAT = "%d:%s:%s"

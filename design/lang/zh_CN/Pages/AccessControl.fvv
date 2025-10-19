@@ -1,0 +1,30 @@
+<Access Control>
+access_control_page_title = "访问控制"
+search_label = "搜索应用"
+
+<Permission>
+no_permission = "需要应用列表权限"
+grant_permission = "授予权限"
+
+<Empty States>
+no_apps = "没有找到应用"
+no_match = "没有匹配的应用"
+
+<More Options Menu>
+more_title = "更多选项"
+select_all = "全选"
+select_none = "全不选"
+select_invert = "反选"
+export_clipboard = "导出到剪贴板"
+show_system = "显示系统应用"
+show_system_summary = "在列表中显示系统应用"
+reverse_order = "倒序排列"
+reverse_order_summary = "反转应用列表的排序顺序"
+sort_method = "排序方式"
+sort_method_summary = "选择应用列表的排序方式"
+
+<Sort Methods>
+sort_name = "应用名称"
+sort_package = "包名"
+sort_install = "安装时间"
+sort_update = "更新时间"

@@ -1,0 +1,35 @@
+<New Profile>
+new_profile_page_title = "プロファイルを追加"
+
+<Import Method>
+import_method = "インポート方法"
+import_method_summary = "プロファイルを追加するソースを選択"
+
+<File Section>
+section_file = "ローカルプロファイル"
+name_label = "プロファイル名"
+import_config = "設定をインポート"
+import_hint = "設定ファイルを選択"
+reimport = "再インポート"
+reimport_hint = "設定ファイルを再選択"
+
+<URL Section>
+section_url = "サブスクリプションプロファイル"
+url_label = "サブスクリプションURL"
+auto_update = "自動更新"
+auto_update_summary = "自動更新間隔を選択"
+
+<External Section>
+section_external = "外部アプリ"
+
+<Interval Options>
+interval_none = "手動"
+interval_1h = "1時間"
+interval_3h = "3時間"
+interval_6h = "6時間"
+interval_12h = "12時間"
+interval_24h = "24時間"
+
+<Progress>
+loading = "読み込み中..."
+

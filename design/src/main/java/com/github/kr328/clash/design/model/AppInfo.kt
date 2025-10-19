@@ -8,4 +8,5 @@ data class AppInfo(
     val icon: Drawable,
     val installTime: Long,
     val updateDate: Long,
+    val isSystemApp: Boolean,
 )

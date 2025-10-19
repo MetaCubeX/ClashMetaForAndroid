@@ -11,6 +11,7 @@ class ApkBrokenActivity : BaseActivity<ApkBrokenDesign>() {
 
         setContentDesign(design)
 
+
         while (isActive) {
             val req = design.requests.receive()
 

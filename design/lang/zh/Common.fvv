@@ -1,0 +1,125 @@
+<App Info>
+app_name = "YumeBox"
+
+<Common Actions>
+action_back = "返回"
+action_save = "保存"
+action_cancel = "取消"
+action_confirm = "确定"
+action_ok = "确定"
+action_delete = "删除"
+action_edit = "编辑"
+action_add = "添加"
+action_update = "更新"
+action_update_all = "更新所有"
+action_refresh = "刷新"
+action_import = "导入"
+action_export = "导出"
+action_reset = "重置"
+action_rename = "重命名"
+action_open = "打开"
+action_close = "关闭"
+action_search = "搜索"
+action_clear = "清除"
+action_more = "更多"
+action_start_logging = "开始日志记录"
+action_stop_logging = "停止记录"
+action_speed_test = "测速"
+action_more_actions = "更多操作"
+action_switch_group = "节点组"
+
+<Connection Status>
+status_connected = "已连接"
+status_connecting = "连接中"
+status_disconnected = "已断开"
+action_connect = "点击连接"
+action_disconnect = "点击断开"
+
+<Common Status>
+status_loading = "加载中…"
+status_loading_wait = "请稍等片刻"
+status_not_set = "未设置"
+status_not_configured = "未配置"
+status_empty = "暂无数据"
+status_unknown = "未知"
+status_completed = "完成"
+status_no_node_selected = "未选择节点"
+status_no_profile_selected = "未选择配置"
+
+<Common Labels>
+label_name = "名称"
+label_type = "类型"
+label_status = "状态"
+label_time = "时间"
+label_size = "大小"
+label_mode = "模式"
+label_title = "标题"
+label_summary = "摘要"
+label_description = "描述"
+label_country_flag = "国旗"
+label_protocol = "协议"
+label_unknown_protocol = "未知协议"
+
+<Traffic Labels>
+label_upload = "上传"
+label_download = "下载"
+label_upload_node = "上传节点"
+label_download_node = "下载节点"
+
+<Time Format>
+time_minutes_ago = "%d分钟前"
+time_hours_ago = "%d小时前"
+time_days_ago = "%d天前"
+time_unknown = "--"
+time_format_hms = "HH:mm:ss"
+
+<Common Counts>
+count_items = "%d 条"
+count_files = "%d 个文件"
+count_domains = "%d 个域名"
+count_servers = "%d 个服务器"
+count_ports = "%d 个端口"
+count_addresses = "%d 个地址"
+count_mappings = "%d 个映射"
+count_policies = "%d 个策略"
+count_segments = "%d 个网段"
+
+<Tristate Options>
+tristate_not_modify = "不修改"
+tristate_enabled = "已启用"
+tristate_disabled = "已禁用"
+
+<Common Dialogs>
+dialog_confirm_title = "确认操作"
+dialog_cancel = "取消"
+dialog_confirm = "确定"
+
+<Pull to Refresh>
+pull_to_refresh = "下拉刷新"
+release_to_refresh = "松手刷新"
+refreshing = "正在刷新"
+refresh_complete = "完成"
+
+<Empty States>
+empty_text_generic = "暂无数据（´･ω･`）"
+empty_hint_generic = "请添加内容"
+empty_text_loading = "加载中…"
+empty_hint_loading = "如果长时间无反应请刷新"
+
+<Validation>
+validation_required = "此项为必填"
+validation_invalid = "格式不正确"
+validation_empty = "不能为空"
+validation_invalid_number = "请输入有效的数字"
+validation_port_range = "端口号必须在 1-65535 之间"
+validation_invalid_ip = "IP 地址格式不正确"
+validation_invalid_url = "URL 格式不正确"
+validation_url_too_long = "URL 过长"
+validation_invalid_domain = "域名格式不正确"
+validation_invalid_cidr = "CIDR 网段格式不正确"
+validation_must_be_positive = "必须是正整数"
+validation_must_be_non_negative = "必须是非负整数"
+validation_invalid_filename = "文件名格式不正确"
+validation_invalid_http_url = "URL 必须以 http:// 或 https:// 开头"
+validation_interval_too_short = "更新间隔至少为 15 分钟"
+validation_text_too_long = "输入内容过长，最多 %d 个字符"

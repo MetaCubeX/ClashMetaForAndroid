@@ -3,17 +3,19 @@ package com.github.kr328.clash
 import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
-import android.view.View
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContract
-import androidx.appcompat.app.AppCompatActivity
 import com.github.kr328.clash.common.compat.isAllowForceDarkCompat
 import com.github.kr328.clash.common.compat.isLightNavigationBarCompat
 import com.github.kr328.clash.common.compat.isLightStatusBarsCompat
 import com.github.kr328.clash.common.compat.isSystemBarsTranslucentCompat
 import com.github.kr328.clash.core.bridge.ClashException
 import com.github.kr328.clash.design.Design
+import com.github.kr328.clash.design.R
 import com.github.kr328.clash.design.model.DarkMode
 import com.github.kr328.clash.design.store.UiStore
+import com.github.kr328.clash.design.theme.YumeTheme
 import com.github.kr328.clash.design.ui.DayNight
 import com.github.kr328.clash.design.util.resolveThemedBoolean
 import com.github.kr328.clash.design.util.resolveThemedColor
@@ -28,9 +30,8 @@ import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
-import com.github.kr328.clash.design.R
 
-abstract class BaseActivity<D : Design<*>> : AppCompatActivity(),
+abstract class BaseActivity<D : Design<*>> : ComponentActivity(),
     CoroutineScope by MainScope(),
     Broadcasts.Observer {
     
@@ -40,14 +41,6 @@ abstract class BaseActivity<D : Design<*>> : AppCompatActivity(),
     protected val clashRunning: Boolean
         get() = Remote.broadcasts.clashRunning
     protected var design: D? = null
-        set(value) {
-            field = value
-            if (value != null) {
-                setContentView(value.root)
-            } else {
-                setContentView(View(this))
-            }
-        }
 
     private var defer: suspend () -> Unit = {}
     private var deferRunning = false
@@ -76,10 +69,12 @@ abstract class BaseActivity<D : Design<*>> : AppCompatActivity(),
     }
 
     suspend fun setContentDesign(design: D) {
-        suspendCoroutine<Unit> {
-            window.decorView.post {
-                this.design = design
-                it.resume(Unit)
+        withContext(Dispatchers.Main) {
+            this@BaseActivity.design = design
+            setContent {
+                YumeTheme {
+                    design.Content()
+                }
             }
         }
     }
@@ -142,11 +137,6 @@ abstract class BaseActivity<D : Design<*>> : AppCompatActivity(),
         return true
     }
 
-    override fun onSupportNavigateUp(): Boolean {
-        this.onBackPressed()
-        return true
-    }
-
     override fun onProfileChanged() {
         events.trySend(Event.ProfileChanged)
     }
@@ -198,9 +188,15 @@ abstract class BaseActivity<D : Design<*>> : AppCompatActivity(),
 
         window.isAllowForceDarkCompat = false
         window.isSystemBarsTranslucentCompat = true
-        
-        window.statusBarColor = resolveThemedColor(android.R.attr.statusBarColor)
-        window.navigationBarColor = resolveThemedColor(android.R.attr.navigationBarColor)
+
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+            window.setDecorFitsSystemWindows(false)
+        } else if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            @Suppress("DEPRECATION")
+            window.statusBarColor = resolveThemedColor(android.R.attr.statusBarColor)
+            @Suppress("DEPRECATION")
+            window.navigationBarColor = resolveThemedColor(android.R.attr.navigationBarColor)
+        }
 
         if (Build.VERSION.SDK_INT >= 23) {
             window.isLightStatusBarsCompat = resolveThemedBoolean(android.R.attr.windowLightStatusBar)

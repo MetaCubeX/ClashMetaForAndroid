@@ -1,9 +1,12 @@
 [versions]
-agp = "8.8.0"
+agp = "8.12.0"
 kotlin = "2.1.0"
 ksp = "2.1.0-1.0.29"
 golang = "1.0.4"
+
 coroutine = "1.10.1"
+serialization = "1.3.3"
+
 coreKtx = "1.8.0"
 activity = "1.5.0"
 fragment = "1.5.0"
@@ -12,10 +15,23 @@ coordinator = "1.2.0"
 recyclerview = "1.2.1"
 viewpager = "1.0.0"
 material = "1.6.1"
-serialization = "1.3.3"
+
+compose-compiler = "2.1.0"
+compose-bom = "2025.08.01"
+activity-compose = "1.9.3"
+lifecycle-compose = "2.8.7"
+compose-runtime = "1.9.2"
+compose-foundation = "1.9.2"
+compose-animation = "1.9.2"
 kaidl = "1.15"
 room = "2.4.2"
 multiprocess = "1.0.0"
+miuix = "0.5.2"
+lucide-icons = "1.0.0"
+accompanist = "0.36.0"
+pangutext = "auto"
+coil = "2.7.0"
+okhttp-bom = "4.12.0"
 
 [libraries]
 build-android = { module = "com.android.tools.build:gradle", version.ref = "agp" }
@@ -32,12 +48,35 @@ androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "a
 androidx-coordinator = { module = "androidx.coordinatorlayout:coordinatorlayout", version.ref = "coordinator" }
 androidx-recyclerview = { module = "androidx.recyclerview:recyclerview", version.ref = "recyclerview" }
 androidx-viewpager = { module = "androidx.viewpager2:viewpager2", version.ref = "viewpager" }
+google-material = { module = "com.google.android.material:material", version.ref = "material" }
+androidx-compose-bom = { module = "androidx.compose:compose-bom", version.ref = "compose-bom" }
+androidx-compose-ui = { module = "androidx.compose.ui:ui" }
+androidx-compose-ui-graphics = { module = "androidx.compose.ui:ui-graphics" }
+androidx-compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
+androidx-compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
+androidx-compose-ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest" }
+androidx-compose-material3 = { module = "androidx.compose.material3:material3" }
+androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activity-compose" }
+androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycle-compose" }
+androidx-lifecycle-runtime-compose = { module = "androidx.lifecycle:lifecycle-runtime-compose", version.ref = "lifecycle-compose" }
+androidx-runtime = { module = "androidx.compose.runtime:runtime", version.ref = "compose-runtime" }
+androidx-foundation = { module = "androidx.compose.foundation:foundation", version.ref = "compose-foundation" }
+androidx-animation-core = { module = "androidx.compose.animation:animation-core", version.ref = "compose-animation" }
 androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
 androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
 androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "room" }
-google-material = { module = "com.google.android.material:material", version.ref = "material" }
 kaidl-compiler = { module = "com.github.kr328.kaidl:kaidl", version.ref = "kaidl" }
 kaidl-runtime = { module = "com.github.kr328.kaidl:kaidl-runtime", version.ref = "kaidl" }
 rikkax-multiprocess = { module = "dev.rikka.rikkax.preference:multiprocess", version.ref = "multiprocess" }
+miuix-android = { module = "top.yukonga.miuix.kmp:miuix-android", version.ref = "miuix" }
+lucide-icons = { module = "com.composables:icons-lucide", version.ref = "lucide-icons" }
+accompanist-drawablepainter = { module = "com.google.accompanist:accompanist-drawablepainter", version.ref = "accompanist" }
+pangutext = { module = "com.highcapable.pangutext:pangutext-android", version.ref = "pangutext" }
+coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coil" }
+coil-svg = { module = "io.coil-kt:coil-svg", version.ref = "coil" }
+okhttp-bom = { module = "com.squareup.okhttp3:okhttp-bom", version.ref = "okhttp-bom" }
+okhttp = { module = "com.squareup.okhttp3:okhttp" }
+okhttp-logging = { module = "com.squareup.okhttp3:logging-interceptor" }
 
 [plugins]
+compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "compose-compiler" }

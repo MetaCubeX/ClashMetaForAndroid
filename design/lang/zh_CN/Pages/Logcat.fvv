@@ -1,0 +1,35 @@
+<Logcat>
+logcat_page_title = "实时日志"
+logcat_stop_recording = "停止记录"
+
+<Sections>
+logcat_section_filter = "日志等级筛选"
+
+<Log Levels>
+logcat_level_label = "开始记录等级"
+logcat_level_all = ""
+logcat_level_error = "错误"
+logcat_level_warning = "警告"
+logcat_level_info = "信息"
+logcat_level_debug = "调试"
+logcat_level_silent = "静默"
+
+<Display>
+logcat_current_display = "当前显示: %d/%d 条消息"
+logcat_delete_current_log = "删除当前日志"
+logcat_delete_current_log_summary = "点击删除当前显示的日志文件"
+
+<Dialogs>
+logcat_copied_title = "已复制"
+logcat_delete_title = "删除所有日志"
+logcat_delete_summary = "确定要删除所有日志记录吗？此操作不可逆。"
+logcat_export_title = "导出日志"
+logcat_export_summary = "确定要导出当前所有日志记录吗？"
+
+<Log Levels Names>
+logcat_log_error = "错误"
+logcat_log_warning = "警告"
+logcat_log_info = "信息"
+logcat_log_debug = "调试"
+logcat_log_silent = "静默"
+logcat_log_unknown = "未知"

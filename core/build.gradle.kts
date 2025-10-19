@@ -1,26 +1,51 @@
-import android.databinding.tool.ext.capitalizeUS
 import com.github.kr328.golang.GolangBuildTask
 import com.github.kr328.golang.GolangPlugin
 
 plugins {
-    kotlin("android")
     id("com.android.library")
-    id("kotlinx-serialization")
+    kotlin("android")
+    kotlin("plugin.serialization")
     id("golang-android")
 }
 
 val golangSource = file("src/main/golang/native")
 
+android {
+
+    @Suppress("UnstableApiUsage")
+    externalNativeBuild {
+        cmake {
+            path = file("src/main/cpp/CMakeLists.txt")
+            version = "3.22.1"
+        }
+    }
+
+    productFlavors.configureEach {
+        @Suppress("UnstableApiUsage")
+        externalNativeBuild {
+            cmake {
+                arguments(
+                    "-DGO_SOURCE:STRING=${golangSource.absolutePath}",
+                    "-DGO_OUTPUT:STRING=${GolangPlugin.outputDirOf(project, null, null)}",
+                    "-DFLAVOR_NAME:STRING=$name"
+                )
+            }
+        }
+    }
+}
+
 golang {
     sourceSets {
-        create("alpha") {
-            tags.set(listOf("foss","with_gvisor","cmfa"))
+        register("alpha") {
+            tags.set(listOf("foss", "with_gvisor", "cmfa"))
             srcDir.set(file("src/foss/golang"))
         }
-        create("meta") {
-            tags.set(listOf("foss","with_gvisor","cmfa"))
+
+        register("meta") {
+            tags.set(listOf("foss", "with_gvisor", "cmfa"))
             srcDir.set(file("src/foss/golang"))
         }
+
         all {
             fileName.set("libclash.so")
             packageName.set("cfa/native")
@@ -28,50 +53,38 @@ golang {
     }
 }
 
-android {
-    productFlavors {
-        all {
-            externalNativeBuild {
-                cmake {
-                    arguments("-DGO_SOURCE:STRING=${golangSource}")
-                    arguments("-DGO_OUTPUT:STRING=${GolangPlugin.outputDirOf(project, null, null)}")
-                    arguments("-DFLAVOR_NAME:STRING=$name")
-                }
-            }
-        }
-    }
-
-    externalNativeBuild {
-        cmake {
-            path = file("src/main/cpp/CMakeLists.txt")
-        }
-    }
-}
-
 dependencies {
     implementation(project(":common"))
-
-    implementation(libs.androidx.core)
     implementation(libs.kotlin.coroutine)
     implementation(libs.kotlin.serialization.json)
+    implementation(libs.androidx.core)
 }
 
-afterEvaluate {
-    tasks.withType(GolangBuildTask::class.java).forEach {
-        it.inputs.dir(golangSource)
-    }
+tasks.withType<GolangBuildTask>().configureEach {
+    inputs.dir(golangSource)
 }
 
-val abis = listOf("arm64-v8a" to "Arm64V8a", "armeabi-v7a" to "ArmeabiV7a", "x86" to "X86", "x86_64" to "X8664")
+val abiMappings = mapOf(
+    "arm64-v8a" to "Arm64V8a",
+    "armeabi-v7a" to "ArmeabiV7a",
+    "x86" to "X86",
+    "x86_64" to "X8664"
+)
 
-androidComponents.onVariants { variant ->
-    val cmakeName = if (variant.buildType == "debug") "Debug" else "RelWithDebInfo"
+androidComponents {
+    onVariants { variant ->
+        val variantName = variant.name.replaceFirstChar { it.uppercase() }
+        val buildType = if (variant.buildType == "debug") "Debug" else "RelWithDebInfo"
 
-    abis.forEach { (abi, goAbi) ->
-        tasks.configureEach {
-            if (name.startsWith("buildCMake$cmakeName[$abi]")) {
-                dependsOn("externalGolangBuild${variant.name.capitalizeUS()}$goAbi")
-                println("Set up dependency: $name -> externalGolangBuild${variant.name.capitalizeUS()}$goAbi")
+        abiMappings.forEach { (abi, goAbi) ->
+            tasks.configureEach {
+                // 确保 CMake 配置任务也依赖 Golang 构建
+                if (name.startsWith("configureCMake$buildType[$abi]") ||
+                    name.startsWith("buildCMake$buildType[$abi]")
+                ) {
+                    val golangTaskName = "externalGolangBuild$variantName$goAbi"
+                    dependsOn(golangTaskName)
+                }
             }
         }
     }

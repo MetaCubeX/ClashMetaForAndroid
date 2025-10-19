@@ -1,0 +1,15 @@
+<Key Value Editor>
+empty_text = "No entries"
+empty_hint = "Tap + in the top right corner to add"
+count_summary = "%d entries in total"
+item_count = "%d entries in total"
+
+<Dialogs>
+dialog_add_title = "Add Entry"
+dialog_edit_title = "Edit Entry"
+
+<Validation>
+error_key_empty = "Key cannot be empty"
+error_value_empty = "Value cannot be empty"
+error_key_exists = "Key already exists"
+

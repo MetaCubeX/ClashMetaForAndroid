@@ -1,20 +1,12 @@
 package com.github.kr328.clash.service
 
 import android.content.Context
-import com.github.kr328.clash.service.data.Database
-import com.github.kr328.clash.service.data.Imported
-import com.github.kr328.clash.service.data.ImportedDao
-import com.github.kr328.clash.service.data.Pending
-import com.github.kr328.clash.service.data.PendingDao
+import com.github.kr328.clash.service.data.*
 import com.github.kr328.clash.service.model.Profile
 import com.github.kr328.clash.service.remote.IFetchObserver
 import com.github.kr328.clash.service.remote.IProfileManager
 import com.github.kr328.clash.service.store.ServiceStore
-import com.github.kr328.clash.service.util.directoryLastModified
-import com.github.kr328.clash.service.util.generateProfileUUID
-import com.github.kr328.clash.service.util.importedDir
-import com.github.kr328.clash.service.util.pendingDir
-import com.github.kr328.clash.service.util.sendProfileChanged
+import com.github.kr328.clash.service.util.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -74,7 +66,7 @@ class ProfileManager(private val context: Context) : IProfileManager,
         val pending = Pending(
             uuid = newUUID,
             name = imported.name,
-            type = Profile.Type.File,
+            type = imported.type, // Preserve original profile type
             source = imported.source,
             interval = imported.interval,
             upload = imported.upload,
@@ -90,6 +82,44 @@ class ProfileManager(private val context: Context) : IProfileManager,
         return newUUID
     }
 
+    override suspend fun duplicate(uuid: UUID): UUID {
+        val newUUID = generateProfileUUID()
+
+        val imported = ImportedDao().queryByUUID(uuid)
+            ?: throw FileNotFoundException("profile $uuid not found")
+
+        // Create new imported record with copied data
+        val newImported = Imported(
+            uuid = newUUID,
+            name = "${imported.name} (副本)",
+            type = imported.type,
+            source = imported.source,
+            interval = imported.interval,
+            upload = imported.upload,
+            download = imported.download,
+            total = imported.total,
+            expire = imported.expire,
+            createdAt = System.currentTimeMillis()
+        )
+
+        // Copy files directly to imported directory
+        val sourceDir = context.importedDir.resolve(uuid.toString())
+        val targetDir = context.importedDir.resolve(newUUID.toString())
+
+        if (!sourceDir.exists()) {
+            throw FileNotFoundException("source profile $uuid not found")
+        }
+
+        targetDir.deleteRecursively()
+        sourceDir.copyRecursively(targetDir)
+
+        // Insert directly as imported profile
+        ImportedDao().insert(newImported)
+        context.sendProfileChanged(newUUID)
+
+        return newUUID
+    }
+
     override suspend fun patch(uuid: UUID, name: String, source: String, interval: Long) {
         val pending = PendingDao().queryByUUID(uuid)
 
@@ -97,21 +127,37 @@ class ProfileManager(private val context: Context) : IProfileManager,
             val imported = ImportedDao().queryByUUID(uuid)
                 ?: throw FileNotFoundException("profile $uuid not found")
 
-            cloneImportedFiles(uuid)
+            // For imported profiles, directly update the metadata in Imported table
+            // Only create pending if source URL changes (requires re-fetch)
+            val sourceChanged = imported.source != source
 
-            PendingDao().insert(
-                Pending(
-                    uuid = imported.uuid,
-                    name = name,
-                    type = imported.type,
-                    source = source,
-                    interval = interval,
-                    upload = 0,
-                    total = 0,
-                    download = 0,
-                    expire = 0,
+            if (sourceChanged) {
+                // Source changed, need to re-import
+                cloneImportedFiles(uuid)
+
+                PendingDao().insert(
+                    Pending(
+                        uuid = imported.uuid,
+                        name = name,
+                        type = imported.type,
+                        source = source,
+                        interval = interval,
+                        upload = 0,
+                        total = 0,
+                        download = 0,
+                        expire = 0,
+                    )
                 )
-            )
+            } else {
+                // Only metadata changed, directly update Imported table
+                val updatedImported = imported.copy(
+                    name = name,
+                    source = source,
+                    interval = interval
+                )
+                ImportedDao().update(updatedImported)
+                context.sendProfileChanged(uuid)
+            }
         } else {
             val newPending = pending.copy(
                 name = name,
@@ -191,10 +237,11 @@ class ProfileManager(private val context: Context) : IProfileManager,
                     old?.createdAt ?: System.currentTimeMillis()
                 )
 
-                if (old != null) {
-                    ImportedDao().update(new)
-                } else {
+                // 直接使用if-else代替when，避免null检查警告
+                if (old == null) {
                     ImportedDao().insert(new)
+                } else {
+                    ImportedDao().update(new)
                 }
 
                 PendingDao().remove(new.uuid)

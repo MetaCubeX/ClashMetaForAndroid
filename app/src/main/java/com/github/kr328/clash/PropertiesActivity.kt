@@ -1,116 +1,67 @@
 package com.github.kr328.clash
 
-import com.github.kr328.clash.common.util.intent
-import com.github.kr328.clash.common.util.setUUID
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.lifecycle.lifecycleScope
 import com.github.kr328.clash.common.util.uuid
-import com.github.kr328.clash.design.PropertiesDesign
-import com.github.kr328.clash.design.ui.ToastDuration
-import com.github.kr328.clash.design.util.showExceptionToast
+import com.github.kr328.clash.design.R
 import com.github.kr328.clash.service.model.Profile
 import com.github.kr328.clash.util.withProfile
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.selects.select
-import com.github.kr328.clash.design.R
+import java.util.*
 
-class PropertiesActivity : BaseActivity<PropertiesDesign>() {
-    private var canceled: Boolean = false
-    private lateinit var original: Profile
+class PropertiesActivity : ComponentActivity() {
+    private lateinit var uuid: UUID
+    private var current: Profile? = null
 
-    override suspend fun main() {
-        setResult(RESULT_CANCELED)
-
-        val uuid = intent.uuid ?: return finish()
-        val design = PropertiesDesign(this)
-
-        original = withProfile { queryByUUID(uuid) } ?: return finish()
-
-        design.profile = original
-
-        setContentDesign(design)
-
-        defer {
-            canceled = true
-
-            withProfile { release(uuid) }
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        uuid = intent.uuid ?: run { finish(); return }
+        lifecycleScope.launch {
+            current = withProfile { queryByUUID(uuid) }
+            if (current == null) {
+                finish(); return@launch
+            }
+            setCompose()
         }
+    }
 
-        while (isActive) {
-            select<Unit> {
-                events.onReceive {
-                    when (it) {
-                        Event.ActivityStop -> {
-                            val profile = design.profile
+    private fun setCompose() {
+        val origin = current ?: return
+        setContent {
+            var working by remember { mutableStateOf(origin) }
+            var processing by remember { mutableStateOf(false) }
+            var progress by remember { mutableStateOf("") }
 
-                            if (!canceled && profile != original) {
-                                withProfile {
-                                    patch(profile.uuid, profile.name, profile.source, profile.interval)
-                                }
-                            }
-                        }
-                        Event.ServiceRecreated -> {
-                            finish()
-                        }
-                        else -> Unit
-                    }
-                }
-                design.requests.onReceive {
-                    when (it) {
-                        PropertiesDesign.Request.BrowseFiles -> {
-                            startActivity(FilesActivity::class.intent.setUUID(uuid))
-                        }
-                        PropertiesDesign.Request.Commit -> {
-                            design.verifyAndCommit()
-                        }
-                    }
-                }
+            Surface(color = MaterialTheme.colorScheme.background) {
+                androidx.compose.material3.Text("此页面已废弃，请使用新建页保存")
+                finish()
             }
         }
     }
 
-    override fun onBackPressed() {
-        design?.apply {
-            launch {
-                if (!progressing) {
-                    if (original == profile || requestExitWithoutSaving())
-                        finish()
-                }
-            }
-        } ?: return super.onBackPressed()
-    }
+    private fun statusToText(st: com.github.kr328.clash.core.model.FetchStatus): String {
+        return when (st.action) {
+            com.github.kr328.clash.core.model.FetchStatus.Action.FetchConfiguration -> getString(
+                R.string.format_fetching_configuration,
+                st.args[0]
+            )
 
-    private suspend fun PropertiesDesign.verifyAndCommit() {
-        when {
-            profile.name.isBlank() -> {
-                showToast(R.string.empty_name, ToastDuration.Long)
-            }
-            profile.type != Profile.Type.File && profile.source.isBlank() -> {
-                showToast(R.string.invalid_url, ToastDuration.Long)
-            }
-            else -> {
-                try {
-                    withProcessing { updateStatus ->
-                        withProfile {
-                            patch(profile.uuid, profile.name, profile.source, profile.interval)
+            com.github.kr328.clash.core.model.FetchStatus.Action.FetchProviders -> getString(
+                R.string.format_fetching_provider,
+                st.args[0]
+            ) + " ${st.progress}/${st.max}"
 
-                            coroutineScope {
-                                commit(profile.uuid) {
-                                    launch {
-                                        updateStatus(it)
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    setResult(RESULT_OK)
-
-                    finish()
-                } catch (e: Exception) {
-                    showExceptionToast(e)
-                }
-            }
+            com.github.kr328.clash.core.model.FetchStatus.Action.Verifying -> getString(R.string.verifying) + " ${st.progress}/${st.max}"
         }
     }
+
+
 }

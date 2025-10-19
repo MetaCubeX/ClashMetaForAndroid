@@ -2,16 +2,17 @@ package com.github.kr328.clash.design.store
 
 import android.content.Context
 import com.github.kr328.clash.common.store.Store
-import com.github.kr328.clash.common.store.asStoreProvider
 import com.github.kr328.clash.core.model.ProxySort
 import com.github.kr328.clash.design.model.AppInfoSort
 import com.github.kr328.clash.design.model.DarkMode
 
 class UiStore(context: Context) {
+    init {
+        UiStoreMigration.migrateIfNeeded(context)
+    }
+
     private val store = Store(
-        context
-            .getSharedPreferences(PREFERENCE_NAME, Context.MODE_PRIVATE)
-            .asStoreProvider()
+        MMKVStoreProvider(PREFERENCE_NAME)
     )
 
     var enableVpn: Boolean by store.boolean(
@@ -49,6 +50,16 @@ class UiStore(context: Context) {
     var proxyLastGroup: String by store.string(
         key = "proxy_last_group",
         defaultValue = ""
+    )
+
+    var proxySortByDelay: Boolean by store.boolean(
+        key = "proxy_sort_by_delay",
+        defaultValue = false
+    )
+
+    var proxyLayoutType: Int by store.int(
+        key = "proxy_layout_type",
+        defaultValue = 0
     )
 
     var accessControlSort: AppInfoSort by store.enum(

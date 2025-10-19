@@ -1,0 +1,41 @@
+<Network Settings>
+network_page_title = "Network Settings"
+
+<Dialog>
+network_dialog_unavailable_title = "Option unavailable while YumeBox is running"
+
+<Sections>
+section_vpn = "VPN Service"
+section_vpn_options = "VPN Service Options"
+section_proxy_options = "Proxy Options"
+
+<VPN Service>
+route_traffic = "Route System Traffic"
+route_traffic_summary = "Route all traffic through VPN service"
+
+<VPN Options>
+bypass_private = "Bypass Private Network"
+bypass_private_summary = "Bypass private networks and local addresses"
+dns_hijacking = "DNS Hijacking"
+dns_hijacking_summary = "Redirect all DNS requests to Clash"
+allow_bypass = "Allow Bypass"
+allow_bypass_summary = "Allow apps to bypass VPN"
+allow_ipv6 = "Allow IPv6"
+allow_ipv6_summary = "Allow routing IPv6 traffic through VPN"
+system_proxy = "System Proxy"
+system_proxy_summary = "Set system HTTP proxy for apps that don't support VPN"
+
+<Proxy Options>
+tun_stack = "TUN Stack"
+tun_stack_system = "system"
+tun_stack_gvisor = "GVisor"
+tun_stack_mixed = "mixed"
+access_control_mode = "Access Control Mode"
+access_control_list = "Access Control App List"
+access_control_list_summary = "Manage apps in access control"
+
+<Access Control Modes>
+access_mode_allow_all = "Allow All Apps"
+access_mode_allow_selected = "Allow Selected Apps"
+access_mode_deny_selected = "Deny Selected Apps"
+

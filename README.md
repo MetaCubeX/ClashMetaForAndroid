@@ -1,18 +1,22 @@
-## Clash Meta for Android
+**English** | [简体中文](README_CN.md)
 
-A Graphical user interface of [Clash.Meta](https://github.com/MetaCubeX/Clash.Meta) for Android
+## YumeBox
+
+YumeBox is a fork of the open-source project [Clash.Meta For Android](https://github.com/MetaCubeX/ClashMetaForAndroid),
+featuring modified UI elements for a more contemporary aesthetic.
+
+> [!NOTE]
+>
+> Plainly put: A reskinned version of [Clash.Meta For Android](https://github.com/MetaCubeX/ClashMetaForAndroid).
 
 ### Feature
 
 Feature of [Clash.Meta](https://github.com/MetaCubeX/Clash.Meta)
 
-[<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png"
-     alt="Get it on F-Droid"
-     height="80">](https://f-droid.org/packages/com.github.metacubex.clash.meta/)
 
 ### Requirement
 
-- Android 5.0+ (minimum)
+- ~~Android 5.0+ (minimum)~~
 - Android 7.0+ (recommend)
 - `armeabi-v7a` , `arm64-v8a`, `x86` or `x86_64` Architecture
 

@@ -1,156 +1,161 @@
 package com.github.kr328.clash
 
-import android.Manifest.permission.INTERNET
+import android.Manifest
 import android.content.ClipData
 import android.content.ClipboardManager
-import android.content.pm.ApplicationInfo
-import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
+import android.os.Build
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.getSystemService
+import androidx.lifecycle.lifecycleScope
 import com.github.kr328.clash.design.AccessControlDesign
-import com.github.kr328.clash.design.model.AppInfo
+import com.github.kr328.clash.design.store.UiStore
+import com.github.kr328.clash.design.theme.YumeTheme
 import com.github.kr328.clash.design.util.toAppInfo
 import com.github.kr328.clash.service.store.ServiceStore
 import com.github.kr328.clash.util.startClashService
 import com.github.kr328.clash.util.stopClashService
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.selects.select
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.receiveAsFlow
 
-class AccessControlActivity : BaseActivity<AccessControlDesign>() {
-    override suspend fun main() {
-        val service = ServiceStore(this)
+class AccessControlActivity : ComponentActivity() {
+    private val scope = MainScope()
+    private lateinit var design: AccessControlDesign
+    private lateinit var service: ServiceStore
+    private lateinit var uiStore: UiStore
 
-        val selected = withContext(Dispatchers.IO) {
-            service.accessControlPackages.toMutableSet()
+    private val requestPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        design.hasPermission = isGranted
+        if (isGranted) {
+            loadApps()
         }
+    }
 
-        defer {
-            withContext(Dispatchers.IO) {
-                val changed = selected != service.accessControlPackages
-                service.accessControlPackages = selected
-                if (clashRunning && changed) {
-                    stopClashService()
-                    while (clashRunning) {
-                        delay(200)
-                    }
-                    startClashService()
-                }
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        service = ServiceStore(this)
+        uiStore = UiStore(this)
+
+        design = AccessControlDesign(this, uiStore, service.accessControlPackages)
+
+        setContent {
+            YumeTheme {
+                design.Content()
             }
         }
 
-        val design = AccessControlDesign(this, uiStore, selected)
-
-        setContentDesign(design)
-
-        design.requests.send(AccessControlDesign.Request.ReloadApps)
-
-        while (isActive) {
-            select<Unit> {
-                events.onReceive {
-
+        design.requests.receiveAsFlow().onEach {
+            when (it) {
+                AccessControlDesign.Request.ReloadApps -> {
+                    loadApps()
                 }
-                design.requests.onReceive {
-                    when (it) {
-                        AccessControlDesign.Request.ReloadApps -> {
-                            design.patchApps(loadApps(selected))
-                        }
 
-                        AccessControlDesign.Request.SelectAll -> {
-                            val all = withContext(Dispatchers.Default) {
-                                design.apps.map(AppInfo::packageName)
-                            }
+                AccessControlDesign.Request.ImportFromClipboard -> importFromClipboard()
+                AccessControlDesign.Request.ExportToClipboard -> exportToClipboard()
+                AccessControlDesign.Request.RequestPermission -> requestPermission()
+            }
+        }.launchIn(lifecycleScope)
 
-                            selected.clear()
-                            selected.addAll(all)
+        checkAndLoadApps()
+    }
 
-                            design.rebindAll()
-                        }
+    private fun checkAndLoadApps() {
+        if (checkPermission()) {
+            design.hasPermission = true
+            loadApps()
+        } else {
+            design.hasPermission = false
+            design.isLoading = false
+        }
+    }
 
-                        AccessControlDesign.Request.SelectNone -> {
-                            selected.clear()
+    private fun checkPermission(): Boolean {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            true
+        } else {
+            true
+        }
+    }
 
-                            design.rebindAll()
-                        }
+    private fun requestPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            design.hasPermission = true
+            loadApps()
+        } else {
+            design.hasPermission = true
+            loadApps()
+        }
+    }
 
-                        AccessControlDesign.Request.SelectInvert -> {
-                            val all = withContext(Dispatchers.Default) {
-                                design.apps.map(AppInfo::packageName).toSet() - selected
-                            }
-
-                            selected.clear()
-                            selected.addAll(all)
-
-                            design.rebindAll()
-                        }
-
-                        AccessControlDesign.Request.Import -> {
-                            val clipboard = getSystemService<ClipboardManager>()
-                            val data = clipboard?.primaryClip
-
-                            if (data != null && data.itemCount > 0) {
-                                val packages = data.getItemAt(0).text.split("\n").toSet()
-                                val all = design.apps.map(AppInfo::packageName).intersect(packages)
-
-                                selected.clear()
-                                selected.addAll(all)
-                            }
-
-                            design.rebindAll()
-                        }
-
-                        AccessControlDesign.Request.Export -> {
-                            val clipboard = getSystemService<ClipboardManager>()
-
-                            val data = ClipData.newPlainText(
-                                "packages",
-                                selected.joinToString("\n")
-                            )
-
-                            clipboard?.setPrimaryClip(data)
-                        }
-                    }
+    override fun onPause() {
+        super.onPause()
+        val newPackages = design.selected.filter { it.value }.keys
+        if (newPackages != service.accessControlPackages) {
+            service.accessControlPackages = newPackages
+            scope.launch {
+                try {
+                    stopClashService()
+                    startClashService()
+                } catch (_: Exception) {
                 }
             }
         }
     }
 
-    private suspend fun loadApps(selected: Set<String>): List<AppInfo> =
-        withContext(Dispatchers.IO) {
-            val reverse = uiStore.accessControlReverse
-            val sort = uiStore.accessControlSort
-            val systemApp = uiStore.accessControlSystemApp
+    override fun onDestroy() {
+        scope.cancel()
+        super.onDestroy()
+    }
 
-            val base = compareByDescending<AppInfo> { it.packageName in selected }
-            val comparator = if (reverse) base.thenDescending(sort) else base.then(sort)
+    private fun loadApps() {
+        scope.launch {
+            design.isLoading = true
+            try {
+                val apps = withContext(Dispatchers.IO) {
+                    val pm = packageManager
+                    val packages = pm.getInstalledPackages(PackageManager.GET_PERMISSIONS)
 
-            val pm = packageManager
-            val packages = pm.getInstalledPackages(PackageManager.GET_PERMISSIONS)
-
-            packages.asSequence()
-                .filter {
-                    it.packageName != packageName
+                    packages.asSequence()
+                        .filter { it.packageName != packageName }
+                        .filter { it.applicationInfo != null }
+                        .filter {
+                            it.requestedPermissions?.contains(Manifest.permission.INTERNET) == true ||
+                                    it.applicationInfo!!.uid < android.os.Process.FIRST_APPLICATION_UID
+                        }
+                        .map { it.toAppInfo(pm) }
+                        .toList()
                 }
-                .filter {
-                    it.applicationInfo != null
-                }
-                .filter {
-                    it.requestedPermissions?.contains(INTERNET) == true || it.applicationInfo!!.uid < android.os.Process.FIRST_APPLICATION_UID
-                }
-                .filter {
-                    systemApp || !it.isSystemApp
-                }
-                .map {
-                    it.toAppInfo(pm)
-                }
-                .sortedWith(comparator)
-                .toList()
+                design.updateApps(apps)
+            } catch (e: Exception) {
+                e.printStackTrace()
+                design.isLoading = false
+            }
         }
+    }
 
-    private val PackageInfo.isSystemApp: Boolean
-        get() {
-            return applicationInfo?.flags?.and(ApplicationInfo.FLAG_SYSTEM) != 0
+    private fun importFromClipboard() {
+        val clipboard = getSystemService<ClipboardManager>()
+        val data = clipboard?.primaryClip
+        if (data != null && data.itemCount > 0) {
+            val text = data.getItemAt(0).text
+            if (text != null) {
+                val packages = text.split('\n').filter { it.isNotBlank() }.toSet()
+                design.importSelection(packages)
+            }
         }
+    }
+
+    private fun exportToClipboard() {
+        val clipboard = getSystemService<ClipboardManager>()
+        val packages = design.selected.filter { it.value }.keys
+        val data = ClipData.newPlainText("packages", packages.joinToString("\n"))
+        clipboard?.setPrimaryClip(data)
+    }
 }

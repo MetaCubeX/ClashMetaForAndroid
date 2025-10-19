@@ -1,57 +1,96 @@
 package com.github.kr328.clash.design
 
+import android.app.Activity
 import android.content.Context
-import android.view.View
-import com.github.kr328.clash.design.adapter.LogFileAdapter
-import com.github.kr328.clash.design.databinding.DesignLogsBinding
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import com.github.kr328.clash.design.model.LogFile
-import com.github.kr328.clash.design.util.*
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlin.coroutines.resume
+import java.io.File
 
 class LogsDesign(context: Context) : Design<LogsDesign.Request>(context) {
+
     sealed class Request {
-        object StartLogcat : Request()
+        object OpenLogcat : Request()
         object DeleteAll : Request()
-
-        data class OpenFile(val file: LogFile) : Request()
+        object StartLogcat : Request()
+        object StopLogcat : Request()
+        data class OpenLogFile(val file: LogFile) : Request()
     }
 
-    private val binding = DesignLogsBinding
-        .inflate(context.layoutInflater, context.root, false)
-    private val adapter = LogFileAdapter(context) {
-        requests.trySend(Request.OpenFile(it))
+    internal var logs by mutableStateOf<List<LogFile>>(emptyList())
+    internal var showDeleteDialog by mutableStateOf(false)
+    var isLogcatRunning by mutableStateOf(false)
+    internal var currentLogLevel by mutableStateOf("全部")
+    internal val logLevels = listOf("全部", "错误", "警告", "信息", "调试", "静默")
+
+    @Composable
+    override fun Content() {
+        com.github.kr328.clash.design.screen.LogsScreen(this)
     }
 
-    override val root: View
-        get() = binding.root
-
-    suspend fun patchLogs(logs: List<LogFile>) {
-        adapter.patchDataSet(adapter::logs, logs, false, LogFile::fileName)
+    fun request(request: Request) {
+        requests.trySend(request)
     }
 
-    suspend fun requestDeleteAll(): Boolean {
-        return withContext(Dispatchers.Main) {
-            suspendCancellableCoroutine { ctx ->
-                MaterialAlertDialogBuilder(context)
-                    .setTitle(R.string.delete_all_logs)
-                    .setMessage(R.string.delete_all_logs_warn)
-                    .setPositiveButton(R.string.ok) { _, _ -> ctx.resume(true) }
-                    .setNegativeButton(R.string.cancel) { _, _ -> }
-                    .show()
-                    .setOnDismissListener { if (!ctx.isCompleted) ctx.resume(false) }
+    fun finish() {
+        (context as? Activity)?.finish()
+    }
+
+    fun loadLogs() {
+        launch(Dispatchers.IO) {
+            try {
+                val logDir = File(context.cacheDir, "logs")
+                val newLogs = if (logDir.exists()) {
+                    logDir.listFiles()
+                        ?.mapNotNull { file -> LogFile.parseFromFileName(file.name) }
+                        ?.sortedByDescending { it.date }
+                        ?: emptyList()
+                } else {
+                    logDir.mkdirs()
+                    emptyList()
+                }
+                withContext(Dispatchers.Main) {
+                    logs = newLogs
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
         }
     }
 
-    init {
-        binding.self = this
+    suspend fun deleteAllLogsInternal() {
+        withContext(Dispatchers.IO) {
+            try {
+                val logDir = File(context.cacheDir, "logs")
+                if (logDir.exists()) {
+                    logDir.deleteRecursively()
+                    withContext(Dispatchers.Main) {
+                        loadLogs()
+                        showDeleteDialog = false
+                    }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
 
-        binding.activityBarLayout.applyFrom(context)
+    fun deleteAllLogs() {
+        launch {
+            deleteAllLogsInternal()
+        }
+    }
 
-        binding.recyclerList.applyLinearAdapter(context, adapter)
+    fun toggleLogcat() {
+        if (isLogcatRunning) {
+            requests.trySend(Request.StopLogcat)
+        } else {
+            requests.trySend(Request.StartLogcat)
+        }
     }
 }

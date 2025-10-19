@@ -1,0 +1,31 @@
+<Access Control>
+access_control_page_title = "アクセス制御"
+search_label = "アプリを検索"
+
+<Permission>
+no_permission = "アプリリスト権限が必要です"
+grant_permission = "権限を付与"
+
+<Empty States>
+no_apps = "アプリが見つかりません"
+no_match = "一致するアプリがありません"
+
+<More Options Menu>
+more_title = "その他のオプション"
+select_all = "すべて選択"
+select_none = "すべて解除"
+select_invert = "選択を反転"
+export_clipboard = "クリップボードにエクスポート"
+show_system = "システムアプリを表示"
+show_system_summary = "リストにシステムアプリを表示"
+reverse_order = "逆順"
+reverse_order_summary = "アプリリストの並び順を反転"
+sort_method = "並び替え方法"
+sort_method_summary = "アプリリストの並び替え方法を選択"
+
+<Sort Methods>
+sort_name = "アプリ名"
+sort_package = "パッケージ名"
+sort_install = "インストール時刻"
+sort_update = "更新時刻"
+

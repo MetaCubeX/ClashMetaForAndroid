@@ -1,0 +1,35 @@
+<Logs Page>
+logs_page_title = "日志"
+logs_start_recording = "开始日志记录"
+
+<Sections>
+logs_section_filter = "日志等级筛选"
+
+<Log Levels>
+logs_level_label = "日志等级"
+logs_level_all = "全部"
+logs_level_error = "错误"
+logs_level_warning = "警告"
+logs_level_info = "信息"
+logs_level_debug = "调试"
+logs_level_silent = "静默"
+
+<Log Files>
+logs_files_title = "日志文件 (%d)"
+logs_files_title_recording = "日志文件 (%d) - 正在记录中..."
+logs_delete_all = "删除全部日志 (%d)"
+
+<Log File Info>
+logs_type_label = "类型: "
+logs_create_time_label = "创建时间: "
+logs_size_label = "大小: "
+logs_type_error = "错误"
+logs_type_warning = "警告"
+logs_type_info = "信息"
+logs_type_debug = "调试"
+logs_type_silent = "静默"
+logs_type_all = "全部日志"
+logs_unknown_size = "未知大小"
+
+<Dialog>
+logs_dialog_delete_title = "删除全部日志"

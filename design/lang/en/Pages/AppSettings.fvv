@@ -1,0 +1,25 @@
+<App Settings>
+app_settings_page_title = "Settings"
+
+<Sections>
+section_behavior = "Behavior"
+section_interface = "Interface"
+section_service = "Service"
+
+<Behavior>
+auto_restart = "Auto Restart"
+auto_restart_summary = "Allow YumeBox to restart automatically"
+
+<Interface>
+theme = "App Theme"
+theme_summary = "Interface theme mode"
+theme_follow_system = "Follow System (Android 10+)"
+theme_always_light = "Always Light"
+theme_always_dark = "Always Dark"
+hide_icon = "Hide App Icon"
+hide_icon_desc = "You can dial *#*#114514#*#* to open the app"
+
+<Service>
+show_traffic = "Show Traffic Notification"
+show_traffic_summary = "Allow displaying app traffic usage"
+

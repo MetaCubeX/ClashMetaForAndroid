@@ -1,0 +1,16 @@
+<List Editor>
+validation_invalid = "形式が正しくありません"
+
+<Empty State>
+empty_message = "エントリがありません"
+empty_hint = "右上の + をタップして追加"
+
+<Dialog>
+dialog_add_title = "エントリを追加"
+dialog_edit_title = "エントリを編集"
+input_hint = "内容を入力してください"
+input_label = "内容を入力してください"
+
+<Summary>
+total_items = "合計 %d エントリ"
+

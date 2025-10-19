@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - main
+      - Yume
 
 jobs:
   BuildDebug:

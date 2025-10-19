@@ -1,0 +1,13 @@
+<Properties>
+properties_page_title = "Properties"
+profile_name_label = "Profile Name"
+url_label = "URL"
+accept_http_content = "Accept http(s) only"
+auto_update_label = "Auto Update"
+disabled = "Disabled"
+format_minutes = "%d minutes"
+browse_files = "Browse Files"
+browse_files_summary = "Browse config files and providers"
+action_save = "Save"
+tips_properties = "Only accept Clash configs (including Proxy/Rules)"
+

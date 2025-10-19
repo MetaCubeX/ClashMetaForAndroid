@@ -1,0 +1,126 @@
+<App Info>
+app_name = "YumeBox"
+
+<Common Actions>
+action_back = "Back"
+action_save = "Save"
+action_cancel = "Cancel"
+action_confirm = "Confirm"
+action_ok = "OK"
+action_delete = "Delete"
+action_edit = "Edit"
+action_add = "Add"
+action_update = "Update"
+action_update_all = "Update All"
+action_refresh = "Refresh"
+action_import = "Import"
+action_export = "Export"
+action_reset = "Reset"
+action_rename = "Rename"
+action_open = "Open"
+action_close = "Close"
+action_search = "Search"
+action_clear = "Clear"
+action_more = "More"
+action_start_logging = "Start Logging"
+action_stop_logging = "Stop Logging"
+action_speed_test = "Speed Test"
+action_more_actions = "More Actions"
+action_switch_group = "Node Group"
+
+<Connection Status>
+status_connected = "Connected"
+status_connecting = "Connecting"
+status_disconnected = "Disconnected"
+action_connect = "Tap to Connect"
+action_disconnect = "Tap to Disconnect"
+
+<Common Status>
+status_loading = "Loading…"
+status_loading_wait = "Please wait a moment"
+status_not_set = "Not Set"
+status_not_configured = "Not Configured"
+status_empty = "No Data"
+status_unknown = "Unknown"
+status_completed = "Completed"
+status_no_node_selected = "No Node Selected"
+status_no_profile_selected = "No Profile Selected"
+
+<Common Labels>
+label_name = "Name"
+label_type = "Type"
+label_status = "Status"
+label_time = "Time"
+label_size = "Size"
+label_mode = "Mode"
+label_title = "Title"
+label_summary = "Summary"
+label_description = "Description"
+label_country_flag = "Country Flag"
+label_protocol = "Protocol"
+label_unknown_protocol = "Unknown Protocol"
+
+<Traffic Labels>
+label_upload = "Upload"
+label_download = "Download"
+label_upload_node = "Upload Node"
+label_download_node = "Download Node"
+
+<Time Format>
+time_minutes_ago = "%d minutes ago"
+time_hours_ago = "%d hours ago"
+time_days_ago = "%d days ago"
+time_unknown = "--"
+time_format_hms = "HH:mm:ss"
+
+<Common Counts>
+count_items = "%d items"
+count_files = "%d files"
+count_domains = "%d domains"
+count_servers = "%d servers"
+count_ports = "%d ports"
+count_addresses = "%d addresses"
+count_mappings = "%d mappings"
+count_policies = "%d policies"
+count_segments = "%d segments"
+
+<Tristate Options>
+tristate_not_modify = "Do Not Modify"
+tristate_enabled = "Enabled"
+tristate_disabled = "Disabled"
+
+<Common Dialogs>
+dialog_confirm_title = "Confirm Action"
+dialog_cancel = "Cancel"
+dialog_confirm = "Confirm"
+
+<Pull to Refresh>
+pull_to_refresh = "Pull to Refresh"
+release_to_refresh = "Release to Refresh"
+refreshing = "Refreshing"
+refresh_complete = "Complete"
+
+<Empty States>
+empty_text_generic = "No Data (´･ω･`)"
+empty_hint_generic = "Please add content"
+empty_text_loading = "Loading…"
+empty_hint_loading = "Please refresh if there is no response for a long time"
+
+<Validation>
+validation_required = "This field is required"
+validation_invalid = "Invalid format"
+validation_empty = "Cannot be empty"
+validation_invalid_number = "Please enter a valid number"
+validation_port_range = "Port must be between 1-65535"
+validation_invalid_ip = "Invalid IP address format"
+validation_invalid_url = "Invalid URL format"
+validation_url_too_long = "URL is too long"
+validation_invalid_domain = "Invalid domain format"
+validation_invalid_cidr = "Invalid CIDR format"
+validation_must_be_positive = "Must be a positive integer"
+validation_must_be_non_negative = "Must be a non-negative integer"
+validation_invalid_filename = "Invalid filename format"
+validation_invalid_http_url = "URL must start with http:// or https://"
+validation_interval_too_short = "Update interval must be at least 15 minutes"
+validation_text_too_long = "Input is too long, maximum %d characters"
+

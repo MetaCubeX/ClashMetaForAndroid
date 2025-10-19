@@ -7,6 +7,7 @@ import com.github.kr328.clash.common.compat.currentProcessName
 import com.github.kr328.clash.common.log.Log
 import com.github.kr328.clash.remote.Remote
 import com.github.kr328.clash.service.util.sendServiceRecreated
+import com.github.kr328.clash.util.MMKVHelper
 import com.github.kr328.clash.util.clashDir
 import java.io.File
 import java.io.FileOutputStream
@@ -22,6 +23,8 @@ class MainApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
+
+        MMKVHelper.initialize(this)
 
         val processName = currentProcessName
         extractGeoFiles()

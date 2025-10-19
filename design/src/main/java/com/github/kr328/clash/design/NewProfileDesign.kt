@@ -1,51 +1,87 @@
 package com.github.kr328.clash.design
 
 import android.content.Context
-import android.view.View
-import com.github.kr328.clash.design.adapter.ProfileProviderAdapter
-import com.github.kr328.clash.design.databinding.DesignNewProfileBinding
+import androidx.compose.runtime.*
+import com.github.kr328.clash.design.model.File
 import com.github.kr328.clash.design.model.ProfileProvider
-import com.github.kr328.clash.design.util.*
 
 class NewProfileDesign(context: Context) : Design<NewProfileDesign.Request>(context) {
     sealed class Request {
-        data class Create(val provider: ProfileProvider) : Request()
-        data class OpenDetail(val provider: ProfileProvider.External) : Request()
+        object CreateEmptyFile : Request()
+        data class ExternalOpen(val provider: ProfileProvider.External) : Request()
+        object CreateEmptyUrl : Request()
+        object Cancel : Request()
+        object PopStack : Request()
+
+        data class ImportFile(val file: File?) : Request()
+        data class SaveFile(val name: String) : Request()
+        data class SaveUrl(val name: String, val url: String, val intervalHours: Long) : Request()
     }
 
-    private val binding = DesignNewProfileBinding
-        .inflate(context.layoutInflater, context.root, false)
-    private val adapter = ProfileProviderAdapter(context, this::requestCreate, this::requestDetail)
+    private val providers = mutableStateListOf<ProfileProvider>()
+    private val filesState = mutableStateListOf<File>()
 
-    override val root: View
-        get() = binding.root
+    var fileName by mutableStateOf("")
+    var providerIndex by mutableStateOf(0)
 
-    suspend fun patchProviders(providers: List<ProfileProvider>) {
-        adapter.apply {
-            patchDataSet(this::providers, providers)
+    var urlName by mutableStateOf("")
+    var url by mutableStateOf("")
+    var urlHoursIndex by mutableStateOf(0)
+
+    internal var downloadVisible by mutableStateOf(false)
+    internal var downloadTitle by mutableStateOf("")
+    internal var downloadProgress by mutableStateOf(0)
+    internal var downloadMax by mutableStateOf(0)
+
+    var isSaving by mutableStateOf(false)
+
+    var isEditMode by mutableStateOf(false)
+
+    fun showDownload(title: String, progress: Int, max: Int) {
+        downloadTitle = title
+        downloadProgress = progress.coerceAtLeast(0)
+        downloadMax = max.coerceAtLeast(0)
+        downloadVisible = true
+    }
+
+    fun updateDownload(title: String?, progress: Int, max: Int) {
+        if (title != null && title.isNotBlank()) downloadTitle = title
+        downloadProgress = progress.coerceAtLeast(0)
+        downloadMax = max.coerceAtLeast(0)
+        if (!downloadVisible) downloadVisible = true
+    }
+
+    fun hideDownload() {
+        downloadVisible = false
+        downloadTitle = ""
+        downloadProgress = 0
+        downloadMax = 0
+    }
+
+    @Composable
+    override fun Content() {
+        com.github.kr328.clash.design.screen.NewProfileScreen(this)
+    }
+
+    suspend fun patchProviders(list: List<ProfileProvider>) {
+        providers.clear()
+        providers.addAll(list)
+    }
+
+    fun requestProvider(provider: ProfileProvider) {
+        when (provider) {
+            is ProfileProvider.File -> requests.trySend(Request.CreateEmptyFile)
+            is ProfileProvider.Url -> requests.trySend(Request.CreateEmptyUrl)
+            is ProfileProvider.External -> requests.trySend(Request.ExternalOpen(provider))
         }
     }
 
-    init {
-        binding.self = this
+    fun currentProviders(): List<ProfileProvider> = providers
 
-        binding.activityBarLayout.applyFrom(context)
-
-        binding.mainList.recyclerList.also {
-            it.bindAppBarElevation(binding.activityBarLayout)
-            it.applyLinearAdapter(context, adapter)
-        }
+    suspend fun swapFiles(files: List<File>) {
+        filesState.clear()
+        filesState.addAll(files)
     }
 
-    private fun requestCreate(provider: ProfileProvider) {
-        requests.trySend(Request.Create(provider))
-    }
-
-    private fun requestDetail(provider: ProfileProvider): Boolean {
-        if (provider !is ProfileProvider.External) return false
-
-        requests.trySend(Request.OpenDetail(provider))
-
-        return true
-    }
+    fun currentFiles(): List<File> = filesState
 }

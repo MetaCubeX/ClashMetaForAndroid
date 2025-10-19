@@ -1,0 +1,46 @@
+<Meta Feature Settings>
+meta_page_title = "Meta Features"
+
+<Sections>
+section_settings = "Settings"
+section_sniffer = "Sniffer Settings"
+
+<Settings>
+unified_delay = "Unified Delay"
+unified_delay_summary = "Unified delay measurement, more accurate but may be slower"
+geodata_mode = "GeoData Mode"
+geodata_mode_summary = "Use GeoData database format"
+tcp_concurrent = "TCP Concurrent"
+tcp_concurrent_summary = "Enable TCP concurrent connections"
+find_process_mode = "Find Process Mode"
+force_dns_mapping = "Force DNS Mapping"
+parse_pure_ip = "Parse Pure IP Connection"
+
+<Find Process Mode Options>
+process_mode_off = "Off"
+process_mode_strict = "Strict"
+process_mode_always = "Always"
+
+<Sniffer Settings>
+sniff_policy = "Policy"
+http_ports = "HTTP"
+tls_ports = "TLS"
+quic_ports = "QUIC"
+override_dest_addr = "Override Destination Address"
+force_resolve_domain = "Force Resolve Domain"
+skip_domain = "Skip Domain"
+skip_src_address = "Skip Source Address"
+skip_dst_address = "Skip Destination Address"
+
+<Geo Files>
+section_geo_files = "Geo Files"
+import_geoip = "Import GeoIP Database"
+import_geosite = "Import GeoSite Database"
+import_country = "Import Country Database"
+import_asn = "Import ASN Database"
+import_hint = "Tap to import..."
+
+<Dialogs>
+dialog_reset_title = "Reset All Overrides"
+dialog_reset_confirm = "Confirm Reset"
+

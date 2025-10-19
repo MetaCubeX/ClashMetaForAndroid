@@ -1,9 +1,21 @@
 package com.github.kr328.clash.design.dialog
 
 import android.content.Context
-import com.github.kr328.clash.design.databinding.DialogFetchStatusBinding
-import com.github.kr328.clash.design.util.layoutInflater
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import android.view.ViewGroup
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.unit.dp
+import com.github.kr328.clash.design.theme.YumeTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -19,47 +31,94 @@ interface ModelProgressBarScope {
 }
 
 suspend fun Context.withModelProgressBar(block: suspend ModelProgressBarScope.() -> Unit) {
-    val view = DialogFetchStatusBinding.inflate(this.layoutInflater)
-    val dialog = MaterialAlertDialogBuilder(this)
-        .setCancelable(false)
-        .setView(view.root)
-        .show()
+    var composeView: ComposeView? = null
 
-    val configureImpl = object : ModelProgressBarConfigure {
-        override var isIndeterminate: Boolean
-            get() = view.progressIndicator.isIndeterminate
-            set(value) {
-                view.progressIndicator.isIndeterminate = value
-            }
-        override var text: String?
-            get() = view.text.text?.toString()
-            set(value) {
-                view.text.text = value
-            }
-        override var progress: Int
-            get() = view.progressIndicator.progress
-            set(value) {
-                view.progressIndicator.setProgressCompat(value, true)
-            }
-        override var max: Int
-            get() = view.progressIndicator.max
-            set(value) {
-                view.progressIndicator.max = value
-            }
+    withContext(Dispatchers.Main) {
+        val isIndeterminateState = mutableStateOf(true)
+        val textState = mutableStateOf<String?>(null)
+        val progressState = mutableStateOf(0)
+        val maxState = mutableStateOf(100)
 
-    }
+        val configureImpl = object : ModelProgressBarConfigure {
+            override var isIndeterminate: Boolean
+                get() = isIndeterminateState.value
+                set(value) {
+                    isIndeterminateState.value = value
+                }
+            override var text: String?
+                get() = textState.value
+                set(value) {
+                    textState.value = value
+                }
+            override var progress: Int
+                get() = progressState.value
+                set(value) {
+                    progressState.value = value
+                }
+            override var max: Int
+                get() = maxState.value
+                set(value) {
+                    maxState.value = value
+                }
+        }
 
-    val scopeImpl = object : ModelProgressBarScope {
-        override suspend fun configure(block: suspend ModelProgressBarConfigure.() -> Unit) {
-            withContext(Dispatchers.Main) {
-                configureImpl.block()
+        val scopeImpl = object : ModelProgressBarScope {
+            override suspend fun configure(block: suspend ModelProgressBarConfigure.() -> Unit) {
+                withContext(Dispatchers.Main) {
+                    configureImpl.block()
+                }
             }
         }
-    }
 
-    try {
-        scopeImpl.block()
-    } finally {
-        dialog.dismiss()
+        composeView = ComposeView(this@withModelProgressBar).apply {
+            setContent {
+                YumeTheme {
+                    val isIndeterminate by isIndeterminateState
+                    val text by textState
+                    val progress by progressState
+                    val max by maxState
+
+                    AlertDialog(
+                        onDismissRequest = {},
+                        confirmButton = {},
+                        text = {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 16.dp),
+                                verticalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                if (isIndeterminate) {
+                                    LinearProgressIndicator(
+                                        modifier = Modifier.fillMaxWidth()
+                                    )
+                                } else {
+                                    LinearProgressIndicator(
+                                        progress = { if (max > 0) progress.toFloat() / max.toFloat() else 0f },
+                                        modifier = Modifier.fillMaxWidth()
+                                    )
+                                }
+
+                                if (text != null) {
+                                    Text(
+                                        text = text!!,
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
+                                }
+                            }
+                        }
+                    )
+                }
+            }
+        }
+
+        val decorView = (this@withModelProgressBar as? android.app.Activity)?.window?.decorView as? ViewGroup
+        decorView?.addView(composeView)
+
+        try {
+            scopeImpl.block()
+        } finally {
+            decorView?.removeView(composeView)
+        }
     }
 }
