@@ -1,0 +1,27 @@
+<Proxy Page>
+proxy_page_title = "Прокси"
+group_selector = "Группа узлов"
+test_speed = "Тест скорости"
+more_options = "Дополнительные параметры"
+
+<Empty States>
+loading_groups = "Загрузка групп прокси..."
+empty_text = "Группы прокси отсутствуют (´･ω･`)"
+empty_hint = "Проверьте файл конфигурации или состояние запуска"
+
+<Menu Options>
+menu_default_order = "Порядок по умолчанию"
+menu_sort_by_delay = "Сортировать по задержке"
+menu_dual_column = "Отображать в 2 столбца"
+menu_single_column = "Отображать в 1 столбец"
+
+<Mode Selection>
+mode_title = "Выбор режима"
+mode_direct = "Прямой"
+mode_global = "Глобальный"
+mode_rule = "По правилам"
+mode_script = "Скрипт"
+
+<Proxy Card>
+delay_ms = "%d мс"
+

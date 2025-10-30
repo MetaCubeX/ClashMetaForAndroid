@@ -1,0 +1,41 @@
+<Network Settings>
+network_page_title = "Сетевые настройки"
+
+<Dialog>
+network_dialog_unavailable_title = "Параметры недоступны во время работы YumeBox"
+
+<Sections>
+section_vpn = "VPN-служба"
+section_vpn_options = "Параметры VPN-службы"
+section_proxy_options = "Параметры прокси"
+
+<VPN Service>
+route_traffic = "Маршрутизировать системный трафик"
+route_traffic_summary = "Направлять весь трафик через VPN-службу"
+
+<VPN Options>
+bypass_private = "Обход частных сетей"
+bypass_private_summary = "Не направлять трафик локальных и частных адресов через VPN"
+dns_hijacking = "Перехват DNS"
+dns_hijacking_summary = "Перенаправлять все DNS-запросы в Clash"
+allow_bypass = "Разрешить обход"
+allow_bypass_summary = "Разрешить приложениям обходить VPN"
+allow_ipv6 = "Разрешить IPv6"
+allow_ipv6_summary = "Разрешить маршрутизацию IPv6-трафика через VPN"
+system_proxy = "Системный прокси"
+system_proxy_summary = "Настроить системный HTTP-прокси для приложений, не поддерживающих VPN"
+
+<Proxy Options>
+tun_stack = "TUN-стек"
+tun_stack_system = "system"
+tun_stack_gvisor = "GVisor"
+tun_stack_mixed = "mixed"
+access_control_mode = "Режим управления доступом"
+access_control_list = "Список приложений управления доступом"
+access_control_list_summary = "Управление приложениями в списке контроля доступа"
+
+<Access Control Modes>
+access_mode_allow_all = "Разрешить все приложения"
+access_mode_allow_selected = "Разрешить выбранные приложения"
+access_mode_deny_selected = "Блокировать выбранные приложения"
+

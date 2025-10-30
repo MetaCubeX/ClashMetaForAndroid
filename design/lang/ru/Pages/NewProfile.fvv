@@ -1,0 +1,35 @@
+<New Profile>
+new_profile_page_title = "Добавить профиль"
+
+<Import Method>
+import_method = "Метод импорта"
+import_method_summary = "Выберите источник для добавления профиля"
+
+<File Section>
+section_file = "Локальный профиль"
+name_label = "Имя профиля"
+import_config = "Импортировать настройки"
+import_hint = "Выберите файл конфигурации"
+reimport = "Повторный импорт"
+reimport_hint = "Выберите файл конфигурации повторно"
+
+<URL Section>
+section_url = "Профиль по подписке"
+url_label = "URL подписки"
+auto_update = "Автообновление"
+auto_update_summary = "Выберите интервал автоматического обновления"
+
+<External Section>
+section_external = "Внешнее приложение"
+
+<Interval Options>
+interval_none = "Вручную"
+interval_1h = "Каждый час"
+interval_3h = "Каждые 3 часа"
+interval_6h = "Каждые 6 часов"
+interval_12h = "Каждые 12 часов"
+interval_24h = "Каждые 24 часа"
+
+<Progress>
+loading = "Загрузка..."
+

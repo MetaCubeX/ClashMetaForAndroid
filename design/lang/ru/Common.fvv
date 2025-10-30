@@ -1,0 +1,126 @@
+<App Info>
+app_name = "YumeBox"
+
+<Common Actions>
+action_back = "Назад"
+action_save = "Сохранить"
+action_cancel = "Отмена"
+action_confirm = "Подтвердить"
+action_ok = "ОК"
+action_delete = "Удалить"
+action_edit = "Редактировать"
+action_add = "Добавить"
+action_update = "Обновить"
+action_update_all = "Обновить всё"
+action_refresh = "Обновить"
+action_import = "Импортировать"
+action_export = "Экспортировать"
+action_reset = "Сбросить"
+action_rename = "Переименовать"
+action_open = "Открыть"
+action_close = "Закрыть"
+action_search = "Поиск"
+action_clear = "Очистить"
+action_more = "Ещё"
+action_start_logging = "Начать логирование"
+action_stop_logging = "Остановить логирование"
+action_speed_test = "Тест скорости"
+action_more_actions = "Доп. действия"
+action_switch_group = "Группа узлов"
+
+<Connection Status>
+status_connected = "Подключено"
+status_connecting = "Подключение..."
+status_disconnected = "Отключено"
+action_connect = "Нажмите для подключения"
+action_disconnect = "Нажмите для отключения"
+
+<Common Status>
+status_loading = "Загрузка…"
+status_loading_wait = "Пожалуйста, подождите"
+status_not_set = "Не задано"
+status_not_configured = "Не настроено"
+status_empty = "Нет данных"
+status_unknown = "Неизвестно"
+status_completed = "Завершено"
+status_no_node_selected = "Узел не выбран"
+status_no_profile_selected = "Профиль не выбран"
+
+<Common Labels>
+label_name = "Имя"
+label_type = "Тип"
+label_status = "Статус"
+label_time = "Время"
+label_size = "Размер"
+label_mode = "Режим"
+label_title = "Заголовок"
+label_summary = "Сводка"
+label_description = "Описание"
+label_country_flag = "Флаг страны"
+label_protocol = "Протокол"
+label_unknown_protocol = "Неизвестный протокол"
+
+<Traffic Labels>
+label_upload = "Исходящий"
+label_download = "Входящий"
+label_upload_node = "Исходящий узел"
+label_download_node = "Входящий узел"
+
+<Time Format>
+time_minutes_ago = "%d минут назад"
+time_hours_ago = "%d часов назад"
+time_days_ago = "%d дней назад"
+time_unknown = "--"
+time_format_hms = "ЧЧ:мм:сс"
+
+<Common Counts>
+count_items = "%d элементов"
+count_files = "%d файлов"
+count_domains = "%d доменов"
+count_servers = "%d серверов"
+count_ports = "%d портов"
+count_addresses = "%d адресов"
+count_mappings = "%d сопоставлений"
+count_policies = "%d политик"
+count_segments = "%d сегментов"
+
+<Tristate Options>
+tristate_not_modify = "Не изменять"
+tristate_enabled = "Включено"
+tristate_disabled = "Отключено"
+
+<Common Dialogs>
+dialog_confirm_title = "Подтверждение действия"
+dialog_cancel = "Отмена"
+dialog_confirm = "Подтвердить"
+
+<Pull to Refresh>
+pull_to_refresh = "Потяните для обновления"
+release_to_refresh = "Отпустите для обновления"
+refreshing = "Обновление..."
+refresh_complete = "Готово"
+
+<Empty States>
+empty_text_generic = "Нет данных (´･ω･`)"
+empty_hint_generic = "Пожалуйста, добавьте содержимое"
+empty_text_loading = "Загрузка…"
+empty_hint_loading = "Обновите, если нет ответа долгое время"
+
+<Validation>
+validation_required = "Это поле обязательно"
+validation_invalid = "Неверный формат"
+validation_empty = "Не может быть пустым"
+validation_invalid_number = "Введите корректное число"
+validation_port_range = "Порт должен быть в диапазоне 1–65535"
+validation_invalid_ip = "Неверный формат IP-адреса"
+validation_invalid_url = "Неверный формат URL"
+validation_url_too_long = "URL слишком длинный"
+validation_invalid_domain = "Неверный формат домена"
+validation_invalid_cidr = "Неверный формат CIDR"
+validation_must_be_positive = "Должно быть положительным числом"
+validation_must_be_non_negative = "Должно быть неотрицательным числом"
+validation_invalid_filename = "Неверный формат имени файла"
+validation_invalid_http_url = "URL должен начинаться с http:// или https://"
+validation_interval_too_short = "Интервал обновления должен быть не менее 15 минут"
+validation_text_too_long = "Слишком длинный ввод, максимум %d символов"
+

@@ -1,0 +1,43 @@
+<Profiles Page>
+profiles_page_title = "Профили"
+
+<Mode>
+mode_title = "Режим"
+mode_summary = "Выберите режим работы с профилями"
+mode_activate = "Режим активации"
+mode_edit = "Режим редактирования"
+
+<Empty State>
+empty_message = "Нет профилей (´･ω･`)"
+empty_hint = "Нажмите кнопку + в правом верхнем углу, чтобы добавить профиль"
+
+<Unsaved Dialog>
+unsaved_title = "Несохранённый профиль"
+unsaved_summary = "Текущий профиль не сохранён. Хотите отредактировать его?"
+unsaved_label = "Не сохранён"
+
+<Edit Actions>
+action_update_config = "Обновить настройки"
+action_update_summary = "Повторно загрузить последнюю конфигурацию"
+action_edit_config = "Редактировать настройки"
+action_edit_summary = "Изменить имя и параметры профиля"
+action_copy_config = "Копировать настройки"
+action_copy_summary = "Создать копию этого профиля"
+action_delete_config = "Удалить настройки"
+action_delete_summary = "Это действие нельзя отменить"
+action_edit = "Редактировать"
+
+<Profile Types>
+type_local = "Локальный файл"
+type_url = "URL подписки"
+type_external = "Внешний импорт"
+
+<Time Format>
+time_minutes_ago = "%d минут назад"
+time_hours_ago = "%d часов назад"
+time_days_ago = "%d дней назад"
+
+<Traffic>
+expires_at = "Истекает: %s"
+traffic_summary = "Всего %d записей"
+

@@ -1,0 +1,89 @@
+<Override Settings Page>
+override_page_title = "Переопределения"
+
+<Sections>
+section_general = "Общие"
+section_dns = "DNS"
+
+<General Options>
+http_port = "Порт HTTP"
+socks_port = "Порт SOCKS"
+redirect_port = "Порт перенаправления"
+tproxy_port = "Порт TProxy"
+mixed_port = "Смешанный порт"
+authentication = "Аутентификация"
+allow_lan = "Разрешить подключение по LAN"
+ipv6 = "IPv6"
+bind_address = "Адрес привязки"
+external_controller = "Внешний контроллер"
+external_controller_tls = "Внешний контроллер (TLS)"
+external_controller_allow_origins = "Разрешённые источники для внешнего контроллера"
+external_controller_allow_private = "Разрешить частные сети для внешнего контроллера"
+secret = "Секрет"
+mode = "Режим"
+log_level = "Уровень логов"
+hosts = "Hosts"
+
+<DNS Options>
+sniffer = "Сниффер"
+h3_prefer = "Предпочитать H3"
+dns_listen = "Прослушивание"
+append_system_dns = "Добавить системный DNS"
+dns_ipv6 = "IPv6"
+use_hosts = "Использовать Hosts"
+enhanced_mode = "Расширенный режим"
+name_server = "Основной сервер имён"
+fallback_name_server = "Резервный сервер имён"
+default_name_server = "DNS по умолчанию"
+fakeip_filter = "Фильтр FakeIP"
+fakeip_filter_mode = "Режим фильтра FakeIP"
+geoip_fallback = "Резерв GeoIP"
+geoip_fallback_whitelist = "Только белый список GeoIP Fallback"
+domain_fallback = "Резерв доменов"
+ipcidr_fallback = "Резерв IP/CIDR"
+nameserver_policy = "Политика серверов имён"
+
+<Status Text>
+secret_hidden = "••••••"
+
+<Mode Options>
+mode_direct = "Прямой"
+mode_global = "Глобальный"
+mode_rule = "По правилам"
+mode_script = "Скрипт"
+
+<Log Level Options>
+log_info = "Информация"
+log_warning = "Предупреждение"
+log_error = "Ошибка"
+log_debug = "Отладка"
+log_silent = "Без вывода"
+log_unknown = "Неизвестно"
+
+<Enhanced Mode Options>
+enhanced_none = "Выкл."
+enhanced_fakeip = "FakeIP"
+enhanced_mapping = "Сопоставление"
+
+<Filter Mode Options>
+filter_blacklist = "Чёрный список"
+filter_whitelist = "Белый список"
+
+<Dialogs>
+dialog_reset_title = "Сбросить все переопределения"
+dialog_reset_confirm = "Подтвердите сброс"
+dialog_edit_title = "Редактировать %s"
+
+<Input Labels>
+input_port_label = "Введите номер порта (1–65535)"
+input_bind_address_label = "Введите адрес привязки"
+input_external_controller_label = "Введите адрес (например: 0.0.0.0:9090)"
+input_external_controller_tls_label = "Введите адрес TLS"
+input_secret_label = "Введите секрет"
+input_dns_listen_label = "Введите адрес прослушивания"
+input_geoip_code_label = "Введите код GeoIP (например: CN)"
+
+<Validation>
+validation_invalid_number = "Введите корректное число"
+validation_port_range = "Порт должен быть в диапазоне 1–65535"
+

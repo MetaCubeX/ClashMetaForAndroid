@@ -1,0 +1,25 @@
+<App Settings>
+app_settings_page_title = "Настройки"
+
+<Sections>
+section_behavior = "Поведение"
+section_interface = "Интерфейс"
+section_service = "Сервис"
+
+<Behavior>
+auto_restart = "Автоматический перезапуск"
+auto_restart_summary = "Разрешить автоматический перезапуск YumeBox"
+
+<Interface>
+theme = "Тема приложения"
+theme_summary = "Режим оформления интерфейса"
+theme_follow_system = "Следовать системной теме (Android 10+)"
+theme_always_light = "Всегда светлая"
+theme_always_dark = "Всегда тёмная"
+hide_icon = "Скрыть иконку приложения"
+hide_icon_desc = "Чтобы открыть приложение, наберите *#*#114514#*#*"
+
+<Service>
+show_traffic = "Показывать уведомление о трафике"
+show_traffic_summary = "Разрешить отображение использования сетевого трафика приложением"
+

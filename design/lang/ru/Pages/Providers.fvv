@@ -1,0 +1,13 @@
+<Providers Page>
+providers_page_title = "Внешние ресурсы"
+
+<Empty State>
+empty_title = "Внешние источники"
+empty_text = "Нет внешних ресурсов (´･ω･`)"
+empty_hint = "Запустите прокси и обновите список"
+
+<Provider Row>
+type_label = "Тип:"
+vehicle_label = "Источник:"
+update_time_label = "Время обновления:"
+

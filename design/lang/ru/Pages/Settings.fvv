@@ -1,0 +1,18 @@
+<Settings Page>
+settings_page_title = "Настройки"
+
+<Sections>
+section_global = "Глобальные"
+section_proxy = "Прокси"
+section_other = "Прочее"
+
+<Entries>
+entry_app = "Приложение"
+entry_network = "Сеть"
+entry_override = "Переопределения"
+entry_meta_features = "Функции Meta"
+entry_profiles = "Профили"
+entry_providers = "Внешние ресурсы"
+entry_logs = "Журналы"
+entry_about = "О программе"
+

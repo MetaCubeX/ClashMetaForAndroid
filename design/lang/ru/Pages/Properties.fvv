@@ -1,0 +1,13 @@
+<Properties>
+properties_page_title = "Свойства"
+profile_name_label = "Имя профиля"
+url_label = "URL"
+accept_http_content = "Принимать только http(s)"
+auto_update_label = "Автообновление"
+disabled = "Отключено"
+format_minutes = "%d мин"
+browse_files = "Обзор файлов"
+browse_files_summary = "Просмотр файлов конфигурации и провайдеров"
+action_save = "Сохранить"
+tips_properties = "Поддерживаются только конфигурации Clash (включая Proxy/Rules)"
+

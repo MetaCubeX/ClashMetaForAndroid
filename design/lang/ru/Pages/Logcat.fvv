@@ -1,0 +1,36 @@
+<Logcat>
+logcat_page_title = "Реальный журнал"
+logcat_stop_recording = "Остановить запись"
+
+<Sections>
+logcat_section_filter = "Фильтр по уровню логов"
+
+<Log Levels>
+logcat_level_label = "Минимальный уровень записи"
+logcat_level_all = ""
+logcat_level_error = "Ошибка"
+logcat_level_warning = "Предупреждение"
+logcat_level_info = "Информация"
+logcat_level_debug = "Отладка"
+logcat_level_silent = "Без вывода"
+
+<Display>
+logcat_current_display = "Отображается: %d/%d сообщений"
+logcat_delete_current_log = "Удалить текущий журнал"
+logcat_delete_current_log_summary = "Нажмите, чтобы удалить текущий файл журнала"
+
+<Dialogs>
+logcat_copied_title = "Скопировано"
+logcat_delete_title = "Удалить все логи"
+logcat_delete_summary = "Вы действительно хотите удалить все записи журнала? Это действие нельзя отменить."
+logcat_export_title = "Экспортировать логи"
+logcat_export_summary = "Экспортировать все текущие записи журнала?"
+
+<Log Levels Names>
+logcat_log_error = "Ошибка"
+logcat_log_warning = "Предупреждение"
+logcat_log_info = "Информация"
+logcat_log_debug = "Отладка"
+logcat_log_silent = "Без вывода"
+logcat_log_unknown = "Неизвестно"
+

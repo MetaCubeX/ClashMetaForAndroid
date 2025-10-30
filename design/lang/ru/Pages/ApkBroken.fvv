@@ -1,0 +1,7 @@
+<Apk Broken>
+apk_broken_page_title = "Повреждённое приложение"
+apk_broken_tips = "Приложению не хватает необходимых компонентов для работы. Обычно это происходит из-за неполной загрузки APK-файла."
+section_reinstall = "Переустановить"
+github_releases = "Релизы на GitHub"
+meta_github_url = "https://github.com/MetaCubeX/ClashMetaForAndroid"
+

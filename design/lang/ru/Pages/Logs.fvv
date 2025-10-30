@@ -1,0 +1,36 @@
+<Logs Page>
+logs_page_title = "Журналы"
+logs_start_recording = "Начать запись логов"
+
+<Sections>
+logs_section_filter = "Фильтр по уровню логов"
+
+<Log Levels>
+logs_level_label = "Уровень логов"
+logs_level_all = "Все"
+logs_level_error = "Ошибка"
+logs_level_warning = "Предупреждение"
+logs_level_info = "Информация"
+logs_level_debug = "Отладка"
+logs_level_silent = "Без вывода"
+
+<Log Files>
+logs_files_title = "Файлы журналов (%d)"
+logs_files_title_recording = "Файлы журналов (%d) — идёт запись..."
+logs_delete_all = "Удалить все логи (%d)"
+
+<Log File Info>
+logs_type_label = "Тип: "
+logs_create_time_label = "Время создания: "
+logs_size_label = "Размер: "
+logs_type_error = "Ошибка"
+logs_type_warning = "Предупреждение"
+logs_type_info = "Информация"
+logs_type_debug = "Отладка"
+logs_type_silent = "Без вывода"
+logs_type_all = "Все логи"
+logs_unknown_size = "Неизвестный размер"
+
+<Dialog>
+logs_dialog_delete_title = "Удалить все логи"
+

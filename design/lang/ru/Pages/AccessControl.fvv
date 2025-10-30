@@ -1,0 +1,31 @@
+<Access Control>
+access_control_page_title = "Управление доступом"
+search_label = "Поиск приложений"
+
+<Permission>
+no_permission = "Необходимо разрешение на доступ к списку приложений"
+grant_permission = "Предоставить разрешение"
+
+<Empty States>
+no_apps = "Приложения не найдены"
+no_match = "Совпадений не найдено"
+
+<More Options Menu>
+more_title = "Дополнительные параметры"
+select_all = "Выбрать всё"
+select_none = "Снять выделение"
+select_invert = "Инвертировать выбор"
+export_clipboard = "Экспортировать в буфер обмена"
+show_system = "Показать системные приложения"
+show_system_summary = "Отображать системные приложения в списке"
+reverse_order = "Обратный порядок"
+reverse_order_summary = "Изменить порядок сортировки списка приложений на обратный"
+sort_method = "Метод сортировки"
+sort_method_summary = "Выберите метод сортировки списка приложений"
+
+<Sort Methods>
+sort_name = "Имя приложения"
+sort_package = "Имя пакета"
+sort_install = "Время установки"
+sort_update = "Время обновления"
+

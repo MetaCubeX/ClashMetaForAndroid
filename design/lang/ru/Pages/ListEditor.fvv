@@ -1,0 +1,16 @@
+<List Editor>
+validation_invalid = "Неверный формат"
+
+<Empty State>
+empty_message = "Нет записей"
+empty_hint = "Нажмите + в правом верхнем углу, чтобы добавить"
+
+<Dialog>
+dialog_add_title = "Добавить запись"
+dialog_edit_title = "Редактировать запись"
+input_hint = "Введите содержимое"
+input_label = "Введите содержимое"
+
+<Summary>
+total_items = "Всего %d записей"
+

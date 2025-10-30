@@ -1,0 +1,46 @@
+<Meta Feature Settings>
+meta_page_title = "Настройки Meta-функций"
+
+<Sections>
+section_settings = "Параметры"
+section_sniffer = "Настройки сниффера"
+
+<Settings>
+unified_delay = "Единое измерение задержки"
+unified_delay_summary = "Использовать унифицированное измерение задержки — более точно, но может быть медленнее"
+geodata_mode = "Режим GeoData"
+geodata_mode_summary = "Использовать базу данных в формате GeoData"
+tcp_concurrent = "Параллельные TCP-соединения"
+tcp_concurrent_summary = "Включить одновременные TCP-соединения"
+find_process_mode = "Режим определения процессов"
+force_dns_mapping = "Принудительное сопоставление DNS"
+parse_pure_ip = "Анализировать прямые IP-подключения"
+
+<Find Process Mode Options>
+process_mode_off = "Выкл."
+process_mode_strict = "Строгий"
+process_mode_always = "Всегда"
+
+<Sniffer Settings>
+sniff_policy = "Политика"
+http_ports = "HTTP"
+tls_ports = "TLS"
+quic_ports = "QUIC"
+override_dest_addr = "Переопределять адрес назначения"
+force_resolve_domain = "Принудительно разрешать домены"
+skip_domain = "Пропускать домены"
+skip_src_address = "Пропускать исходные адреса"
+skip_dst_address = "Пропускать адреса назначения"
+
+<Geo Files>
+section_geo_files = "Geo-файлы"
+import_geoip = "Импортировать базу GeoIP"
+import_geosite = "Импортировать базу GeoSite"
+import_country = "Импортировать базу Country"
+import_asn = "Импортировать базу ASN"
+import_hint = "Нажмите для импорта..."
+
+<Dialogs>
+dialog_reset_title = "Сбросить все переопределения"
+dialog_reset_confirm = "Подтвердите сброс"
+

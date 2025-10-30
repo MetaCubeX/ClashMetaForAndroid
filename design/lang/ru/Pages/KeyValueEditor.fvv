@@ -1,0 +1,15 @@
+<Key Value Editor>
+empty_text = "Нет записей"
+empty_hint = "Нажмите + в правом верхнем углу, чтобы добавить"
+count_summary = "Всего %d записей"
+item_count = "Всего %d записей"
+
+<Dialogs>
+dialog_add_title = "Добавить запись"
+dialog_edit_title = "Редактировать запись"
+
+<Validation>
+error_key_empty = "Ключ не может быть пустым"
+error_value_empty = "Значение не может быть пустым"
+error_key_exists = "Такой ключ уже существует"
+
