@@ -51,10 +51,6 @@ subprojects {
             resValue("string", "release_name", "v$versionName")
             resValue("integer", "release_code", "$versionCode")
 
-            ndk {
-                abiFilters += listOf("arm64-v8a", "armeabi-v7a", "x86", "x86_64")
-            }
-
             @Suppress("UnstableApiUsage")
             externalNativeBuild {
                 cmake {
@@ -175,9 +171,14 @@ subprojects {
             splits {
                 abi {
                     isEnable = true
-                    isUniversalApk = true
+                    isUniversalApk = false
                     reset()
-                    include("arm64-v8a", "armeabi-v7a", "x86", "x86_64")
+                    val abiFilter = project.findProperty("abiFilter") as String?
+                    if (abiFilter != null) {
+                        include(abiFilter)
+                    } else {
+                        include("arm64-v8a", "armeabi-v7a", "x86", "x86_64")
+                    }
                 }
             }
         }

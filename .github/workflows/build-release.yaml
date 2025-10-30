@@ -1,23 +1,35 @@
-name: Build Release
+name: Build
 
 on:
   workflow_dispatch:
     inputs:
-      release-tag:
-        description: 'Release Tag (v2.x.x)'
-        required: true
+      create_release:
+        description: 'Create GitHub Release (否则创建 Pre-release)'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: build
+  cancel-in-progress: true
 
 jobs:
-  BuildRelease:
+  build:
+    name: Build Alpha (${{ matrix.abi }})
     runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        abi: [ arm64-v8a, armeabi-v7a, x86, x86_64 ]
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
-      
-      - name: Checkout submodules
-        run: git submodule update --init --recursive --force
+          submodules: recursive
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -27,13 +39,18 @@ jobs:
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-disabled: true
+          add-job-summary: never
 
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
           go-version: "1.25"
+          cache: false
 
-      - uses: actions/cache@v4
+      - name: Cache Go modules
+        uses: actions/cache@v4
         with:
           path: |
             ~/.cache/go-build
@@ -41,41 +58,25 @@ jobs:
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-
-      
-      - name: Convert and set version env
-        id: process-version
-        run: |
-          VERSION_TAG=${{ inputs.release-tag }}
-          VERSION_TAG=${VERSION_TAG#v}                              # remove the 'v' prefix
-          IFS='.' read -ra VERSION_PARTS <<< "$VERSION_TAG"         # split into array
-          VERSION_CODE=$(printf "%1d%02d%03d" "${VERSION_PARTS[0]}" "${VERSION_PARTS[1]}" "${VERSION_PARTS[2]}")
-          
-          echo "versonName=$VERSION_TAG" >> $GITHUB_OUTPUT          # "1.2.3"
-          echo "versonCode=$VERSION_CODE" >> $GITHUB_OUTPUT         # "102003"
-      
-      # Re-write version in build.gradle.kts
-      - name: Re-write version
-        uses: Devofure/advance-android-version-actions@v1.5
+
+      - name: Cache GeoFiles
+        id: cache-geofiles
+        uses: actions/cache@v4
         with:
-          gradlePath: build.gradle.kts
-          versionCode: ${{ steps.process-version.outputs.versonCode }}
-          versionName: ${{ steps.process-version.outputs.versonName }}
-      
-      # If any change found, commit it and push
-      - name: Commit and push if changes
+          path: app/src/main/assets
+          key: geofiles-${{ hashFiles('app/build.gradle.kts') }}-${{ github.run_number }}
+          restore-keys: |
+            geofiles-${{ hashFiles('app/build.gradle.kts') }}-
+            geofiles-
+
+      - name: Extract version
+        id: version
         run: |
-          changes=$(git diff --name-only origin/main | wc -l)
-          if [ $changes -gt 0 ]
-          then
-            newVersionName=${{ steps.process-version.outputs.versonName }}
-            newVersionCode=${{ steps.process-version.outputs.versonCode }}
-            git config --global user.name 'GitHub Action'
-            git config --global user.email 'action@github.com'
-            git add build.gradle.kts
-            git commit -am "Bump version to $newVersionName ($newVersionCode)"
-            git tag "v$newVersionName"
-            git push --follow-tags
-          fi
+          VERSION_NAME=$(grep 'versionName = ' build.gradle.kts | grep -oP '"\K[^"]+')
+          VERSION_CODE=$(grep 'versionCode = ' build.gradle.kts | grep -oP '\d+')
+          echo "VERSION_NAME=${VERSION_NAME}" >> $GITHUB_OUTPUT
+          echo "VERSION_CODE=${VERSION_CODE}" >> $GITHUB_OUTPUT
+          echo "Building version: ${VERSION_NAME} (${VERSION_CODE})"
 
       - name: Update CA
         run: |
@@ -93,35 +94,109 @@ jobs:
           echo keystore.password="$SIGNING_STORE_PASSWORD" > signing.properties
           echo key.alias="$SIGNING_KEY_ALIAS" >> signing.properties
           echo key.password="$SIGNING_KEY_PASSWORD" >> signing.properties
-            
-          echo "cat signing.properties"
-          cat signing.properties
 
-      - name: Release Build
-        if: success()
-        run: ./gradlew --no-daemon app:assembleMetaRelease
+      - name: Build Alpha APK (${{ matrix.abi }})
+        run: |
+          ./gradlew app:assembleAlphaRelease \
+            -PabiFilter=${{ matrix.abi }} \
+            --no-daemon \
+            --no-configuration-cache \
+            --stacktrace
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: YumeBox-alpha-${{ matrix.abi }}
+          path: app/build/outputs/apk/alpha/release/*.apk
+          retention-days: 1
+
+      - name: Cleanup secrets
+        if: always()
+        run: rm -f release.keystore signing.properties
+
+  release:
+    name: Create Release
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Download all APK artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: YumeBox-alpha-*
+          path: release-artifacts
+          merge-multiple: true
+
+      - name: Extract version and generate release info
+        id: version
+        run: |
+          VERSION_NAME=$(grep 'versionName = ' build.gradle.kts | grep -oP '"\K[^"]+')
+          VERSION_CODE=$(grep 'versionCode = ' build.gradle.kts | grep -oP '\d+')
+          
+          if [ "${{ github.event.inputs.create_release }}" == "true" ]; then
+            TAG_NAME="v${VERSION_NAME}"
+            RELEASE_NAME="YumeBox v${VERSION_NAME}"
+            IS_PRERELEASE="false"
+            MAKE_LATEST="true"
+          else
+            TAG_NAME="Prerelease-alpha"
+            RELEASE_NAME="Pre-release (Latest Alpha Build)"
+            IS_PRERELEASE="true"
+            MAKE_LATEST="false"
+          fi
+          
+          echo "VERSION_NAME=${VERSION_NAME}" >> $GITHUB_OUTPUT
+          echo "VERSION_CODE=${VERSION_CODE}" >> $GITHUB_OUTPUT
+          echo "TAG_NAME=${TAG_NAME}" >> $GITHUB_OUTPUT
+          echo "RELEASE_NAME=${RELEASE_NAME}" >> $GITHUB_OUTPUT
+          echo "IS_PRERELEASE=${IS_PRERELEASE}" >> $GITHUB_OUTPUT
+          echo "MAKE_LATEST=${MAKE_LATEST}" >> $GITHUB_OUTPUT
+          
+          echo "Release Info:"
+          echo "  Tag: ${TAG_NAME}"
+          echo "  Name: ${RELEASE_NAME}"
+          echo "  Version: ${VERSION_NAME} (${VERSION_CODE})"
+          echo "  Prerelease: ${IS_PRERELEASE}"
+
+      - name: Delete old pre-release
+        if: github.event.inputs.create_release != 'true'
+        uses: dev-drprasad/delete-tag-and-release@v1.1
+        with:
+          tag_name: ${{ steps.version.outputs.TAG_NAME }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          delete_release: true
+        continue-on-error: true
 
       - name: Tag Repo
         uses: richardsimko/update-tag@v1
         with:
-          tag_name: ${{ inputs.release-tag }}
+          tag_name: ${{ steps.version.outputs.TAG_NAME }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Upload Release
-        uses: softprops/action-gh-release@v1
-        if: ${{ success() }}
+      - name: Create/Update Release
+        uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ inputs.release-tag }}
-          files: app/build/outputs/apk/meta/release/*
+          tag_name: ${{ steps.version.outputs.TAG_NAME }}
+          name: ${{ steps.version.outputs.RELEASE_NAME }}
+          body: |
+            **YumeBox Alpha Build v${{ steps.version.outputs.VERSION_NAME }}**
+            
+            Build: #${{ github.run_number }}
+            Commit: ${{ github.sha }}
+            Version Code: ${{ steps.version.outputs.VERSION_CODE }}
+            
+            This is an automated ${{ github.event.inputs.create_release == 'true' && 'release' || 'pre-release' }} build.
+          files: release-artifacts/*.apk
+          prerelease: ${{ steps.version.outputs.IS_PRERELEASE }}
+          draft: false
+          make_latest: ${{ steps.version.outputs.MAKE_LATEST }}
           generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Release Changelog Builder
-        uses: mikepenz/release-changelog-builder-action@v4.1.1
-        with:
-          configurationJson: |
-            {
-              "ignore_labels": [
-                "Update"
-              ],
-            }
+        uses: mikepenz/release-changelog-builder-action@v4
