@@ -44,7 +44,7 @@ Feature of [Clash.Meta](https://github.com/MetaCubeX/Clash.Meta)
 5. Build
 
    ```bash
-   ./gradlew app:assembleMeta-AlphaRelease
+   ./gradlew app:assembleAlphaRelease
    ```
 
 ### Automation
