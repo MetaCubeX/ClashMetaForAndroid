@@ -32,7 +32,15 @@ Feature of [Clash.Meta](https://github.com/MetaCubeX/Clash.Meta)
    sdk.dir=/path/to/android-sdk
    ```
 
-4. Create `signing.properties` in project root with
+4. (Optional) Custom app package name. Add the following configuration to `local.properties`.
+
+   ```properties
+   # config your ownn applicationId, or it will be 'com.github.metacubex.clash'
+   custom.application.id=com.my.compile.clash
+   # remove application id suffix, or the applicaion id will be 'com.github.metacubex.clash.alpha'
+   remove.suffix=true
+
+5. Create `signing.properties` in project root with
 
    ```properties
    keystore.path=/path/to/keystore/file
@@ -41,7 +49,7 @@ Feature of [Clash.Meta](https://github.com/MetaCubeX/Clash.Meta)
    key.password=<key password>
    ```
 
-5. Build
+6. Build
 
    ```bash
    ./gradlew app:assembleAlphaRelease

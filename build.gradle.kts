@@ -31,11 +31,23 @@ subprojects {
 
     apply(plugin = if (isApp) "com.android.application" else "com.android.library")
 
+    fun queryConfigProperty(key: String): Any? {
+        val localProperties = Properties()
+        val localPropertiesFile = rootProject.file("local.properties")
+        if (localPropertiesFile.exists()) {
+            localProperties.load(localPropertiesFile.inputStream())
+        } else {
+            return null
+        }
+        return localProperties.getProperty(key)
+    }
+
     extensions.configure<BaseExtension> {
         buildFeatures.buildConfig = true
         defaultConfig {
             if (isApp) {
-                applicationId = "com.github.metacubex.clash"
+                val customApplicationId = queryConfigProperty("custom.application.id") as? String?
+                applicationId = customApplicationId.takeIf { it?.isNotBlank() == true } ?: "com.github.metacubex.clash"
             }
 
             project.name.let { name ->
@@ -84,17 +96,22 @@ subprojects {
         productFlavors {
             flavorDimensions("feature")
 
+            val removeSuffix = (queryConfigProperty("remove.suffix") as? String)?.toBoolean() == true
+
             create("alpha") {
                 isDefault = true
                 dimension = flavorDimensionList[0]
-                versionNameSuffix = ".Alpha"
+                if (!removeSuffix) {
+                    versionNameSuffix = ".Alpha"
+                }
+
 
                 buildConfigField("boolean", "PREMIUM", "Boolean.parseBoolean(\"false\")")
 
                 resValue("string", "launch_name", "@string/launch_name_alpha")
                 resValue("string", "application_name", "@string/application_name_alpha")
 
-                if (isApp) {
+                if (isApp && !removeSuffix) {
                     applicationIdSuffix = ".alpha"
                 }
             }
@@ -102,14 +119,16 @@ subprojects {
             create("meta") {
 
                 dimension = flavorDimensionList[0]
-                versionNameSuffix = ".Meta"
+                if (!removeSuffix) {
+                    versionNameSuffix = ".Meta"
+                }
 
                 buildConfigField("boolean", "PREMIUM", "Boolean.parseBoolean(\"false\")")
 
                 resValue("string", "launch_name", "@string/launch_name_meta")
                 resValue("string", "application_name", "@string/application_name_meta")
 
-                if (isApp) {
+                if (isApp && !removeSuffix) {
                     applicationIdSuffix = ".meta"
                 }
             }
