@@ -22,7 +22,8 @@ class AppSettingsDesign(
     onHideIconChange: (hide: Boolean) -> Unit,
 ) : Design<AppSettingsDesign.Request>(context) {
     enum class Request {
-        ReCreateAllActivities
+        ReCreateAllActivities,
+        OpenAutoSwitchSettings,
     }
 
     private val binding = DesignSettingsCommonBinding
@@ -86,6 +87,16 @@ class AppSettingsDesign(
                 summary = R.string.show_traffic_summary
             ) {
                 enabled = !running
+            }
+
+            clickable(
+                title = R.string.auto_switch,
+                icon = R.drawable.ic_baseline_schedule,
+                summary = R.string.auto_switch_summary,
+            ) {
+                clicked {
+                    requests.trySend(Request.OpenAutoSwitchSettings)
+                }
             }
         }
 
