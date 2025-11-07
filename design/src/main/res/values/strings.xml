@@ -235,6 +235,21 @@
 
     <string name="show_traffic">Show Traffic</string>
     <string name="show_traffic_summary">Auto refresh traffic in notification</string>
+    <string name="auto_switch">Auto Switch</string>
+    <string name="auto_switch_summary">Automatically start or stop Clash on a custom schedule</string>
+    <string name="auto_switch_settings">Auto Switch</string>
+    <string name="auto_switch_strategy_category">Strategy</string>
+    <string name="auto_switch_strategy_title">Auto switch strategy</string>
+    <string name="auto_switch_strategy_none">Disabled</string>
+    <string name="auto_switch_strategy_weekly">Weekly schedule</string>
+    <string name="auto_switch_weekly_category">Weekly schedule</string>
+    <string name="auto_switch_day_placeholder">Day</string>
+    <string name="auto_switch_day_summary">Start: %1$s • Stop: %2$s</string>
+    <string name="auto_switch_time_not_set">Not set</string>
+    <string name="auto_switch_set_start_time">Set start time</string>
+    <string name="auto_switch_clear_start_time">Clear start time</string>
+    <string name="auto_switch_set_stop_time">Set stop time</string>
+    <string name="auto_switch_clear_stop_time">Clear stop time</string>
 
     <string name="follow_system_android_10">Follow System (Android 10+)</string>
     <string name="always_dark">Always Dark</string>
