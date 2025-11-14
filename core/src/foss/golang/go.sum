@@ -22,8 +22,6 @@ github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/dlclark/regexp2 v1.11.5 h1:Q/sSnsKerHeCkc/jSTNq1oCm7KiVgUMZRDUoRu0JQZQ=
 github.com/dlclark/regexp2 v1.11.5/go.mod h1:DHkYz0B9wPfa6wondMfaivmHpzrQ3v9q8cnmRbL6yW8=
-github.com/ebitengine/purego v0.9.1 h1:a/k2f2HQU3Pi399RPW1MOaZyhKJL9w/xFpKAg4q1s0A=
-github.com/ebitengine/purego v0.9.1/go.mod h1:iIjxzd6CiRiOG0UyXP+V1+jWqUXVjPKLAI0mRfJZTmQ=
 github.com/enfein/mieru/v3 v3.22.1 h1:/XGYYXpEhEJlxosmtbpEJkhtRLHB8IToG7LB8kU2ZDY=
 github.com/enfein/mieru/v3 v3.22.1/go.mod h1:zJBUCsi5rxyvHM8fjFf+GLaEl4OEjjBXr1s5F6Qd3hM=
 github.com/ericlagergren/aegis v0.0.0-20250325060835-cd0defd64358 h1:kXYqH/sL8dS/FdoFjr12ePjnLPorPo2FsnrHNuXSDyo=
@@ -104,8 +102,8 @@ github.com/metacubex/gopacket v1.1.20-0.20230608035415-7e2f98a3e759 h1:cjd4biTvO
 github.com/metacubex/gopacket v1.1.20-0.20230608035415-7e2f98a3e759/go.mod h1:UHOv2xu+RIgLwpXca7TLrXleEd4oR3sPatW6IF8wU88=
 github.com/metacubex/gvisor v0.0.0-20250919004547-6122b699a301 h1:N5GExQJqYAH3gOCshpp2u/J3CtNYzMctmlb0xK9wtbQ=
 github.com/metacubex/gvisor v0.0.0-20250919004547-6122b699a301/go.mod h1:8LpS0IJW1VmWzUm3ylb0e2SK5QDm5lO/2qwWLZgRpBU=
-github.com/metacubex/kcp-go v0.0.0-20251105084629-8c93f4bf37be h1:Y7SigZIqfv/+RIA/D7R6EbB9p+brPRoGOM6zobSmRIM=
-github.com/metacubex/kcp-go v0.0.0-20251105084629-8c93f4bf37be/go.mod h1:HIJZW4QMhbBqXuqC1ly6Hn0TEYT2SzRw58ns1yGhXTs=
+github.com/metacubex/kcp-go v0.0.0-20251111012849-7455698490e9 h1:7m3tRPrLpKOLOvZ/Lp4XCxz0t7rg9t9K35x6TahjR8o=
+github.com/metacubex/kcp-go v0.0.0-20251111012849-7455698490e9/go.mod h1:HIJZW4QMhbBqXuqC1ly6Hn0TEYT2SzRw58ns1yGhXTs=
 github.com/metacubex/nftables v0.0.0-20250503052935-30a69ab87793 h1:1Qpuy+sU3DmyX9HwI+CrBT/oLNJngvBorR2RbajJcqo=
 github.com/metacubex/nftables v0.0.0-20250503052935-30a69ab87793/go.mod h1:RjRNb4G52yAgfR+Oe/kp9G4PJJ97Fnj89eY1BFO3YyA=
 github.com/metacubex/quic-go v0.55.1-0.20251024060151-bd465f127128 h1:I1uvJl206/HbkzEAZpLgGkZgUveOZb+P+6oTUj7dN+o=
@@ -133,8 +131,8 @@ github.com/metacubex/sing-vmess v0.2.4 h1:Tx6AGgCiEf400E/xyDuYyafsel6sGbR8oF7RkA
 github.com/metacubex/sing-vmess v0.2.4/go.mod h1:21R5R1u90uUvBQF0owoooEu96/SAYYD56nDrwm6nFaM=
 github.com/metacubex/sing-wireguard v0.0.0-20250503063753-2dc62acc626f h1:Sr/DYKYofKHKc4GF3qkRGNuj6XA6c0eqPgEDN+VAsYU=
 github.com/metacubex/sing-wireguard v0.0.0-20250503063753-2dc62acc626f/go.mod h1:jpAkVLPnCpGSfNyVmj6Cq4YbuZsFepm/Dc+9BAOcR80=
-github.com/metacubex/smux v0.0.0-20250922175018-15c9a6a78719 h1:T6qCCfolRDAVJKeaPW/mXwNLjnlo65AYN7WS2jrBNaM=
-github.com/metacubex/smux v0.0.0-20250922175018-15c9a6a78719/go.mod h1:4bPD8HWx9jPJ9aE4uadgyN7D1/Wz3KmPy+vale8sKLE=
+github.com/metacubex/smux v0.0.0-20251111013112-03f8d12dafc1 h1:a6DF0ze9miXes+rdwl8a4Wkvfpe0lXYU82sPJfDzz6s=
+github.com/metacubex/smux v0.0.0-20251111013112-03f8d12dafc1/go.mod h1:4bPD8HWx9jPJ9aE4uadgyN7D1/Wz3KmPy+vale8sKLE=
 github.com/metacubex/tfo-go v0.0.0-20251024101424-368b42b59148 h1:Zd0QqciLIhv9MKbGKTPEgN8WUFsgQGA1WJBy6spEnVU=
 github.com/metacubex/tfo-go v0.0.0-20251024101424-368b42b59148/go.mod h1:l9oLnLoEXyGZ5RVLsh7QCC5XsouTUyKk4F2nLm2DHLw=
 github.com/metacubex/utls v1.8.3 h1:0m/yCxm3SK6kWve2lKiFb1pue1wHitJ8sQQD4Ikqde4=
