@@ -5,6 +5,7 @@ go 1.20
 require cfa v0.0.0
 
 require (
+	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/RyuaNerin/go-krypto v1.3.0 // indirect
 	github.com/Yawning/aez v0.0.0-20211027044916-e49e68abd344 // indirect
 	github.com/ajg/form v1.5.1 // indirect
@@ -13,8 +14,7 @@ require (
 	github.com/buger/jsonparser v1.1.1 // indirect
 	github.com/coreos/go-iptables v0.8.0 // indirect
 	github.com/dlclark/regexp2 v1.11.5 // indirect
-	github.com/ebitengine/purego v0.9.1 // indirect
-	github.com/enfein/mieru/v3 v3.22.1 // indirect
+	github.com/enfein/mieru/v3 v3.26.0 // indirect
 	github.com/ericlagergren/aegis v0.0.0-20250325060835-cd0defd64358 // indirect
 	github.com/ericlagergren/polyval v0.0.0-20220411101811-e25bc10ba391 // indirect
 	github.com/ericlagergren/siv v0.0.0-20220507050439-0b757b3aa5f1 // indirect
@@ -50,7 +50,7 @@ require (
 	github.com/metacubex/fswatch v0.1.1 // indirect
 	github.com/metacubex/gopacket v1.1.20-0.20230608035415-7e2f98a3e759 // indirect
 	github.com/metacubex/gvisor v0.0.0-20250919004547-6122b699a301 // indirect
-	github.com/metacubex/kcp-go v0.0.0-20251105084629-8c93f4bf37be // indirect
+	github.com/metacubex/kcp-go v0.0.0-20251111012849-7455698490e9 // indirect
 	github.com/metacubex/mihomo v1.7.0 // indirect
 	github.com/metacubex/nftables v0.0.0-20250503052935-30a69ab87793 // indirect
 	github.com/metacubex/quic-go v0.55.1-0.20251024060151-bd465f127128 // indirect
@@ -62,11 +62,11 @@ require (
 	github.com/metacubex/sing-shadowsocks v0.2.12 // indirect
 	github.com/metacubex/sing-shadowsocks2 v0.2.7 // indirect
 	github.com/metacubex/sing-shadowtls v0.0.0-20250503063515-5d9f966d17a2 // indirect
-	github.com/metacubex/sing-tun v0.4.9 // indirect
+	github.com/metacubex/sing-tun v0.4.10 // indirect
 	github.com/metacubex/sing-vmess v0.2.4 // indirect
 	github.com/metacubex/sing-wireguard v0.0.0-20250503063753-2dc62acc626f // indirect
-	github.com/metacubex/smux v0.0.0-20250922175018-15c9a6a78719 // indirect
-	github.com/metacubex/tfo-go v0.0.0-20251024101424-368b42b59148 // indirect
+	github.com/metacubex/smux v0.0.0-20251111013112-03f8d12dafc1 // indirect
+	github.com/metacubex/tfo-go v0.0.0-20251130171125-413e892ac443 // indirect
 	github.com/metacubex/utls v1.8.3 // indirect
 	github.com/metacubex/wireguard-go v0.0.0-20250820062549-a6cecdd7f57f // indirect
 	github.com/metacubex/yamux v0.0.0-20250918083631-dd5f17c0be49 // indirect
@@ -78,6 +78,7 @@ require (
 	github.com/oschwald/maxminddb-golang v1.12.0 // indirect
 	github.com/pierrec/lz4/v4 v4.1.14 // indirect
 	github.com/quic-go/qpack v0.4.0 // indirect
+	github.com/saba-futai/sudoku v0.0.1-g // indirect
 	github.com/sagernet/cors v1.2.1 // indirect
 	github.com/sagernet/netlink v0.0.0-20240612041022-b9a21c07ac6a // indirect
 	github.com/samber/lo v1.52.0 // indirect
