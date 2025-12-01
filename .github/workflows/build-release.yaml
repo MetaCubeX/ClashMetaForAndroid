@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       release-tag:
-        description: 'Release Tag (v2.x.x)'
+        description: "Release Tag (v2.x.x)"
         required: true
 
 jobs:
@@ -15,7 +15,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      
+
       - name: Checkout submodules
         run: git submodule update --init --recursive --force
 
@@ -41,7 +41,7 @@ jobs:
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-
-      
+
       - name: Convert and set version env
         id: process-version
         run: |
@@ -49,10 +49,10 @@ jobs:
           VERSION_TAG=${VERSION_TAG#v}                              # remove the 'v' prefix
           IFS='.' read -ra VERSION_PARTS <<< "$VERSION_TAG"         # split into array
           VERSION_CODE=$(printf "%1d%02d%03d" "${VERSION_PARTS[0]}" "${VERSION_PARTS[1]}" "${VERSION_PARTS[2]}")
-          
+
           echo "versonName=$VERSION_TAG" >> $GITHUB_OUTPUT          # "1.2.3"
           echo "versonCode=$VERSION_CODE" >> $GITHUB_OUTPUT         # "102003"
-      
+
       # Re-write version in build.gradle.kts
       - name: Re-write version
         uses: Devofure/advance-android-version-actions@v1.5
@@ -60,7 +60,7 @@ jobs:
           gradlePath: build.gradle.kts
           versionCode: ${{ steps.process-version.outputs.versonCode }}
           versionName: ${{ steps.process-version.outputs.versonName }}
-      
+
       # If any change found, commit it and push
       - name: Commit and push if changes
         run: |
@@ -82,6 +82,18 @@ jobs:
           sudo apt-get update && sudo apt-get install ca-certificates
           sudo update-ca-certificates
           cp -f /etc/ssl/certs/ca-certificates.crt core/src/foss/golang/clash/component/ca/ca-certificates.crt
+
+      - name: Local Properties
+        env:
+          CUSTOM_APPLICATION_ID: ${{ secrets.CUSTOM_APPLICATION_ID }}
+          REMOVE_SUFFIX: ${{ secrets.REMOVE_SUFFIX }}
+        run: |
+          touch local.properties
+          echo custom.application.id="$CUSTOM_APPLICATION_ID" >> local.properties
+          echo remove.suffix="$REMOVE_SUFFIX" >> local.properties
+
+          echo "cat local.properties"
+          cat local.properties
 
       - name: Signing properties
         env:
