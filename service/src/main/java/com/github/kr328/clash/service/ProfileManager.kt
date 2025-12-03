@@ -1,6 +1,7 @@
 package com.github.kr328.clash.service
 
 import android.content.Context
+import com.github.kr328.clash.common.log.Log
 import com.github.kr328.clash.service.data.Database
 import com.github.kr328.clash.service.data.Imported
 import com.github.kr328.clash.service.data.ImportedDao
@@ -24,6 +25,7 @@ import okhttp3.Request
 import java.io.FileNotFoundException
 import java.math.BigDecimal
 import java.util.*
+import java.util.concurrent.TimeUnit
 
 class ProfileManager(private val context: Context) : IProfileManager,
     CoroutineScope by CoroutineScope(Dispatchers.IO) {
@@ -152,10 +154,21 @@ class ProfileManager(private val context: Context) : IProfileManager,
                 var download: Long = 0
                 var total: Long = 0
                 var expire: Long = 0
+                var interval: Long = old.interval
 
                 val userinfo = response.headers["subscription-userinfo"]
-                if (response.isSuccessful && userinfo != null) {
+                val updateInterval = response.headers["profile-update-interval"]
 
+                if (updateInterval != null) {
+                    try {
+                        val minutes = updateInterval.toInt() * 60 // Convert hours to minutes
+                        interval = TimeUnit.MINUTES.toMillis(minutes.toLong())
+                    } catch (e: NumberFormatException) {
+                        Log.w("Invalid profile update interval value: $updateInterval", e)
+                    }
+                }
+
+                if (response.isSuccessful && userinfo != null) {
                     val flags = userinfo.split(";")
                     for (flag in flags) {
                         val info = flag.split("=")
@@ -183,7 +196,7 @@ class ProfileManager(private val context: Context) : IProfileManager,
                     old.name,
                     old.type,
                     old.source,
-                    old.interval,
+                    interval,
                     upload,
                     download,
                     total,
