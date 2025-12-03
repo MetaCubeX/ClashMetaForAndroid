@@ -153,6 +153,11 @@
             android:exported="false"
             android:label="@string/app" />
         <activity
+            android:name=".AutoSwitchSettingsActivity"
+            android:configChanges="uiMode"
+            android:exported="false"
+            android:label="@string/auto_switch_settings" />
+        <activity
             android:name=".OverrideSettingsActivity"
             android:configChanges="uiMode"
             android:exported="false"
