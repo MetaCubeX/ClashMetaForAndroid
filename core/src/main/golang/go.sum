@@ -109,8 +109,8 @@ github.com/metacubex/kcp-go v0.0.0-20251111012849-7455698490e9 h1:7m3tRPrLpKOLOv
 github.com/metacubex/kcp-go v0.0.0-20251111012849-7455698490e9/go.mod h1:HIJZW4QMhbBqXuqC1ly6Hn0TEYT2SzRw58ns1yGhXTs=
 github.com/metacubex/nftables v0.0.0-20250503052935-30a69ab87793 h1:1Qpuy+sU3DmyX9HwI+CrBT/oLNJngvBorR2RbajJcqo=
 github.com/metacubex/nftables v0.0.0-20250503052935-30a69ab87793/go.mod h1:RjRNb4G52yAgfR+Oe/kp9G4PJJ97Fnj89eY1BFO3YyA=
-github.com/metacubex/quic-go v0.55.1-0.20251024060151-bd465f127128 h1:I1uvJl206/HbkzEAZpLgGkZgUveOZb+P+6oTUj7dN+o=
-github.com/metacubex/quic-go v0.55.1-0.20251024060151-bd465f127128/go.mod h1:1lktQFtCD17FZliVypbrDHwbsFSsmz2xz2TRXydvB5c=
+github.com/metacubex/quic-go v0.55.1-0.20251203073212-6940cac967c2 h1:21KrRBqF5en0yXwwb5Vpptbeiiu3p7gD0G+RqNYvsvw=
+github.com/metacubex/quic-go v0.55.1-0.20251203073212-6940cac967c2/go.mod h1:1lktQFtCD17FZliVypbrDHwbsFSsmz2xz2TRXydvB5c=
 github.com/metacubex/randv2 v0.2.0 h1:uP38uBvV2SxYfLj53kuvAjbND4RUDfFJjwr4UigMiLs=
 github.com/metacubex/randv2 v0.2.0/go.mod h1:kFi2SzrQ5WuneuoLLCMkABtiBu6VRrMrWFqSPyj2cxY=
 github.com/metacubex/restls-client-go v0.1.7 h1:eCwiXCTQb5WJu9IlgYvDBA1OgrINv58dEe7hcN5H15k=
@@ -167,8 +167,8 @@ github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZb
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/quic-go/qpack v0.4.0 h1:Cr9BXA1sQS2SmDUWjSofMPNKmvF6IiIfDRmgU0w1ZCo=
 github.com/quic-go/qpack v0.4.0/go.mod h1:UZVnYIfi5GRk+zI9UMaCPsmZ2xKJP7XBUvVyT1Knj9A=
-github.com/saba-futai/sudoku v0.0.1-g h1:4q6OuAA6COaRW+CgoQtdim5AUPzzm0uOkvbYpJnOaBE=
-github.com/saba-futai/sudoku v0.0.1-g/go.mod h1:2ZRzRwz93cS2K/o2yOG4CPJEltcvk5y6vbvUmjftGU0=
+github.com/saba-futai/sudoku v0.0.2-b h1:IbBjgZe1IzzD4xjaCSAdAy8ZNrwOusT14AwCYm77NwI=
+github.com/saba-futai/sudoku v0.0.2-b/go.mod h1:Rvggsoprp7HQM7bMIZUd1M27bPj8THRsZdY1dGbIAvo=
 github.com/sagernet/cors v1.2.1 h1:Cv5Z8y9YSD6Gm+qSpNrL3LO4lD3eQVvbFYJSG7JCMHQ=
 github.com/sagernet/cors v1.2.1/go.mod h1:O64VyOjjhrkLmQIjF4KGRrJO/5dVXFdpEmCW/eISRAI=
 github.com/sagernet/netlink v0.0.0-20240612041022-b9a21c07ac6a h1:ObwtHN2VpqE0ZNjr6sGeT00J8uU7JF4cNUdb44/Duis=

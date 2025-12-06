@@ -59,7 +59,7 @@ require (
 	github.com/metacubex/gvisor v0.0.0-20250919004547-6122b699a301 // indirect
 	github.com/metacubex/kcp-go v0.0.0-20251111012849-7455698490e9 // indirect
 	github.com/metacubex/nftables v0.0.0-20250503052935-30a69ab87793 // indirect
-	github.com/metacubex/quic-go v0.55.1-0.20251024060151-bd465f127128 // indirect
+	github.com/metacubex/quic-go v0.55.1-0.20251203073212-6940cac967c2 // indirect
 	github.com/metacubex/randv2 v0.2.0 // indirect
 	github.com/metacubex/restls-client-go v0.1.7 // indirect
 	github.com/metacubex/sing v0.5.6 // indirect
@@ -84,7 +84,7 @@ require (
 	github.com/oschwald/maxminddb-golang v1.12.0 // indirect
 	github.com/pierrec/lz4/v4 v4.1.14 // indirect
 	github.com/quic-go/qpack v0.4.0 // indirect
-	github.com/saba-futai/sudoku v0.0.1-g // indirect
+	github.com/saba-futai/sudoku v0.0.2-b // indirect
 	github.com/sagernet/cors v1.2.1 // indirect
 	github.com/sagernet/netlink v0.0.0-20240612041022-b9a21c07ac6a // indirect
 	github.com/samber/lo v1.52.0 // indirect
