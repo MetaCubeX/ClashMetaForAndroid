@@ -215,5 +215,17 @@
                 <data android:scheme="android_secret_code" android:host="252746382" />
             </intent-filter>
         </receiver>
+
+        <!-- ExternalControlReceiver: 用于 Tasker 等自动化工具的后台控制 -->
+        <!-- 相比 ExternalControlActivity，BroadcastReceiver 完全后台运行，不会触发界面 -->
+        <receiver
+            android:name=".ExternalControlReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.github.metacubex.clash.meta.action.START_CLASH" />
+                <action android:name="com.github.metacubex.clash.meta.action.STOP_CLASH" />
+                <action android:name="com.github.metacubex.clash.meta.action.TOGGLE_CLASH" />
+            </intent-filter>
+        </receiver>
     </application>
 </manifest>
