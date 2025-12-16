@@ -12,6 +12,28 @@
 2. 已安装 Tasker
 3. 已授予 Tasker 必要的权限
 4. **首次使用前，必须在 CMFA 中手动启动一次 VPN 并授予权限**
+5. **确认你的应用包名**（见下方说明）
+
+### 📦 如何确认应用包名
+
+**非常重要**：不同的编译版本和配置会有不同的包名。请使用以下方法确认你的应用包名：
+
+**方法 1：通过 ADB（推荐）**
+```bash
+adb shell pm list packages | grep clash
+```
+
+**方法 2：通过应用信息**
+1. 长按 CMFA 应用图标
+2. 点击"应用信息"
+3. 查看应用详情中的"包名"字段
+
+常见的包名：
+- 自定义构建版本：`com.github.kr328.clash.tasker`（或其他自定义名称）
+- Alpha 官方版本：`com.github.kr328.clash.alpha`
+- Meta 官方版本：`com.github.metacubex.clash.meta`
+
+**在下面的配置中，请将 `YOUR_PACKAGE_NAME` 替换为你实际的包名！**
 
 ⚠️ **重要：首次 VPN 权限授予**
 
@@ -47,11 +69,13 @@
    | **Mime Type** | 留空 |
    | **Data** | 留空 |
    | **Extra** | 留空 |
-   | **Package** | `com.github.metacubex.clash.meta` |
+   | **Package** | `YOUR_PACKAGE_NAME` ⚠️（替换为你的实际包名，例如 `com.github.kr328.clash.tasker`） |
    | **Class** | 留空（重要！） |
    | **Target** | **Broadcast Receiver**（非常重要！） |
 
 7. 点击 **返回** 保存
+
+**示例**：如果你的包名是 `com.github.kr328.clash.tasker`，则 Package 字段应填写：`com.github.kr328.clash.tasker`
 
 ### 步骤 2：创建停止 Clash 的 Task
 

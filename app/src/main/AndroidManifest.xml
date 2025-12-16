@@ -186,6 +186,16 @@
             <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
             android:value="explanation_for_special_use"/>
         </service>
+
+        <!-- KeepAliveService: 保持应用活跃，确保自动化广播能可靠接收 -->
+        <service
+            android:name=".KeepAliveService"
+            android:exported="false"
+            android:label="@string/keepalive_service"
+            android:foregroundServiceType="specialUse">
+            <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+            android:value="Keep app alive for automation broadcast reception"/>
+        </service>
         <service
             android:name=".TileService"
             android:exported="true"
@@ -217,7 +227,7 @@
         </receiver>
 
         <!-- ExternalControlReceiver: 用于 Tasker 等自动化工具的后台控制 -->
-        <!-- 相比 ExternalControlActivity，BroadcastReceiver 完全后台运行，不会触发界面 -->
+        <!-- 配合 KeepAliveService 使用，确保应用保持活跃以可靠接收广播 -->
         <receiver
             android:name=".ExternalControlReceiver"
             android:exported="true">
