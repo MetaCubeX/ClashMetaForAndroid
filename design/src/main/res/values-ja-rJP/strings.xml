@@ -30,6 +30,7 @@
     <string name="import_from_file">ファイルからインポート</string>
     <string name="url">URL</string>
     <string name="import_from_url">URLからインポート</string>
+    <string name="import_from_qr">QRコードからインポート</string>
     <string name="external">外部入力</string>
     <string name="format_type_unsaved">%s (未保存)</string>
     <string name="application_broken">アプリが破損しています</string>
@@ -250,4 +251,6 @@
     <string name="force_dns_mapping">Force DNS Mapping</string>
     <string name="parse_pure_ip">Parse Pure IP</string>
     <string name="override_destination">Override Destination</string>
+    <string name="import_from_qr_no_permission">カメラのアクセスが制限されています。設定から有効にしてください。</string>
+    <string name="import_from_qr_exception">システムで予期しない例外が発生しました。</string>
 </resources>

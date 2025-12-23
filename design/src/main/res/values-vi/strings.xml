@@ -236,4 +236,7 @@
     <string name="version_updated_tips">Các cài đặt đã được đặt lại và các cấu hình cũ cần được lưu lại.</string>
     <string name="vpn_service_options">Tuỳ chọn VpnService</string>
     <string name="warning">Cảnh báo</string>
+    <string name="import_from_qr">Nhập từ Mã QR</string>
+    <string name="import_from_qr_no_permission">Quyền truy cập camera bị hạn chế. Vui lòng bật trong Cài đặt.</string>
+    <string name="import_from_qr_exception">Đã xảy ra ngoại lệ hệ thống không xử lý được.</string>
 </resources>

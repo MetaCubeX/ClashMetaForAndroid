@@ -38,6 +38,7 @@
     <string name="url">URL</string>
     <string name="import_from_url">Импорт из URL</string>
     <string name="external">Внешний</string>
+    <string name="import_from_qr">Импорт из QR-кода</string>
     <string name="format_type_unsaved">%s (не сохранён)</string>
 
     <string name="application_broken">Приложение сломано</string>
@@ -314,4 +315,6 @@
     <string name="force_dns_mapping">Force DNS Mapping</string>
     <string name="parse_pure_ip">Parse Pure IP</string>
     <string name="override_destination">Override Destination</string>
+    <string name="import_from_qr_no_permission">Доступ к камере ограничен. Разрешите его в настройках.</string>
+    <string name="import_from_qr_exception">Произошла не обрабатываемая системная ошибка.</string>
 </resources>

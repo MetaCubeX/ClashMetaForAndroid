@@ -42,6 +42,7 @@
     <string name="history">历史</string>
     <string name="import_from_file">从文件导入</string>
     <string name="import_from_url">从 URL 导入</string>
+    <string name="import_from_qr">从二维码导入</string>
     <string name="interface_">界面</string>
     <string name="invalid_url">无效的 URL</string>
     <string name="logcat">Logcat</string>
@@ -257,4 +258,6 @@
     <string name="external_control_activity">外部控制</string>
     <string name="external_control_started">Clash.Meta 服务已启动</string>
     <string name="external_control_stopped">Clash.Meta 服务已停止</string>
+    <string name="import_from_qr_no_permission">相机权限受限，请前往设置开启。</string>
+    <string name="import_from_qr_exception">发生系统未知异常，操作失败。</string>
 </resources>

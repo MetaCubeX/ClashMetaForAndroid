@@ -24,6 +24,8 @@ dependencies {
     implementation(libs.androidx.coordinator)
     implementation(libs.androidx.recyclerview)
     implementation(libs.google.material)
+    implementation(libs.quickie.bundled)
+    implementation(libs.androidx.activity.ktx)
 }
 
 tasks.getByName("clean", type = Delete::class) {

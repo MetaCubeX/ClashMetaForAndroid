@@ -6,23 +6,34 @@ import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.lifecycle.lifecycleScope
 import com.github.kr328.clash.common.constants.Intents
 import com.github.kr328.clash.common.util.intent
 import com.github.kr328.clash.common.util.setUUID
 import com.github.kr328.clash.design.NewProfileDesign
+import com.github.kr328.clash.design.R
 import com.github.kr328.clash.design.model.ProfileProvider
+import com.github.kr328.clash.design.util.showExceptionToast
 import com.github.kr328.clash.service.model.Profile
 import com.github.kr328.clash.util.withProfile
+import io.github.g00fy2.quickie.QRResult
+import io.github.g00fy2.quickie.QRResult.QRError
+import io.github.g00fy2.quickie.QRResult.QRMissingPermission
+import io.github.g00fy2.quickie.QRResult.QRSuccess
+import io.github.g00fy2.quickie.QRResult.QRUserCanceled
+import io.github.g00fy2.quickie.ScanQRCode
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.select
 import kotlinx.coroutines.withContext
 import java.util.*
-import com.github.kr328.clash.design.R
 
 class NewProfileActivity : BaseActivity<NewProfileDesign>() {
     private val self: NewProfileActivity
         get() = this
+
+    private val scanLauncher = registerForActivityResult(ScanQRCode(), ::scanResultHandler)
 
     override suspend fun main() {
         val design = NewProfileDesign(this)
@@ -45,8 +56,14 @@ class NewProfileActivity : BaseActivity<NewProfileDesign>() {
                                 val uuid: UUID? = when (val p = it.provider) {
                                     is ProfileProvider.File ->
                                         create(Profile.Type.File, name)
+
                                     is ProfileProvider.Url ->
                                         create(Profile.Type.Url, name)
+
+                                    is ProfileProvider.QR -> {
+                                        null
+                                    }
+
                                     is ProfileProvider.External -> {
                                         val data = p.get()
 
@@ -68,8 +85,13 @@ class NewProfileActivity : BaseActivity<NewProfileDesign>() {
                                     launchProperties(uuid)
                             }
                         }
+
                         is NewProfileDesign.Request.OpenDetail -> {
                             launchAppDetailed(it.provider)
+                        }
+
+                        is NewProfileDesign.Request.LaunchScanner -> {
+                            scanLauncher.launch(null)
                         }
                     }
                 }
@@ -138,7 +160,41 @@ class NewProfileActivity : BaseActivity<NewProfileDesign>() {
                 ProfileProvider.External(name.toString(), summary.toString(), icon, intent)
             }
 
-            listOf(ProfileProvider.File(self), ProfileProvider.Url(self)) + providers
+            listOf(
+                ProfileProvider.File(self),
+                ProfileProvider.Url(self),
+                ProfileProvider.QR(self)
+            ) + providers
         }
     }
+
+    private fun scanResultHandler(result: QRResult) {
+        lifecycleScope.launch {
+            when (result) {
+                is QRSuccess -> {
+                    val url = result.content.rawValue
+                        ?: result.content.rawBytes?.let { String(it) }.orEmpty()
+
+                    createProfileByQrCode(url)
+                }
+
+                QRUserCanceled -> {}
+                QRMissingPermission -> design?.showExceptionToast(getString(R.string.import_from_qr_no_permission))
+                is QRError -> design?.showExceptionToast(getString(R.string.import_from_qr_exception))
+            }
+        }
+    }
+
+    private suspend fun createProfileByQrCode(url: String) {
+        withProfile {
+            launchProperties(
+                create(
+                    type = Profile.Type.Url,
+                    name = getString(R.string.new_profile),
+                    url,
+                )
+            )
+        }
+    }
+
 }

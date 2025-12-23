@@ -67,15 +67,12 @@ func patchProfile(cfg *config.RawConfig, _ string) error {
 
 func patchDns(cfg *config.RawConfig, _ string) error {
 	if !cfg.DNS.Enable {
-		cfg.DNS = config.RawDNS{
-			Enable:            true,
-			UseHosts:          true,
-			DefaultNameserver: defaultNameServers,
-			NameServer:        defaultNameServers,
-			EnhancedMode:      C.DNSFakeIP,
-			FakeIPRange:       defaultFakeIPRange,
-			FakeIPFilter:      defaultFakeIPFilter,
-		}
+		cfg.DNS = config.DefaultRawConfig().DNS
+		cfg.DNS.Enable = true
+		cfg.DNS.NameServer = defaultNameServers
+		cfg.DNS.EnhancedMode = C.DNSFakeIP
+		cfg.DNS.FakeIPRange = defaultFakeIPRange
+		cfg.DNS.FakeIPFilter = defaultFakeIPFilter
 
 		cfg.ClashForAndroid.AppendSystemDNS = true
 	}

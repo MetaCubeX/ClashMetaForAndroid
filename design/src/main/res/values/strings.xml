@@ -41,7 +41,9 @@
     <string name="file">File</string>
     <string name="import_from_file">Import from File</string>
     <string name="url">URL</string>
+    <string name="qr" translatable="false">QR Code</string>
     <string name="import_from_url">Import from URL</string>
+    <string name="import_from_qr">Import from QR Code</string>
     <string name="external">External</string>
     <string name="format_type_unsaved">%s (Unsaved)</string>
 
@@ -344,4 +346,6 @@
 
     <string name="hide_app_icon_title">Hide App Icon</string>
     <string name="hide_app_icon_desc">You can dial *#*#252746382#*#* to open this App</string>
+    <string name="import_from_qr_no_permission">Camera access is restricted. Please enable it in Settings.</string>
+    <string name="import_from_qr_exception">An unhandled system exception occurred.</string>
 </resources>

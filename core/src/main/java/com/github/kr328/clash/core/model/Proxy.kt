@@ -37,6 +37,7 @@ data class Proxy(
         Ssh(false),
         Mieru(false),
         AnyTLS(false),
+        Sudoku(false),
 
 
         Relay(true),
