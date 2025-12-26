@@ -2,6 +2,7 @@ package com.github.kr328.clash.design
 
 import android.content.Context
 import android.view.View
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import com.github.kr328.clash.core.model.TunnelState
 import com.github.kr328.clash.core.util.trafficTotal
@@ -16,6 +17,9 @@ import kotlinx.coroutines.withContext
 class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
     enum class Request {
         ToggleStatus,
+        ToggleDirectMode,
+        ToggleGlobalMode,
+        ToggleRuleMode,
         OpenProxy,
         OpenProfiles,
         OpenProviders,
@@ -75,6 +79,12 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
             AlertDialog.Builder(context)
                 .setView(binding.root)
                 .show()
+        }
+    }
+
+    suspend fun showModeSwitchTips() {
+        withContext(Dispatchers.Main) {
+            Toast.makeText(context, R.string.mode_switch_tips, Toast.LENGTH_LONG).show()
         }
     }
 
