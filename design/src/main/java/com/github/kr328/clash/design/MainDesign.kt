@@ -61,6 +61,16 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
                 TunnelState.Mode.Rule -> context.getString(R.string.rule_mode)
                 else -> context.getString(R.string.rule_mode)
             }
+            val viewId = when (mode) {
+                TunnelState.Mode.Direct -> R.id.btnDirect
+                TunnelState.Mode.Global -> R.id.btnGlobal
+                TunnelState.Mode.Rule -> R.id.btnRule
+                else -> View.NO_ID
+            }
+            // 避免重复设置导致死循环
+            if (binding.toggleGroup.checkedButtonId != viewId) {
+                binding.toggleGroup.check(viewId)
+            }
         }
     }
 
@@ -93,6 +103,16 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
 
         binding.colorClashStarted = context.resolveThemedColor(com.google.android.material.R.attr.colorPrimary)
         binding.colorClashStopped = context.resolveThemedColor(R.attr.colorClashStopped)
+        binding.toggleGroup.addOnButtonCheckedListener { _, checkedId, isChecked ->
+            if (isChecked) {
+                when (checkedId) {
+                    R.id.btnDirect -> requests.trySend(Request.ToggleDirectMode)
+                    R.id.btnGlobal -> requests.trySend(Request.ToggleGlobalMode)
+                    R.id.btnRule   -> requests.trySend(Request.ToggleRuleMode)
+                }
+            }
+        }
+
     }
 
     fun request(request: Request) {

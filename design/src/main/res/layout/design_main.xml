@@ -88,105 +88,6 @@
                     app:subtext="@{clashRunning ? @string/format_traffic_forwarded(forwarded) : @string/tap_to_start}"
                     app:text="@{clashRunning ? @string/running : @string/stopped}" />
 
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center"
-                    android:visibility="@{clashRunning ? View.VISIBLE : View.GONE}">
-
-                    <!-- Direct -->
-                    <com.google.android.material.card.MaterialCardView
-                        android:id="@+id/cardDirect"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:layout_marginEnd="@dimen/main_card_margin_vertical"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:theme="@style/AppThemeDark"
-                        app:cardBackgroundColor="@{mode == @string/direct_mode ? colorClashStarted : colorClashStopped}"
-                        android:onClick="@{() -> self.request(Request.ToggleDirectMode)}">
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:gravity="center"
-                            android:orientation="vertical"
-                            android:padding="16dp">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="@string/direct_mode"
-                                android:textSize="16sp"
-                                android:textStyle="bold"
-                                android:textAlignment="center"/>
-                        </LinearLayout>
-                    </com.google.android.material.card.MaterialCardView>
-
-                    <!-- Global -->
-                    <com.google.android.material.card.MaterialCardView
-                        android:id="@+id/cardGlobal"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:layout_marginHorizontal="@dimen/main_card_margin_vertical"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:theme="@style/AppThemeDark"
-                        app:cardBackgroundColor="@{mode == @string/global_mode ? colorClashStarted : colorClashStopped}"
-                        android:onClick="@{() -> self.request(Request.ToggleGlobalMode)}">
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:gravity="center"
-                            android:orientation="vertical"
-                            android:padding="16dp">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="@string/global_mode"
-                                android:textSize="16sp"
-                                android:textStyle="bold"
-                                android:textAlignment="center"/>
-                        </LinearLayout>
-                    </com.google.android.material.card.MaterialCardView>
-
-                    <!-- Rule -->
-                    <com.google.android.material.card.MaterialCardView
-                        android:id="@+id/cardRule"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:layout_marginStart="@dimen/main_card_margin_vertical"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:theme="@style/AppThemeDark"
-                        app:cardBackgroundColor="@{mode == @string/rule_mode ? colorClashStarted : colorClashStopped}"
-                        android:onClick="@{() -> self.request(Request.ToggleRuleMode)}">
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:gravity="center"
-                            android:orientation="vertical"
-                            android:padding="16dp">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="@string/rule_mode"
-                                android:textSize="16sp"
-                                android:textStyle="bold"
-                                android:textAlignment="center"/>
-                        </LinearLayout>
-                    </com.google.android.material.card.MaterialCardView>
-
-                </LinearLayout>
-
                 <com.github.kr328.clash.design.view.LargeActionCard
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -196,6 +97,42 @@
                     app:icon="@drawable/ic_baseline_apps"
                     app:subtext="@{mode}"
                     app:text="@string/proxy" />
+
+                <com.google.android.material.button.MaterialButtonToggleGroup
+                    android:id="@+id/toggleGroup"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:visibility="@{clashRunning ? View.VISIBLE : View.GONE}"
+                    app:checkedButton="@+id/btnRule"
+                    app:selectionRequired="true"
+                    app:singleSelection="true"> <!-- 默认选中项 -->
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnRule"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/rule_mode" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnGlobal"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/global_mode" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnDirect"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/direct_mode" />
+
+                </com.google.android.material.button.MaterialButtonToggleGroup>
 
                 <com.github.kr328.clash.design.view.LargeActionCard
                     android:layout_width="match_parent"
