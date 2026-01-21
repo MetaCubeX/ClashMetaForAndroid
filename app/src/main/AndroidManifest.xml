@@ -186,6 +186,16 @@
             <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
             android:value="explanation_for_special_use"/>
         </service>
+
+        <!-- KeepAliveService: 保持应用活跃，确保自动化广播能可靠接收 -->
+        <service
+            android:name=".KeepAliveService"
+            android:exported="false"
+            android:label="@string/keepalive_service"
+            android:foregroundServiceType="specialUse">
+            <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+            android:value="Keep app alive for automation broadcast reception"/>
+        </service>
         <service
             android:name=".TileService"
             android:exported="true"
@@ -213,6 +223,18 @@
                 <action android:name="android.provider.Telephony.SECRET_CODE" />
                 <!-- 252746382 is the name of Clash Meta in T9 -->
                 <data android:scheme="android_secret_code" android:host="252746382" />
+            </intent-filter>
+        </receiver>
+
+        <!-- ExternalControlReceiver: 用于 Tasker 等自动化工具的后台控制 -->
+        <!-- 配合 KeepAliveService 使用，确保应用保持活跃以可靠接收广播 -->
+        <receiver
+            android:name=".ExternalControlReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.github.metacubex.clash.meta.action.START_CLASH" />
+                <action android:name="com.github.metacubex.clash.meta.action.STOP_CLASH" />
+                <action android:name="com.github.metacubex.clash.meta.action.TOGGLE_CLASH" />
             </intent-filter>
         </receiver>
     </application>

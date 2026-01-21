@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="keepalive_service">后台自动化保活服务</string>
+</resources>

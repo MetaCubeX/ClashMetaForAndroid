@@ -2,6 +2,8 @@ package com.github.kr328.clash
 
 import android.app.Application
 import android.content.Context
+import android.content.Intent
+import android.os.Build
 import com.github.kr328.clash.common.Global
 import com.github.kr328.clash.common.compat.currentProcessName
 import com.github.kr328.clash.common.log.Log
@@ -30,6 +32,8 @@ class MainApplication : Application() {
 
         if (processName == packageName) {
             Remote.launch()
+            // 启动 KeepAlive Service 以确保自动化广播能可靠接收
+            startKeepAliveService()
         } else {
             sendServiceRecreated()
         }
@@ -67,6 +71,24 @@ class MainApplication : Application() {
             FileOutputStream(asnFile).use {
                 assets.open("ASN.mmdb").copyTo(it)
             }
+        }
+    }
+
+    /**
+     * 启动 KeepAlive Service 以保持应用活跃
+     * 确保 ExternalControlReceiver 能可靠接收来自 Tasker 等自动化工具的广播
+     */
+    private fun startKeepAliveService() {
+        try {
+            val intent = Intent(this, KeepAliveService::class.java)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                startForegroundService(intent)
+            } else {
+                startService(intent)
+            }
+            Log.d("KeepAlive Service started successfully")
+        } catch (e: Exception) {
+            Log.e("Failed to start KeepAlive Service", e)
         }
     }
 
