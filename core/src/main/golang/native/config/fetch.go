@@ -15,6 +15,7 @@ import (
 	"cfa/native/app"
 
 	clashHttp "github.com/metacubex/mihomo/component/http"
+	"github.com/metacubex/mihomo/component/resolver"
 )
 
 type Status struct {
@@ -25,7 +26,14 @@ type Status struct {
 }
 
 func openUrl(ctx context.Context, url string) (io.ReadCloser, error) {
-	response, err := clashHttp.HttpRequest(ctx, url, http.MethodGet, http.Header{"User-Agent": {"ClashMetaForAndroid/" + app.VersionName()}}, nil)
+	rs := resolver.DefaultResolver
+	if rs == nil {
+		rs = resolver.ProxyServerHostResolver
+	}
+	if rs == nil {
+		rs = resolver.SystemResolver
+	}
+	response, err := clashHttp.HttpRequest(ctx, url, http.MethodGet, http.Header{"User-Agent": {"ClashMetaForAndroid/" + app.VersionName()}}, nil, clashHttp.WithEch(rs))
 
 	if err != nil {
 		return nil, err
