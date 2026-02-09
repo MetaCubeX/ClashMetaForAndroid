@@ -1,11 +1,13 @@
 package com.github.kr328.clash
 
+import android.app.ActivityManager
 import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
 import android.view.View
 import androidx.activity.result.contract.ActivityResultContract
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.getSystemService
 import com.github.kr328.clash.common.compat.isAllowForceDarkCompat
 import com.github.kr328.clash.common.compat.isLightNavigationBarCompat
 import com.github.kr328.clash.common.compat.isLightStatusBarsCompat
@@ -87,6 +89,11 @@ abstract class BaseActivity<D : Design<*>> : AppCompatActivity(),
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         applyDayNight()
+
+        // Apply excludeFromRecents setting to all app tasks.
+        checkNotNull(getSystemService<ActivityManager>()).appTasks.forEach { task ->
+            task.setExcludeFromRecents(uiStore.hideFromRecents)
+        }
 
         launch {
             main()

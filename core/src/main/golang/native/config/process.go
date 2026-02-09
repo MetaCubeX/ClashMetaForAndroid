@@ -114,7 +114,7 @@ func patchProviders(cfg *config.RawConfig, profileDir string) error {
 		} else if url, ok := provider["url"].(string); ok {
 			path = prefix + "/" + utils.MakeHash([]byte(url)).String() // same as C.GetPathByHash
 		} else {
-			return // both path and url is empty, WTF???
+			return // both path and url are empty, maybe inline provider
 		}
 		provider["path"] = profileDir + "/providers/" + path
 	})

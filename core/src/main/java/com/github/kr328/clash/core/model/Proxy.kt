@@ -38,6 +38,7 @@ data class Proxy(
         Mieru(false),
         AnyTLS(false),
         Sudoku(false),
+        Masque(false),
 
 
         Relay(true),
