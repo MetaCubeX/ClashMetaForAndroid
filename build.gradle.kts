@@ -81,7 +81,7 @@ subprojects {
             }
         }
 
-        ndkVersion = "27.2.12479018"
+        ndkVersion = "29.0.14206865"
 
         compileSdkVersion(defaultConfig.targetSdk!!)
 
