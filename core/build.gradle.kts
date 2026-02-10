@@ -29,6 +29,15 @@ golang {
 }
 
 android {
+    defaultConfig {
+        externalNativeBuild {
+            cmake {
+                // Support 16 KB page sizes.
+                arguments("-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON")
+            }
+        }
+    }
+
     productFlavors {
         all {
             externalNativeBuild {
@@ -59,6 +68,7 @@ dependencies {
 afterEvaluate {
     tasks.withType(GolangBuildTask::class.java).forEach {
         it.inputs.dir(golangSource)
+        it.support16KbSizes()
     }
 }
 
@@ -75,4 +85,25 @@ androidComponents.onVariants { variant ->
             }
         }
     }
+}
+
+// TODO: upstream these fixes to https://github.com/Kr328/golang-gradle-plugin.
+fun GolangBuildTask.support16KbSizes() {
+    val args = args?.toMutableList() ?: return
+    if (args.isEmpty()) return
+    val packageName = args.removeLast()
+
+    // Support 16 KB page sizes.
+    val newLdFlags = "-linkmode=external -extldflags=-Wl,-z,max-page-size=16384"
+
+    val ldFlagsIndex = args.indexOf("-ldflags")
+    if (ldFlagsIndex != -1 && ldFlagsIndex + 1 < args.size) {
+        val existingLdFlags = args[ldFlagsIndex + 1]
+        args[ldFlagsIndex + 1] = "$existingLdFlags $newLdFlags"
+    } else {
+        args.add("-ldflags=$newLdFlags")
+    }
+
+    args.add(packageName)
+    this.args = args
 }
