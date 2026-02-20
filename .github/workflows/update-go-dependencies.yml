@@ -10,7 +10,7 @@ jobs:
   update-go-dependencies:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Checkout submodules # This is required, don't use submodules flag for actions/checkout instead.
         run: git submodule update --init --recursive --force
       - uses: actions/setup-go@v6
@@ -37,7 +37,7 @@ jobs:
           private_key: ${{ secrets.MAINTAINER_APP_PRIVATE_KEY }}
       - name: Create Pull Request
         id: cpr
-        uses: peter-evans/create-pull-request@v6
+        uses: peter-evans/create-pull-request@v8
         with:
           token: ${{ steps.generate-token.outputs.token }}
           commit-message: Update Dependencies
