@@ -71,8 +71,7 @@ jobs:
             git config --global user.email 'action@github.com'
             git add build.gradle.kts
             git commit -am "Bump version to $newVersionName ($newVersionCode)"
-            git tag "v$newVersionName"
-            git push --follow-tags
+            git push
           fi
       - name: Build
         run: ./gradlew app:assembleMetaRelease
@@ -80,4 +79,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release create ${{ inputs.release-tag }} "./app/build/outputs/apk/alpha/release/"*.apk --prerelease --generate-notes
+          gh release create ${{ inputs.release-tag }} "./app/build/outputs/apk/meta/release/"*.apk --generate-notes
