@@ -17,7 +17,7 @@ kaidl = "1.15"
 room = "2.4.2"
 multiprocess = "1.0.0"
 quickie = "1.11.0"
-androidx-activity-ktx = "1.9.0"
+androidx-activity-ktx = "1.12.4"
 
 [libraries]
 build-android = { module = "com.android.tools.build:gradle", version.ref = "agp" }
