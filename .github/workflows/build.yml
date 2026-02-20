@@ -14,8 +14,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          submodules: true
+      - name: Checkout submodules # This is required, don't use submodules flag for actions/checkout instead.
+        run: git submodule update --init --recursive --force
       - uses: actions/setup-java@v4
         with:
           distribution: "temurin"
