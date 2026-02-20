@@ -1,6 +1,6 @@
 [versions]
 agp = "8.13.2"
-kotlin = "2.1.0"
+kotlin = "2.3.10"
 ksp = "2.1.0-1.0.29"
 golang = "1.0.4"
 coroutine = "1.10.2"
