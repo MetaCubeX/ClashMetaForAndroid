@@ -49,4 +49,4 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release view Prerelease-alpha && gh release delete Prerelease-alpha -y --cleanup-tag
-          gh release create Prerelease-alpha "./app/build/outputs/apk/alpha/release/"*.apk --generate-notes
+          gh release create Prerelease-alpha "./app/build/outputs/apk/alpha/release/"*.apk --prerelease --generate-notes
