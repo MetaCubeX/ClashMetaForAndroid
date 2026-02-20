@@ -43,7 +43,9 @@ jobs:
           echo key.alias="$SIGNING_KEY_ALIAS" >> signing.properties
           echo key.password="$SIGNING_KEY_PASSWORD" >> signing.properties
       - name: Build
-        run: ./gradlew app:assembleAlphaRelease
+        run: |
+          ./gradlew app:assembleAlphaRelease
+          ./gradlew app:assembleMetaRelease
       - name: Delete release if exist then create release
         if: github.repository == 'MetaCubeX/ClashMetaForAndroid'
         env:
