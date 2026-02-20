@@ -14,7 +14,7 @@ class ProxyViewConfig(val context: Context, var proxyLine: Int) {
         context.resolveThemedResourceId(android.R.attr.selectableItemBackground)
 
     val selectedControl = context.resolveThemedColor(com.google.android.material.R.attr.colorOnPrimary)
-    val selectedBackground = context.resolveThemedColor(com.google.android.material.R.attr.colorPrimary)
+    val selectedBackground = context.resolveThemedColor(android.R.attr.colorPrimary)
 
     val unselectedControl = context.resolveThemedColor(com.google.android.material.R.attr.colorOnSurface)
     val unselectedBackground: Int
