@@ -1,4 +1,5 @@
 name: Update Clash-Core and Go Modules
+
 on:
   repository_dispatch:
     types:
@@ -6,58 +7,34 @@ on:
   workflow_dispatch:
 
 jobs:
-  update-dependencies:
+  update-go-dependencies:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-      
-      - name: Checkout and Update submodules
-        run: git submodule update --init --recursive --remote --force
-
-      - name: Setup Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: "temurin"
-          java-version: 21
-
-      - name: Setup Go
-        uses: actions/setup-go@v6
+      - uses: actions/checkout@v4
+      - name: Checkout submodules # This is required, don't use submodules flag for actions/checkout instead.
+        run: git submodule update --init --recursive --force
+      - uses: actions/setup-go@v6
         with:
           go-version: "1.26"
           check-latest: true # Always check for the latest patch release
-      
-      - uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cache/go-build
-            ~/go/pkg/mod
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-
-
       - name: Install update-go-mod-replace
         run: |
           go install github.com/metacubex/update-go-mod-replace@latest
-
       - name: Update Foss Gomod
         run: |
           cd ${{ github.workspace }}/core/src/foss/golang/
           update-go-mod-replace ${{ github.workspace }}/core/src/foss/golang/clash/go.mod $(pwd)/go.mod
           go mod tidy
-
       - name: Update Main Gomod
         run: |
           cd ${{ github.workspace }}/core/src/main/golang/
           update-go-mod-replace ${{ github.workspace }}/core/src/foss/golang/clash/go.mod $(pwd)/go.mod
           go mod tidy
-
       - uses: tibdex/github-app-token@v2
         id: generate-token
         with:
           app_id: ${{ secrets.MAINTAINER_APPID }}
           private_key: ${{ secrets.MAINTAINER_APP_PRIVATE_KEY }}
-
       - name: Create Pull Request
         id: cpr
         uses: peter-evans/create-pull-request@v6
@@ -73,10 +50,8 @@ jobs:
             - Update Go Module Dependecies
           labels: |
             Update
-        
       - name: PR result
         if: ${{ steps.cpr.outputs.pull-request-number }}
         run: |
           echo "Pull Request Number - ${{ steps.cpr.outputs.pull-request-number }}"
           echo "Pull Request URL - ${{ steps.cpr.outputs.pull-request-url }}"
-      
