@@ -45,6 +45,7 @@ jobs:
       - name: Build
         run: ./gradlew app:assembleAlphaRelease
       - name: Delete release if exist then create release
+        if: github.repository == 'MetaCubeX/ClashMetaForAndroid'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
