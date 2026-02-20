@@ -56,6 +56,7 @@ subprojects {
             }
 
             minSdk = 21
+            compileSdkVersion(36)
             targetSdk = 35
 
             versionName = "2.11.23"
@@ -82,8 +83,6 @@ subprojects {
         }
 
         ndkVersion = "29.0.14206865"
-
-        compileSdkVersion(defaultConfig.targetSdk!!)
 
         if (isApp) {
             packagingOptions {
