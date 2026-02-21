@@ -6,14 +6,4 @@
   labels: [
     'Update',
   ],
-  packageRules: [
-    // Enable auto-merge for minor/patch updates.
-    {
-      matchUpdateTypes: [
-        'minor',
-        'patch',
-      ],
-      automerge: true,
-    },
-  ]
 }
