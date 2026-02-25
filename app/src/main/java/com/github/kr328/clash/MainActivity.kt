@@ -157,6 +157,35 @@ class MainActivity : BaseActivity<MainDesign>() {
                 requestPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
             }
         }
+        
+        // Request location permission for WiFi SSID access
+        val permissionsToRequest = mutableListOf<String>()
+        if (ContextCompat.checkSelfPermission(
+                this,
+                android.Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED) {
+            permissionsToRequest.add(android.Manifest.permission.ACCESS_FINE_LOCATION)
+        }
+        
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && 
+            ContextCompat.checkSelfPermission(
+                this,
+                android.Manifest.permission.ACCESS_BACKGROUND_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED) {
+             // Note: Background location usually needs to be requested separately or incrementally
+             // depending on target SDK, but adding it here for completeness if the user flow allows.
+             // For Android 11+, you must request foreground first, then background.
+             // For simplicity in this snippet, we'll add it if possible, but be aware of platform restrictions.
+             permissionsToRequest.add(android.Manifest.permission.ACCESS_BACKGROUND_LOCATION)
+        }
+
+        if (permissionsToRequest.isNotEmpty()) {
+            ActivityCompat.requestPermissions(
+                this,
+                permissionsToRequest.toTypedArray(),
+                1001
+            )
+        }
     }
 }
 

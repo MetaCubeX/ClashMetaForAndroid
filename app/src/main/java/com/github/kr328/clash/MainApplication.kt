@@ -14,6 +14,8 @@ import java.io.FileOutputStream
 
 @Suppress("unused")
 class MainApplication : Application() {
+    private var wifiAutomator: WifiAutomator? = null
+
     override fun attachBaseContext(base: Context?) {
         super.attachBaseContext(base)
 
@@ -30,9 +32,16 @@ class MainApplication : Application() {
 
         if (processName == packageName) {
             Remote.launch()
+            wifiAutomator = WifiAutomator(this)
+            wifiAutomator?.start()
         } else {
             sendServiceRecreated()
         }
+    }
+
+    override fun onTerminate() {
+        super.onTerminate()
+        wifiAutomator?.stop()
     }
 
     private fun extractGeoFiles() {
