@@ -112,7 +112,6 @@
     <string name="format_provider_type">%1$s(%2$s)</string>
     <string name="format_traffic_forwarded">%s được sử dụng</string>
     <string name="format_type_unsaved">%s (Chưa lưu)</string>
-    <string name="format_update_complete">Cập nhật %s thành công</string>
     <string name="format_update_failure">Cập nhật %1$s: %2$s</string>
     <string name="format_update_provider_failure">Cập nhật %1$s: %2$s</string>
     <string name="format_years_ago">%d năm trước</string>
