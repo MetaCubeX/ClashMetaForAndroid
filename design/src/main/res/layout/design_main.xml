@@ -18,6 +18,9 @@
             name="profileName"
             type="String" />
         <variable
+            name="appsStrategyName"
+            type="String" />
+        <variable
             name="colorClashStarted"
             type="int" />
         <variable
@@ -106,6 +109,15 @@
                     app:icon="@drawable/ic_baseline_view_list"
                     app:subtext="@{profileName != null ? @string/format_profile_activated(profileName) : @string/not_selected}"
                     app:text="@string/profile" />
+
+                <com.github.kr328.clash.design.view.LargeActionCard
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginVertical="@dimen/main_label_margin_vertical"
+                    android:onClick="@{() -> self.request(Request.OpenAppsStrategy)}"
+                    app:subtext="@{appsStrategyName != null ? @string/format_profile_activated(appsStrategyName) : @string/not_selected}"
+                    app:icon="@drawable/ic_baseline_apps"
+                    app:text="@string/app" />
 
                 <com.github.kr328.clash.design.view.LargeActionLabel
                     android:layout_width="match_parent"
