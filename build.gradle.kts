@@ -2,22 +2,23 @@
 
 import com.android.build.gradle.AppExtension
 import com.android.build.gradle.BaseExtension
-import java.net.URL
 import java.util.*
 
 buildscript {
     repositories {
         mavenCentral()
         google()
-        maven("https://raw.githubusercontent.com/MetaCubeX/maven-backup/main/releases")
     }
     dependencies {
         classpath(libs.build.android)
         classpath(libs.build.kotlin.common)
         classpath(libs.build.kotlin.serialization)
         classpath(libs.build.ksp)
-        classpath(libs.build.golang)
     }
+}
+
+plugins {
+    alias(libs.plugins.golang) apply false
 }
 
 subprojects {
