@@ -34,4 +34,4 @@ okhttp-client = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp"
 okhttp-interceptor = { module = "com.squareup.okhttp3:logging-interceptor", version.ref = "okhttp" }
 
 [plugins]
-golang = "io.github.goooler.golang:0.1.0-SNAPSHOT"
+golang = "io.github.goooler.golang:0.1.0"
