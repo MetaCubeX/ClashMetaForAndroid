@@ -5,7 +5,7 @@ activity = "1.12.4"
 kaidl = "1.15"
 room = "2.8.4"
 okhttp = "5.3.2"
-jvmTarget = "17"
+jvmTarget = "21"
 
 [libraries]
 kotlin-coroutine = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version = "1.10.2" }
