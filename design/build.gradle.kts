@@ -1,13 +1,19 @@
 plugins {
-    kotlin("android")
-    kotlin("kapt")
-    id("com.android.library")
+    alias(libs.plugins.android.library)
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.kotlin.kapt)
+}
+
+android {
+    buildFeatures {
+        dataBinding = true
+    }
 }
 
 dependencies {
-    implementation(project(":common"))
-    implementation(project(":core"))
-    implementation(project(":service"))
+    implementation(projects.common)
+    implementation(projects.core)
+    implementation(projects.service)
 
     implementation(libs.kotlin.coroutine)
     implementation(libs.androidx.core)

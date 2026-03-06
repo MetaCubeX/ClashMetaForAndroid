@@ -1,16 +1,13 @@
 plugins {
-    kotlin("android")
-    id("kotlinx-serialization")
-    id("com.android.library")
-    id("com.google.devtools.ksp")
+    alias(libs.plugins.android.library)
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.ksp)
 }
 
 dependencies {
-    implementation(project(":core"))
-    implementation(project(":common"))
-
-    ksp(libs.kaidl.compiler)
-    ksp(libs.androidx.room.compiler)
+    implementation(projects.core)
+    implementation(projects.common)
 
     implementation(libs.kotlin.coroutine)
     implementation(libs.kotlin.serialization.json)
@@ -21,13 +18,7 @@ dependencies {
     implementation(libs.rikkax.multiprocess)
     implementation(libs.okhttp.client)
     implementation(libs.okhttp.interceptor)
-}
 
-afterEvaluate {
-    android {
-        libraryVariants.forEach {
-            sourceSets[it.name].kotlin.srcDir(buildDir.resolve("generated/ksp/${it.name}/kotlin"))
-            sourceSets[it.name].java.srcDir(buildDir.resolve("generated/ksp/${it.name}/java"))
-        }
-    }
+    ksp(libs.kaidl.compiler)
+    ksp(libs.androidx.room.compiler)
 }

@@ -1,13 +1,103 @@
 import com.android.build.api.variant.FilterConfiguration
-import org.gradle.kotlin.dsl.androidComponents
-import java.net.URL
-import java.nio.file.Files
-import java.nio.file.StandardCopyOption
+import de.undercouch.gradle.tasks.download.Download
+import java.util.Properties
 
 plugins {
-    kotlin("android")
-    kotlin("kapt")
-    id("com.android.application")
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.kotlin.kapt)
+    alias(libs.plugins.download)
+}
+
+android {
+    namespace = "com.github.kr328.clash"
+    defaultConfig {
+        applicationId = "com.github.metacubex.clash"
+        targetSdk = 35
+        versionCode = 211023
+        versionName = "2.11.23"
+        resValue("integer", "release_code", versionCode.toString())
+        resValue("string", "release_name", "v$versionName")
+        ndk.abiFilters += listOf("arm64-v8a", "armeabi-v7a", "x86", "x86_64")
+    }
+
+    val localProperties = Properties()
+    val localPropertiesFile = rootProject.file("local.properties")
+    if (localPropertiesFile.exists()) {
+        localPropertiesFile.inputStream().use(localProperties::load)
+    }
+    val removeSuffix = localProperties.getProperty("remove.suffix")?.toBoolean() == true
+
+    productFlavors {
+        named("alpha") {
+            resValue("string", "launch_name", "@string/launch_name_alpha")
+            resValue("string", "application_name", "@string/application_name_alpha")
+            if (!removeSuffix) {
+                applicationIdSuffix = ".alpha"
+                versionNameSuffix = ".Alpha"
+            }
+        }
+        named("meta") {
+            isDefault = true
+            resValue("string", "launch_name", "@string/launch_name_meta")
+            resValue("string", "application_name", "@string/application_name_meta")
+            if (!removeSuffix) {
+                applicationIdSuffix = ".meta"
+                versionNameSuffix = ".Meta"
+            }
+        }
+    }
+
+    val keystore = rootProject.file("signing.properties")
+    val releaseSigning = if (keystore.exists()) {
+        signingConfigs.create("release") {
+            val prop = Properties()
+            keystore.inputStream().use(prop::load)
+            storeFile = rootProject.file("release.keystore")
+            storePassword = prop.getProperty("keystore.password")
+            keyAlias = prop.getProperty("key.alias")
+            keyPassword = prop.getProperty("key.password")
+        }
+    } else {
+        signingConfigs["debug"]
+    }
+
+    buildTypes {
+        all {
+            signingConfig = releaseSigning
+        }
+        release {
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+        }
+        named("debug") {
+            versionNameSuffix = ".debug"
+        }
+    }
+
+    buildFeatures {
+        dataBinding = true
+        resValues = true
+    }
+
+    packaging {
+        resources {
+            excludes.add("DebugProbesKt.bin")
+        }
+    }
+
+    splits {
+        abi {
+            isEnable = true
+            isUniversalApk = true
+            reset()
+            include("arm64-v8a", "armeabi-v7a", "x86", "x86_64")
+        }
+    }
 }
 
 androidComponents {
@@ -18,7 +108,7 @@ androidComponents {
                 val abiName = output.filters
                     .find { it.filterType == FilterConfiguration.FilterType.ABI }
                     ?.identifier ?: "universal"
-                val newApkName = "cmfa-${versionName.get()}-meta-${abiName}-${variant.buildType}.apk"
+                val newApkName = "cmfa-${versionName.get()}-meta-$abiName-${variant.buildType}.apk"
                 outputFileName = newApkName
             }
         }
@@ -26,12 +116,12 @@ androidComponents {
 }
 
 dependencies {
-    compileOnly(project(":hideapi"))
+    compileOnly(projects.hideapi)
 
-    implementation(project(":core"))
-    implementation(project(":service"))
-    implementation(project(":design"))
-    implementation(project(":common"))
+    implementation(projects.core)
+    implementation(projects.service)
+    implementation(projects.design)
+    implementation(projects.common)
 
     implementation(libs.kotlin.coroutine)
     implementation(libs.androidx.core)
@@ -44,44 +134,27 @@ dependencies {
     implementation(libs.quickie.bundled)
 }
 
-tasks.getByName("clean", type = Delete::class) {
-    delete(file("release"))
-}
-
-val geoFilesDownloadDir = "src/main/assets"
-
-task("downloadGeoFiles") {
-
-    val geoFilesUrls = mapOf(
-        "https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geoip.metadb" to "geoip.metadb",
-        "https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geosite.dat" to "geosite.dat",
-        // "https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/country.mmdb" to "country.mmdb",
-        "https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/GeoLite2-ASN.mmdb" to "ASN.mmdb",
+val downloadGeoFiles by tasks.registering(Download::class) {
+    src(
+        listOf(
+            "https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geoip.metadb",
+            "https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geosite.dat",
+            "https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/GeoLite2-ASN.mmdb",
+        ),
     )
-
-    doLast {
-        geoFilesUrls.forEach { (downloadUrl, outputFileName) ->
-            val url = URL(downloadUrl)
-            val outputPath = file("$geoFilesDownloadDir/$outputFileName")
-            outputPath.parentFile.mkdirs()
-            url.openStream().use { input ->
-                Files.copy(input, outputPath.toPath(), StandardCopyOption.REPLACE_EXISTING)
-                println("$outputFileName downloaded to $outputPath")
-            }
+    dest("src/main/assets")
+    onlyIfModified(true)
+    eachFile {
+        if (name == "GeoLite2-ASN.mmdb") {
+            name = "ASN.mmdb"
         }
     }
 }
 
-afterEvaluate {
-    val downloadGeoFilesTask = tasks["downloadGeoFiles"]
-
-    tasks.forEach {
-        if (it.name.startsWith("assemble")) {
-            it.dependsOn(downloadGeoFilesTask)
-        }
-    }
+tasks.preBuild {
+    dependsOn(downloadGeoFiles)
 }
 
-tasks.getByName("clean", type = Delete::class) {
-    delete(file(geoFilesDownloadDir))
+tasks.clean {
+    delete(downloadGeoFiles)
 }

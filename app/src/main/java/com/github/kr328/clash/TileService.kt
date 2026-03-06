@@ -15,7 +15,6 @@ import com.github.kr328.clash.common.constants.Permissions
 import com.github.kr328.clash.remote.StatusClient
 import com.github.kr328.clash.util.startClashService
 import com.github.kr328.clash.util.stopClashService
-import com.github.kr328.clash.service.R
 
 @RequiresApi(Build.VERSION_CODES.N)
 class TileService : TileService() {
@@ -77,7 +76,8 @@ class TileService : TileService() {
         else
             currentProfile
 
-        tile.icon = Icon.createWithResource(this, R.drawable.ic_logo_service)
+        tile.icon =
+            Icon.createWithResource(this, com.github.kr328.clash.service.R.drawable.ic_logo_service)
 
         tile.updateTile()
     }

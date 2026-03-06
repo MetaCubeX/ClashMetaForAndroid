@@ -1,16 +1,13 @@
 [versions]
+agp = "8.13.2"
 kotlin = "2.3.10"
 activity = "1.12.4"
 kaidl = "1.15"
 room = "2.8.4"
 okhttp = "5.3.2"
+jvmTarget = "17"
 
 [libraries]
-build-android = { module = "com.android.tools.build:gradle", version = "8.13.2" }
-build-kotlin-common = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
-build-kotlin-serialization = { module = "org.jetbrains.kotlin:kotlin-serialization", version.ref = "kotlin" }
-build-ksp = { module = "com.google.devtools.ksp:symbol-processing-gradle-plugin", version = "2.3.6" }
-
 kotlin-coroutine = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version = "1.10.2" }
 kotlin-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version = "1.10.0" }
 
@@ -34,4 +31,11 @@ okhttp-client = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp"
 okhttp-interceptor = { module = "com.squareup.okhttp3:logging-interceptor", version.ref = "okhttp" }
 
 [plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+android-library = { id = "com.android.library", version.ref = "agp" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+kotlin-kapt = { id = "org.jetbrains.kotlin.kapt", version.ref = "kotlin" }
+ksp = "com.google.devtools.ksp:2.3.6"
 golang = "io.github.goooler.golang:0.1.0"
+download = "de.undercouch.download:5.7.0"
