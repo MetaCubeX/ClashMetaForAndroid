@@ -22,12 +22,5 @@
 
 -dontobfuscate
 
--assumenosideeffects class kotlin.jvm.internal.Intrinsics {
-    public static void checkNotNull(...);
-    public static void checkExpressionValueIsNotNull(...);
-    public static void checkNotNullExpressionValue(...);
-    public static void checkReturnedValueIsNotNull(...);
-    public static void checkFieldIsNotNull(...);
-    public static void checkParameterIsNotNull(...);
-    public static void checkNotNullParameter(...);
-}
+# Remove some Kotlin overhead
+-processkotlinnullchecks remove

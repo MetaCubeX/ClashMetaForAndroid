@@ -1,4 +1,4 @@
-import com.android.build.gradle.BaseExtension
+import com.android.build.api.dsl.CommonExtension
 import com.android.build.gradle.api.AndroidBasePlugin
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
@@ -6,8 +6,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     alias(libs.plugins.android.application) apply false
     alias(libs.plugins.android.library) apply false
-    alias(libs.plugins.kotlin.android) apply false
-    alias(libs.plugins.kotlin.kapt) apply false
+    alias(libs.plugins.android.legacyKapt) apply false
     alias(libs.plugins.kotlin.serialization) apply false
     alias(libs.plugins.ksp) apply false
     alias(libs.plugins.golang) apply false
@@ -15,14 +14,14 @@ plugins {
 
 allprojects {
     plugins.withType<AndroidBasePlugin>().configureEach {
-        extensions.configure<BaseExtension> {
+        extensions.configure<CommonExtension> {
             namespace = "com.github.kr328.clash.${project.name}"
-            defaultConfig {
+            compileSdk = 36
+            defaultConfig.apply {
                 minSdk = 26
             }
-            compileSdkVersion(36)
             ndkVersion = "29.0.14206865"
-            flavorDimensions("feature")
+            flavorDimensions += "feature"
             productFlavors {
                 create("alpha") {
                     dimension = "feature"
@@ -33,10 +32,10 @@ allprojects {
             }
             sourceSets {
                 getByName("meta") {
-                    java.srcDirs("src/foss/java")
+                    java.directories.add("src/foss/java")
                 }
                 getByName("alpha") {
-                    java.srcDirs("src/foss/java")
+                    java.directories.add("src/foss/java")
                 }
             }
             compileOptions.apply {
