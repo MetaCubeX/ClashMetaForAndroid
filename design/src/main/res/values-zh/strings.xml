@@ -265,4 +265,10 @@
     <string name="new_config">新配置</string>
     <string name="config_name">配置名称</string>
     <string name="edit_config_name">编辑配置名称</string>
+    <string name="shortcut_toggle_short">切换 Clash</string>
+    <string name="shortcut_toggle_long">切换 Clash 服务启停</string>
+    <string name="shortcut_start_short">启动 Clash</string>
+    <string name="shortcut_start_long">启动 Clash 服务</string>
+    <string name="shortcut_stop_short">停止 Clash</string>
+    <string name="shortcut_stop_long">停止 Clash 服务</string>
 </resources>

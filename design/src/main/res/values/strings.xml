@@ -358,4 +358,10 @@
     <string name="new_config">New Config</string>
     <string name="config_name">Config Name</string>
     <string name="edit_config_name">Edit Config Name</string>
+    <string name="shortcut_toggle_short">Toggle Clash</string>
+    <string name="shortcut_toggle_long">Toggle Clash service on/off</string>
+    <string name="shortcut_start_short">Start Clash</string>
+    <string name="shortcut_start_long">Start Clash service</string>
+    <string name="shortcut_stop_short">Stop Clash</string>
+    <string name="shortcut_stop_long">Stop Clash service</string>
 </resources>
