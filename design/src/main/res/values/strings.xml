@@ -1,4 +1,9 @@
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="PluralsCandidate">
+    <plurals name="selected_apps_count">
+        <item quantity="one">%d app selected</item>
+        <item quantity="other">%d apps selected</item>
+    </plurals>
+
     <string name="launch_name_meta">Clash Meta</string>
     <string name="launch_name_alpha">Clash Meta Alpha</string>
     <string name="application_name_meta">Clash Meta for Android</string>
@@ -350,7 +355,9 @@
     <string name="hide_from_recents_desc">Hide app from the Recent apps screen</string>
     <string name="import_from_qr_no_permission">Camera access is restricted. Please enable it in Settings.</string>
     <string name="import_from_qr_exception">An unhandled system exception occurred.</string>
-
+    <string name="new_config">New Config</string>
+    <string name="config_name">Config Name</string>
+    <string name="edit_config_name">Edit Config Name</string>
     <string name="shortcut_toggle_short">Toggle Clash</string>
     <string name="shortcut_toggle_long">Toggle Clash service on/off</string>
     <string name="shortcut_start_short">Start Clash</string>
