@@ -84,6 +84,9 @@ android {
     }
 
     packaging {
+        jniLibs {
+            useLegacyPackaging = true
+        }
         resources {
             excludes.add("DebugProbesKt.bin")
         }
