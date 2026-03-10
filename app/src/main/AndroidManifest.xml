@@ -65,8 +65,10 @@
 
         <activity
             android:name=".ExternalControlActivity"
+            android:excludeFromRecents="true"
             android:exported="true"
             android:label="@string/external_control_activity"
+            android:noHistory="true"
             android:theme="@android:style/Theme.Translucent.NoTitleBar.Fullscreen">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />

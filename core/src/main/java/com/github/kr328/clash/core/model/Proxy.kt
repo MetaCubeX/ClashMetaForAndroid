@@ -39,6 +39,7 @@ data class Proxy(
         AnyTLS(false),
         Sudoku(false),
         Masque(false),
+        TrustTunnel(false),
 
 
         Relay(true),

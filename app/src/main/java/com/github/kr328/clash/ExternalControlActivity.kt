@@ -25,6 +25,8 @@ import com.github.kr328.clash.design.R
 class ExternalControlActivity : Activity(), CoroutineScope by MainScope() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        @Suppress("DEPRECATION")
+        overridePendingTransition(0, 0)
 
         when(intent.action) {
             Intent.ACTION_VIEW -> {
@@ -89,5 +91,11 @@ class ExternalControlActivity : Activity(), CoroutineScope by MainScope() {
     private fun stopClash() {
         stopClashService()
         Toast.makeText(this, R.string.external_control_stopped, Toast.LENGTH_LONG).show()
+    }
+
+    override fun finish() {
+        super.finish()
+        @Suppress("DEPRECATION")
+        overridePendingTransition(0, 0)
     }
 }
