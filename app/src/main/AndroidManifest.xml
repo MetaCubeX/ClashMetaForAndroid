@@ -46,7 +46,7 @@
             android:configChanges="uiMode"
             android:exported="true"
             android:label="@string/launch_name"
-            android:launchMode="singleTop">
+            android:launchMode="singleTask">
             <intent-filter>
                 <action android:name="android.intent.action.APPLICATION_PREFERENCES" />
                 <action android:name="android.intent.action.MAIN" />
@@ -69,8 +69,10 @@
 
         <activity
             android:name=".ExternalControlActivity"
+            android:excludeFromRecents="true"
             android:exported="true"
             android:label="@string/external_control_activity"
+            android:noHistory="true"
             android:theme="@android:style/Theme.Translucent.NoTitleBar.Fullscreen">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
