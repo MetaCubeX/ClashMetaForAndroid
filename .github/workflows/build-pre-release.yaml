@@ -11,7 +11,7 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
-      
+
       - name: Checkout submodules
         run: git submodule update --init --recursive --force
 
@@ -49,6 +49,43 @@ jobs:
           sudo apt-get update && sudo apt-get install ca-certificates
           sudo update-ca-certificates
           cp -f /etc/ssl/certs/ca-certificates.crt core/src/foss/golang/clash/component/ca/ca-certificates.crt
+
+      - name: Read and increment version from build.gradle.kts
+        id: process-version
+        run: |
+          # read version from build.gradle.kts 
+          VERSION_NAME=$(grep -oP 'versionName\s*=\s*"\K[^"]+' build.gradle.kts)
+          VERSION_CODE=$(grep -oP 'versionCode\s*=\s*\K\d+' build.gradle.kts)
+
+          echo "Current version: $VERSION_NAME ($VERSION_CODE)"
+
+          # increment version
+          IFS='.' read -ra VERSION_PARTS <<< "$VERSION_NAME"
+          VERSION_PARTS[2]=$((VERSION_PARTS[2] + 1))
+          NEW_VERSION_NAME="${VERSION_PARTS[0]}.${VERSION_PARTS[1]}.${VERSION_PARTS[2]}"
+          NEW_VERSION_CODE=$((VERSION_CODE + 1))
+
+          echo "New version: $NEW_VERSION_NAME ($NEW_VERSION_CODE)"
+
+          echo "versionName=$NEW_VERSION_NAME" >> $GITHUB_OUTPUT
+          echo "versionCode=$NEW_VERSION_CODE" >> $GITHUB_OUTPUT
+
+      - name: Update build.gradle.kts with new version
+        run: |
+          sed -i "s/versionName = \".*\"/versionName = \"${{ steps.process-version.outputs.versionName }}\"/" build.gradle.kts
+          sed -i "s/versionCode = .*/versionCode = ${{ steps.process-version.outputs.versionCode }}/" build.gradle.kts
+
+      - name: Local Properties
+        env:
+          CUSTOM_APPLICATION_ID: ${{ secrets.CUSTOM_APPLICATION_ID }}
+          REMOVE_SUFFIX: ${{ secrets.REMOVE_SUFFIX }}
+        run: |
+          touch local.properties
+          echo custom.application.id="$CUSTOM_APPLICATION_ID" >> local.properties
+          echo remove.suffix="$REMOVE_SUFFIX" >> local.properties
+
+          echo "cat local.properties"
+          cat local.properties
 
       - name: Signing properties
         env:
