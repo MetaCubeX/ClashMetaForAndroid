@@ -3,9 +3,11 @@ package com.github.kr328.clash.design.component
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.LinearGradient
 import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.RectF
+import android.graphics.Shader
 import android.os.Handler
 import android.os.Looper
 import android.view.MotionEvent
@@ -226,7 +228,6 @@ class ProxyView(
 
                 drawPath(path, paint)
 
-                clipPath(path)
             }
         }
 
@@ -269,9 +270,7 @@ class ProxyView(
         val mainTextWidth = (
                 width -
                         state.config.layoutPadding * 2 -
-                        state.config.contentPadding * 2 -
-                        delayAreaWidth -
-                        state.config.textMargin * 2
+                        state.config.contentPadding * 2
                 ).coerceAtLeast(0f)
 
         // measure title text bounds
@@ -297,7 +296,7 @@ class ProxyView(
         val delayAreaHeight = (fm.descent - fm.ascent) + delayPadding * 2
 
         val delayAreaLeft =
-            width - state.config.layoutPadding - state.config.contentPadding - delayAreaWidth
+            width - state.config.layoutPadding - delayAreaWidth - dp(5f)
 
         val delayAreaTop =
             height / 2f - delayAreaHeight / 2f
@@ -355,6 +354,31 @@ class ProxyView(
 
         canvas.restore()
 
+        val fadeWidth = dp(16f)
+        val fadeStart = (delayRect.left - fadeWidth).coerceAtLeast(0f)
+        val fadeEnd = delayRect.left.coerceAtLeast(fadeStart + 1f)
+
+        val baseColor = state.controls
+        val fadeShader = LinearGradient(
+            fadeStart,
+            0f,
+            fadeEnd,
+            0f,
+            intArrayOf(
+                baseColor,
+                Color.argb(
+                    0,
+                    Color.red(baseColor),
+                    Color.green(baseColor),
+                    Color.blue(baseColor)
+                )
+            ),
+            floatArrayOf(0f, 1f),
+            Shader.TileMode.CLAMP
+        )
+
+        paint.shader = fadeShader
+
         canvas.drawText(
             state.title,
             0,
@@ -374,6 +398,8 @@ class ProxyView(
                     (height - state.config.layoutPadding * 2) / 3f * 2 - textOffset,
             paint
         )
+
+        paint.shader = null
     }
 
     private fun startDelayTest() {
