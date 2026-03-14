@@ -4,6 +4,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.SimpleItemAnimator
 import com.github.kr328.clash.design.view.VerticalScrollableHost
 
 class ProxyPageFactory(private val config: ProxyViewConfig) {
@@ -48,6 +49,9 @@ class ProxyPageFactory(private val config: ProxyViewConfig) {
             setRecycledViewPool(childrenPool)
 
             clipToPadding = false
+
+            // Avoid default change-animation flicker when delay updates trigger notifyItemRangeChanged.
+            (itemAnimator as? SimpleItemAnimator)?.supportsChangeAnimations = false
         }
 
         return Holder(recyclerView, root).apply {

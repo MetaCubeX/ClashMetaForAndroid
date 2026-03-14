@@ -99,6 +99,15 @@ class ProxyActivity : BaseActivity<ProxyDesign>() {
                                 design.requests.send(ProxyDesign.Request.Reload(it.index))
                             }
                         }
+                        is ProxyDesign.Request.HealthCheck -> {
+                            launch {
+                                withClash {
+                                    healthCheck(it.name)
+                                }
+
+                                design.requests.send(ProxyDesign.Request.Reload(it.index))
+                            }
+                        }
                         is ProxyDesign.Request.PatchMode -> {
                             design.showModeSwitchTips()
 
