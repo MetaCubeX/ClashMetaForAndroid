@@ -68,8 +68,11 @@ func QueryProxyGroupNames(excludeNotSelectable bool) []string {
 	}
 
 	for _, p := range proxies {
-		if _, ok := p.Adapter().(outboundgroup.ProxyGroup); ok {
+		if g, ok := p.Adapter().(outboundgroup.ProxyGroup); ok {
 			if !excludeNotSelectable || p.Type() == C.Selector {
+				if isGroupHidden(g) {
+					continue
+				}
 				result = append(result, p.Name())
 			}
 		}
@@ -237,4 +240,18 @@ func collectProviders(providers []provider.ProxyProvider, uiSubtitlePattern *reg
 	}
 
 	return result
+}
+
+func isGroupHidden(g outboundgroup.ProxyGroup) bool {
+	switch v := g.(type) {
+		case *outboundgroup.Selector:
+			return v.Hidden
+		case *outboundgroup.URLTest:
+			return v.Hidden
+		case *outboundgroup.Fallback:
+			return v.Hidden
+		case *outboundgroup.LoadBalance:
+			return v.Hidden
+	}
+	return false
 }
