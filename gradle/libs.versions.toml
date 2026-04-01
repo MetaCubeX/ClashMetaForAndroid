@@ -11,7 +11,7 @@ jvmTarget = "21"
 kotlin-coroutine = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version = "1.10.2" }
 kotlin-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version = "1.10.0" }
 
-androidx-core = { module = "androidx.core:core-ktx", version = "1.17.0" }
+androidx-core = { module = "androidx.core:core-ktx", version = "1.18.0" }
 androidx-activity-ktx = { module = "androidx.activity:activity-ktx", version.ref = "activity" }
 androidx-fragment = { module = "androidx.fragment:fragment", version = "1.8.9" }
 androidx-appcompat = { module = "androidx.appcompat:appcompat", version = "1.7.1" }
