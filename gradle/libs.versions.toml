@@ -1,7 +1,7 @@
 [versions]
 agp = "9.1.0"
 kotlin = "2.3.20"
-activity = "1.12.4"
+activity = "1.13.0"
 kaidl = "1.15"
 room = "2.8.4"
 okhttp = "5.3.2"
