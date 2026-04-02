@@ -3,15 +3,14 @@ package com.github.kr328.clash
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
-import android.os.PersistableBundle
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.result.contract.ActivityResultContracts.RequestPermission
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.github.kr328.clash.common.util.intent
 import com.github.kr328.clash.common.util.ticker
 import com.github.kr328.clash.design.MainDesign
 import com.github.kr328.clash.design.ui.ToastDuration
+import com.github.kr328.clash.service.store.ServiceStore
 import com.github.kr328.clash.util.startClashService
 import com.github.kr328.clash.util.stopClashService
 import com.github.kr328.clash.util.withClash
@@ -59,6 +58,8 @@ class MainActivity : BaseActivity<MainDesign>() {
                             startActivity(ProfilesActivity::class.intent)
                         MainDesign.Request.OpenProviders ->
                             startActivity(ProvidersActivity::class.intent)
+                        MainDesign.Request.OpenAppsStrategy ->
+                            startActivity(AppsStrategyActivity::class.intent)
                         MainDesign.Request.OpenLogs -> {
                             if (LogcatService.running) {
                                 startActivity(LogcatActivity::class.intent)
@@ -99,6 +100,8 @@ class MainActivity : BaseActivity<MainDesign>() {
         withProfile {
             setProfileName(queryActive()?.name)
         }
+
+        setAppsStrategyName(queryActiveAppsStrategyName())
     }
 
     private suspend fun MainDesign.fetchTraffic() {
@@ -140,6 +143,18 @@ class MainActivity : BaseActivity<MainDesign>() {
     private suspend fun queryAppVersionName(): String {
         return withContext(Dispatchers.IO) {
             packageManager.getPackageInfo(packageName, 0).versionName + "\n" + Bridge.nativeCoreVersion().replace("_", "-")
+        }
+    }
+
+    private suspend fun queryActiveAppsStrategyName(): String? {
+        return withContext(Dispatchers.IO) {
+            val service = ServiceStore(this@MainActivity)
+            val activeUuid = service.activeAppsStrategyConfigUuid
+            if (activeUuid != null) {
+                service.appsStrategyConfigs.find { it.uuid == activeUuid }?.name
+            } else {
+                null
+            }
         }
     }
 
