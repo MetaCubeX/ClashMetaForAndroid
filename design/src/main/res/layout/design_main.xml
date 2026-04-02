@@ -98,6 +98,42 @@
                     app:subtext="@{mode}"
                     app:text="@string/proxy" />
 
+                <com.google.android.material.button.MaterialButtonToggleGroup
+                    android:id="@+id/toggleGroup"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:visibility="@{clashRunning ? View.VISIBLE : View.GONE}"
+                    app:checkedButton="@+id/btnRule"
+                    app:selectionRequired="true"
+                    app:singleSelection="true"> <!-- 默认选中项 -->
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnRule"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/rule_mode" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnGlobal"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/global_mode" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnDirect"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/direct_mode" />
+
+                </com.google.android.material.button.MaterialButtonToggleGroup>
+
                 <com.github.kr328.clash.design.view.LargeActionCard
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
