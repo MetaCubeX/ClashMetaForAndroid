@@ -62,3 +62,40 @@ func HealthCheckAll() {
 		}(g)
 	}
 }
+
+func HealthCheckProxy(groupName string, proxyName string) {
+	p := tunnel.Proxies()[groupName]
+
+	if p == nil {
+		log.Warnln("Request health check for proxy `%s` in group `%s`: group not found", proxyName, groupName)
+		return
+	}
+ 
+	g, ok := p.Adapter().(outboundgroup.ProxyGroup)
+	if !ok {
+		log.Warnln("Request health check for proxy `%s` in group `%s`: not a proxy group", proxyName, groupName)
+		return
+	}
+
+	for _, proxy := range g.Proxies() {
+		if proxy.Name() == proxyName {
+			testURL := "https://www.gstatic.com/generate_204"
+			for k := range proxy.ExtraDelayHistories() {
+				if len(k) > 0 {
+					testURL = k
+					break
+				}
+			}
+
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+
+			if _, err := proxy.URLTest(ctx, testURL, nil); err != nil && ctx.Err() == nil {
+				log.Warnln("Request health check for proxy `%s`: %s", proxyName, err.Error())
+			}
+			return
+		}
+	}
+
+	log.Warnln("Request health check for proxy `%s` in group `%s`: proxy not found", proxyName, groupName)
+}

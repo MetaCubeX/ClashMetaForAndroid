@@ -102,7 +102,7 @@ class ProxyActivity : BaseActivity<ProxyDesign>() {
                         is ProxyDesign.Request.HealthCheck -> {
                             launch {
                                 withClash {
-                                    healthCheck(it.name)
+                                    healthCheckProxy(names[it.index], it.name)
                                 }
 
                                 design.requests.send(ProxyDesign.Request.Reload(it.index))
