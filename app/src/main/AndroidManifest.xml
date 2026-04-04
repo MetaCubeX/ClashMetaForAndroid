@@ -217,5 +217,16 @@
                 <data android:scheme="android_secret_code" android:host="252746382" />
             </intent-filter>
         </receiver>
+
+        <!-- ExternalControlReceiver: silent background control for Tasker and other automation tools -->
+        <receiver
+            android:name=".ExternalControlReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.github.metacubex.clash.meta.action.START_CLASH" />
+                <action android:name="com.github.metacubex.clash.meta.action.STOP_CLASH" />
+                <action android:name="com.github.metacubex.clash.meta.action.TOGGLE_CLASH" />
+            </intent-filter>
+        </receiver>
     </application>
 </manifest>
