@@ -58,8 +58,8 @@ subprojects {
             minSdk = 21
             targetSdk = 35
 
-            versionName = "2.11.20"
-            versionCode = 211020
+            versionName = "2.11.25"
+            versionCode = 211025
 
             resValue("string", "release_name", "v$versionName")
             resValue("integer", "release_code", "$versionCode")
@@ -81,7 +81,7 @@ subprojects {
             }
         }
 
-        ndkVersion = "27.2.12479018"
+        ndkVersion = "29.0.14206865"
 
         compileSdkVersion(defaultConfig.targetSdk!!)
 

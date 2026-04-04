@@ -346,6 +346,15 @@
 
     <string name="hide_app_icon_title">Hide App Icon</string>
     <string name="hide_app_icon_desc">You can dial *#*#252746382#*#* to open this App</string>
+    <string name="hide_from_recents_title">Hide from Recents</string>
+    <string name="hide_from_recents_desc">Hide app from the Recent apps screen</string>
     <string name="import_from_qr_no_permission">Camera access is restricted. Please enable it in Settings.</string>
     <string name="import_from_qr_exception">An unhandled system exception occurred.</string>
+
+    <string name="shortcut_toggle_short">Toggle Clash</string>
+    <string name="shortcut_toggle_long">Toggle Clash service on/off</string>
+    <string name="shortcut_start_short">Start Clash</string>
+    <string name="shortcut_start_long">Start Clash service</string>
+    <string name="shortcut_stop_short">Stop Clash</string>
+    <string name="shortcut_stop_long">Stop Clash service</string>
 </resources>

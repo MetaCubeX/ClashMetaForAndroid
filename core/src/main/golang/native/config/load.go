@@ -6,10 +6,9 @@ import (
 	"runtime"
 	"strings"
 
-	"gopkg.in/yaml.v3"
-
 	"cfa/native/app"
 
+	"github.com/metacubex/mihomo/common/yaml"
 	"github.com/metacubex/mihomo/config"
 	"github.com/metacubex/mihomo/hub"
 	"github.com/metacubex/mihomo/log"

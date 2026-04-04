@@ -77,6 +77,17 @@ class AppSettingsDesign(
                 }
             }
 
+            switch(
+                value = uiStore::hideFromRecents,
+                icon = R.drawable.ic_baseline_stack,
+                title = R.string.hide_from_recents_title,
+                summary = R.string.hide_from_recents_desc,
+            ) {
+                listener = OnChangedListener {
+                    requests.trySend(Request.ReCreateAllActivities)
+                }
+            }
+
             category(R.string.service)
 
             switch(
