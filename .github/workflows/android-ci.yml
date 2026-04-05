@@ -1,0 +1,38 @@
+name: Android CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - feat/init-clashfest
+      - main
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Grant gradlew execute permission
+        run: chmod +x gradlew
+
+      - name: Build Alpha Debug APK
+        run: ./gradlew assembleAlphaDebug
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: clashfest-alpha-debug-apk
+          path: app/build/outputs/apk/**/*.apk
