@@ -37,6 +37,7 @@ object Bridge {
 
     external fun nativeLoad(completable: CompletableDeferred<Unit>, path: String)
     external fun nativeQueryProviders(): String
+    external fun nativeQueryConnectionsSnapshot(): String
     external fun nativeUpdateProvider(
         completable: CompletableDeferred<Unit>,
         type: String,

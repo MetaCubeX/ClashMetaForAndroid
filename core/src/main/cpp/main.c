@@ -247,6 +247,16 @@ Java_com_github_kr328_clash_core_bridge_Bridge_nativeQueryProviders(JNIEnv *env,
     return new_string(response);
 }
 
+JNIEXPORT jstring JNICALL
+Java_com_github_kr328_clash_core_bridge_Bridge_nativeQueryConnectionsSnapshot(JNIEnv *env,
+                                                                             jobject thiz) {
+    TRACE_METHOD();
+
+    scoped_string response = queryConnectionsSnapshot();
+
+    return new_string(response);
+}
+
 JNIEXPORT void JNICALL
 Java_com_github_kr328_clash_core_bridge_Bridge_nativeUpdateProvider(JNIEnv *env, jobject thiz,
                                                                     jobject completable,

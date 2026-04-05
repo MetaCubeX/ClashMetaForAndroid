@@ -13,9 +13,13 @@ interface IClashManager {
     fun queryConfiguration(): UiConfiguration
     fun queryProviders(): ProviderList
 
+    fun queryConnectionsSnapshot(): String
+
     fun patchSelector(group: String, name: String): Boolean
 
     suspend fun healthCheck(group: String)
+
+    fun healthCheckAll()
     suspend fun updateProvider(type: Provider.Type, name: String)
 
     fun queryOverride(slot: Clash.OverrideSlot): ConfigurationOverride

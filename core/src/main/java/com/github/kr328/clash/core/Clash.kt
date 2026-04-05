@@ -178,6 +178,10 @@ object Clash {
         }
     }
 
+    fun queryConnectionsSnapshot(): String {
+        return Bridge.nativeQueryConnectionsSnapshot()
+    }
+
     fun updateProvider(type: Provider.Type, name: String): CompletableDeferred<Unit> {
         return CompletableDeferred<Unit>().apply {
             Bridge.nativeUpdateProvider(this, type.toString(), name)

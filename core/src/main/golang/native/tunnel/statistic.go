@@ -15,3 +15,8 @@ func Now() (up int64, down int64) {
 func Total() (up int64, down int64) {
 	return statistic.DefaultManager.Total()
 }
+
+// QueryConnectionsSnapshot returns live trackers + totals as JSON (see tunnel/statistic Snapshot).
+func QueryConnectionsSnapshot() *statistic.Snapshot {
+	return statistic.DefaultManager.Snapshot()
+}

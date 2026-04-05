@@ -96,6 +96,11 @@ func queryProviders() *C.char {
 	return marshalJson(tunnel.QueryProviders())
 }
 
+//export queryConnectionsSnapshot
+func queryConnectionsSnapshot() *C.char {
+	return marshalJson(tunnel.QueryConnectionsSnapshot())
+}
+
 //export updateProvider
 func updateProvider(completable unsafe.Pointer, pType C.c_string, name C.c_string) {
 	go func(pType, name string) {

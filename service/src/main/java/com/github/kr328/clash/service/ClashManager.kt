@@ -42,6 +42,10 @@ class ClashManager(private val context: Context) : IClashManager,
         return ProviderList(Clash.queryProviders())
     }
 
+    override fun queryConnectionsSnapshot(): String {
+        return Clash.queryConnectionsSnapshot()
+    }
+
     override fun queryOverride(slot: Clash.OverrideSlot): ConfigurationOverride {
         return Clash.queryOverride(slot)
     }
@@ -70,6 +74,10 @@ class ClashManager(private val context: Context) : IClashManager,
 
     override suspend fun healthCheck(group: String) {
         return Clash.healthCheck(group).await()
+    }
+
+    override fun healthCheckAll() {
+        Clash.healthCheckAll()
     }
 
     override suspend fun updateProvider(type: Provider.Type, name: String) {

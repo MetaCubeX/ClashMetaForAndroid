@@ -11,6 +11,7 @@ import com.github.kr328.clash.service.data.PendingDao
 import com.github.kr328.clash.service.model.Profile
 import com.github.kr328.clash.service.remote.IFetchObserver
 import com.github.kr328.clash.service.store.ServiceStore
+import com.github.kr328.clash.service.util.SubscriptionUpdateMerge
 import com.github.kr328.clash.service.util.importedDir
 import com.github.kr328.clash.service.util.pendingDir
 import com.github.kr328.clash.service.util.processingDir
@@ -21,6 +22,7 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import java.io.File
 import java.math.BigDecimal
 import java.net.URL
 import java.util.*
@@ -177,6 +179,13 @@ object ProfileProcessor {
                     imported
                 }
 
+                val configFile = File(context.processingDir, "config.yaml")
+                val preserved = if (configFile.isFile) {
+                    SubscriptionUpdateMerge.extractPreserved(configFile.readText())
+                } else {
+                    SubscriptionUpdateMerge.PreservedOverlay.EMPTY
+                }
+
                 var cb = callback
 
                 Clash.fetchAndValid(context.processingDir, snapshot.source, true) {
@@ -188,6 +197,11 @@ object ProfileProcessor {
                         Log.w("Report fetch status: $e", e)
                     }
                 }.await()
+
+                if (!preserved.isEmpty() && configFile.isFile) {
+                    val merged = SubscriptionUpdateMerge.mergeAfterFetch(configFile.readText(), preserved)
+                    configFile.writeText(merged)
+                }
 
                 profileLock.withLock {
                     if (ImportedDao().exists(snapshot.uuid)) {

@@ -6,6 +6,8 @@ import com.github.kr328.clash.service.data.Imported
 import com.github.kr328.clash.service.data.ImportedDao
 import com.github.kr328.clash.service.data.Pending
 import com.github.kr328.clash.service.data.PendingDao
+import com.github.kr328.clash.service.data.Selection
+import com.github.kr328.clash.service.data.SelectionDao
 import com.github.kr328.clash.service.model.Profile
 import com.github.kr328.clash.service.remote.IFetchObserver
 import com.github.kr328.clash.service.remote.IProfileManager
@@ -13,6 +15,11 @@ import com.github.kr328.clash.service.store.ServiceStore
 import com.github.kr328.clash.service.util.directoryLastModified
 import com.github.kr328.clash.service.util.generateProfileUUID
 import com.github.kr328.clash.service.util.importedDir
+import com.github.kr328.clash.service.util.ProxyGroupsYamlPreview
+import com.github.kr328.clash.service.util.ProxyYamlPreview
+import com.github.kr328.clash.service.util.RuleProviderYamlMerge
+import com.github.kr328.clash.service.util.RuleProvidersYamlEdit
+import com.github.kr328.clash.service.util.YamlFormatting
 import com.github.kr328.clash.service.util.pendingDir
 import com.github.kr328.clash.service.util.sendProfileChanged
 import kotlinx.coroutines.CoroutineScope
@@ -21,6 +28,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import java.io.File
 import java.io.FileNotFoundException
 import java.math.BigDecimal
 import java.util.*
@@ -249,6 +257,140 @@ class ProfileManager(private val context: Context) : IProfileManager,
 
     override suspend fun setActive(profile: Profile) {
         ProfileProcessor.active(context, profile.uuid)
+    }
+
+    override suspend fun mergeRuleProviderYaml(
+        uuid: UUID,
+        ruleProvidersYaml: String,
+        prependRuleLine: String,
+    ): Boolean {
+        return withContext(Dispatchers.IO) {
+            val exists = ImportedDao().queryByUUID(uuid) != null
+            if (!exists) {
+                return@withContext false
+            }
+            val file = File(context.importedDir, "${uuid}/config.yaml")
+            if (!file.isFile) {
+                return@withContext false
+            }
+            try {
+                val text = file.readText()
+                val hasRuleProviders = runCatching {
+                    YamlFormatting.parseRootMap(text)?.containsKey("rule-providers") == true
+                }.getOrElse { text.contains("rule-providers:") }
+                val merged = if (hasRuleProviders) {
+                    RuleProviderYamlMerge.mergeWhenRuleProvidersExist(text, ruleProvidersYaml, prependRuleLine)
+                } else {
+                    RuleProviderYamlMerge.merge(text, ruleProvidersYaml, prependRuleLine)
+                }
+                file.writeText(merged)
+                context.sendProfileChanged(uuid)
+                true
+            } catch (_: Exception) {
+                false
+            }
+        }
+    }
+
+    override suspend fun readProxyGroupsPreview(uuid: UUID): Map<String, List<String>> {
+        return withContext(Dispatchers.IO) {
+            if (ImportedDao().queryByUUID(uuid) == null) {
+                return@withContext emptyMap()
+            }
+            val file = File(context.importedDir, "$uuid/config.yaml")
+            if (!file.isFile) {
+                return@withContext emptyMap()
+            }
+            try {
+                ProxyGroupsYamlPreview.parseProxyNamesByGroup(file.readText())
+            } catch (_: Exception) {
+                emptyMap()
+            }
+        }
+    }
+
+    override suspend fun readRuleProvidersYaml(uuid: UUID): String? {
+        return withContext(Dispatchers.IO) {
+            if (ImportedDao().queryByUUID(uuid) == null) {
+                return@withContext null
+            }
+            val file = File(context.importedDir, "$uuid/config.yaml")
+            if (!file.isFile) {
+                return@withContext null
+            }
+            try {
+                RuleProvidersYamlEdit.extractBlock(file.readText())
+            } catch (_: Exception) {
+                null
+            }
+        }
+    }
+
+    override suspend fun replaceRuleProvidersYaml(uuid: UUID, yaml: String): Boolean {
+        return withContext(Dispatchers.IO) {
+            if (ImportedDao().queryByUUID(uuid) == null) {
+                return@withContext false
+            }
+            val file = File(context.importedDir, "$uuid/config.yaml")
+            if (!file.isFile) {
+                return@withContext false
+            }
+            try {
+                val merged = RuleProvidersYamlEdit.mergeIntoConfig(file.readText(), yaml)
+                file.writeText(merged)
+                context.sendProfileChanged(uuid)
+                true
+            } catch (_: Exception) {
+                false
+            }
+        }
+    }
+
+    override suspend fun readProxyEntryYaml(uuid: UUID, proxyName: String): String? {
+        return withContext(Dispatchers.IO) {
+            if (ImportedDao().queryByUUID(uuid) == null) {
+                return@withContext null
+            }
+            val file = File(context.importedDir, "$uuid/config.yaml")
+            if (!file.isFile) {
+                return@withContext null
+            }
+            try {
+                ProxyYamlPreview.extractProxyEntry(file.readText(), proxyName)
+            } catch (_: Exception) {
+                null
+            }
+        }
+    }
+
+    override suspend fun rememberProxySelection(uuid: UUID, group: String, name: String) {
+        withContext(Dispatchers.IO) {
+            if (ImportedDao().queryByUUID(uuid) == null) return@withContext
+            SelectionDao().setSelected(Selection(uuid, group, name))
+        }
+    }
+
+    override suspend fun queryProxySelections(uuid: UUID): Map<String, String> {
+        return withContext(Dispatchers.IO) {
+            SelectionDao().querySelections(uuid).associate { it.proxy to it.selected }
+        }
+    }
+
+    override suspend fun readImportedConfigYaml(uuid: UUID): String? {
+        return withContext(Dispatchers.IO) {
+            if (ImportedDao().queryByUUID(uuid) == null) {
+                return@withContext null
+            }
+            val file = File(context.importedDir, "$uuid/config.yaml")
+            if (!file.isFile) {
+                return@withContext null
+            }
+            try {
+                file.readText()
+            } catch (_: Exception) {
+                null
+            }
+        }
     }
 
     private suspend fun resolveProfile(uuid: UUID): Profile? {
