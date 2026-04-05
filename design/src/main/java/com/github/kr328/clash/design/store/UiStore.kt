@@ -56,6 +56,12 @@ class UiStore(context: Context) {
         defaultValue = ""
     )
 
+    /** Persisted Rule / Global / Direct choice; survives VPN stop/start. Empty = uninitialized. */
+    var tunnelModePreference: String by store.string(
+        key = "tunnel_mode_preference",
+        defaultValue = ""
+    )
+
     var accessControlSort: AppInfoSort by store.enum(
         key = "access_control_sort",
         defaultValue = AppInfoSort.Label,

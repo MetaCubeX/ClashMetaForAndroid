@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:paddingVertical="8dp"
+    android:paddingHorizontal="4dp">
+
+    <TextView
+        android:id="@+id/rule_index"
+        android:layout_width="36dp"
+        android:layout_height="wrap_content"
+        android:alpha="0.7"
+        android:textAppearance="@style/TextAppearance.MaterialComponents.Caption"
+        tools:text="1" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/rule_line"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="monospace"
+            android:textIsSelectable="true"
+            android:textSize="12sp"
+            android:textAppearance="@style/TextAppearance.MaterialComponents.Body2"
+            tools:text="RULE-SET,MyRules,PROXY" />
+    </LinearLayout>
+</LinearLayout>

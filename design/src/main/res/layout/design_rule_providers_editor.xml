@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:fitsSystemWindows="true">
+
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            app:title="@string/rule_providers_editor_title" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingHorizontal="@dimen/main_padding_horizontal"
+            android:paddingBottom="8dp"
+            android:text="@string/rule_providers_editor_hint"
+            android:textAppearance="@style/TextAppearance.MaterialComponents.Body2" />
+
+        <EditText
+            android:id="@+id/yaml_input"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:fontFamily="monospace"
+            android:gravity="top|start"
+            android:hint="rule-providers:"
+            android:inputType="textMultiLine|textNoSuggestions"
+            android:padding="@dimen/main_padding_horizontal"
+            android:textSize="12sp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_save"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/main_padding_horizontal"
+            android:text="@string/rule_providers_save" />
+    </LinearLayout>
+</layout>

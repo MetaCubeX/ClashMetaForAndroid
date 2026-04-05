@@ -13,6 +13,17 @@
     <string name="direct_mode">Direct Mode</string>
     <string name="rule_mode">Rule Mode</string>
     <string name="global_mode">Global Mode</string>
+    <string name="mode_chip_rule">Rule</string>
+    <string name="mode_chip_global">Global</string>
+    <string name="mode_chip_direct">Direct</string>
+    <string name="main_nav_dot" translatable="false">\u00b7</string>
+    <string name="main_emoji_moon" translatable="false">\uD83C\uDF19</string>
+    <string name="main_emoji_sun" translatable="false">\u2600</string>
+    <string name="main_emoji_rocket" translatable="false">\uD83D\uDE80</string>
+    <string name="main_emoji_flame" translatable="false">\uD83D\uDD25</string>
+    <string name="mode_emoji_rule" translatable="false">\uD83D\uDCDC</string>
+    <string name="mode_emoji_global" translatable="false">\uD83C\uDF0D</string>
+    <string name="mode_emoji_direct" translatable="false">\u27A1\uFE0F</string>
     <string name="proxy_empty_tips">No groups can be displayed</string>
 
     <string name="profiles">Profiles</string>
@@ -30,6 +41,89 @@
 
     <string name="format_minutes">%d min</string>
     <string name="format_elements">%d elements</string>
+
+    <string name="add">ADD</string>
+    <string name="rules">Rules</string>
+    <string name="routing_rules">Routing</string>
+    <string name="effective_rules_title">Routing rules</string>
+    <string name="effective_rules_intro">Rules from the active profile (YAML order). In Rule mode, Clash walks this list top to bottom. This screen does not show live traffic.</string>
+    <string name="effective_rules_count">%d rules in config</string>
+    <string name="effective_rules_connections_hint">For live hosts and proxy chains like Clash Verge, turn the VPN on and watch the core log while you use apps.</string>
+    <string name="effective_rules_open_logcat">Open core log</string>
+    <string name="effective_rules_no_profile">Select an imported profile first</string>
+    <string name="quick_actions">Quick Actions</string>
+    <string name="home_clipboard">Clipboard</string>
+    <string name="home_qr">QR-Code</string>
+    <string name="home_import_sheet_title">Add profile</string>
+    <string name="home_import_clipboard_row">📋  From clipboard</string>
+    <string name="home_import_url_row">🔗  From URL</string>
+    <string name="home_import_qr_row">📷  Scan QR code</string>
+    <string name="connections_title">Connections</string>
+    <string name="connections_intro">Live flows from the core (VPN on). Totals are session counters; list refreshes about every second.</string>
+    <string name="connections_totals_fmt">↑%1$s · ↓%2$s · %3$d flows</string>
+    <string name="connections_search_hint">Search hosts, process, rule…</string>
+    <string name="connections_empty_state">No matching connections — start traffic or clear the search filter.</string>
+    <string name="connections_open_log">Open core log</string>
+    <string name="usage_unlimited_symbol">∞</string>
+    <string name="clipboard_empty">Clipboard is empty</string>
+    <string name="clipboard_no_url">No http(s) URL found in clipboard</string>
+    <string name="import_resolving">Fetching subscription…</string>
+    <string name="import_done_named">Imported as "%s"</string>
+
+    <string name="rule_snippet_title">Rules</string>
+    <string name="rule_snippet_help_short">Connect a rules list from the web, or add one-off lines. Then copy the text into your profile (Edit / YAML).</string>
+    <string name="rule_provider_easy_intro">Paste the rules link you got from your service. No need to write YAML — tap Prepare, then Copy below.</string>
+    <string name="rule_snippet_policy_for_ruleset">Send matching traffic via</string>
+    <string name="rule_snippet_apply">Apply</string>
+    <string name="rule_snippet_apply_ok">Rule provider written to the active profile. Reloading…</string>
+    <string name="rule_snippet_apply_failed">Could not apply (no profile, or config already has rule-providers).</string>
+    <string name="rule_provider_advanced">Advanced options</string>
+    <string name="profile_proxy_group">Proxy group</string>
+    <string name="profile_ping_ms_result">Latency ~%d ms (direct)</string>
+    <string name="profile_ping_timeout">Ping: timeout</string>
+    <string name="profile_ping_need_url">Ping needs a subscription URL profile</string>
+    <string name="rule_mode_provider">Online list</string>
+    <string name="rule_mode_manual">Manual rule</string>
+    <string name="rule_manual_type">Rule type</string>
+    <string name="rule_manual_content">Rule content</string>
+    <string name="rule_manual_policy">Proxy policy</string>
+    <string name="rule_manual_prepend">Prepend rule</string>
+    <string name="rule_manual_append">Append rule</string>
+    <string name="rule_manual_clear">Clear list</string>
+    <string name="rule_manual_content_hint">e.g. google.com or 10.0.0.0/8</string>
+    <string name="rule_manual_match_hint">MATCH uses only policy (leave content empty)</string>
+    <string name="rule_manual_need_content">Enter rule content for this type</string>
+    <string name="rule_snippet_url">Link to the rules file (https)</string>
+    <string name="rule_snippet_interval_hours">Auto-update (hours)</string>
+    <string name="rule_snippet_provider_key">Provider name (RULE-SET key)</string>
+    <string name="rule_snippet_selector_target">Policy / group for RULE-SET (e.g. PROXY, DIRECT, Automatic)</string>
+    <string name="rule_snippet_generate">Prepare text</string>
+    <string name="rule_snippet_overflow_cd">More actions</string>
+    <string name="rule_snippet_copy">Copy to clipboard</string>
+    <string name="rule_snippet_open_engine">Engine overrides (ports, DNS…)</string>
+    <string name="rule_snippet_output_label">Output</string>
+    <string name="rule_yaml_show_preview">Show full YAML</string>
+    <string name="rule_yaml_hide_preview">Hide YAML</string>
+
+    <string name="home_proxy">Proxies</string>
+    <string name="theme_toggle">Switch theme (light / dark)</string>
+    <string name="profile_expand_proxies">Proxy groups</string>
+    <string name="profile_ping_all">Latency test (all nodes)</string>
+    <string name="profile_force_update">Update subscription from URL</string>
+    <string name="proxy_open_yaml">Proxy YAML from config</string>
+    <string name="proxy_yaml_missing">This proxy is not listed under proxies: in the saved config (subscription-only name).</string>
+    <string name="profile_update_scheduled">Subscription update started</string>
+    <string name="profile_menu_set_active">Set active</string>
+    <string name="profile_delete_confirm">Delete this profile? This cannot be undone.</string>
+    <string name="proxy_offline_need_vpn">Start the VPN to switch nodes</string>
+    <string name="rule_apply_scope">Apply rule provider to</string>
+    <string name="rule_apply_active_only">Active profile only</string>
+    <string name="rule_apply_all_imported">All imported profiles</string>
+    <string name="rule_edit_rule_providers">Edit rule-providers in config</string>
+    <string name="rule_providers_editor_title">Rule providers</string>
+    <string name="rule_providers_save">Save</string>
+    <string name="rule_providers_editor_hint">Edit the rule-providers block. Save writes to the selected profile.</string>
+    <string name="rule_apply_partial">Applied to %1$d profile(s), %2$d failed</string>
 
     <string name="format_minutes_ago">%d min ago</string>
     <string name="format_hours_ago">%d hours ago</string>
@@ -89,6 +183,7 @@
     <string name="verifying">Verifying</string>
 
     <string name="new_profile">New Profile</string>
+    <string name="subscription_default_name">Subscription</string>
 
     <string name="delay">Delay</string>
     <string name="sort">Sort</string>
@@ -220,7 +315,7 @@
     <string name="clash_wiki">Clash Wiki</string>
     <string name="github_issues">Github Issues</string>
     <string name="google_play">Google Play</string>
-    <string name="clash_meta_core">Clash Meta Core</string>
+    <string name="clash_meta_core">Mihomo (Clash.Meta) core</string>
     <string name="clash_wiki_url" translatable="false">https://github.com/Dreamacro/clash/wiki</string>
     <string name="meta_github_url" translatable="false">https://github.com/Nemu-x/ClashFest</string>
     <string name="clash_meta_core_url" translatable="false">https://github.com/MetaCubeX/Clash.Meta</string>
@@ -296,7 +391,7 @@
 
     <string name="mode_switch_tips">Valid only for current session</string>
 
-    <string name="clash_meta_wiki">Clash Meta Wiki</string>
+    <string name="clash_meta_wiki">Documentation (wiki)</string>
     <string name="clash_meta_wiki_url" translatable="false">https://wiki.metacubex.one</string>
 
     <string name="meta_features">Meta Features</string>

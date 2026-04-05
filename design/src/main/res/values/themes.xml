@@ -36,18 +36,18 @@
         <item name="paddingBottomSystemWindowInsets">false</item>
         <item name="paddingLeftSystemWindowInsets">false</item>
 
-        <item name="colorPrimary">@color/color_clash_dark</item>
-        <item name="colorOnPrimary">@android:color/white</item>
-        <item name="colorSurface">@color/color_dark_surface</item>
+        <item name="colorPrimary">@color/tech_primary</item>
+        <item name="colorOnPrimary">@color/tech_on_primary</item>
+        <item name="colorSecondary">@color/tech_secondary</item>
+        <item name="colorOnSecondary">@color/tech_text_primary</item>
+        <item name="colorSurface">@color/tech_surface</item>
         <item name="colorControlDisabled">@color/color_dark_control_disabled</item>
-        <item name="android:windowBackground">@color/color_dark_background</item>
+        <item name="android:windowBackground">@color/tech_bg</item>
 
         <item name="colorPrimaryDark">?attr/colorPrimary</item>
-        <item name="colorSecondary">?attr/colorPrimary</item>
-        <item name="colorOnSecondary">?attr/colorOnPrimary</item>
         <item name="colorControlActivated">?attr/colorPrimary</item>
-        <item name="colorClashStopped">?attr/colorSurface</item>
-        <item name="android:textColor">?attr/colorControlNormal</item>
+        <item name="colorClashStopped">@color/tech_card</item>
+        <item name="android:textColor">@color/tech_text_primary</item>
     </style>
 
     <style name="AppFullScreenDialogLight" parent="AppFullScreenDialogLightBase">
@@ -87,17 +87,20 @@
         <item name="paddingBottomSystemWindowInsets">false</item>
         <item name="paddingLeftSystemWindowInsets">false</item>
 
-        <item name="colorPrimary">@color/color_clash_dark</item>
-        <item name="colorOnPrimary">@android:color/white</item>
-        <item name="colorSurface">@color/color_dark_surface</item>
+        <item name="colorPrimary">@color/tech_primary</item>
+        <item name="colorOnPrimary">@color/tech_on_primary</item>
+        <item name="colorSecondary">@color/tech_secondary</item>
+        <item name="colorOnSecondary">@color/tech_text_primary</item>
+        <item name="colorSurface">@color/tech_surface</item>
         <item name="colorControlDisabled">@color/color_dark_control_disabled</item>
 
         <item name="colorPrimaryDark">?attr/colorPrimary</item>
-        <item name="colorSecondary">?attr/colorPrimary</item>
-        <item name="colorOnSecondary">?attr/colorOnPrimary</item>
         <item name="colorControlActivated">?attr/colorPrimary</item>
-        <item name="colorClashStopped">?attr/colorSurface</item>
-        <item name="android:textColor">?attr/colorControlNormal</item>
+        <item name="colorClashStopped">@color/tech_card</item>
+        <item name="colorControlNormal">@color/tech_text_primary</item>
+        <item name="android:textColor">@color/tech_text_primary</item>
+        <!-- Opaque window background hides the activity behind the sheet; use scrim only. -->
+        <item name="android:windowBackground">@android:color/transparent</item>
 
         <item name="bottomSheetStyle">@style/AppBottomSheetStyle</item>
     </style>
@@ -117,6 +120,19 @@
         <item name="android:ambientShadowAlpha">0.08</item>
         <item name="android:spotShadowAlpha">0.08</item>
 
+        <item name="mainDashboardBackground">@drawable/bg_main_gradient_light</item>
+        <item name="colorMainDashboardText">#DE121212</item>
+        <item name="colorMainModeChipLabel">#DE1A1A1A</item>
+        <item name="colorMainCardGlass">#CCE8EEF5</item>
+        <item name="colorMainPowerStroke">#668B5CF6</item>
+        <item name="colorMainGlassStroke">#28000000</item>
+
+        <item name="colorSurface">#FFFFFFFF</item>
+        <item name="colorOnSurface">#DE121212</item>
+        <item name="colorOnSurfaceVariant">#990E0E0E</item>
+        <item name="profileCardBackground">@drawable/bg_profile_card_gradient_light</item>
+        <item name="profileProxyBlockBackground">@drawable/bg_proxy_block_light</item>
+
         <item name="colorPrimary">@color/color_clash_light</item>
         <item name="colorOnPrimary">@android:color/white</item>
         <item name="colorControlNormal">@android:color/black</item>
@@ -135,23 +151,35 @@
     </style>
 
     <style name="AppThemeDarkBase" parent="Theme.MaterialComponents.NoActionBar">
-        <item name="android:windowBackground">@color/color_dark_background</item>
-        <item name="android:ambientShadowAlpha">0.08</item>
-        <item name="android:spotShadowAlpha">0.08</item>
+        <item name="android:windowBackground">@color/tech_bg</item>
+        <item name="android:ambientShadowAlpha">0.12</item>
+        <item name="android:spotShadowAlpha">0.14</item>
 
-        <item name="colorPrimary">@color/color_clash_dark</item>
-        <item name="colorOnPrimary">@android:color/white</item>
-        <item name="colorSurface">@color/color_dark_surface</item>
-        <item name="colorControlNormal">@android:color/white</item>
+        <item name="mainDashboardBackground">@drawable/bg_main_gradient</item>
+        <item name="colorMainDashboardText">@color/tech_text_primary</item>
+        <item name="colorMainModeChipLabel">@color/tech_mode_chip_label</item>
+        <item name="colorMainCardGlass">@color/main_card_glass</item>
+        <item name="colorMainPowerStroke">@color/main_power_stroke</item>
+        <item name="colorMainGlassStroke">#55FFFFFF</item>
+
+        <item name="profileCardBackground">@drawable/bg_profile_card_gradient</item>
+        <item name="profileProxyBlockBackground">@drawable/bg_proxy_block</item>
+        <item name="colorOnSurface">@color/tech_text_primary</item>
+        <item name="colorOnSurfaceVariant">@color/tech_text_secondary</item>
+
+        <item name="colorPrimary">@color/tech_primary</item>
+        <item name="colorOnPrimary">@color/tech_on_primary</item>
+        <item name="colorSecondary">@color/tech_secondary</item>
+        <item name="colorOnSecondary">@color/tech_text_primary</item>
+        <item name="colorSurface">@color/tech_surface</item>
+        <item name="colorControlNormal">@color/tech_text_primary</item>
         <item name="colorControlDisabled">@color/color_dark_control_disabled</item>
 
         <item name="colorPrimaryDark">?attr/colorPrimary</item>
-        <item name="colorSecondary">?attr/colorPrimary</item>
-        <item name="colorOnSecondary">?attr/colorOnPrimary</item>
         <item name="colorControlActivated">?attr/colorPrimary</item>
-        <item name="colorClashStopped">?attr/colorSurface</item>
-        <item name="colorLogo">?attr/colorControlNormal</item>
-        <item name="android:textColor">?attr/colorControlNormal</item>
+        <item name="colorClashStopped">@color/tech_card</item>
+        <item name="colorLogo">@color/tech_text_primary</item>
+        <item name="android:textColor">@color/tech_text_primary</item>
 
         <item name="bottomSheetDialogTheme">@style/AppBottomSheetDialogDark</item>
         <item name="fullScreenDialogTheme">@style/AppFullScreenDialogDark</item>

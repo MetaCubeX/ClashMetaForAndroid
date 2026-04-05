@@ -1,141 +1,249 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android">
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
     <data>
         <variable
             name="profile"
             type="com.github.kr328.clash.service.model.Profile" />
         <variable
-            name="currentTime"
-            type="com.github.kr328.clash.design.ui.ObservableCurrentTime" />
-        <variable
             name="clicked"
-            type="android.view.View.OnClickListener" />
-        <variable
-            name="menu"
             type="android.view.View.OnClickListener" />
         <import type="android.view.View" />
         <import type="com.github.kr328.clash.design.util.I18nKt" />
-        <import type="com.github.kr328.clash.design.util.IntervalKt" />
     </data>
 
-    <RelativeLayout
-        android:elevation="5dp"
-        android:id="@+id/root_view"
+    <!-- One RecyclerView row: profile strip + optional proxy block (siblings, no overlap) -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginVertical="5dp"
         android:layout_marginHorizontal="@dimen/item_header_margin"
-        android:background="@drawable/bg_b"
-        android:clickable="true"
-        android:focusable="true"
-        android:minHeight="@dimen/item_min_height"
-        android:nextFocusRight="@id/menu_view"
-        android:onClick="@{clicked}">
+        android:layout_marginBottom="@dimen/profile_item_spacing"
+        android:orientation="vertical">
 
-        <RadioButton
-            android:id="@+id/icon_view"
-            android:layout_width="@dimen/item_header_component_size"
-            android:layout_height="@dimen/item_header_component_size"
-            android:layout_centerVertical="true"
-            android:layout_marginHorizontal="@dimen/item_header_margin"
-            android:checked="@{profile.active}"
-            android:clickable="false"
-            android:focusable="false"
-            android:gravity="center" />
-
-        <LinearLayout
-            android:layout_width="wrap_content"
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/profile_card"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_centerVertical="true"
-            android:layout_toStartOf="@id/elapsed_view"
-            android:layout_toEndOf="@id/icon_view"
-            android:orientation="vertical"
-            android:paddingVertical="@dimen/item_padding_vertical">
+            app:cardBackgroundColor="@android:color/transparent"
+            app:cardCornerRadius="14dp"
+            app:cardElevation="3dp"
+            app:strokeWidth="0dp"
+            app:strokeColor="@color/tech_primary">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@{profile.name}"
-                android:textAppearance="@style/TextAppearance.MaterialComponents.Body1" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/item_text_margin"
-                android:text="@{profile.pending ? @string/format_type_unsaved(I18nKt.toString(profile.type, context)) : I18nKt.toString(profile.type, context)}"
-                android:textAppearance="@style/TextAppearance.MaterialComponents.Body2" />
             <LinearLayout
+                android:id="@+id/root_view"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
+                android:background="?attr/profileCardBackground"
+                android:baselineAligned="false"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:minHeight="@dimen/profile_header_strip_height"
+                android:onClick="@{clicked}"
                 android:orientation="horizontal"
-                >
+                android:paddingVertical="6dp"
+                android:paddingStart="10dp"
+                android:paddingEnd="8dp">
 
-                <TextView
-                    android:textSize="12sp"
+                <View
+                    android:id="@+id/active_strip"
+                    android:layout_width="3dp"
+                    android:layout_height="@dimen/profile_header_strip_height"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginEnd="10dp"
+                    android:background="@color/tech_primary"
+                    android:visibility="@{profile.active ? View.VISIBLE : View.INVISIBLE}" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:paddingEnd="4dp">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:ellipsize="end"
+                        android:maxLines="2"
+                        android:text="@{profile.name}"
+                        android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1"
+                        android:textColor="?attr/colorOnSurface"
+                        android:textStyle="bold"
+                        tools:text="Profile" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:alpha="0.88"
+                        android:text="@{profile.pending ? @string/format_type_unsaved(I18nKt.toString(profile.type, context)) : I18nKt.toString(profile.type, context)}"
+                        android:textAppearance="@style/TextAppearance.MaterialComponents.Caption"
+                        android:textColor="?attr/colorOnSurfaceVariant"
+                        tools:text="URL" />
+
+                    <TextView
+                        android:id="@+id/usage_summary"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:textAppearance="@style/TextAppearance.MaterialComponents.Caption"
+                        android:textColor="?attr/colorOnSurfaceVariant"
+                        android:visibility="gone"
+                        tools:text="1.2 GiB / ∞"
+                        tools:visibility="visible" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text='@{profile.expire>0 ? I18nKt.toDateStr(profile.expire):""}'
+                        android:textAppearance="@style/TextAppearance.MaterialComponents.Caption"
+                        android:textColor="?attr/colorOnSurfaceVariant"
+                        android:visibility="@{profile.expire==0 ? View.GONE : View.VISIBLE}" />
+
+                    <ProgressBar
+                        android:id="@+id/usage_progress"
+                        style="?android:attr/progressBarStyleHorizontal"
+                        android:layout_width="match_parent"
+                        android:layout_height="3dp"
+                        android:layout_marginTop="4dp"
+                        android:max="1000"
+                        android:visibility="gone"
+                        tools:progress="400"
+                        tools:visibility="visible" />
+                </LinearLayout>
+
+                <FrameLayout
+                    android:id="@+id/force_update_slot"
+                    android:layout_width="@dimen/profile_action_slot"
+                    android:layout_height="@dimen/profile_action_slot"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginEnd="2dp">
+
+                    <ImageView
+                        android:id="@+id/force_update_view"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:clickable="true"
+                        android:contentDescription="@string/profile_force_update"
+                        android:focusable="true"
+                        android:padding="8dp"
+                        android:scaleType="centerInside"
+                        android:src="@drawable/ic_baseline_sync"
+                        android:visibility="gone"
+                        app:tint="?attr/colorControlNormal" />
+                </FrameLayout>
+
+                <FrameLayout
+                    android:id="@+id/ping_slot"
+                    android:layout_width="@dimen/profile_action_slot"
+                    android:layout_height="@dimen/profile_action_slot"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginEnd="2dp">
+
+                    <ImageView
+                        android:id="@+id/ping_all_view"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:clickable="true"
+                        android:contentDescription="@string/profile_ping_all"
+                        android:focusable="true"
+                        android:padding="6dp"
+                        android:scaleType="fitCenter"
+                        android:src="@drawable/ic_speedometer_ping"
+                        android:visibility="gone"
+                        app:tint="?attr/colorPrimary" />
+
+                    <ProgressBar
+                        android:id="@+id/ping_progress"
+                        style="?android:attr/progressBarStyle"
+                        android:layout_width="22dp"
+                        android:layout_height="22dp"
+                        android:layout_gravity="center"
+                        android:indeterminateTint="?attr/colorPrimary"
+                        android:visibility="gone" />
+                </FrameLayout>
+
+                <FrameLayout
+                    android:id="@+id/chevron_slot"
+                    android:layout_width="@dimen/profile_action_slot"
+                    android:layout_height="@dimen/profile_action_slot"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginEnd="2dp">
+
+                    <ImageView
+                        android:id="@+id/chevron_view"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:clickable="true"
+                        android:contentDescription="@string/profile_expand_proxies"
+                        android:focusable="true"
+                        android:padding="8dp"
+                        android:scaleType="centerInside"
+                        android:src="@drawable/ic_baseline_expand_more"
+                        android:visibility="gone"
+                        app:tint="?attr/colorControlNormal" />
+                </FrameLayout>
+
+                <FrameLayout
+                    android:id="@+id/menu_view"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:visibility="@{profile.download &lt;2 ? View.GONE : View.VISIBLE}"
-                    android:text='@{profile.download >1  ?I18nKt.toBytesString(profile.download+profile.upload)+"/" :""}'
-                    android:textAppearance="@style/TextAppearance.MaterialComponents.Body1" />
+                    android:layout_gravity="center_vertical"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:clickable="true"
+                    android:focusable="true">
 
-                <TextView
-                    android:textSize="12sp"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:visibility="@{profile.download &lt;2 ? View.GONE : View.VISIBLE}"
-                    android:text='@{profile.total >1 ?I18nKt.toBytesString(profile.total) : ""}'
-                    android:textAppearance="@style/TextAppearance.MaterialComponents.Body1" />
+                    <ImageView
+                        android:layout_width="@dimen/item_tailing_component_size"
+                        android:layout_height="@dimen/item_tailing_component_size"
+                        android:layout_margin="6dp"
+                        android:contentDescription="@string/more"
+                        android:src="@drawable/ic_baseline_more_vert"
+                        app:tint="?attr/colorControlNormal" />
+                </FrameLayout>
             </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Separate block: NOT inside profile card -->
+        <LinearLayout
+            android:id="@+id/proxy_expand_panel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/profile_proxy_block_spacing"
+            android:background="?attr/profileProxyBlockBackground"
+            android:orientation="vertical"
+            android:paddingStart="12dp"
+            android:paddingTop="10dp"
+            android:paddingEnd="12dp"
+            android:paddingBottom="10dp"
+            android:visibility="gone">
+
             <TextView
-                android:textSize="12sp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:visibility="@{profile.expire==0 ? View.GONE : View.VISIBLE}"
-                android:text='@{profile.expire>0 ? I18nKt.toDateStr(profile.expire):""}'
-                android:textAppearance="@style/TextAppearance.MaterialComponents.Body1" />
-            <ProgressBar
-                style="?android:attr/progressBarStyleHorizontal"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:max="1000"
-                android:visibility="@{profile.total &lt; 2 ? View.GONE : View.VISIBLE}"
-                android:progress="@{profile.total>1 ?I18nKt.toProgress ((profile.download+profile.upload)/(profile.total/1000)) :0}"
-                />
+                android:paddingBottom="6dp"
+                android:text="@string/profile_proxy_group"
+                android:textAppearance="@style/TextAppearance.MaterialComponents.Caption"
+                android:textColor="?attr/colorOnSurfaceVariant" />
+
+            <Spinner
+                android:id="@+id/proxy_group_spinner"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="44dp" />
+
+            <LinearLayout
+                android:id="@+id/proxy_nodes_list"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:orientation="vertical" />
         </LinearLayout>
-
-        <TextView
-            android:id="@+id/elapsed_view"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerVertical="true"
-            android:layout_marginEnd="@dimen/item_midden_margin"
-            android:layout_toStartOf="@id/menu_view"
-            android:text="@{IntervalKt.elapsedIntervalString(currentTime.value - profile.updatedAt, context)}"
-            android:textAppearance="@style/TextAppearance.MaterialComponents.Tooltip" />
-
-        <View
-            android:layout_width="2dp"
-            android:layout_height="match_parent"
-            android:layout_toStartOf="@id/menu_view"
-            android:background="@color/color_clash_dark" />
-
-        <FrameLayout
-            android:id="@+id/menu_view"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentEnd="true"
-            android:layout_centerVertical="true"
-            android:background="?attr/selectableItemBackground"
-            android:clickable="true"
-            android:focusable="true"
-            android:nextFocusLeft="@id/root_view"
-            android:onClick="@{menu}">
-
-            <View
-                android:layout_width="@dimen/item_tailing_component_size"
-                android:layout_height="@dimen/item_tailing_component_size"
-                android:layout_margin="@dimen/item_tailing_margin"
-                android:background="@drawable/ic_baseline_more_vert" />
-        </FrameLayout>
-    </RelativeLayout>
+    </LinearLayout>
 </layout>

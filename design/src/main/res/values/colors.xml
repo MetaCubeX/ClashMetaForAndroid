@@ -1,13 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Light (legacy names kept for compatibility) -->
     <color name="color_clash_light">#1e4376</color>
-    <color name="color_clash_dark">#1976d2</color>
     <color name="color_system_ui_overlay">#50000000</color>
-    <color name="color_light_background">#FFFAFAFA</color>
-    <color name="color_dark_background">#FF121212</color>
-    <color name="color_dark_surface">#FF202020</color>
+    <color name="color_light_background">#FFF7F9FC</color>
     <color name="color_light_clash_stopped">#FF808080</color>
     <color name="color_light_control_disabled">#FFD3D3D3</color>
-    <color name="color_dark_control_disabled">#FF808080</color>
     <color name="color_error">#FFB00020</color>
+
+    <!-- Dark Tech palette (ClashFest default dark) -->
+    <color name="tech_bg">#0B0F14</color>
+    <color name="tech_surface">#121821</color>
+    <color name="tech_card">#1A2330</color>
+    <!-- Neon green (cyberpunk primary) -->
+    <color name="tech_primary">#00E676</color>
+    <color name="tech_on_primary">#0B0F14</color>
+    <color name="tech_secondary">#8B5CF6</color>
+    <color name="tech_secondary_soft">#664ADE80</color>
+    <color name="tech_text_primary">#E6EDF3</color>
+    <color name="tech_text_secondary">#9BA3AF</color>
+    <color name="tech_divider">#2A3344</color>
+
+    <!-- Legacy dark aliases → Dark Tech -->
+    <color name="color_clash_dark">@color/tech_primary</color>
+    <color name="color_dark_background">@color/tech_bg</color>
+    <color name="color_dark_surface">@color/tech_surface</color>
+    <color name="color_dark_control_disabled">#809BA3AF</color>
+
+    <!-- Home dashboard -->
+    <color name="main_gradient_top">#151C28</color>
+    <color name="main_gradient_bottom">@color/tech_bg</color>
+    <color name="main_gradient_top_light">#E8EEF5</color>
+    <color name="main_gradient_bottom_light">#F5F7FA</color>
+    <color name="main_card_glass">#4D1A2330</color>
+    <color name="main_power_stroke">#668B5CF6</color>
+    <!-- Readable on both tech_primary (active) and tech_card (inactive) mode chips -->
+    <color name="tech_mode_chip_label">#E6EDF3</color>
+
 </resources>

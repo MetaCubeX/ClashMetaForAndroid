@@ -12,9 +12,13 @@
     <dimen name="surface_landscape_min_width">500dp</dimen>
 
     <!--  Toolbar  -->
+    <dimen name="main_toolbar_padding_horizontal">16dp</dimen>
     <dimen name="toolbar_height">56dp</dimen>
     <dimen name="toolbar_elevation">5dp</dimen>
     <dimen name="toolbar_image_action_padding">5dp</dimen>
+    <dimen name="toolbar_theme_button_size">44dp</dimen>
+    <dimen name="stroke_hairline">0dp</dimen>
+    <dimen name="stroke_neon">2dp</dimen>
 
     <!--  Tab Layout  -->
     <dimen name="tab_layout_height">48dp</dimen>
@@ -56,12 +60,24 @@
     <!-- Preference -->
     <dimen name="preference_fullscreen_button_padding">20dp</dimen>
 
+    <!-- Profile list / proxy block -->
+    <dimen name="profile_item_spacing">10dp</dimen>
+    <dimen name="profile_proxy_block_spacing">10dp</dimen>
+    <dimen name="profile_header_strip_height">52dp</dimen>
+    <dimen name="proxy_row_spacing">7dp</dimen>
+
     <!-- Main Design -->
     <dimen name="main_card_margin_vertical">5dp</dimen>
     <dimen name="main_label_margin_vertical">2dp</dimen>
     <dimen name="main_padding_horizontal">30dp</dimen>
     <dimen name="main_logo_size">50dp</dimen>
     <dimen name="main_top_banner_height">90dp</dimen>
+    <dimen name="profile_action_slot">40dp</dimen>
+    <dimen name="main_power_button_size">152dp</dimen>
+    <dimen name="main_power_glow_size">196dp</dimen>
+    <dimen name="main_power_button_radius">76dp</dimen>
+    <dimen name="main_power_icon_size">72dp</dimen>
+    <dimen name="main_bottom_action_height">52dp</dimen>
 
     <!--  Proxy Design -->
     <dimen name="proxy_layout_padding">3dp</dimen>
@@ -71,6 +87,8 @@
     <dimen name="proxy_text_margin_grid3">5dp</dimen>
     <dimen name="proxy_text_size">12sp</dimen>
     <dimen name="proxy_text_size_grid3">11sp</dimen>
+    <dimen name="proxy_chip_min_height">36dp</dimen>
+    <dimen name="chip_stroke_width">1dp</dimen>
     <dimen name="proxy_card_radius">5dp</dimen>
     <dimen name="proxy_card_offset">0dp</dimen>
 

@@ -19,7 +19,10 @@ import com.github.kr328.clash.design.util.setOnInsertsChangedListener
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 
-class AppBottomSheetDialog(context: Context) : BottomSheetDialog(context) {
+class AppBottomSheetDialog(
+    context: Context,
+    private val fitContentHeight: Boolean = false,
+) : BottomSheetDialog(context) {
     private var insets: Insets = Insets.EMPTY
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -63,8 +66,16 @@ class AppBottomSheetDialog(context: Context) : BottomSheetDialog(context) {
         }
 
         setOnShowListener {
-            behavior.halfExpandedRatio = 0.99f
-            behavior.state = BottomSheetBehavior.STATE_EXPANDED
+            if (fitContentHeight) {
+                behavior.apply {
+                    isFitToContents = true
+                    skipCollapsed = false
+                    state = BottomSheetBehavior.STATE_EXPANDED
+                }
+            } else {
+                behavior.halfExpandedRatio = 0.99f
+                behavior.state = BottomSheetBehavior.STATE_EXPANDED
+            }
         }
     }
 }

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Clash/Mihomo rule line prefixes (TYPE,arg,policy) except MATCH -->
+    <string-array name="clash_manual_rule_types">
+        <item>DOMAIN</item>
+        <item>DOMAIN-SUFFIX</item>
+        <item>DOMAIN-KEYWORD</item>
+        <item>DOMAIN-REGEX</item>
+        <item>GEOSITE</item>
+        <item>GEOIP</item>
+        <item>IP-CIDR</item>
+        <item>IP-CIDR6</item>
+        <item>SRC-IP-CIDR</item>
+        <item>DST-PORT</item>
+        <item>SRC-PORT</item>
+        <item>PROCESS-NAME</item>
+        <item>PROCESS-PATH</item>
+        <item>RULE-SET</item>
+        <item>MATCH</item>
+    </string-array>
+</resources>

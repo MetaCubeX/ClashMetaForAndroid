@@ -29,7 +29,7 @@ class ProfilesDesign(context: Context) : Design<ProfilesDesign.Request>(context)
 
     private val binding = DesignProfilesBinding
         .inflate(context.layoutInflater, context.root, false)
-    private val adapter = ProfileAdapter(context, this::requestActive, this::showMenu)
+    private val adapter = ProfileAdapter(this::requestActive, this::showMenu)
 
     private var allUpdating: Boolean
         get() = adapter.states.allUpdating;
@@ -78,7 +78,7 @@ class ProfilesDesign(context: Context) : Design<ProfilesDesign.Request>(context)
         }
     }
 
-    private fun showMenu(profile: Profile) {
+    private fun showMenu(profile: Profile, @Suppress("UNUSED_PARAMETER") anchor: View) {
         val dialog = AppBottomSheetDialog(context)
 
         val binding = DialogProfilesMenuBinding

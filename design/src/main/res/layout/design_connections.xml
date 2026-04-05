@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+        <variable
+            name="self"
+            type="com.github.kr328.clash.design.ConnectionsDesign" />
+    </data>
+
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingStart="@{self.surface.insets.start}"
+        android:paddingEnd="@{self.surface.insets.end}">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:paddingTop="@{(float) self.surface.insets.top + @dimen/toolbar_height}"
+            android:paddingBottom="@{self.surface.insets.bottom}">
+
+            <TextView
+                android:id="@+id/connections_totals"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:lineSpacingMultiplier="1.15"
+                android:paddingHorizontal="@dimen/main_padding_horizontal"
+                android:paddingBottom="8dp"
+                android:textAppearance="@style/TextAppearance.MaterialComponents.Body2"
+                tools:text="↑0 B · ↓0 B · 0 flows" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:alpha="0.9"
+                android:lineSpacingMultiplier="1.15"
+                android:paddingHorizontal="@dimen/main_padding_horizontal"
+                android:paddingBottom="10dp"
+                android:text="@string/connections_intro"
+                android:textAppearance="@style/TextAppearance.MaterialComponents.Caption" />
+
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="@dimen/main_padding_horizontal"
+                android:layout_marginBottom="8dp"
+                android:hint="@string/connections_search_hint"
+                app:boxStrokeColor="@color/tech_primary"
+                app:hintTextColor="@color/tech_secondary">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/connections_search"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="text"
+                    android:maxLines="1" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1">
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/connections_list"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:clipToPadding="false"
+                    android:paddingHorizontal="@dimen/main_padding_horizontal"
+                    android:scrollbars="vertical"
+                    app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+
+                <TextView
+                    android:id="@+id/connections_empty_hint"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:alpha="0.85"
+                    android:gravity="center"
+                    android:paddingHorizontal="@dimen/main_padding_horizontal"
+                    android:text="@string/connections_empty_state"
+                    android:textAppearance="@style/TextAppearance.MaterialComponents.Caption" />
+            </FrameLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_connections_open_log"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="@dimen/main_padding_horizontal"
+                android:layout_marginBottom="12dp"
+                android:text="@string/connections_open_log"
+                app:strokeColor="@color/tech_primary" />
+        </LinearLayout>
+
+        <com.github.kr328.clash.design.view.ActivityBarLayout
+            android:id="@+id/activity_bar_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="@{self.surface.insets.top}"
+            android:paddingStart="@dimen/item_tailing_margin"
+            android:paddingEnd="@dimen/item_tailing_margin">
+
+            <include layout="@layout/common_activity_bar" />
+        </com.github.kr328.clash.design.view.ActivityBarLayout>
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
+</layout>

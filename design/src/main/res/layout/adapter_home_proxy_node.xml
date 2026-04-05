@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="@dimen/proxy_row_spacing"
+    android:background="@drawable/bg_b"
+    android:gravity="center_vertical"
+    android:minHeight="48dp"
+    android:orientation="horizontal"
+    android:paddingVertical="8dp"
+    android:paddingStart="8dp"
+    android:paddingEnd="8dp">
+
+    <LinearLayout
+        android:id="@+id/proxy_row_main_hit"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:background="?attr/selectableItemBackground"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <View
+            android:id="@+id/selected_bar"
+            android:layout_width="3dp"
+            android:layout_height="match_parent"
+            android:layout_marginEnd="6dp"
+            android:background="?attr/colorPrimary"
+            android:visibility="invisible" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/proxy_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="2"
+                android:textAppearance="@style/TextAppearance.MaterialComponents.Body2"
+                android:textColor="?attr/colorOnSurface"
+                tools:text="🦖 Node [VLESS]" />
+
+            <TextView
+                android:id="@+id/proxy_subtitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:alpha="0.88"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textAppearance="@style/TextAppearance.MaterialComponents.Caption"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                tools:text="VLESS" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/proxy_delay"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:layout_marginStart="4dp"
+        android:alpha="0.9"
+        android:gravity="end"
+        android:minWidth="44dp"
+        android:textAppearance="@style/TextAppearance.MaterialComponents.Caption"
+        android:textColor="?attr/colorOnSurfaceVariant"
+        tools:text="334ms" />
+</LinearLayout>

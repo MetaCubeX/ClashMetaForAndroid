@@ -6,6 +6,17 @@
     <attr name="colorControlDisabled" format="color" />
     <attr name="colorLogo" format="color" />
 
+    <!-- Main dashboard (home): resolves per AppThemeLight / AppThemeDark -->
+    <attr name="mainDashboardBackground" format="reference" />
+    <attr name="colorMainDashboardText" format="color" />
+    <attr name="colorMainModeChipLabel" format="color" />
+    <attr name="colorMainCardGlass" format="color" />
+    <attr name="colorMainPowerStroke" format="color" />
+    <attr name="colorMainGlassStroke" format="color" />
+    <!-- Profile list row + expanded proxy panel (home) -->
+    <attr name="profileCardBackground" format="reference" />
+    <attr name="profileProxyBlockBackground" format="reference" />
+
     <attr name="enabled" format="boolean" />
     <attr name="text" format="string" />
     <attr name="subtext" format="string" />

@@ -1,0 +1,330 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <data>
+        <variable
+            name="self"
+            type="com.github.kr328.clash.design.RuleSnippetDesign" />
+    </data>
+
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingStart="@{self.surface.insets.start}"
+        android:paddingEnd="@{self.surface.insets.end}">
+
+        <androidx.core.widget.NestedScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:paddingTop="@{(float) self.surface.insets.top + @dimen/toolbar_height}"
+            android:paddingBottom="@{self.surface.insets.bottom}">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingHorizontal="@dimen/main_padding_horizontal"
+                android:paddingTop="8dp"
+                android:paddingBottom="24dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingBottom="12dp"
+                    android:text="@string/rule_snippet_help_short"
+                    android:textAppearance="@style/TextAppearance.MaterialComponents.Body2" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingBottom="4dp"
+                    android:text="@string/rule_apply_scope"
+                    android:textAppearance="@style/TextAppearance.MaterialComponents.Caption" />
+
+                <Spinner
+                    android:id="@+id/spinner_apply_scope"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    android:minHeight="48dp" />
+
+                <com.google.android.material.button.MaterialButtonToggleGroup
+                    android:id="@+id/mode_toggle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    app:checkedButton="@+id/btn_mode_provider"
+                    app:selectionRequired="true"
+                    app:singleSelection="true">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_mode_provider"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:maxLines="2"
+                        android:text="@string/rule_mode_provider" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_mode_manual"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:maxLines="2"
+                        android:text="@string/rule_mode_manual" />
+                </com.google.android.material.button.MaterialButtonToggleGroup>
+
+                <LinearLayout
+                    android:id="@+id/panel_provider"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingBottom="8dp"
+                        android:text="@string/rule_provider_easy_intro"
+                        android:textAppearance="@style/TextAppearance.MaterialComponents.Body2" />
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="@string/rule_snippet_url">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/input_url"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="textUri" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingTop="8dp"
+                        android:paddingBottom="4dp"
+                        android:text="@string/rule_snippet_policy_for_ruleset"
+                        android:textAppearance="@style/TextAppearance.MaterialComponents.Caption" />
+
+                    <Spinner
+                        android:id="@+id/spinner_provider_policy"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:minHeight="48dp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_generate"
+                        style="@style/Widget.MaterialComponents.Button"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:text="@string/rule_snippet_generate" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btn_apply_provider"
+                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/rule_snippet_apply" />
+
+                        <ImageButton
+                            android:id="@+id/btn_rule_overflow"
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
+                            android:layout_marginStart="4dp"
+                            android:background="?attr/selectableItemBackgroundBorderless"
+                            android:contentDescription="@string/rule_snippet_overflow_cd"
+                            android:padding="8dp"
+                            android:src="@drawable/ic_baseline_more_vert"
+                            app:tint="?attr/colorControlNormal" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/panel_provider_advanced"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:visibility="gone">
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:hint="@string/rule_snippet_interval_hours">
+
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/input_hours"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:inputType="number"
+                                android:text="24" />
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:hint="@string/rule_snippet_provider_key">
+
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/input_key"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:inputType="text" />
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                    </LinearLayout>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/panel_manual"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingBottom="4dp"
+                        android:text="@string/rule_manual_type"
+                        android:textAppearance="@style/TextAppearance.MaterialComponents.Caption" />
+
+                    <Spinner
+                        android:id="@+id/spinner_rule_type"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:minHeight="48dp" />
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:hint="@string/rule_manual_content">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/input_rule_content"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:hint="@string/rule_manual_content_hint"
+                            android:inputType="text" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingTop="8dp"
+                        android:paddingBottom="4dp"
+                        android:text="@string/rule_manual_policy"
+                        android:textAppearance="@style/TextAppearance.MaterialComponents.Caption" />
+
+                    <Spinner
+                        android:id="@+id/spinner_policy"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:minHeight="48dp" />
+
+                    <TextView
+                        android:id="@+id/manual_match_hint"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingTop="4dp"
+                        android:text="@string/rule_manual_match_hint"
+                        android:textAppearance="@style/TextAppearance.MaterialComponents.Caption"
+                        android:visibility="gone" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:orientation="horizontal">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btn_prepend_rule"
+                            style="@style/Widget.MaterialComponents.Button"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="6dp"
+                            android:layout_weight="1"
+                            android:text="@string/rule_manual_prepend" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btn_append_rule"
+                            style="@style/Widget.MaterialComponents.Button"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="6dp"
+                            android:layout_weight="1"
+                            android:text="@string/rule_manual_append" />
+                    </LinearLayout>
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_clear_manual"
+                        style="@style/Widget.MaterialComponents.Button.TextButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="end"
+                        android:text="@string/rule_manual_clear" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/rule_snippet_output_label"
+                        android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle2" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_toggle_yaml"
+                        style="@style/Widget.MaterialComponents.Button.TextButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/rule_yaml_show_preview" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/output_text"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:background="#14000000"
+                    android:ellipsize="end"
+                    android:fontFamily="monospace"
+                    android:maxLines="5"
+                    android:padding="12dp"
+                    android:textIsSelectable="true"
+                    android:textSize="12sp" />
+            </LinearLayout>
+        </androidx.core.widget.NestedScrollView>
+
+        <com.github.kr328.clash.design.view.ActivityBarLayout
+            android:id="@+id/activity_bar_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="@{self.surface.insets.top}"
+            android:paddingEnd="@dimen/item_tailing_margin">
+
+            <include layout="@layout/common_activity_bar" />
+        </com.github.kr328.clash.design.view.ActivityBarLayout>
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
+</layout>
