@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/menu_rule_copy"
+        android:title="@string/rule_snippet_copy" />
+    <item
+        android:id="@+id/menu_rule_edit_providers"
+        android:title="@string/rule_edit_rule_providers" />
+    <item
+        android:id="@+id/menu_rule_advanced"
+        android:title="@string/rule_provider_advanced" />
+    <item
+        android:id="@+id/menu_rule_engine"
+        android:title="@string/rule_snippet_open_engine" />
+</menu>

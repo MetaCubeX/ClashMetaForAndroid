@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/profile_menu_set_active"
+        android:title="@string/profile_menu_set_active" />
+    <item
+        android:id="@+id/profile_menu_update"
+        android:title="@string/update" />
+    <item
+        android:id="@+id/profile_menu_edit"
+        android:title="@string/edit" />
+    <item
+        android:id="@+id/profile_menu_duplicate"
+        android:title="@string/duplicate" />
+    <item
+        android:id="@+id/profile_menu_delete"
+        android:title="@string/delete" />
+</menu>
