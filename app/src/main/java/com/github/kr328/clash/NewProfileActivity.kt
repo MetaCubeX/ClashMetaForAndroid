@@ -8,6 +8,7 @@ import android.provider.Settings
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.lifecycle.lifecycleScope
 import com.github.kr328.clash.common.constants.Intents
+import com.github.kr328.clash.common.util.SubscriptionNameGuesser
 import com.github.kr328.clash.common.util.intent
 import com.github.kr328.clash.common.util.setUUID
 import com.github.kr328.clash.design.NewProfileDesign
@@ -186,13 +187,14 @@ class NewProfileActivity : BaseActivity<NewProfileDesign>() {
     }
 
     private suspend fun createProfileByQrCode(url: String) {
+        val name = SubscriptionNameGuesser.guess(self, url)
         withProfile {
             launchProperties(
                 create(
                     type = Profile.Type.Url,
-                    name = getString(R.string.new_profile),
+                    name = name,
                     url,
-                )
+                ),
             )
         }
     }

@@ -1,38 +1,126 @@
 package com.github.kr328.clash
 
+import android.content.ClipboardManager
 import android.content.pm.PackageManager
+import android.graphics.Typeface
 import android.os.Build
 import android.os.Bundle
-import android.os.PersistableBundle
+import android.view.View
+import android.widget.ScrollView
+import android.widget.TextView
+import androidx.appcompat.widget.PopupMenu
+import com.github.kr328.clash.design.dialog.AppBottomSheetDialog
+import androidx.appcompat.app.AlertDialog
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.result.contract.ActivityResultContracts.RequestPermission
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.content.getSystemService
+import com.github.kr328.clash.common.util.StandalonePing
+import com.github.kr328.clash.common.util.SubscriptionNameGuesser
 import com.github.kr328.clash.common.util.intent
+import com.github.kr328.clash.common.util.setUUID
 import com.github.kr328.clash.common.util.ticker
+import com.github.kr328.clash.core.Clash
+import com.github.kr328.clash.core.bridge.*
+import com.github.kr328.clash.core.model.TunnelState
 import com.github.kr328.clash.design.MainDesign
+import com.github.kr328.clash.design.R
+import com.github.kr328.clash.design.model.DarkMode
 import com.github.kr328.clash.design.ui.ToastDuration
+import com.github.kr328.clash.design.util.showExceptionToast
+import com.github.kr328.clash.service.model.Profile
 import com.github.kr328.clash.util.startClashService
 import com.github.kr328.clash.util.stopClashService
 import com.github.kr328.clash.util.withClash
 import com.github.kr328.clash.util.withProfile
-import com.github.kr328.clash.core.bridge.*
+import io.github.g00fy2.quickie.QRResult
+import io.github.g00fy2.quickie.QRResult.QRError
+import io.github.g00fy2.quickie.QRResult.QRMissingPermission
+import io.github.g00fy2.quickie.QRResult.QRSuccess
+import io.github.g00fy2.quickie.QRResult.QRUserCanceled
+import io.github.g00fy2.quickie.ScanQRCode
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.select
 import kotlinx.coroutines.withContext
+import java.util.*
 import java.util.concurrent.TimeUnit
-import com.github.kr328.clash.design.R
 
 class MainActivity : BaseActivity<MainDesign>() {
+
+    private val scanLauncher = registerForActivityResult(ScanQRCode(), ::onScanResult)
+
+    private fun parseTunnelMode(name: String): TunnelState.Mode? =
+        when (name) {
+            TunnelState.Mode.Rule.name -> TunnelState.Mode.Rule
+            TunnelState.Mode.Global.name -> TunnelState.Mode.Global
+            TunnelState.Mode.Direct.name -> TunnelState.Mode.Direct
+            else -> null
+        }
+
+    /** Wait until the core has proxy groups (profile loaded), up to ~7s. */
+    private suspend fun waitForProxyEngineReady() {
+        repeat(35) {
+            val ok = runCatching {
+                withClash { queryProxyGroupNames(false).isNotEmpty() }
+            }.getOrDefault(false)
+            if (ok) return
+            delay(200L)
+        }
+    }
+
+    private fun showHomeImportSheet(design: MainDesign) {
+        val dialog = AppBottomSheetDialog(this, fitContentHeight = true)
+        val view = layoutInflater.inflate(R.layout.bottom_sheet_home_import, null)
+        dialog.setContentView(view)
+        view.findViewById<TextView>(R.id.opt_clipboard).setOnClickListener {
+            dialog.dismiss()
+            launch { importFromClipboard(design) }
+        }
+        view.findViewById<TextView>(R.id.opt_url).setOnClickListener {
+            dialog.dismiss()
+            startActivity(NewProfileActivity::class.intent)
+        }
+        view.findViewById<TextView>(R.id.opt_qr).setOnClickListener {
+            dialog.dismiss()
+            scanLauncher.launch(null)
+        }
+        dialog.show()
+    }
+
+    private fun onScanResult(result: QRResult) {
+        launch {
+            val d = design ?: return@launch
+            when (result) {
+                is QRSuccess -> {
+                    val url = result.content.rawValue
+                        ?: result.content.rawBytes?.let { String(it) }.orEmpty()
+                    if (url.isNotBlank()) {
+                        importSubscriptionFromUrl(d, url)
+                    }
+                }
+
+                QRUserCanceled -> Unit
+                QRMissingPermission ->
+                    d.showExceptionToast(getString(R.string.import_from_qr_no_permission))
+
+                is QRError ->
+                    d.showExceptionToast(getString(R.string.import_from_qr_exception))
+            }
+        }
+    }
+
     override suspend fun main() {
         val design = MainDesign(this)
+        design.applyInitialModeFromPreference(uiStore.tunnelModePreference)
 
         setContentDesign(design)
-
         design.fetch()
 
         val ticker = ticker(TimeUnit.SECONDS.toMillis(1))
+        val profileTicker = ticker(TimeUnit.MINUTES.toMillis(1))
 
         while (isActive) {
             select<Unit> {
@@ -40,65 +128,415 @@ class MainActivity : BaseActivity<MainDesign>() {
                     when (it) {
                         Event.ActivityStart,
                         Event.ServiceRecreated,
-                        Event.ClashStop, Event.ClashStart,
-                        Event.ProfileLoaded, Event.ProfileChanged -> design.fetch()
+                        Event.ClashStop,
+                        Event.ClashStart,
+                        Event.ProfileLoaded,
+                        Event.ProfileChanged -> design.fetch()
+
                         else -> Unit
                     }
                 }
+
                 design.requests.onReceive {
                     when (it) {
                         MainDesign.Request.ToggleStatus -> {
-                            if (clashRunning)
-                                stopClashService()
-                            else
-                                design.startClash()
-                        }
-                        MainDesign.Request.OpenProxy ->
-                            startActivity(ProxyActivity::class.intent)
-                        MainDesign.Request.OpenProfiles ->
-                            startActivity(ProfilesActivity::class.intent)
-                        MainDesign.Request.OpenProviders ->
-                            startActivity(ProvidersActivity::class.intent)
-                        MainDesign.Request.OpenLogs -> {
-                            if (LogcatService.running) {
-                                startActivity(LogcatActivity::class.intent)
-                            } else {
-                                startActivity(LogsActivity::class.intent)
+                            launch {
+                                if (clashRunning) {
+                                    stopClashService()
+                                } else {
+                                    design.setTunnelStarting(true)
+                                    try {
+                                        design.startClash()
+                                    } finally {
+                                        design.fetch()
+                                    }
+                                }
                             }
                         }
+
+                        MainDesign.Request.OpenNewProfile ->
+                            showHomeImportSheet(design)
+
+                        MainDesign.Request.OpenConnections ->
+                            startActivity(ConnectionsActivity::class.intent)
+
+                        MainDesign.Request.OpenProfiles ->
+                            startActivity(ProfilesActivity::class.intent)
+
+                        MainDesign.Request.OpenRules ->
+                            startActivity(RuleSnippetActivity::class.intent)
+
+                        MainDesign.Request.OpenEffectiveRules ->
+                            startActivity(EffectiveRulesActivity::class.intent)
+
                         MainDesign.Request.OpenSettings ->
                             startActivity(SettingsActivity::class.intent)
-                        MainDesign.Request.OpenHelp ->
-                            startActivity(HelpActivity::class.intent)
+
                         MainDesign.Request.OpenAbout ->
                             design.showAbout(queryAppVersionName())
+
+                        MainDesign.Request.OpenImportClipboard ->
+                            importFromClipboard(design)
+
+                        MainDesign.Request.OpenImportQr ->
+                            scanLauncher.launch(null)
+
+                        MainDesign.Request.PatchModeDirect -> {
+                            uiStore.tunnelModePreference = TunnelState.Mode.Direct.name
+                            withClash {
+                                val o = queryOverride(Clash.OverrideSlot.Session)
+                                o.mode = TunnelState.Mode.Direct
+                                patchOverride(Clash.OverrideSlot.Session, o)
+                            }
+                            design.fetch()
+                        }
+
+                        MainDesign.Request.PatchModeGlobal -> {
+                            uiStore.tunnelModePreference = TunnelState.Mode.Global.name
+                            withClash {
+                                val o = queryOverride(Clash.OverrideSlot.Session)
+                                o.mode = TunnelState.Mode.Global
+                                patchOverride(Clash.OverrideSlot.Session, o)
+                            }
+                            design.fetch()
+                        }
+
+                        MainDesign.Request.PatchModeRule -> {
+                            uiStore.tunnelModePreference = TunnelState.Mode.Rule.name
+                            withClash {
+                                val o = queryOverride(Clash.OverrideSlot.Session)
+                                o.mode = TunnelState.Mode.Rule
+                                patchOverride(Clash.OverrideSlot.Session, o)
+                            }
+                            design.fetch()
+                        }
+
+                        MainDesign.Request.CycleTheme -> {
+                            uiStore.darkMode = when (uiStore.darkMode) {
+                                DarkMode.ForceLight -> DarkMode.ForceDark
+                                else -> DarkMode.ForceLight
+                            }
+                            recreate()
+                        }
                     }
                 }
+
+                design.patchHomeProxyRequests.onReceive { (profile, group, name) ->
+                    launch {
+                        if (!clashRunning) {
+                            withProfile {
+                                rememberProxySelection(profile.uuid, group, name)
+                            }
+                            uiStore.proxyLastGroup = group
+                            design.fetch()
+                            return@launch
+                        }
+                        withClash {
+                            patchSelector(group, name)
+                        }
+                        uiStore.proxyLastGroup = group
+                        design.fetch()
+                    }
+                }
+
+                design.profilePingAllRequests.onReceive { (profile, _, nodeNames) ->
+                    launch {
+                        try {
+                            design.setPingingProfile(profile.uuid)
+                            val engineReady = runCatching {
+                                clashRunning && withClash { queryProxyGroupNames(false).isNotEmpty() }
+                            }.getOrDefault(false)
+                            if (engineReady) {
+                                val activeUuid = withProfile { queryActive()?.uuid }
+                                if (activeUuid != profile.uuid && profile.imported) {
+                                    withProfile { setActive(profile) }
+                                }
+                                waitForProxyEngineReady()
+                                design.clearStandalonePingForProfile(profile.uuid)
+                                withClash { healthCheckAll() }
+                                delay(1200L)
+                                design.fetch()
+                            } else {
+                                val results = LinkedHashMap<String, Int>()
+                                for (name in nodeNames) {
+                                    if (StandalonePing.isBuiltinProxyName(name)) continue
+                                    val yaml = withProfile { readProxyEntryYaml(profile.uuid, name) }
+                                        ?: continue
+                                    val hp = StandalonePing.parseServerPortFromProxyYaml(yaml) ?: continue
+                                    val ms = StandalonePing.tcpConnectMs(hp.first, hp.second)
+                                        .getOrNull()?.toInt() ?: continue
+                                    results[name] = ms
+                                }
+                                design.patchStandalonePingResults(profile.uuid, results)
+                            }
+                        } catch (e: Exception) {
+                            design.showExceptionToast(e)
+                        } finally {
+                            design.setPingingProfile(null)
+                        }
+                    }
+                }
+
+                design.profileForceUpdateRequests.onReceive { profile ->
+                    launch {
+                        withProfile { update(profile.uuid) }
+                        design.showToast(R.string.profile_update_scheduled, ToastDuration.Long)
+                        design.fetch()
+                    }
+                }
+
+                design.profileProxyYamlRequests.onReceive { (profile, _, proxyName) ->
+                    launch {
+                        val yaml = withProfile { readProxyEntryYaml(profile.uuid, proxyName) }
+                        showProxyYamlDialog(proxyName, yaml ?: getString(R.string.proxy_yaml_missing))
+                    }
+                }
+
+                design.profileExpandChanged.onReceive {
+                    launch {
+                        design.fetch()
+                    }
+                }
+
+                design.profileActivateRequests.onReceive { profile ->
+                    withProfile {
+                        if (profile.imported) {
+                            setActive(profile)
+                        } else {
+                            design.requestSave(profile)
+                        }
+                    }
+                    design.fetch()
+                }
+
+                design.profileMenuRequests.onReceive { (profile, anchor) ->
+                    launch(Dispatchers.Main) {
+                        showProfileOverflowMenu(design, profile, anchor)
+                    }
+                }
+
+                design.profileEditRequests.onReceive { profile ->
+                    startActivity(PropertiesActivity::class.intent.setUUID(profile.uuid))
+                }
+
                 if (clashRunning) {
                     ticker.onReceive {
                         design.fetchTraffic()
+                    }
+                }
+
+                if (activityStarted) {
+                    profileTicker.onReceive {
+                        design.updateElapsed()
                     }
                 }
             }
         }
     }
 
+    private fun showProfileOverflowMenu(design: MainDesign, profile: Profile, anchor: View) {
+        val popup = PopupMenu(this, anchor)
+        popup.menuInflater.inflate(R.menu.menu_profile_home, popup.menu)
+        val m = popup.menu
+        m.findItem(R.id.profile_menu_set_active).isVisible =
+            profile.imported && !profile.active
+        m.findItem(R.id.profile_menu_update).isVisible =
+            profile.imported && profile.type != Profile.Type.File
+        m.findItem(R.id.profile_menu_duplicate).isVisible = profile.imported
+        popup.setOnMenuItemClickListener { item ->
+            when (item.itemId) {
+                R.id.profile_menu_set_active -> {
+                    launch {
+                        withProfile {
+                            if (profile.imported) {
+                                setActive(profile)
+                            } else {
+                                design.requestSave(profile)
+                            }
+                        }
+                        design.fetch()
+                    }
+                    true
+                }
+                R.id.profile_menu_update -> {
+                    launch {
+                        withProfile { update(profile.uuid) }
+                        design.showToast(R.string.profile_update_scheduled, ToastDuration.Long)
+                        design.fetch()
+                    }
+                    true
+                }
+                R.id.profile_menu_edit -> {
+                    startActivity(PropertiesActivity::class.intent.setUUID(profile.uuid))
+                    true
+                }
+                R.id.profile_menu_duplicate -> {
+                    launch {
+                        val uuid = withProfile { clone(profile.uuid) }
+                        startActivity(PropertiesActivity::class.intent.setUUID(uuid))
+                    }
+                    true
+                }
+                R.id.profile_menu_delete -> {
+                    AlertDialog.Builder(this)
+                        .setTitle(R.string.delete)
+                        .setMessage(R.string.profile_delete_confirm)
+                        .setPositiveButton(R.string.delete) { _, _ ->
+                            launch {
+                                withProfile { delete(profile.uuid) }
+                                design.fetch()
+                            }
+                        }
+                        .setNegativeButton(android.R.string.cancel, null)
+                        .show()
+                    true
+                }
+                else -> false
+            }
+        }
+        popup.show()
+    }
+
+    private suspend fun importFromClipboard(design: MainDesign) {
+        val text = withContext(Dispatchers.Main) {
+            getSystemService<ClipboardManager>()?.primaryClip
+                ?.getItemAt(0)?.text?.toString()?.trim().orEmpty()
+        }
+        if (text.isEmpty()) {
+            design.showToast(R.string.clipboard_empty, ToastDuration.Short)
+            return
+        }
+        if (!text.startsWith("http://", ignoreCase = true) &&
+            !text.startsWith("https://", ignoreCase = true)
+        ) {
+            design.showToast(R.string.clipboard_no_url, ToastDuration.Long)
+            return
+        }
+        importSubscriptionFromUrl(design, text)
+    }
+
+    /**
+     * Resolves a friendly name from the subscription HTTP response, creates the profile,
+     * [commit]s the fetch, activates it — no Properties screen on success.
+     */
+    private suspend fun importSubscriptionFromUrl(design: MainDesign, url: String) {
+        design.showToast(R.string.import_resolving, ToastDuration.Short)
+        val name = SubscriptionNameGuesser.guess(this, url)
+        val uuid = withProfile {
+            create(Profile.Type.Url, name, url)
+        }
+        try {
+            withProfile { commit(uuid) }
+        } catch (e: Exception) {
+            design.showExceptionToast(e)
+            launchProperties(uuid)
+            return
+        }
+        val profile = withProfile { queryByUUID(uuid) }
+        if (profile?.imported == true) {
+            withProfile { setActive(profile) }
+            design.showToast(getString(R.string.import_done_named, name), ToastDuration.Long)
+        } else {
+            launchProperties(uuid)
+        }
+        design.fetch()
+    }
+
+    private suspend fun launchProperties(uuid: UUID) {
+        startActivityForResult(
+            ActivityResultContracts.StartActivityForResult(),
+            PropertiesActivity::class.intent.setUUID(uuid)
+        )
+    }
+
+    private suspend fun showProxyYamlDialog(title: String, body: String) {
+        withContext(Dispatchers.Main) {
+            val pad = (16 * resources.displayMetrics.density).toInt()
+            val scroll = ScrollView(this@MainActivity)
+            val tv = TextView(this@MainActivity).apply {
+                text = body
+                setTextIsSelectable(true)
+                setPadding(pad, pad, pad, pad)
+                textSize = 12f
+                typeface = Typeface.MONOSPACE
+            }
+            scroll.addView(tv)
+            AlertDialog.Builder(this@MainActivity)
+                .setTitle(title)
+                .setView(scroll)
+                .setPositiveButton(android.R.string.ok, null)
+                .show()
+        }
+    }
+
     private suspend fun MainDesign.fetch() {
         setClashRunning(clashRunning)
 
-        val state = withClash {
+        var state = withClash {
             queryTunnelState()
         }
-        val providers = withClash {
-            queryProviders()
+
+        if (clashRunning) {
+            val pref = uiStore.tunnelModePreference
+            if (pref.isNotEmpty()) {
+                val desired = parseTunnelMode(pref)
+                if (desired != null && state.mode != desired) {
+                    withClash {
+                        val o = queryOverride(Clash.OverrideSlot.Session)
+                        o.mode = desired
+                        patchOverride(Clash.OverrideSlot.Session, o)
+                    }
+                    state = withClash { queryTunnelState() }
+                }
+            } else {
+                uiStore.tunnelModePreference = state.mode.name
+            }
         }
 
         setMode(state.mode)
-        setHasProviders(providers.isNotEmpty())
 
-        withProfile {
-            setProfileName(queryActive()?.name)
+        setProfileName(withProfile { queryActive()?.name })
+        patchProfiles(withProfile { queryAll() })
+
+        val proxyNames = if (clashRunning) {
+            try {
+                withClash { queryProxyGroupNames(uiStore.proxyExcludeNotSelectable) }
+            } catch (_: Exception) {
+                emptyList()
+            }
+        } else {
+            emptyList()
         }
+        val activeUuid = withProfile { queryActive()?.uuid }
+        val expandedSet = getExpandedProfileUuids()
+        val offlinePreviewByProfile = expandedSet.associateWith { uuid ->
+            withProfile { readProxyGroupsPreview(uuid) }
+        }
+        val offlineSelectionsByProfile = expandedSet.associateWith { uuid ->
+            withProfile { queryProxySelections(uuid) }
+        }
+        val detailMap = if (
+            clashRunning &&
+            activeUuid != null &&
+            proxyNames.isNotEmpty()
+        ) {
+            proxyNames.associateWith { name ->
+                withClash { queryProxyGroup(name, uiStore.proxySort) }
+            }
+        } else {
+            emptyMap()
+        }
+        patchProxyGroups(
+            proxyNames,
+            clashRunning,
+            state.mode,
+            uiStore.proxyLastGroup,
+            offlinePreviewByProfile,
+            activeUuid,
+            offlineSelectionsByProfile,
+        )
+        patchProxyDetails(detailMap)
+        syncThemeToggleIcon(uiStore.darkMode)
     }
 
     private suspend fun MainDesign.fetchTraffic() {
@@ -111,12 +549,12 @@ class MainActivity : BaseActivity<MainDesign>() {
         val active = withProfile { queryActive() }
 
         if (active == null || !active.imported) {
+            setTunnelStarting(false)
             showToast(R.string.no_profile_selected, ToastDuration.Long) {
                 setAction(R.string.profiles) {
                     startActivity(ProfilesActivity::class.intent)
                 }
             }
-
             return
         }
 
@@ -129,35 +567,40 @@ class MainActivity : BaseActivity<MainDesign>() {
                     vpnRequest
                 )
 
-                if (result.resultCode == RESULT_OK)
+                if (result.resultCode == RESULT_OK) {
                     startClashService()
+                } else {
+                    setTunnelStarting(false)
+                }
             }
         } catch (e: Exception) {
+            setTunnelStarting(false)
             design?.showToast(R.string.unable_to_start_vpn, ToastDuration.Long)
         }
     }
 
     private suspend fun queryAppVersionName(): String {
         return withContext(Dispatchers.IO) {
-            packageManager.getPackageInfo(packageName, 0).versionName + "\n" + Bridge.nativeCoreVersion().replace("_", "-")
+            packageManager.getPackageInfo(packageName, 0).versionName +
+                    "\n" +
+                    Bridge.nativeCoreVersion().replace("_", "-")
         }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             val requestPermissionLauncher =
-                registerForActivityResult(RequestPermission()
-                ) { isGranted: Boolean ->
-                }
+                registerForActivityResult(RequestPermission()) { _: Boolean -> }
+
             if (ContextCompat.checkSelfPermission(
                     this,
                     android.Manifest.permission.POST_NOTIFICATIONS
-                ) != PackageManager.PERMISSION_GRANTED) {
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
                 requestPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
             }
         }
     }
 }
-
-val mainActivityAlias = "${MainActivity::class.java.name}Alias"

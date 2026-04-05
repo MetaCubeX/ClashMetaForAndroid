@@ -40,7 +40,8 @@ class ExternalControlActivity : Activity(), CoroutineScope by MainScope() {
                             "file" -> Profile.Type.File
                             else -> Profile.Type.Url
                         }
-                        val name = uri.getQueryParameter("name") ?: getString(R.string.new_profile)
+                        val name = uri.getQueryParameter("name")
+                            ?: getString(R.string.subscription_default_name)
 
                         create(type, name).also {
                             patch(it, name, url, 0)

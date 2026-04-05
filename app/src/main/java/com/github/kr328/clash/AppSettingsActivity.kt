@@ -1,7 +1,7 @@
 package com.github.kr328.clash
 
-import android.content.ComponentName
 import android.content.pm.PackageManager
+import com.github.kr328.clash.common.constants.Components
 import com.github.kr328.clash.common.util.componentName
 import com.github.kr328.clash.design.AppSettingsDesign
 import com.github.kr328.clash.design.model.Behavior
@@ -69,7 +69,7 @@ class AppSettingsActivity : BaseActivity<AppSettingsDesign>(), Behavior {
             PackageManager.COMPONENT_ENABLED_STATE_ENABLED
         }
         packageManager.setComponentEnabledSetting(
-            ComponentName(this, mainActivityAlias),
+            Components.MAIN_ACTIVITY_ALIAS,
             newState,
             PackageManager.DONT_KILL_APP
         )

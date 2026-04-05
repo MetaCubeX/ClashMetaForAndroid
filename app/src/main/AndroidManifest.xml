@@ -160,6 +160,26 @@
             android:exported="false"
             android:label="@string/override" />
         <activity
+            android:name=".RuleSnippetActivity"
+            android:configChanges="uiMode"
+            android:exported="false"
+            android:label="@string/rule_snippet_title" />
+        <activity
+            android:name=".EffectiveRulesActivity"
+            android:configChanges="uiMode"
+            android:exported="false"
+            android:label="@string/effective_rules_title" />
+        <activity
+            android:name=".ConnectionsActivity"
+            android:configChanges="uiMode"
+            android:exported="false"
+            android:label="@string/connections_title" />
+        <activity
+            android:name=".RuleProvidersEditorActivity"
+            android:configChanges="uiMode"
+            android:exported="false"
+            android:label="@string/rule_providers_editor_title" />
+        <activity
             android:name=".MetaFeatureSettingsActivity"
             android:configChanges="uiMode"
             android:exported="false"
