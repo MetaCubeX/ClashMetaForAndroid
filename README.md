@@ -29,35 +29,24 @@ ClashFest is a modern Android client built on top of the Clash / Clash Meta ecos
 
 ## Screenshots
 
-> Recommended screenshot location inside the repo: `docs/screenshots/`
+<p align="center">
+  <img src="docs/screenshots/home.png" width="250"/>
+  <img src="docs/screenshots/connections.png" width="250"/>
+</p>
 
-| Home | Connections |
-|---|---|
-| ![Home](docs/screenshots/home.png) | ![Connections](docs/screenshots/connections.png) |
+<p align="center">
+  <img src="docs/screenshots/online_list.png" width="250"/>
+  <img src="docs/screenshots/manual_rule.png" width="250"/>
+</p>
 
-| Rules: online list | Rules: manual |
-|---|---|
-| ![Online list](docs/screenshots/online_list.png) | ![Manual rule](docs/screenshots/manual_rule.png) |
+<p align="center">
+  <img src="docs/screenshots/routing_rules.png" width="250"/>
+  <img src="docs/screenshots/profile_options.png" width="250"/>
+</p>
 
-| Routing rules | Profile options |
-|---|---|
-| ![Routing rules](docs/screenshots/routing_rules.png) | ![Profile options](docs/screenshots/profile_options.png) |
-
-| Add profile |
-|---|
-| ![Add profile](docs/screenshots/add_profile.png) |
-
-### Suggested screenshot file names
-
-Copy your current screenshots into:
-
-- `docs/screenshots/home.png`
-- `docs/screenshots/connections.png`
-- `docs/screenshots/online_list.png`
-- `docs/screenshots/manual_rule.png`
-- `docs/screenshots/routing_rules.png`
-- `docs/screenshots/profile_options.png`
-- `docs/screenshots/add_profile.png`
+<p align="center">
+  <img src="docs/screenshots/add_profile.png" width="250"/>
+</p>
 
 ## Project Structure
 
@@ -101,8 +90,6 @@ Windows:
 ```
 
 ## Branding Assets
-
-Recommended asset location:
 
 - `app/src/main/res/drawable-nodpi/clashfest_shield.png`
 
