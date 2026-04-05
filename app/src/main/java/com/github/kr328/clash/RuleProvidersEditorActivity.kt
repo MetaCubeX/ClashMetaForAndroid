@@ -1,0 +1,49 @@
+package com.github.kr328.clash
+
+import com.github.kr328.clash.common.util.uuid
+import com.github.kr328.clash.design.RuleProvidersEditorDesign
+import com.github.kr328.clash.design.R
+import com.github.kr328.clash.design.ui.ToastDuration
+import com.github.kr328.clash.util.withProfile
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.selects.select
+
+class RuleProvidersEditorActivity : BaseActivity<RuleProvidersEditorDesign>() {
+    override suspend fun main() {
+        val uuid = intent.uuid ?: return finish()
+        val design = RuleProvidersEditorDesign(this)
+        setContentDesign(design)
+
+        val initial = withProfile { readRuleProvidersYaml(uuid) }
+            .orEmpty()
+        if (initial.isEmpty()) {
+            design.setYaml(
+                "rule-providers:\n  MyRules:\n    type: http\n    behavior: classical\n" +
+                    "    url: \"https://example.com/rules.yaml\"\n    path: ./ruleset/MyRules.yaml\n    interval: 86400\n",
+            )
+        } else {
+            design.setYaml(initial)
+        }
+
+        while (isActive) {
+            select<Unit> {
+                design.requests.onReceive { req ->
+                    when (req) {
+                        RuleProvidersEditorDesign.Request.Save -> launch {
+                            val ok = withProfile {
+                                replaceRuleProvidersYaml(uuid, design.getYaml())
+                            }
+                            if (ok) {
+                                design.showToast(R.string.rule_snippet_apply_ok, ToastDuration.Long)
+                                finish()
+                            } else {
+                                design.showToast(R.string.rule_snippet_apply_failed, ToastDuration.Long)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
