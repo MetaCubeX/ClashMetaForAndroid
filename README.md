@@ -1,87 +1,154 @@
-## Clash Meta for Android
+# ClashFest
 
-A Graphical user interface of [Clash.Meta](https://github.com/MetaCubeX/Clash.Meta) for Android
+<!--
+https://img.shields.io/github/actions/workflow/status/Nemu-x/ClashFest/android-debug.yml?branch=feat/init-clashfest
+-->
 
-### Feature
+![License: GPL v3](https://img.shields.io/badge/license-GPLv3-green.svg)
+![Platform: Android](https://img.shields.io/badge/platform-Android-3DDC84)
+![Status: WIP](https://img.shields.io/badge/status-WIP-orange)
+![Branch](https://img.shields.io/badge/branch-feat%2Finit--clashfest-blue)
 
-Feature of [Clash.Meta](https://github.com/MetaCubeX/Clash.Meta)
+ClashFest is a modern Android client built on top of the Clash / Clash Meta ecosystem, with refreshed branding, a cleaner UI, slimmer profile cards, routing tools, and a more expressive visual style.
 
-[<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png"
-     alt="Get it on F-Droid"
-     height="80">](https://f-droid.org/packages/com.github.metacubex.clash.meta/)
+> Status: work in progress  
+> Active branch: `feat/init-clashfest`
 
-### Requirement
+## Highlights
 
-- Android 5.0+ (minimum)
-- Android 7.0+ (recommend)
-- `armeabi-v7a` , `arm64-v8a`, `x86` or `x86_64` Architecture
+- ClashFest branding and app identity
+- Modernized home screen with slim profile cards
+- Rule / Global / Direct mode switching
+- Profile management with quick actions
+- Rules and routing related tools
+- Connections / traffic inspection screens
+- Neon-accent dark UI direction
+- Light theme support in progress
+- Delay / ping related helpers
+- Subscription import helpers
 
-### Build
+## Screenshots
 
-1. Update submodules
+> Recommended screenshot location inside the repo: `docs/screenshots/`
 
-   ```bash
-   git submodule update --init --recursive
-   ```
+| Home | Connections |
+|---|---|
+| ![Home](docs/screenshots/home.png) | ![Connections](docs/screenshots/connections.png) |
 
-2. Install **OpenJDK 11**, **Android SDK**, **CMake** and **Golang**
+| Rules: online list | Rules: manual |
+|---|---|
+| ![Online list](docs/screenshots/online_list.png) | ![Manual rule](docs/screenshots/manual_rule.png) |
 
-3. Create `local.properties` in project root with
+| Routing rules | Profile options |
+|---|---|
+| ![Routing rules](docs/screenshots/routing_rules.png) | ![Profile options](docs/screenshots/profile_options.png) |
 
-   ```properties
-   sdk.dir=/path/to/android-sdk
-   ```
+| Add profile |
+|---|
+| ![Add profile](docs/screenshots/add_profile.png) |
 
-4. (Optional) Custom app package name. Add the following configuration to `local.properties`.
+### Suggested screenshot file names
 
-   ```properties
-   # config your ownn applicationId, or it will be 'com.github.metacubex.clash'
-   custom.application.id=com.my.compile.clash
-   # remove application id suffix, or the applicaion id will be 'com.github.metacubex.clash.alpha'
-   remove.suffix=true
+Copy your current screenshots into:
 
-5. Create `signing.properties` in project root with
+- `docs/screenshots/home.png`
+- `docs/screenshots/connections.png`
+- `docs/screenshots/online_list.png`
+- `docs/screenshots/manual_rule.png`
+- `docs/screenshots/routing_rules.png`
+- `docs/screenshots/profile_options.png`
+- `docs/screenshots/add_profile.png`
 
-   ```properties
-   keystore.path=/path/to/keystore/file
-   keystore.password=<key store password>
-   key.alias=<key alias>
-   key.password=<key password>
-   ```
+## Project Structure
 
-6. Build
+- `app/` — Android app entry points, activities, packaging
+- `common/` — shared utilities and helpers
+- `core/` — native/core bridge, tunnel interaction, low-level logic
+- `design/` — UI layer, layouts, themes, adapters, design logic
+- `service/` — background service, profile management, rule helpers
 
-   ```bash
-   ./gradlew app:assembleAlphaRelease
-   ```
+## Current Focus
 
-### Automation
+- stabilizing the redesigned home screen
+- finishing ClashFest branding across all user-facing screens
+- improving rules and routing UX
+- improving connections visibility
+- fixing theme inconsistencies, especially light theme
+- cleaning up temporary and experimental code safely
+- polishing launcher and app icon assets
 
-APP package name is `com.github.metacubex.clash.meta`
+## Build
 
-- Toggle Clash.Meta service status
-  - Send intent to activity `com.github.kr328.clash.ExternalControlActivity` with action `com.github.metacubex.clash.meta.action.TOGGLE_CLASH`
-- Start Clash.Meta service
-  - Send intent to activity `com.github.kr328.clash.ExternalControlActivity` with action `com.github.metacubex.clash.meta.action.START_CLASH`
-- Stop Clash.Meta service
-  - Send intent to activity `com.github.kr328.clash.ExternalControlActivity` with action `com.github.metacubex.clash.meta.action.STOP_CLASH`
-- Import a profile
-  - URL Scheme `clash://install-config?url=<encoded URI>` or `clashmeta://install-config?url=<encoded URI>`
+### Requirements
 
-### Contribution and Project Maintenance
+- Android Studio
+- Android SDK / NDK required by the project
+- JDK compatible with the project
+- Gradle wrapper included in the repository
 
-#### Meta Kernel
+### Debug build
 
-- CMFA uses the kernel from `android-real` branch under `MetaCubeX/Clash.Meta`, which is a merge of the main `Alpha` branch and `android-open`.
-  - If you want to contribute to the kernel, make PRs to `Alpha` branch of the Meta kernel repository.
-  - If you want to contribute Android-specific patches to the kernel, make PRs to  `android-open` branch of the Meta kernel repository.
+Linux / macOS:
 
-#### Maintenance
+```bash
+./gradlew assembleAlphaDebug
+```
 
-- When `MetaCubeX/Clash.Meta` kernel is updated to a new version, the `Update Dependencies` actions in this repo will be triggered automatically.
-  - It will pull the new version of the meta kernel, update all the golang dependencies, and create a PR without manual intervention.
-  - If there is any compile error in PR, you need to fix it before merging. Alternatively, you may merge the PR directly.
-- Manually triggering `Build Pre-Release` actions will compile and publish a `PreRelease` version.
-- Manually triggering `Build Release` actions will compile, tag and publish a `Release` version.
-  - You must fill the blank `Release Tag` with the tag you want to release in the format of `v1.2.3`.
-  - `versionName` and `versionCode` in `build.gradle.kts` will be automatically bumped to the tag you filled above.
+Windows:
+
+```powershell
+.\gradlew.bat assembleAlphaDebug
+```
+
+## Branding Assets
+
+Recommended asset location:
+
+- `app/src/main/res/drawable-nodpi/clashfest_shield.png`
+
+Optional folders:
+
+- `branding/` — source branding assets
+- `docs/` — documentation materials
+
+## License
+
+This project is licensed under the GNU General Public License v3.0.
+
+See:
+
+- `LICENSE`
+- `NOTICE`
+
+## Upstream / Attribution
+
+ClashFest is a fork / derivative built on top of the Clash Android ecosystem.
+
+Original copyright notices, license terms, and attribution requirements must be preserved where applicable.
+
+## Disclaimer
+
+ClashFest is provided as-is, without warranty.
+
+Use it at your own responsibility and in accordance with:
+
+- local laws
+- service terms
+- upstream license requirements
+
+## Development Notes
+
+This repository is currently being actively reworked in a personal feature branch.
+
+The current implementation includes:
+
+- UI redesign work
+- branding updates
+- rules and routing tooling experiments
+- connections inspection work
+- subscription UX improvements
+
+## Contributing
+
+At this stage, development is focused on the ClashFest fork workflow and internal iteration.
+Contribution guidelines may be expanded later.
