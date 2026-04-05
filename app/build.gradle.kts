@@ -17,6 +17,7 @@ dependencies {
     implementation(project(":common"))
 
     implementation(libs.kotlin.coroutine)
+    implementation(libs.kotlin.serialization.json)
     implementation(libs.androidx.core)
     implementation(libs.androidx.activity)
     implementation(libs.androidx.fragment)
