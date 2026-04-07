@@ -5,6 +5,7 @@ import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.os.SystemClock
 import androidx.core.content.getSystemService
 import com.github.kr328.clash.common.Global
 import com.github.kr328.clash.common.compat.pendingIntentFlags
@@ -97,7 +98,11 @@ class ProfileReceiver : BroadcastReceiver() {
             val interval = (imported.interval - (current - last)).coerceAtLeast(0)
 
             context.getSystemService<AlarmManager>()
-                ?.set(AlarmManager.RTC, current + interval, intent)
+                ?.set(
+                    AlarmManager.ELAPSED_REALTIME_WAKEUP,
+                    SystemClock.elapsedRealtime() + interval,
+                    intent
+                )
         }
 
         private suspend fun reset() = lock.withLock {
@@ -111,7 +116,7 @@ class ProfileReceiver : BroadcastReceiver() {
 
             return PendingIntent.getBroadcast(
                 context,
-                0,
+                imported.uuid.hashCode(),
                 intent,
                 pendingIntentFlags(PendingIntent.FLAG_UPDATE_CURRENT)
             )

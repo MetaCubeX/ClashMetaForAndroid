@@ -39,6 +39,14 @@
                 android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle2"
                 tools:text="128 rules in config" />
 
+            <Spinner
+                android:id="@+id/rule_filter_spinner"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="@dimen/main_padding_horizontal"
+                android:layout_marginBottom="8dp"
+                android:minHeight="48dp" />
+
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rule_list"
                 android:layout_width="match_parent"

@@ -16,6 +16,7 @@ import com.github.kr328.clash.service.util.importedDir
 import com.github.kr328.clash.service.util.pendingDir
 import com.github.kr328.clash.service.util.processingDir
 import com.github.kr328.clash.service.util.sendProfileChanged
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -33,7 +34,7 @@ object ProfileProcessor {
     private val processLock = Mutex()
 
     suspend fun apply(context: Context, uuid: UUID, callback: IFetchObserver? = null) {
-        withContext(NonCancellable) {
+        withContext(Dispatchers.IO) {
             processLock.withLock {
                 val snapshot = profileLock.withLock {
                     val pending = PendingDao().queryByUUID(uuid)
@@ -63,8 +64,9 @@ object ProfileProcessor {
                     }
                 }.await()
 
-                profileLock.withLock {
-                    if (PendingDao().queryByUUID(snapshot.uuid) == snapshot) {
+                withContext(NonCancellable) {
+                    profileLock.withLock {
+                        if (PendingDao().queryByUUID(snapshot.uuid) != snapshot) return@withLock
                         context.importedDir.resolve(snapshot.uuid.toString())
                             .deleteRecursively()
                         context.processingDir
@@ -89,19 +91,25 @@ object ProfileProcessor {
                                     if (response.isSuccessful && userinfo != null) {
                                         val flags = userinfo.split(";")
                                         for (flag in flags) {
-                                            val info = flag.split("=")
+                                            val info = flag.split("=", limit = 2)
+                                            val key = info.getOrNull(0)?.trim().orEmpty()
+                                            val value = info.getOrNull(1)?.trim().orEmpty()
+                                            if (value.isEmpty()) continue
                                             when {
-                                                info[0].contains("upload") && info[1].isNotEmpty() -> upload =
-                                                    BigDecimal(info[1].split('.').first()).longValueExact()
+                                                key.contains("upload") -> upload =
+                                                    value.toLongOrNull()
+                                                        ?: BigDecimal(value.split('.').first()).longValueExact()
 
-                                                info[0].contains("download") && info[1].isNotEmpty() -> download =
-                                                    BigDecimal(info[1].split('.').first()).longValueExact()
+                                                key.contains("download") -> download =
+                                                    value.toLongOrNull()
+                                                        ?: BigDecimal(value.split('.').first()).longValueExact()
 
-                                                info[0].contains("total") && info[1].isNotEmpty() -> total =
-                                                    BigDecimal(info[1].split('.').first()).longValueExact()
+                                                key.contains("total") -> total =
+                                                    value.toLongOrNull()
+                                                        ?: BigDecimal(value.split('.').first()).longValueExact()
 
-                                                info[0].contains("expire") && info[1].isNotEmpty() ->  expire =
-                                                    (info[1].toDouble() * 1000).toLong()
+                                                key.contains("expire") -> expire =
+                                                    (value.toDoubleOrNull()?.times(1000.0))?.toLong() ?: 0L
                                             }
                                         }
                                     }
@@ -164,7 +172,7 @@ object ProfileProcessor {
     }
 
     suspend fun update(context: Context, uuid: UUID, callback: IFetchObserver?) {
-        withContext(NonCancellable) {
+        withContext(Dispatchers.IO) {
             processLock.withLock {
                 val snapshot = profileLock.withLock {
                     val imported = ImportedDao().queryByUUID(uuid)
@@ -201,15 +209,18 @@ object ProfileProcessor {
                 if (!preserved.isEmpty() && configFile.isFile) {
                     val merged = SubscriptionUpdateMerge.mergeAfterFetch(configFile.readText(), preserved)
                     configFile.writeText(merged)
+                    Log.d("Subscription merge preserved local overlays: rules/providers reapplied for ${snapshot.uuid}")
                 }
 
-                profileLock.withLock {
-                    if (ImportedDao().exists(snapshot.uuid)) {
-                        context.importedDir.resolve(snapshot.uuid.toString()).deleteRecursively()
-                        context.processingDir
-                            .copyRecursively(context.importedDir.resolve(snapshot.uuid.toString()))
+                withContext(NonCancellable) {
+                    profileLock.withLock {
+                        if (ImportedDao().exists(snapshot.uuid)) {
+                            context.importedDir.resolve(snapshot.uuid.toString()).deleteRecursively()
+                            context.processingDir
+                                .copyRecursively(context.importedDir.resolve(snapshot.uuid.toString()))
 
-                        context.sendProfileChanged(snapshot.uuid)
+                            context.sendProfileChanged(snapshot.uuid)
+                        }
                     }
                 }
             }

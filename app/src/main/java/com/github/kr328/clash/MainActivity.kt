@@ -1,8 +1,10 @@
 package com.github.kr328.clash
 
 import android.content.ClipboardManager
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Typeface
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.view.View
@@ -45,10 +47,17 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.select
 import kotlinx.coroutines.withContext
+import org.json.JSONObject
+import java.net.URL
 import java.util.*
 import java.util.concurrent.TimeUnit
 
 class MainActivity : BaseActivity<MainDesign>() {
+    private data class ReleaseInfo(
+        val tagName: String,
+        val body: String,
+        val htmlUrl: String,
+    )
 
     private val scanLauncher = registerForActivityResult(ScanQRCode(), ::onScanResult)
 
@@ -173,7 +182,9 @@ class MainActivity : BaseActivity<MainDesign>() {
                             startActivity(SettingsActivity::class.intent)
 
                         MainDesign.Request.OpenAbout ->
-                            design.showAbout(queryAppVersionName())
+                            design.showAbout(queryAppVersionName()) {
+                                launch { checkForUpdates(design) }
+                            }
 
                         MainDesign.Request.OpenImportClipboard ->
                             importFromClipboard(design)
@@ -319,7 +330,7 @@ class MainActivity : BaseActivity<MainDesign>() {
                     startActivity(PropertiesActivity::class.intent.setUUID(profile.uuid))
                 }
 
-                if (clashRunning) {
+                if (clashRunning && activityStarted) {
                     ticker.onReceive {
                         design.fetchTraffic()
                     }
@@ -585,6 +596,64 @@ class MainActivity : BaseActivity<MainDesign>() {
                     "\n" +
                     Bridge.nativeCoreVersion().replace("_", "-")
         }
+    }
+
+    private suspend fun checkForUpdates(design: MainDesign) {
+        val latest = fetchLatestReleaseInfo()
+        if (latest == null) {
+            design.showToast(R.string.about_update_check_failed, ToastDuration.Short)
+            return
+        }
+        val current = withContext(Dispatchers.IO) {
+            packageManager.getPackageInfo(packageName, 0).versionName ?: "0.0.0"
+        }
+        val hasUpdate = compareVersions(latest.tagName, current) > 0
+        withContext(Dispatchers.Main) {
+            if (!hasUpdate) {
+                design.showToast(R.string.about_update_latest, ToastDuration.Short)
+                return@withContext
+            }
+            AlertDialog.Builder(this@MainActivity)
+                .setTitle(getString(R.string.about_update_available, latest.tagName))
+                .setMessage(latest.body.take(1200))
+                .setPositiveButton(R.string.about_open_release) { _, _ ->
+                    startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(latest.htmlUrl)))
+                }
+                .setNegativeButton(android.R.string.cancel, null)
+                .show()
+        }
+    }
+
+    private suspend fun fetchLatestReleaseInfo(): ReleaseInfo? = withContext(Dispatchers.IO) {
+        runCatching {
+            val endpoint = "https://api.github.com/repos/Nemu-x/ClashFest/releases/latest"
+            val text = URL(endpoint).openStream().bufferedReader().use { it.readText() }
+            val json = JSONObject(text)
+            ReleaseInfo(
+                tagName = json.optString("tag_name"),
+                body = json.optString("body"),
+                htmlUrl = json.optString("html_url"),
+            )
+        }.getOrNull()
+    }
+
+    private fun compareVersions(left: String, right: String): Int {
+        fun normalized(v: String): List<Int> =
+            v.lowercase()
+                .replace("v", "")
+                .replace(Regex("[^0-9.]"), ".")
+                .split(".")
+                .filter { it.isNotBlank() }
+                .map { it.toIntOrNull() ?: 0 }
+        val a = normalized(left)
+        val b = normalized(right)
+        val max = maxOf(a.size, b.size)
+        for (i in 0 until max) {
+            val ai = a.getOrElse(i) { 0 }
+            val bi = b.getOrElse(i) { 0 }
+            if (ai != bi) return ai.compareTo(bi)
+        }
+        return 0
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

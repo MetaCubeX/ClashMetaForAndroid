@@ -1,0 +1,54 @@
+name: 🐛 Bug report
+description: Report a problem or unexpected behavior
+title: "[BUG] "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: What happened?
+      placeholder: Describe the issue...
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open app
+        2. Go to...
+        3. Click...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      placeholder: What should happen?
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots / logs
+      placeholder: Attach screenshots or logs if available
+
+  - type: input
+    id: version
+    attributes:
+      label: App version
+      placeholder: v0.1.0-alpha
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - UI
+        - Core
+        - Routing
+        - Profiles
+        - Connections
+        - Other

@@ -4,7 +4,15 @@ import org.yaml.snakeyaml.Yaml
 
 /** Reads [proxy-groups] from a Clash config.yaml without loading the engine. */
 object ProxyGroupsYamlPreview {
+    @Volatile
+    private var lastHash: Int = 0
+    @Volatile
+    private var lastResult: Map<String, List<String>> = emptyMap()
+
     fun parseProxyNamesByGroup(text: String): Map<String, List<String>> {
+        val hash = text.hashCode()
+        if (hash == lastHash) return lastResult
+
         val root = try {
             Yaml().load<Map<String, Any?>>(text) ?: return emptyMap()
         } catch (_: Exception) {
@@ -24,6 +32,8 @@ object ProxyGroupsYamlPreview {
             }
             out[name] = names
         }
+        lastHash = hash
+        lastResult = out
         return out
     }
 }

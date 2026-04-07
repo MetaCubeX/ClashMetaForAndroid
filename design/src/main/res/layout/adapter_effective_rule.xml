@@ -30,5 +30,27 @@
             android:textSize="12sp"
             android:textAppearance="@style/TextAppearance.MaterialComponents.Body2"
             tools:text="RULE-SET,MyRules,PROXY" />
+
+        <TextView
+            android:id="@+id/rule_meta"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:alpha="0.75"
+            android:textAppearance="@style/TextAppearance.MaterialComponents.Caption"
+            tools:text="MANUAL" />
     </LinearLayout>
+
+    <com.google.android.material.switchmaterial.SwitchMaterial
+        android:id="@+id/rule_enabled_switch"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:checked="true" />
+
+    <ImageButton
+        android:id="@+id/rule_more"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/rule_snippet_overflow_cd"
+        android:src="@drawable/ic_baseline_more_vert" />
 </LinearLayout>

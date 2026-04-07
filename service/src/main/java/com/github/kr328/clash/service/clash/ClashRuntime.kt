@@ -35,8 +35,11 @@ fun CoroutineScope.clashRuntime(block: suspend ClashRuntimeScope.() -> Unit): Cl
                             override fun <E, T : Module<E>> install(module: T): T {
                                 launch {
                                     modules.add(module)
-
-                                    module.execute()
+                                    runCatching {
+                                        module.execute()
+                                    }.onFailure { e ->
+                                        Log.e("Module ${module.javaClass.simpleName} crashed: ${e.message}", e)
+                                    }
                                 }
 
                                 return module

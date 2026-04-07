@@ -36,6 +36,23 @@ interface IProfileManager {
 
     suspend fun replaceRuleProvidersYaml(uuid: UUID, yaml: String): Boolean
 
+    /** Structured rules model json (source of truth for Rules UI). */
+    suspend fun readRuleState(uuid: UUID): String?
+
+    /** Validates, stores structured state, regenerates YAML, and applies profile change. */
+    suspend fun applyRuleState(uuid: UUID, stateJson: String): Boolean
+
+    /** Add raw rules lines with insertion mode: append/prepend/index:<n>. */
+    suspend fun addRules(
+        uuid: UUID,
+        rawRules: List<String>,
+        addMode: Boolean,
+        insertMode: String = "append",
+    ): Boolean
+
+    /** mutate rule by id: toggle/delete/restore. */
+    suspend fun mutateRule(uuid: UUID, ruleId: String, action: String, enabled: Boolean): Boolean
+
     /** Single entry from `proxies:` as YAML, for display. */
     suspend fun readProxyEntryYaml(uuid: UUID, proxyName: String): String?
 

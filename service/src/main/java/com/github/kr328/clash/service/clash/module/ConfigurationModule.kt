@@ -50,8 +50,6 @@ class ConfigurationModule(service: Service) : Module<ConfigurationModule.LoadExc
                 if (current == loaded && changed != null && changed != loaded)
                     continue
 
-                loaded = current
-
                 val active = ImportedDao().queryByUUID(current)
                     ?: throw NullPointerException("No profile selected")
 
@@ -66,10 +64,17 @@ class ConfigurationModule(service: Service) : Module<ConfigurationModule.LoadExc
                 StatusProvider.currentProfile = active.name
 
                 service.sendProfileLoaded(current)
+                loaded = current
 
                 Log.d("Profile ${active.name} loaded")
             } catch (e: Exception) {
-                return enqueueEvent(LoadException(e.message ?: "Unknown"))
+                val message = e.message ?: "Unknown"
+                Log.e("Failed to load active profile, keeping runtime alive: $message", e)
+                // Keep VPN running if there is already a previously loaded profile.
+                // A bad rules/config update should not hard-stop tunnel.
+                if (loaded == null) {
+                    return enqueueEvent(LoadException(message))
+                }
             }
         }
     }

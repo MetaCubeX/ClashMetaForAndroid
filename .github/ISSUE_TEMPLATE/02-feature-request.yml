@@ -1,0 +1,37 @@
+name: 🚀 Feature request
+description: Suggest an idea or improvement
+title: "[FEATURE] "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What problem are you trying to solve?
+      placeholder: It's hard to...
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      placeholder: I suggest...
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives
+      placeholder: Any alternative solutions?
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - UI
+        - Core
+        - Routing
+        - Profiles
+        - Connections
+        - Other

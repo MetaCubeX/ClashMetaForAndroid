@@ -1,6 +1,7 @@
 package com.github.kr328.clash.service
 
 import android.content.Context
+import com.github.kr328.clash.common.log.Log
 import com.github.kr328.clash.service.data.Database
 import com.github.kr328.clash.service.data.Imported
 import com.github.kr328.clash.service.data.ImportedDao
@@ -17,9 +18,8 @@ import com.github.kr328.clash.service.util.generateProfileUUID
 import com.github.kr328.clash.service.util.importedDir
 import com.github.kr328.clash.service.util.ProxyGroupsYamlPreview
 import com.github.kr328.clash.service.util.ProxyYamlPreview
-import com.github.kr328.clash.service.util.RuleProviderYamlMerge
+import com.github.kr328.clash.service.util.RuleApplyService
 import com.github.kr328.clash.service.util.RuleProvidersYamlEdit
-import com.github.kr328.clash.service.util.YamlFormatting
 import com.github.kr328.clash.service.util.pendingDir
 import com.github.kr328.clash.service.util.sendProfileChanged
 import kotlinx.coroutines.CoroutineScope
@@ -36,6 +36,7 @@ import java.util.*
 class ProfileManager(private val context: Context) : IProfileManager,
     CoroutineScope by CoroutineScope(Dispatchers.IO) {
     private val store = ServiceStore(context)
+    private val ruleApplyService = RuleApplyService(context)
 
     init {
         launch {
@@ -163,24 +164,31 @@ class ProfileManager(private val context: Context) : IProfileManager,
 
                 val userinfo = response.headers["subscription-userinfo"]
                 if (response.isSuccessful && userinfo != null) {
-
                     val flags = userinfo.split(";")
                     for (flag in flags) {
-                        val info = flag.split("=")
+                        val info = flag.split("=", limit = 2)
+                        val key = info.getOrNull(0)?.trim().orEmpty()
+                        val value = info.getOrNull(1)?.trim().orEmpty()
+                        if (value.isEmpty()) continue
+
                         when {
-                            info[0].contains("upload") && info[1].isNotEmpty() -> upload =
-                                BigDecimal(info[1].split('.').first()).longValueExact()
+                            key.contains("upload") -> {
+                                upload = value.toLongOrNull()
+                                    ?: BigDecimal(value.split('.').first()).longValueExact()
+                            }
 
-                            info[0].contains("download") && info[1].isNotEmpty() -> download =
-                                BigDecimal(info[1].split('.').first()).longValueExact()
+                            key.contains("download") -> {
+                                download = value.toLongOrNull()
+                                    ?: BigDecimal(value.split('.').first()).longValueExact()
+                            }
 
-                            info[0].contains("total") && info[1].isNotEmpty() ->  total =
-                                BigDecimal(info[1].split('.').first()).longValueExact()
+                            key.contains("total") -> {
+                                total = value.toLongOrNull()
+                                    ?: BigDecimal(value.split('.').first()).longValueExact()
+                            }
 
-                            info[0].contains("expire") && info[1].isNotEmpty() -> {
-                                if (info[1].isNotEmpty()) {
-                                    expire = (info[1].toDouble()*1000).toLong()
-                                }
+                            key.contains("expire") -> {
+                                expire = (value.toDoubleOrNull()?.times(1000.0))?.toLong() ?: 0L
                             }
                         }
                     }
@@ -196,22 +204,17 @@ class ProfileManager(private val context: Context) : IProfileManager,
                     download,
                     total,
                     expire,
-                    old?.createdAt ?: System.currentTimeMillis()
+                    old.createdAt
                 )
 
-                if (old != null) {
-                    ImportedDao().update(new)
-                } else {
-                    ImportedDao().insert(new)
-                }
+                ImportedDao().update(new)
 
                 PendingDao().remove(new.uuid)
                 context.sendProfileChanged(new.uuid)
-                // println(response.body!!.string())
             }
 
         } catch (e: Exception) {
-            System.out.println(e)
+            Log.w("updateFlow failed: ${e.message}", e)
         }
     }
 
@@ -265,30 +268,10 @@ class ProfileManager(private val context: Context) : IProfileManager,
         prependRuleLine: String,
     ): Boolean {
         return withContext(Dispatchers.IO) {
-            val exists = ImportedDao().queryByUUID(uuid) != null
-            if (!exists) {
-                return@withContext false
-            }
-            val file = File(context.importedDir, "${uuid}/config.yaml")
-            if (!file.isFile) {
-                return@withContext false
-            }
-            try {
-                val text = file.readText()
-                val hasRuleProviders = runCatching {
-                    YamlFormatting.parseRootMap(text)?.containsKey("rule-providers") == true
-                }.getOrElse { text.contains("rule-providers:") }
-                val merged = if (hasRuleProviders) {
-                    RuleProviderYamlMerge.mergeWhenRuleProvidersExist(text, ruleProvidersYaml, prependRuleLine)
-                } else {
-                    RuleProviderYamlMerge.merge(text, ruleProvidersYaml, prependRuleLine)
-                }
-                file.writeText(merged)
-                context.sendProfileChanged(uuid)
-                true
-            } catch (_: Exception) {
-                false
-            }
+            if (ImportedDao().queryByUUID(uuid) == null) return@withContext false
+            val ok = ruleApplyService.mergeProviderShortcut(uuid, ruleProvidersYaml, prependRuleLine)
+            Log.d("mergeRuleProviderYaml profile=$uuid ok=$ok")
+            ok
         }
     }
 
@@ -302,7 +285,8 @@ class ProfileManager(private val context: Context) : IProfileManager,
                 return@withContext emptyMap()
             }
             try {
-                ProxyGroupsYamlPreview.parseProxyNamesByGroup(file.readText())
+                val configText = file.readText()
+                ProxyGroupsYamlPreview.parseProxyNamesByGroup(configText)
             } catch (_: Exception) {
                 emptyMap()
             }
@@ -338,11 +322,52 @@ class ProfileManager(private val context: Context) : IProfileManager,
             try {
                 val merged = RuleProvidersYamlEdit.mergeIntoConfig(file.readText(), yaml)
                 file.writeText(merged)
+                // Keep structured repository synchronized with manual YAML edits.
+                ruleApplyService.readStateJson(uuid)
                 context.sendProfileChanged(uuid)
                 true
             } catch (_: Exception) {
                 false
             }
+        }
+    }
+
+    override suspend fun readRuleState(uuid: UUID): String? {
+        return withContext(Dispatchers.IO) {
+            if (ImportedDao().queryByUUID(uuid) == null) return@withContext null
+            ruleApplyService.readStateJson(uuid)
+        }
+    }
+
+    override suspend fun applyRuleState(uuid: UUID, stateJson: String): Boolean {
+        return withContext(Dispatchers.IO) {
+            if (ImportedDao().queryByUUID(uuid) == null) return@withContext false
+            val ok = ruleApplyService.applyStateJson(uuid, stateJson)
+            Log.d("applyRuleState profile=$uuid ok=$ok")
+            ok
+        }
+    }
+
+    override suspend fun addRules(
+        uuid: UUID,
+        rawRules: List<String>,
+        addMode: Boolean,
+        insertMode: String,
+    ): Boolean {
+        return withContext(Dispatchers.IO) {
+            if (ImportedDao().queryByUUID(uuid) == null) return@withContext false
+            val ok = ruleApplyService.addRules(uuid, rawRules, addMode, insertMode)
+            Log.d("addRules profile=$uuid addMode=$addMode insertMode=$insertMode count=${rawRules.size} ok=$ok")
+            ok
+        }
+    }
+
+    override suspend fun mutateRule(uuid: UUID, ruleId: String, action: String, enabled: Boolean): Boolean {
+        return withContext(Dispatchers.IO) {
+            if (ImportedDao().queryByUUID(uuid) == null) return@withContext false
+            val ok = ruleApplyService.mutateRule(uuid, ruleId, action, enabled)
+            Log.d("mutateRule profile=$uuid ruleId=$ruleId action=$action enabled=$enabled ok=$ok")
+            ok
         }
     }
 

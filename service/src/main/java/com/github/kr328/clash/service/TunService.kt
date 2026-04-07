@@ -49,10 +49,12 @@ class TunService : VpnService(), CoroutineScope by CoroutineScope(Dispatchers.De
             while (isActive) {
                 val quit = select<Boolean> {
                     close.onEvent {
+                        Log.i("TunService close requested by CloseModule")
                         true
                     }
                     config.onEvent {
                         reason = it.message
+                        Log.e("TunService received fatal config event: ${it.message}")
 
                         true
                     }

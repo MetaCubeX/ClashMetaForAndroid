@@ -24,6 +24,10 @@ class ConnectionsActivity : BaseActivity<ConnectionsDesign>() {
 
         val refresh = launch {
             while (isActive) {
+                if (!activityStarted) {
+                    delay(800)
+                    continue
+                }
                 try {
                     val raw = withClash { queryConnectionsSnapshot() }
                     val snap = withContext(Dispatchers.Default) {

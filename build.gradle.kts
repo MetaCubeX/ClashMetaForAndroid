@@ -60,7 +60,7 @@ subprojects {
             minSdk = 21
             targetSdk = 35
 
-            versionName = "2.11.25"
+            versionName = "0.2.0"
             versionCode = 211025
 
             resValue("string", "release_name", "v$versionName")
@@ -79,7 +79,7 @@ subprojects {
             if (!isApp) {
                 consumerProguardFiles("consumer-rules.pro")
             } else {
-                setProperty("archivesBaseName", "cmfa-$versionName")
+                setProperty("archivesBaseName", "clashfest-v$versionName")
             }
         }
 

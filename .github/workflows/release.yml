@@ -37,7 +37,21 @@ jobs:
       - name: Collect APKs
         run: |
           mkdir -p release-artifacts
-          find app/build/outputs/apk -name "*.apk" -exec cp {} release-artifacts/ \;
+          VERSION_TAG="${GITHUB_REF_NAME}"
+          find app/build/outputs/apk -name "*.apk" | while read -r apk; do
+            base="$(basename "$apk")"
+            abi="universal"
+            if [[ "$base" == *"arm64-v8a"* ]]; then abi="arm64-v8a"; fi
+            if [[ "$base" == *"armeabi-v7a"* ]]; then abi="armeabi-v7a"; fi
+            if [[ "$base" == *"x86_64"* ]]; then abi="x86_64"; fi
+            if [[ "$base" == *"x86"* && "$base" != *"x86_64"* ]]; then abi="x86"; fi
+
+            flavor="alpha"
+            if [[ "$base" == *"meta"* ]]; then flavor="meta"; fi
+
+            out="clashfest-${VERSION_TAG}-${flavor}-${abi}.apk"
+            cp "$apk" "release-artifacts/$out"
+          done
           ls -la release-artifacts
 
       - name: Publish GitHub Release

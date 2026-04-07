@@ -14,6 +14,9 @@ import com.github.kr328.clash.design.util.root
 import com.github.kr328.clash.design.util.toBytesString
 import com.github.kr328.clash.design.R
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class ConnectionsDesign(context: Context) : Design<ConnectionsDesign.Request>(context) {
@@ -26,7 +29,9 @@ class ConnectionsDesign(context: Context) : Design<ConnectionsDesign.Request>(co
 
     private val adapter = ConnectionsAdapter()
     private var lastSnapshot: ConnectionsSnapshot = ConnectionsSnapshot()
+    private var lastRenderedSignature: String = ""
     private var searchQuery: String = ""
+    private var searchJob: Job? = null
 
     override val root: View
         get() = binding.root
@@ -44,7 +49,11 @@ class ConnectionsDesign(context: Context) : Design<ConnectionsDesign.Request>(co
                 override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) = Unit
                 override fun afterTextChanged(s: Editable?) {
                     searchQuery = s?.toString().orEmpty()
-                    applyFilteredList()
+                    searchJob?.cancel()
+                    searchJob = launch {
+                        delay(250)
+                        applyFilteredList()
+                    }
                 }
             },
         )
@@ -52,6 +61,9 @@ class ConnectionsDesign(context: Context) : Design<ConnectionsDesign.Request>(co
 
     suspend fun patchSnapshot(snap: ConnectionsSnapshot) {
         withContext(Dispatchers.Main) {
+            val signature = "${snap.uploadTotal}:${snap.downloadTotal}:${snap.connections.size}:${searchQuery}"
+            if (signature == lastRenderedSignature) return@withContext
+            lastRenderedSignature = signature
             lastSnapshot = snap
             binding.connectionsTotals.text = context.getString(
                 R.string.connections_totals_fmt,
