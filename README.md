@@ -33,15 +33,12 @@ ClashFest is a modern Android client built on top of the Clash / Clash Meta ecos
   <img src="docs/screenshots/home.png" width="180"/>
   <img src="docs/screenshots/profile_options.png" width="180"/>
   <img src="docs/screenshots/add_profile.png" width="180"/>
+  <img src="docs/screenshots/connections.png" width="180"/>
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/connections.png" width="180"/>
   <img src="docs/screenshots/rules.jpg" width="180"/>
   <img src="docs/screenshots/add_rules.jpg" width="180"/>
-</p>
-
-<p align="center">
   <img src="docs/screenshots/routing_rules1.jpg" width="180"/>
   <img src="docs/screenshots/routing_rules2.jpg" width="180"/>
 </p>
