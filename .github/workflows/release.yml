@@ -31,6 +31,24 @@ jobs:
       - name: Grant gradlew execute permission
         run: chmod +x gradlew
 
+      - name: Restore Android signing files
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          if [ -z "$ANDROID_KEYSTORE_BASE64" ] || [ -z "$ANDROID_KEYSTORE_PASSWORD" ] || [ -z "$ANDROID_KEY_ALIAS" ] || [ -z "$ANDROID_KEY_PASSWORD" ]; then
+            echo "Signing secrets are missing. Configure ANDROID_KEYSTORE_BASE64 / ANDROID_KEYSTORE_PASSWORD / ANDROID_KEY_ALIAS / ANDROID_KEY_PASSWORD."
+            exit 1
+          fi
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > release.keystore
+          cat > signing.properties <<EOF
+          keystore.password=$ANDROID_KEYSTORE_PASSWORD
+          key.alias=$ANDROID_KEY_ALIAS
+          key.password=$ANDROID_KEY_PASSWORD
+          EOF
+
       - name: Guard - HandlerService must not exist
         run: |
           if grep -R --line-number --fixed-strings "HandlerService" app/src/main service/src/main core/src/main; then
@@ -39,8 +57,8 @@ jobs:
           fi
           echo "HandlerService guard passed."
 
-      - name: Build Alpha Debug APK
-        run: ./gradlew assembleAlphaDebug
+      - name: Build Alpha Release APK
+        run: ./gradlew assembleAlphaRelease
 
       - name: Collect APKs
         run: |
