@@ -17,7 +17,12 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: recursive
-          fetch-depth: 50
+          fetch-depth: 0
+
+      - name: Ensure tags for root and core submodule
+        run: |
+          git fetch --tags --force
+          git -C core/src/foss/golang/clash fetch --tags --force
 
       - name: Set up JDK 21
         uses: actions/setup-java@v4
