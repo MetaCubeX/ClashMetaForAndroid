@@ -13,6 +13,7 @@ import com.github.kr328.clash.common.compat.registerReceiverCompat
 import com.github.kr328.clash.common.constants.Intents
 import com.github.kr328.clash.common.constants.Permissions
 import com.github.kr328.clash.remote.StatusClient
+import com.github.kr328.clash.service.R as ServiceR
 import com.github.kr328.clash.util.startClashService
 import com.github.kr328.clash.util.stopClashService
 
@@ -76,7 +77,7 @@ class TileService : TileService() {
         else
             currentProfile
 
-        tile.icon = Icon.createWithResource(this, R.drawable.ic_logo_service)
+        tile.icon = Icon.createWithResource(this, ServiceR.drawable.ic_logo_service)
 
         tile.updateTile()
     }
