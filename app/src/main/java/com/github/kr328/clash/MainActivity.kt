@@ -7,6 +7,7 @@ import android.graphics.Typeface
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.PowerManager
 import android.view.View
 import android.widget.ScrollView
 import android.widget.TextView
@@ -60,6 +61,7 @@ class MainActivity : BaseActivity<MainDesign>() {
     )
 
     private val scanLauncher = registerForActivityResult(ScanQRCode(), ::onScanResult)
+    private var lastForwardedTrafficTotal: Long = Long.MIN_VALUE
 
     private fun parseTunnelMode(name: String): TunnelState.Mode? =
         when (name) {
@@ -128,7 +130,8 @@ class MainActivity : BaseActivity<MainDesign>() {
         setContentDesign(design)
         design.fetch()
 
-        val ticker = ticker(TimeUnit.SECONDS.toMillis(1))
+        val tickerInteractive = ticker(TimeUnit.SECONDS.toMillis(1))
+        val tickerIdle = ticker(TimeUnit.SECONDS.toMillis(3))
         val profileTicker = ticker(TimeUnit.MINUTES.toMillis(1))
 
         while (isActive) {
@@ -334,7 +337,9 @@ class MainActivity : BaseActivity<MainDesign>() {
                 }
 
                 if (clashRunning && activityStarted) {
-                    ticker.onReceive {
+                    val interactive = getSystemService<PowerManager>()?.isInteractive ?: true
+                    val trafficTicker = if (interactive) tickerInteractive else tickerIdle
+                    trafficTicker.onReceive {
                         design.fetchTraffic()
                     }
                 }
@@ -555,7 +560,11 @@ class MainActivity : BaseActivity<MainDesign>() {
 
     private suspend fun MainDesign.fetchTraffic() {
         withClash {
-            setForwarded(queryTrafficTotal())
+            val total = queryTrafficTotal()
+            if (total != lastForwardedTrafficTotal) {
+                lastForwardedTrafficTotal = total
+                setForwarded(total)
+            }
         }
     }
 
