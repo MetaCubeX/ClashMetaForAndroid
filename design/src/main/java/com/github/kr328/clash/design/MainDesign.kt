@@ -266,12 +266,15 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
     }
 
     suspend fun patchProfiles(profiles: List<Profile>) {
-        profileAdapter.apply {
-            val ids = profiles.map { it.uuid }.toSet()
-            expandedProfileUuids.retainAll { it in ids }
-            patchDataSet(this::profiles, profiles, id = { it.uuid })
+        withContext(Dispatchers.Main) {
+            binding.hasProfiles = profiles.isNotEmpty()
+            profileAdapter.apply {
+                val ids = profiles.map { it.uuid }.toSet()
+                expandedProfileUuids.retainAll { it in ids }
+                patchDataSet(this::profiles, profiles, id = { it.uuid })
+            }
+            profileAdapter.setExpandedUuids(expandedProfileUuids.toSet())
         }
-        profileAdapter.setExpandedUuids(expandedProfileUuids.toSet())
     }
 
     suspend fun patchProxyGroups(
@@ -371,11 +374,7 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
     init {
         binding.self = this
         binding.tunnelStarting = false
-
-        binding.colorClashStarted =
-            context.resolveThemedColor(com.google.android.material.R.attr.colorPrimary)
-        binding.colorClashStopped =
-            context.resolveThemedColor(R.attr.colorClashStopped)
+        binding.hasProfiles = false
 
         binding.modeActiveColor =
             context.resolveThemedColor(com.google.android.material.R.attr.colorPrimary)

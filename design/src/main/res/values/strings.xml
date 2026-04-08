@@ -350,6 +350,9 @@
     <string name="about_powered_by">ClashFest for Android</string>
     <string name="about_app_version_label">App version</string>
     <string name="about_core_version_label">Core version</string>
+    <string name="main_no_profiles_title">No subscriptions yet</string>
+    <string name="main_no_profiles_subtitle">Add your first subscription to start routing traffic and manage proxy groups.</string>
+    <string name="main_add_subscription">Add subscription</string>
 
     <string name="app">App</string>
     <string name="service">Service</string>

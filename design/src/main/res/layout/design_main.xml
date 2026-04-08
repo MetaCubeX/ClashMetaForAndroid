@@ -23,12 +23,6 @@
             name="profileName"
             type="String" />
         <variable
-            name="colorClashStarted"
-            type="int" />
-        <variable
-            name="colorClashStopped"
-            type="int" />
-        <variable
             name="modeActiveColor"
             type="int" />
         <variable
@@ -42,6 +36,9 @@
             type="boolean" />
         <variable
             name="isDirectMode"
+            type="boolean" />
+        <variable
+            name="hasProfiles"
             type="boolean" />
 
         <import type="android.view.View" />
@@ -334,18 +331,72 @@
                 </com.google.android.material.card.MaterialCardView>
             </LinearLayout>
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/profile_list"
+            <FrameLayout
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1"
-                android:clipChildren="true"
-                android:clipToPadding="true"
                 android:minHeight="120dp"
-                android:nestedScrollingEnabled="true"
-                android:overScrollMode="never"
-                android:paddingBottom="8dp"
-                tools:listitem="@layout/adapter_profile" />
+                android:paddingBottom="8dp">
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/profile_list"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:clipChildren="true"
+                    android:clipToPadding="true"
+                    android:nestedScrollingEnabled="true"
+                    android:overScrollMode="never"
+                    android:visibility="@{hasProfiles ? View.VISIBLE : View.GONE}"
+                    tools:listitem="@layout/adapter_profile" />
+
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/main_empty_profiles_card"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginHorizontal="@dimen/main_padding_horizontal"
+                    android:visibility="@{hasProfiles ? View.GONE : View.VISIBLE}"
+                    app:cardBackgroundColor="@color/main_card_glass"
+                    app:cardCornerRadius="18dp"
+                    app:cardElevation="0dp"
+                    app:strokeColor="@color/tech_secondary_soft"
+                    app:strokeWidth="1dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/main_no_profiles_title"
+                            android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1"
+                            android:textColor="?attr/colorMainDashboardText"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="6dp"
+                            android:alpha="0.86"
+                            android:text="@string/main_no_profiles_subtitle"
+                            android:textAppearance="@style/TextAppearance.MaterialComponents.Body2"
+                            android:textColor="?attr/colorMainDashboardText" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="14dp"
+                            android:onClick="@{() -> self.request(Request.OpenNewProfile)}"
+                            android:text="@string/main_add_subscription"
+                            app:icon="@drawable/ic_neon_toolbar_add"
+                            app:iconGravity="textStart"
+                            app:iconPadding="10dp" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+            </FrameLayout>
 
             <LinearLayout
                 android:layout_width="match_parent"
