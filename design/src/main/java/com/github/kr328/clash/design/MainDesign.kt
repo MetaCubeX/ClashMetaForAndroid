@@ -344,7 +344,7 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
     suspend fun showAbout(
         versionName: String,
         coreVersion: String,
-        onCheckUpdates: (((Boolean) -> Unit) -> Unit)? = null
+        onCheckUpdates: (((Boolean) -> Unit, (String?) -> Unit) -> Unit)? = null
     ) {
         withContext(Dispatchers.Main) {
             val binding = DesignAboutBinding.inflate(context.layoutInflater).apply {
@@ -360,16 +360,32 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
             if (onCheckUpdates != null) {
                 binding.aboutCheckUpdatesButton.apply {
                     visibility = View.VISIBLE
-                    fun setLoading(loading: Boolean) {
+                    var statusText: String? = null
+
+                    fun render(loading: Boolean) {
                         isEnabled = !loading
                         alpha = if (loading) 0.65f else 1f
-                        text = context.getString(
-                            if (loading) R.string.about_checking_updates else R.string.about_check_updates
-                        )
+                        text = when {
+                            loading -> context.getString(R.string.about_checking_updates)
+                            !statusText.isNullOrBlank() -> statusText
+                            else -> context.getString(R.string.about_check_updates)
+                        }
                     }
+
+                    fun setLoading(loading: Boolean) {
+                        render(loading)
+                    }
+
+                    fun setStatus(text: String?) {
+                        statusText = text
+                        render(loading = false)
+                    }
+
                     setOnClickListener {
                         if (!isEnabled) return@setOnClickListener
-                        onCheckUpdates(::setLoading)
+                        statusText = null
+                        render(loading = true)
+                        onCheckUpdates(::setLoading, ::setStatus)
                     }
                 }
             }

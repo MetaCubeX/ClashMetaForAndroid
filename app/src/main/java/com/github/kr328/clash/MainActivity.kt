@@ -2,15 +2,22 @@ package com.github.kr328.clash
 
 import android.content.ClipboardManager
 import android.content.Intent
+import android.app.DownloadManager
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.graphics.Typeface
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Environment
+import android.provider.Settings
 import android.os.PowerManager
 import android.view.View
 import android.widget.ScrollView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.widget.PopupMenu
 import com.github.kr328.clash.design.dialog.AppBottomSheetDialog
 import androidx.appcompat.app.AlertDialog
@@ -59,11 +66,36 @@ class MainActivity : BaseActivity<MainDesign>() {
         val tagName: String,
         val body: String,
         val htmlUrl: String,
+        val apkUrl: String?,
+        val apkName: String?,
     )
 
     private val scanLauncher = registerForActivityResult(ScanQRCode(), ::onScanResult)
     private var lastForwardedTrafficTotal: Long = Long.MIN_VALUE
     private var isCheckingUpdates: Boolean = false
+    private var pendingApkDownloadId: Long = -1L
+    private var downloadReceiverRegistered: Boolean = false
+
+    private val apkDownloadReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (intent?.action != DownloadManager.ACTION_DOWNLOAD_COMPLETE) return
+            val id = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1L)
+            if (id <= 0L || id != pendingApkDownloadId) return
+            pendingApkDownloadId = -1L
+
+            val dm = getSystemService<DownloadManager>() ?: return
+            val query = DownloadManager.Query().setFilterById(id)
+            dm.query(query)?.use { cursor ->
+                if (!cursor.moveToFirst()) return
+                val status = cursor.getInt(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS))
+                if (status == DownloadManager.STATUS_SUCCESSFUL) {
+                    installDownloadedApk(dm, id)
+                } else {
+                    Toast.makeText(this@MainActivity, R.string.about_download_failed, Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
 
     private fun parseTunnelMode(name: String): TunnelState.Mode? =
         when (name) {
@@ -190,13 +222,14 @@ class MainActivity : BaseActivity<MainDesign>() {
                             design.showAbout(
                                 versionName = queryAppVersionName(),
                                 coreVersion = queryCoreVersionName(),
-                            ) { setLoading ->
+                            ) { setLoading, setStatus ->
                                 if (isCheckingUpdates) return@showAbout
                                 launch {
                                     isCheckingUpdates = true
+                                    setStatus(null)
                                     setLoading(true)
                                     try {
-                                        checkForUpdates(design)
+                                        checkForUpdates(design, setStatus)
                                     } finally {
                                         isCheckingUpdates = false
                                         setLoading(false)
@@ -616,7 +649,10 @@ class MainActivity : BaseActivity<MainDesign>() {
 
     private suspend fun queryAppVersionName(): String {
         return withContext(Dispatchers.IO) {
-            packageManager.getPackageInfo(packageName, 0).versionName ?: "unknown"
+            val raw = packageManager.getPackageInfo(packageName, 0).versionName ?: "unknown"
+            val semver = Regex("""(\d+\.\d+\.\d+)""").find(raw)?.groupValues?.getOrNull(1) ?: raw
+            val channel = if (BuildConfig.DEBUG) "Debug" else "Release"
+            "$semver.$channel"
         }
     }
 
@@ -629,10 +665,10 @@ class MainActivity : BaseActivity<MainDesign>() {
         }
     }
 
-    private suspend fun checkForUpdates(design: MainDesign) {
+    private suspend fun checkForUpdates(design: MainDesign, setStatus: (String?) -> Unit) {
         val latest = fetchLatestReleaseInfo()
         if (latest == null) {
-            design.showToast(R.string.about_update_check_failed, ToastDuration.Short)
+            setStatus(getString(R.string.about_update_check_failed))
             return
         }
         val current = withContext(Dispatchers.IO) {
@@ -641,13 +677,19 @@ class MainActivity : BaseActivity<MainDesign>() {
         val hasUpdate = compareVersions(latest.tagName, current) > 0
         withContext(Dispatchers.Main) {
             if (!hasUpdate) {
-                design.showToast(R.string.about_update_latest, ToastDuration.Short)
+                setStatus(getString(R.string.about_update_latest))
                 return@withContext
             }
+            setStatus(getString(R.string.about_update_available, latest.tagName))
             MaterialAlertDialogBuilder(this@MainActivity)
                 .setTitle(getString(R.string.about_update_available, latest.tagName))
                 .setMessage(latest.body.take(1200))
-                .setPositiveButton(R.string.about_open_release) { _, _ ->
+                .setPositiveButton(R.string.about_download_install) { _, _ ->
+                    if (!startApkDownload(latest)) {
+                        startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(latest.htmlUrl)))
+                    }
+                }
+                .setNeutralButton(R.string.about_open_release) { _, _ ->
                     startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(latest.htmlUrl)))
                 }
                 .setNegativeButton(android.R.string.cancel, null)
@@ -660,31 +702,113 @@ class MainActivity : BaseActivity<MainDesign>() {
             val endpoint = "https://api.github.com/repos/Nemu-x/ClashFest/releases/latest"
             val text = URL(endpoint).openStream().bufferedReader().use { it.readText() }
             val json = JSONObject(text)
+            val assets = json.optJSONArray("assets")
+            var apkUrl: String? = null
+            var apkName: String? = null
+
+            if (assets != null) {
+                // Prefer universal/arm64 alpha assets, then fallback to any APK.
+                val candidates = mutableListOf<JSONObject>()
+                for (i in 0 until assets.length()) {
+                    val item = assets.optJSONObject(i) ?: continue
+                    val name = item.optString("name")
+                    val url = item.optString("browser_download_url")
+                    if (name.endsWith(".apk", ignoreCase = true) && url.isNotBlank()) {
+                        candidates += item
+                    }
+                }
+                val picked = candidates.firstOrNull {
+                    val n = it.optString("name").lowercase(Locale.ROOT)
+                    n.contains("alpha") && n.contains("universal")
+                } ?: candidates.firstOrNull {
+                    val n = it.optString("name").lowercase(Locale.ROOT)
+                    n.contains("alpha") && n.contains("arm64-v8a")
+                } ?: candidates.firstOrNull()
+
+                apkUrl = picked?.optString("browser_download_url")
+                apkName = picked?.optString("name")
+            }
+
             ReleaseInfo(
                 tagName = json.optString("tag_name"),
                 body = json.optString("body"),
                 htmlUrl = json.optString("html_url"),
+                apkUrl = apkUrl,
+                apkName = apkName,
             )
         }.getOrNull()
     }
 
     private fun compareVersions(left: String, right: String): Int {
-        fun normalized(v: String): List<Int> =
-            v.lowercase()
-                .replace("v", "")
-                .replace(Regex("[^0-9.]"), ".")
-                .split(".")
-                .filter { it.isNotBlank() }
-                .map { it.toIntOrNull() ?: 0 }
-        val a = normalized(left)
-        val b = normalized(right)
-        val max = maxOf(a.size, b.size)
-        for (i in 0 until max) {
-            val ai = a.getOrElse(i) { 0 }
-            val bi = b.getOrElse(i) { 0 }
-            if (ai != bi) return ai.compareTo(bi)
+        fun semverTriplet(v: String): IntArray? {
+            val m = Regex("""(\d+)\.(\d+)\.(\d+)""").find(v) ?: return null
+            return intArrayOf(
+                m.groupValues[1].toIntOrNull() ?: 0,
+                m.groupValues[2].toIntOrNull() ?: 0,
+                m.groupValues[3].toIntOrNull() ?: 0,
+            )
         }
-        return 0
+
+        val a = semverTriplet(left)
+        val b = semverTriplet(right)
+        if (a != null && b != null) {
+            for (i in 0..2) {
+                if (a[i] != b[i]) return a[i].compareTo(b[i])
+            }
+            return 0
+        }
+
+        // Safe fallback for unexpected formats.
+        return left.compareTo(right)
+    }
+
+    private fun startApkDownload(release: ReleaseInfo): Boolean {
+        val url = release.apkUrl ?: return false
+        val dm = getSystemService<DownloadManager>() ?: return false
+
+        val fileName = (release.apkName ?: "clashfest-${release.tagName}.apk")
+            .replace(Regex("""[^A-Za-z0-9._-]"""), "_")
+
+        val request = DownloadManager.Request(Uri.parse(url))
+            .setTitle(getString(R.string.about_update_available, release.tagName))
+            .setDescription(getString(R.string.about_download_started))
+            .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+            .setMimeType("application/vnd.android.package-archive")
+            .setDestinationInExternalFilesDir(this, Environment.DIRECTORY_DOWNLOADS, fileName)
+
+        pendingApkDownloadId = dm.enqueue(request)
+        Toast.makeText(this, R.string.about_download_started, Toast.LENGTH_SHORT).show()
+        return true
+    }
+
+    private fun installDownloadedApk(dm: DownloadManager, downloadId: Long) {
+        val uri = dm.getUriForDownloadedFile(downloadId)
+        if (uri == null) {
+            Toast.makeText(this, R.string.about_download_failed, Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !packageManager.canRequestPackageInstalls()) {
+            startActivity(
+                Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).apply {
+                    data = Uri.parse("package:$packageName")
+                }
+            )
+            Toast.makeText(this, R.string.about_enable_unknown_apps, Toast.LENGTH_LONG).show()
+            return
+        }
+
+        runCatching {
+            startActivity(
+                Intent(Intent.ACTION_VIEW).apply {
+                    setDataAndType(uri, "application/vnd.android.package-archive")
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                }
+            )
+        }.onFailure {
+            Toast.makeText(this, R.string.about_download_failed, Toast.LENGTH_SHORT).show()
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -702,5 +826,26 @@ class MainActivity : BaseActivity<MainDesign>() {
                 requestPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
             }
         }
+
+        if (!downloadReceiverRegistered) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                registerReceiver(
+                    apkDownloadReceiver,
+                    IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE),
+                    RECEIVER_NOT_EXPORTED
+                )
+            } else {
+                registerReceiver(apkDownloadReceiver, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE))
+            }
+            downloadReceiverRegistered = true
+        }
+    }
+
+    override fun onDestroy() {
+        if (downloadReceiverRegistered) {
+            runCatching { unregisterReceiver(apkDownloadReceiver) }
+            downloadReceiverRegistered = false
+        }
+        super.onDestroy()
     }
 }

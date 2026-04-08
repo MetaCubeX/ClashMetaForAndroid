@@ -357,6 +357,10 @@
     <string name="about_update_available">Update available: %1$s</string>
     <string name="about_update_latest">You already have the latest version</string>
     <string name="about_open_release">Open release page</string>
+    <string name="about_download_install">Download and install</string>
+    <string name="about_download_started">Downloading update…</string>
+    <string name="about_download_failed">Could not download or install update</string>
+    <string name="about_enable_unknown_apps">Allow installs from this source, then tap Check updates again.</string>
     <string name="about_update_check_failed">Could not check updates</string>
     <string name="about_powered_by">ClashFest for Android</string>
     <string name="about_app_version_label">App version</string>
