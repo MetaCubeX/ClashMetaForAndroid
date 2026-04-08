@@ -31,7 +31,7 @@ jobs:
       - name: Grant gradlew execute permission
         run: chmod +x gradlew
 
-      - name: Guard: HandlerService must not exist
+      - name: Guard - HandlerService must not exist
         run: |
           if grep -R --line-number --fixed-strings "HandlerService" app/src/main service/src/main core/src/main; then
             echo "HandlerService reference detected. This path is forbidden."
