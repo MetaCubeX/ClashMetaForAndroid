@@ -9,6 +9,8 @@ import java.util.UUID
 
 object RuleMapper {
     private val yaml = Yaml()
+    private const val DEFAULT_GEOIP_URL = "https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@release/geoip.dat"
+    private const val DEFAULT_GEOSITE_URL = "https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@release/geosite.dat"
 
     fun parseStateFromConfig(configText: String): RuleState {
         val root = YamlFormatting.parseRootMap(configText) ?: return RuleState()
@@ -36,8 +38,30 @@ object RuleMapper {
             .sortedBy { it.order }
             .map { toRuleLine(it) }
             .distinct()
+        ensureGeositeConnectivity(root, state.rules)
 
         return YamlFormatting.blockYaml().dump(root)
+    }
+
+    private fun ensureGeositeConnectivity(root: MutableMap<String, Any?>, rules: List<RuleItem>) {
+        val usesGeosite = rules.any {
+            it.enabled && !it.deleted && it.type.equals("GEOSITE", true)
+        }
+        if (!usesGeosite) return
+
+        root["geodata-mode"] = true
+
+        val existing = (root["geox-url"] as? Map<*, *>)?.entries
+            ?.associate { (k, v) -> k.toString() to v }
+            ?.toMutableMap()
+            ?: mutableMapOf()
+        if (existing["geoip"]?.toString().isNullOrBlank()) {
+            existing["geoip"] = DEFAULT_GEOIP_URL
+        }
+        if (existing["geosite"]?.toString().isNullOrBlank()) {
+            existing["geosite"] = DEFAULT_GEOSITE_URL
+        }
+        root["geox-url"] = existing
     }
 
     fun parseProvidersYaml(yamlText: String): List<RuleProviderItem> {
