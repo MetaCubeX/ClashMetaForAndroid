@@ -34,7 +34,7 @@
                     android:id="@+id/about_app_icon"
                     android:layout_width="56dp"
                     android:layout_height="56dp"
-                    android:contentDescription="@string/application_name"
+                    android:contentDescription="@string/about_powered_by"
                     android:src="@drawable/ic_clash" />
 
                 <LinearLayout
@@ -47,7 +47,7 @@
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="@string/application_name"
+                        android:text="@string/about_powered_by"
                         android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1"
                         android:textStyle="bold" />
 

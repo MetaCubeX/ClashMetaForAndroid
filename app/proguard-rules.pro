@@ -57,3 +57,7 @@
     boolean getDEBUG() return false;
     boolean getRECOVER_STACK_TRACES() return false;
 }
+
+# SnakeYAML references Java Beans APIs that are not available on Android.
+# These classes are never used at runtime in our app paths, so suppress warnings for shrinker.
+-dontwarn java.beans.**
