@@ -69,7 +69,7 @@ jobs:
 
       - name: Generate changelog
         run: |
-          BASE_TAG="$(git tag --merged HEAD --list 'v[0-9]*' --sort=-v:refname | head -n1)"
+          BASE_TAG="$(git tag --merged HEAD --list 'v0.*' --sort=-v:refname | head -n1)"
           if [ -n "$BASE_TAG" ]; then
             CHANGE_COMMITS="$(git log "${BASE_TAG}..HEAD" --pretty=format:'- `%h` %s — @%an')"
           else
