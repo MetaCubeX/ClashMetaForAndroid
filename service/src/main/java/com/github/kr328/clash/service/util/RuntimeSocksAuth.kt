@@ -1,5 +1,6 @@
 package com.github.kr328.clash.service.util
 
+import com.github.kr328.clash.common.log.Log
 import com.github.kr328.clash.core.model.ConfigurationOverride
 import java.security.SecureRandom
 import java.util.Base64
@@ -73,10 +74,40 @@ object RuntimeSocksAuth {
 
     private fun normalizeControllerAddress(address: String?): String? {
         if (address.isNullOrBlank()) return address
-        return address
+        val normalized = address
             .replace("0.0.0.0:", "$LOOPBACK_BIND:")
             .replace("[::]:", "$LOOPBACK_BIND:")
             .replace(":::", "$LOOPBACK_BIND:")
+        val forced = forceLoopbackController(normalized)
+        if (forced != normalized) {
+            Log.w("Session override clamped external-controller to loopback")
+        }
+        return forced
+    }
+
+    private fun forceLoopbackController(address: String): String {
+        val plainHostPort = Regex("""^([^:]+):(\d+)$""").matchEntire(address)
+        if (plainHostPort != null) {
+            val host = plainHostPort.groupValues[1]
+            val port = plainHostPort.groupValues[2]
+            return if (isLoopbackHost(host)) address else "$LOOPBACK_BIND:$port"
+        }
+
+        val schemeHostPort = Regex("""^([a-zA-Z][a-zA-Z0-9+.-]*://)([^:/]+):(\d+)$""").matchEntire(address)
+        if (schemeHostPort != null) {
+            val scheme = schemeHostPort.groupValues[1]
+            val host = schemeHostPort.groupValues[2]
+            val port = schemeHostPort.groupValues[3]
+            return if (isLoopbackHost(host)) address else "${scheme}${LOOPBACK_BIND}:$port"
+        }
+
+        return address
+    }
+
+    private fun isLoopbackHost(host: String): Boolean {
+        return host.equals("localhost", ignoreCase = true) ||
+            host == LOOPBACK_BIND ||
+            host == "::1"
     }
 
     private fun newCredential(): String {

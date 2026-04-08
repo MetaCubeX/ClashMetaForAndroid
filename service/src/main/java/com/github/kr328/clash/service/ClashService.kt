@@ -8,6 +8,7 @@ import com.github.kr328.clash.service.clash.clashRuntime
 import com.github.kr328.clash.service.clash.module.*
 import com.github.kr328.clash.service.store.ServiceStore
 import com.github.kr328.clash.service.util.cancelAndJoinBlocking
+import com.github.kr328.clash.service.util.ProxyPropertyGuard
 import com.github.kr328.clash.service.util.sendClashStarted
 import com.github.kr328.clash.service.util.sendClashStopped
 import kotlinx.coroutines.NonCancellable
@@ -68,6 +69,7 @@ class ClashService : BaseService() {
 
     override fun onCreate() {
         super.onCreate()
+        ProxyPropertyGuard.clearGlobalProxyProperties()
 
         if (StatusProvider.serviceRunning)
             return stopSelf()
