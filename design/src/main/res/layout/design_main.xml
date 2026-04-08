@@ -110,8 +110,8 @@
             <FrameLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:paddingTop="12dp"
-                android:paddingBottom="8dp">
+                android:paddingTop="@dimen/main_power_section_padding_top"
+                android:paddingBottom="@dimen/main_power_section_padding_bottom">
 
                 <View
                     android:id="@+id/main_power_glow"
@@ -179,7 +179,7 @@
                 android:layout_height="wrap_content"
                 android:alpha="0.85"
                 android:gravity="center"
-                android:paddingBottom="8dp"
+                android:paddingBottom="@dimen/main_profile_label_padding_bottom"
                 android:text="@{profileName != null ? @string/format_profile_activated(profileName) : @string/not_selected}"
                 android:textAppearance="@style/TextAppearance.MaterialComponents.Caption"
                 android:textColor="?attr/colorMainDashboardText"
@@ -199,7 +199,7 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
+                android:layout_marginBottom="@dimen/main_mode_row_margin_bottom"
                 android:orientation="horizontal"
                 android:paddingHorizontal="@dimen/main_padding_horizontal"
                 android:visibility="@{clashRunning ? View.VISIBLE : View.GONE}"
@@ -223,20 +223,20 @@
                         android:layout_height="wrap_content"
                         android:gravity="center"
                         android:orientation="vertical"
-                        android:paddingHorizontal="8dp"
-                        android:paddingVertical="12dp">
+                        android:paddingHorizontal="@dimen/main_mode_chip_padding_horizontal"
+                        android:paddingVertical="@dimen/main_mode_chip_padding_vertical">
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:contentDescription="@string/mode_chip_rule"
                             android:text="@string/mode_emoji_rule"
-                            android:textSize="28sp" />
+                            android:textSize="@dimen/main_mode_chip_emoji_size" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
+                            android:layout_marginTop="@dimen/main_mode_chip_label_margin_top"
                             android:text="@string/mode_chip_rule"
                             android:textAppearance="@style/TextAppearance.MaterialComponents.Body2"
                             android:textColor="?attr/colorMainDashboardText"
@@ -266,20 +266,20 @@
                         android:layout_height="wrap_content"
                         android:gravity="center"
                         android:orientation="vertical"
-                        android:paddingHorizontal="8dp"
-                        android:paddingVertical="12dp">
+                        android:paddingHorizontal="@dimen/main_mode_chip_padding_horizontal"
+                        android:paddingVertical="@dimen/main_mode_chip_padding_vertical">
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:contentDescription="@string/mode_chip_global"
                             android:text="@string/mode_emoji_global"
-                            android:textSize="28sp" />
+                            android:textSize="@dimen/main_mode_chip_emoji_size" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
+                            android:layout_marginTop="@dimen/main_mode_chip_label_margin_top"
                             android:text="@string/mode_chip_global"
                             android:textAppearance="@style/TextAppearance.MaterialComponents.Body2"
                             android:textColor="?attr/colorMainDashboardText"
@@ -309,20 +309,20 @@
                         android:layout_height="wrap_content"
                         android:gravity="center"
                         android:orientation="vertical"
-                        android:paddingHorizontal="8dp"
-                        android:paddingVertical="12dp">
+                        android:paddingHorizontal="@dimen/main_mode_chip_padding_horizontal"
+                        android:paddingVertical="@dimen/main_mode_chip_padding_vertical">
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:contentDescription="@string/mode_chip_direct"
                             android:text="@string/mode_emoji_direct"
-                            android:textSize="28sp" />
+                            android:textSize="@dimen/main_mode_chip_emoji_size" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
+                            android:layout_marginTop="@dimen/main_mode_chip_label_margin_top"
                             android:text="@string/mode_chip_direct"
                             android:textAppearance="@style/TextAppearance.MaterialComponents.Body2"
                             android:textColor="?attr/colorMainDashboardText"
