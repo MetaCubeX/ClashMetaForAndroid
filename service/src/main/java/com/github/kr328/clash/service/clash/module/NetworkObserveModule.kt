@@ -40,12 +40,12 @@ class NetworkObserveModule(service: Service) : Module<Network>(service) {
 
     private val callback = object : ConnectivityManager.NetworkCallback() {
         override fun onAvailable(network: Network) {
-            Log.i("NetworkObserve onAvailable network=$network")
+            Log.i("NetworkObserve onAvailable")
             networkInfos[network] = NetworkInfo()
         }
 
         override fun onLosing(network: Network, maxMsToLive: Int) {
-            Log.i("NetworkObserve onLosing network=$network")
+            Log.i("NetworkObserve onLosing")
             networkInfos[network]?.losingMs = System.currentTimeMillis() + maxMsToLive
             notifyDnsChange()
 
@@ -53,7 +53,7 @@ class NetworkObserveModule(service: Service) : Module<Network>(service) {
         }
 
         override fun onLost(network: Network) {
-            Log.i("NetworkObserve onLost network=$network")
+            Log.i("NetworkObserve onLost")
             networkInfos.remove(network)
             notifyDnsChange()
 
@@ -61,7 +61,7 @@ class NetworkObserveModule(service: Service) : Module<Network>(service) {
         }
 
         override fun onLinkPropertiesChanged(network: Network, linkProperties: LinkProperties) {
-            Log.i("NetworkObserve onLinkPropertiesChanged network=$network $linkProperties")
+            Log.i("NetworkObserve onLinkPropertiesChanged")
             networkInfos[network]?.dnsList = linkProperties.dnsServers
             notifyDnsChange()
 
@@ -121,7 +121,7 @@ class NetworkObserveModule(service: Service) : Module<Network>(service) {
             ?: emptyList()).map { x -> x.asSocketAddressText(53) }
         val prevDnsList = curDnsList
         if (dnsList.isNotEmpty() && prevDnsList != dnsList) {
-            Log.i("notifyDnsChange $prevDnsList -> $dnsList")
+            Log.i("notifyDnsChange updated")
             curDnsList = dnsList
             Clash.notifyDnsChanged(dnsList)
         }

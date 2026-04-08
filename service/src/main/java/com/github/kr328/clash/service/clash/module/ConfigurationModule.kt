@@ -8,6 +8,7 @@ import com.github.kr328.clash.service.StatusProvider
 import com.github.kr328.clash.service.data.ImportedDao
 import com.github.kr328.clash.service.data.SelectionDao
 import com.github.kr328.clash.service.store.ServiceStore
+import com.github.kr328.clash.service.util.RuntimeSocksAuth
 import com.github.kr328.clash.service.util.importedDir
 import com.github.kr328.clash.service.util.sendProfileLoaded
 import kotlinx.coroutines.channels.Channel
@@ -54,6 +55,12 @@ class ConfigurationModule(service: Service) : Module<ConfigurationModule.LoadExc
                     ?: throw NullPointerException("No profile selected")
 
                 Clash.load(service.importedDir.resolve(active.uuid.toString())).await()
+
+                // Security hardening: enforce runtime-only local inbound auth for each session.
+                val sessionOverride = Clash.queryOverride(Clash.OverrideSlot.Session)
+                if (RuntimeSocksAuth.applyTo(sessionOverride)) {
+                    Clash.patchOverride(Clash.OverrideSlot.Session, sessionOverride)
+                }
 
                 val remove = SelectionDao().querySelections(active.uuid)
                     .filterNot { Clash.patchSelector(it.proxy, it.selected) }
