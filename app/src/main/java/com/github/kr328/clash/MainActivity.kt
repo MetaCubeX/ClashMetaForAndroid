@@ -36,6 +36,7 @@ import com.github.kr328.clash.util.startClashService
 import com.github.kr328.clash.util.stopClashService
 import com.github.kr328.clash.util.withClash
 import com.github.kr328.clash.util.withProfile
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.github.g00fy2.quickie.QRResult
 import io.github.g00fy2.quickie.QRResult.QRError
 import io.github.g00fy2.quickie.QRResult.QRMissingPermission
@@ -397,7 +398,7 @@ class MainActivity : BaseActivity<MainDesign>() {
                     true
                 }
                 R.id.profile_menu_delete -> {
-                    AlertDialog.Builder(this)
+                    MaterialAlertDialogBuilder(this)
                         .setTitle(R.string.delete)
                         .setMessage(R.string.profile_delete_confirm)
                         .setPositiveButton(R.string.delete) { _, _ ->
@@ -632,7 +633,7 @@ class MainActivity : BaseActivity<MainDesign>() {
                 design.showToast(R.string.about_update_latest, ToastDuration.Short)
                 return@withContext
             }
-            AlertDialog.Builder(this@MainActivity)
+            MaterialAlertDialogBuilder(this@MainActivity)
                 .setTitle(getString(R.string.about_update_available, latest.tagName))
                 .setMessage(latest.body.take(1200))
                 .setPositiveButton(R.string.about_open_release) { _, _ ->

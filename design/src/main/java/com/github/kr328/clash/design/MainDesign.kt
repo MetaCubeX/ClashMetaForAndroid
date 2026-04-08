@@ -8,7 +8,6 @@ import android.content.Context
 import android.view.MotionEvent
 import android.view.View
 import android.view.animation.AccelerateDecelerateInterpolator
-import androidx.appcompat.app.AlertDialog
 import androidx.recyclerview.widget.DefaultItemAnimator
 import com.github.kr328.clash.core.model.ProxyGroup
 import com.github.kr328.clash.core.model.TunnelState
@@ -16,6 +15,7 @@ import com.github.kr328.clash.core.util.trafficTotal
 import com.github.kr328.clash.design.adapter.ProfileAdapter
 import com.github.kr328.clash.design.databinding.DesignAboutBinding
 import com.github.kr328.clash.design.databinding.DesignMainBinding
+import com.github.kr328.clash.design.dialog.AppBottomSheetDialog
 import com.github.kr328.clash.design.model.DarkMode
 import com.github.kr328.clash.design.ui.ToastDuration
 import com.github.kr328.clash.design.util.applyLinearAdapter
@@ -354,20 +354,19 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
                     aboutAppIcon.setImageDrawable(context.packageManager.getApplicationIcon(context.packageName))
                 }
             }
-
-            val dialog = AlertDialog.Builder(context).apply {
-                setView(binding.root)
-            }.show()
+            val dialog = AppBottomSheetDialog(context, fitContentHeight = true)
+            dialog.setContentView(binding.root)
 
             if (onCheckUpdates != null) {
                 binding.aboutCheckUpdatesButton.apply {
                     visibility = View.VISIBLE
                     setOnClickListener {
-                        dialog.dismiss()
                         onCheckUpdates()
                     }
                 }
             }
+
+            dialog.show()
         }
     }
 
