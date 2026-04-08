@@ -1,0 +1,88 @@
+name: Dev Pre-Release APK
+
+on:
+  push:
+    branches:
+      - dev
+
+permissions:
+  contents: write
+
+jobs:
+  prerelease:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 50
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Grant gradlew execute permission
+        run: chmod +x gradlew
+
+      - name: Build Alpha Debug APK
+        run: ./gradlew assembleAlphaDebug
+
+      - name: Collect APKs
+        run: |
+          mkdir -p release-artifacts
+          SHORT_SHA="${GITHUB_SHA::7}"
+          find app/build/outputs/apk -name "*.apk" | while read -r apk; do
+            base="$(basename "$apk")"
+            abi="universal"
+            if [[ "$base" == *"arm64-v8a"* ]]; then abi="arm64-v8a"; fi
+            if [[ "$base" == *"armeabi-v7a"* ]]; then abi="armeabi-v7a"; fi
+            if [[ "$base" == *"x86_64"* ]]; then abi="x86_64"; fi
+            if [[ "$base" == *"x86"* && "$base" != *"x86_64"* ]]; then abi="x86"; fi
+
+            flavor="alpha"
+            if [[ "$base" == *"meta"* ]]; then flavor="meta"; fi
+
+            out="clashfest-dev-${SHORT_SHA}-${flavor}-${abi}.apk"
+            cp "$apk" "release-artifacts/$out"
+          done
+          ls -la release-artifacts
+
+      - name: Generate changelog
+        run: |
+          {
+            echo "## Dev Pre-Release"
+            echo
+            echo "Automatic development build from \`dev\`."
+            echo
+            echo "**Commit:** \`${GITHUB_SHA::7}\`"
+            echo
+            echo "## What's included"
+            echo
+            git log -n 10 --pretty=format:'- `%h` %s — @%an'
+          } > RELEASE_BODY.md
+
+          cat RELEASE_BODY.md
+
+      - name: Delete existing dev prerelease assets
+        uses: mknejp/delete-release-assets@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag: dev-latest
+          fail-if-no-assets: false
+
+      - name: Publish/Update Dev Pre-Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: dev-latest
+          name: ClashFest Dev Build
+          prerelease: true
+          make_latest: false
+          body_path: RELEASE_BODY.md
+          files: release-artifacts/*.apk
