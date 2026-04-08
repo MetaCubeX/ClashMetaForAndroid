@@ -63,6 +63,7 @@ class MainActivity : BaseActivity<MainDesign>() {
 
     private val scanLauncher = registerForActivityResult(ScanQRCode(), ::onScanResult)
     private var lastForwardedTrafficTotal: Long = Long.MIN_VALUE
+    private var isCheckingUpdates: Boolean = false
 
     private fun parseTunnelMode(name: String): TunnelState.Mode? =
         when (name) {
@@ -189,8 +190,18 @@ class MainActivity : BaseActivity<MainDesign>() {
                             design.showAbout(
                                 versionName = queryAppVersionName(),
                                 coreVersion = queryCoreVersionName(),
-                            ) {
-                                launch { checkForUpdates(design) }
+                            ) { setLoading ->
+                                if (isCheckingUpdates) return@showAbout
+                                launch {
+                                    isCheckingUpdates = true
+                                    setLoading(true)
+                                    try {
+                                        checkForUpdates(design)
+                                    } finally {
+                                        isCheckingUpdates = false
+                                        setLoading(false)
+                                    }
+                                }
                             }
 
                         MainDesign.Request.OpenImportClipboard ->

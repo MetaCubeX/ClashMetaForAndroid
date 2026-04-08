@@ -344,7 +344,7 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
     suspend fun showAbout(
         versionName: String,
         coreVersion: String,
-        onCheckUpdates: (() -> Unit)? = null
+        onCheckUpdates: (((Boolean) -> Unit) -> Unit)? = null
     ) {
         withContext(Dispatchers.Main) {
             val binding = DesignAboutBinding.inflate(context.layoutInflater).apply {
@@ -360,8 +360,16 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
             if (onCheckUpdates != null) {
                 binding.aboutCheckUpdatesButton.apply {
                     visibility = View.VISIBLE
+                    fun setLoading(loading: Boolean) {
+                        isEnabled = !loading
+                        alpha = if (loading) 0.65f else 1f
+                        text = context.getString(
+                            if (loading) R.string.about_checking_updates else R.string.about_check_updates
+                        )
+                    }
                     setOnClickListener {
-                        onCheckUpdates()
+                        if (!isEnabled) return@setOnClickListener
+                        onCheckUpdates(::setLoading)
                     }
                 }
             }
