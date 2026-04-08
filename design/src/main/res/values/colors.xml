@@ -33,7 +33,6 @@
     <color name="main_gradient_top_light">#E8EEF5</color>
     <color name="main_gradient_bottom_light">#F5F7FA</color>
     <color name="main_card_glass">#4D1A2330</color>
-    <color name="main_power_stroke">#668B5CF6</color>
     <!-- Readable on both tech_primary (active) and tech_card (inactive) mode chips -->
     <color name="tech_mode_chip_label">#E6EDF3</color>
 

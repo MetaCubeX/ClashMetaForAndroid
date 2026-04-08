@@ -19,8 +19,6 @@
     <string name="main_nav_dot" translatable="false">\u00b7</string>
     <string name="main_emoji_moon" translatable="false">\uD83C\uDF19</string>
     <string name="main_emoji_sun" translatable="false">\u2600</string>
-    <string name="main_emoji_rocket" translatable="false">\uD83D\uDE80</string>
-    <string name="main_emoji_flame" translatable="false">\uD83D\uDD25</string>
     <string name="mode_emoji_rule" translatable="false">\uD83D\uDCDC</string>
     <string name="mode_emoji_global" translatable="false">\uD83C\uDF0D</string>
     <string name="mode_emoji_direct" translatable="false">\u27A1\uFE0F</string>

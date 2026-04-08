@@ -132,36 +132,35 @@
                     android:clickable="true"
                     android:focusable="true"
                     android:onClick="@{() -> self.request(Request.ToggleStatus)}"
-                    app:cardBackgroundColor="@{tunnelStarting ? colorClashStopped : (clashRunning ? colorClashStarted : colorClashStopped)}"
+                    app:cardBackgroundColor="@android:color/transparent"
                     app:cardCornerRadius="@dimen/main_power_button_radius"
-                    app:cardElevation="8dp"
-                    app:cardMaxElevation="14dp"
+                    app:cardElevation="0dp"
+                    app:cardMaxElevation="0dp"
                     app:cardUseCompatPadding="false"
-                    app:cardStrokeWidthBound="@{clashRunning ? @dimen/stroke_neon : (tunnelStarting ? @dimen/stroke_neon : @dimen/stroke_hairline)}"
                     app:rippleColor="@color/tech_secondary_soft"
-                    app:strokeColor="@color/tech_primary">
+                    app:strokeColor="@android:color/transparent">
 
                     <FrameLayout
                         android:layout_width="match_parent"
                         android:layout_height="match_parent">
 
-                        <TextView
-                            android:id="@+id/main_power_icon"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
+                        <ImageView
+                            android:id="@+id/main_power_icon_base"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
                             android:layout_gravity="center"
                             android:contentDescription="@string/tap_to_start"
-                            android:text="@string/main_emoji_rocket"
-                            android:textSize="56sp" />
+                            android:src="@drawable/ic_clash"
+                            android:scaleType="fitCenter" />
 
-                        <TextView
-                            android:id="@+id/main_power_flame"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="bottom|center_horizontal"
-                            android:layout_marginBottom="10dp"
-                            android:text="@string/main_emoji_flame"
-                            android:textSize="22sp"
+                        <ImageView
+                            android:id="@+id/main_power_icon_overlay"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:layout_gravity="center"
+                            android:alpha="0"
+                            android:contentDescription="@string/tap_to_start"
+                            android:scaleType="fitCenter"
                             android:visibility="gone" />
                     </FrameLayout>
                 </com.google.android.material.card.MaterialCardView>

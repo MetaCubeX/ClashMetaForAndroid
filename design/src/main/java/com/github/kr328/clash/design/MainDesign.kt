@@ -1,10 +1,13 @@
 package com.github.kr328.clash.design
 
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
 import android.animation.ObjectAnimator
+import android.animation.ValueAnimator
 import android.content.Context
 import android.view.MotionEvent
 import android.view.View
-import android.view.animation.LinearInterpolator
+import android.view.animation.AccelerateDecelerateInterpolator
 import androidx.appcompat.app.AlertDialog
 import androidx.recyclerview.widget.DefaultItemAnimator
 import com.github.kr328.clash.core.model.ProxyGroup
@@ -25,6 +28,7 @@ import com.github.kr328.clash.service.model.Profile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.withContext
+import kotlin.math.floor
 import java.util.UUID
 
 class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
@@ -61,8 +65,10 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
     private var clashRunningState: Boolean = false
     private var tunnelStartingState: Boolean = false
     private val expandedProfileUuids: LinkedHashSet<UUID> = linkedSetOf()
-    private var mainPowerRocketAnim: ObjectAnimator? = null
-    private var mainPowerRocketGlowAnim: ObjectAnimator? = null
+    private var mainPowerConnectRevealAnim: ValueAnimator? = null
+    private var lastPowerVisualMode: Int = -1 // 0=off, 1=starting, 2=running
+    private val mainPowerOffIconResId: Int by lazy { resolveRuntimeDrawable("proxy_off") }
+    private val mainPowerOnIconResId: Int by lazy { resolveRuntimeDrawable("proxy_on") }
 
     private val profileAdapter = ProfileAdapter(
         { profile -> profileActivateRequests.trySend(profile) },
@@ -116,58 +122,100 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
     private fun applyPowerVisuals() {
         val running = clashRunningState
         val starting = tunnelStartingState && !running
+        val mode = when {
+            starting -> 1
+            running -> 2
+            else -> 0
+        }
+
+        // Do not restart the same animation/visual on repeated state patches.
+        if (mode == lastPowerVisualMode) return
+        lastPowerVisualMode = mode
 
         binding.mainPowerGlow.animate().cancel()
-        val glowAlpha = when {
-            running -> 0.5f
-            starting -> 0.34f
-            else -> 0f
-        }
-        binding.mainPowerGlow.animate().alpha(glowAlpha).setDuration(320L).start()
-
-        mainPowerRocketGlowAnim?.cancel()
-        mainPowerRocketAnim?.cancel()
-        mainPowerRocketAnim = null
-        mainPowerRocketGlowAnim = null
-
-        binding.mainPowerFlame.visibility = if (running) View.VISIBLE else View.GONE
+        mainPowerConnectRevealAnim?.cancel()
+        mainPowerConnectRevealAnim = null
 
         when {
             running -> {
-                mainPowerRocketGlowAnim =
-                    ObjectAnimator.ofFloat(binding.mainPowerIcon, View.ALPHA, 0.88f, 1f).apply {
-                        duration = 550L
-                        repeatCount = ObjectAnimator.INFINITE
-                        repeatMode = ObjectAnimator.REVERSE
-                        start()
+                // Keep a short colorization blend (OFF -> ON) even when state flips fast.
+                binding.mainPowerIconBase.setImageResource(mainPowerOffIconResId)
+                binding.mainPowerIconOverlay.setImageResource(mainPowerOnIconResId)
+                binding.mainPowerIconOverlay.visibility = View.VISIBLE
+                binding.mainPowerIconOverlay.alpha = 0f
+                mainPowerConnectRevealAnim = startDiscreteColorize(
+                    durationMs = 360L,
+                    steps = 10
+                ) {
+                        binding.mainPowerIconBase.setImageResource(mainPowerOnIconResId)
+                        binding.mainPowerIconOverlay.visibility = View.GONE
+                        binding.mainPowerIconOverlay.alpha = 0f
                     }
-                val flyPx = -8f * context.resources.displayMetrics.density
-                mainPowerRocketAnim =
-                    ObjectAnimator.ofFloat(binding.mainPowerIcon, View.TRANSLATION_Y, 0f, flyPx).apply {
-                        duration = 900L
-                        repeatCount = ObjectAnimator.INFINITE
-                        repeatMode = ObjectAnimator.REVERSE
-                        interpolator = LinearInterpolator()
-                        start()
-                    }
+
+                // No persistent ring when active.
+                binding.mainPowerGlow.alpha = 0f
+                binding.mainPowerGlow.scaleX = 1f
+                binding.mainPowerGlow.scaleY = 1f
             }
             starting -> {
-                mainPowerRocketGlowAnim =
-                    ObjectAnimator.ofFloat(binding.mainPowerIcon, View.ALPHA, 0.75f, 1f).apply {
-                        duration = 420L
-                        repeatCount = ObjectAnimator.INFINITE
-                        repeatMode = ObjectAnimator.REVERSE
-                        start()
-                    }
-                binding.mainPowerIcon.animate().translationY(0f).setDuration(180L).start()
+                // Colorize effect: full-size ON layer fades in over OFF, while center glow simulates ignition.
+                binding.mainPowerIconBase.setImageResource(mainPowerOffIconResId)
+                binding.mainPowerIconOverlay.setImageResource(mainPowerOnIconResId)
+                binding.mainPowerIconOverlay.visibility = View.VISIBLE
+                binding.mainPowerIconOverlay.alpha = 0f
+                mainPowerConnectRevealAnim = startDiscreteColorize(durationMs = 560L, steps = 10)
+
+                // Ignite glow only during connecting transition.
+                binding.mainPowerGlow.alpha = 0f
+                binding.mainPowerGlow.scaleX = 0.24f
+                binding.mainPowerGlow.scaleY = 0.24f
+                binding.mainPowerGlow.animate()
+                    .alpha(0.62f)
+                    .scaleX(1f)
+                    .scaleY(1f)
+                    .setDuration(560L)
+                    .setInterpolator(AccelerateDecelerateInterpolator())
+                    .start()
             }
             else -> {
-                binding.mainPowerIcon.alpha = 1f
-                binding.mainPowerIcon.animate().translationY(0f).setDuration(180L).start()
+                binding.mainPowerIconBase.setImageResource(mainPowerOffIconResId)
+                binding.mainPowerIconOverlay.visibility = View.GONE
+                binding.mainPowerIconOverlay.alpha = 0f
+
+                // Fully quiet glow in OFF state.
+                binding.mainPowerGlow.alpha = 0f
+                binding.mainPowerGlow.scaleX = 0.5f
+                binding.mainPowerGlow.scaleY = 0.5f
             }
         }
-        if (!running) {
-            binding.mainPowerFlame.alpha = 1f
+    }
+
+    private fun resolveRuntimeDrawable(name: String): Int {
+        val runtime = context.resources.getIdentifier(name, "drawable", context.packageName)
+        return if (runtime != 0) runtime else R.drawable.ic_clash
+    }
+
+    private fun startDiscreteColorize(
+        durationMs: Long,
+        steps: Int,
+        onEnd: (() -> Unit)? = null,
+    ): ValueAnimator {
+        val safeSteps = steps.coerceIn(2, 16)
+        return ValueAnimator.ofFloat(0f, 1f).apply {
+            duration = durationMs
+            interpolator = AccelerateDecelerateInterpolator()
+            addUpdateListener { animator ->
+                val raw = animator.animatedValue as Float
+                val stepped = floor(raw * safeSteps) / safeSteps
+                binding.mainPowerIconOverlay.alpha = stepped.coerceIn(0f, 1f)
+            }
+            addListener(object : AnimatorListenerAdapter() {
+                override fun onAnimationEnd(animation: Animator) {
+                    binding.mainPowerIconOverlay.alpha = 1f
+                    onEnd?.invoke()
+                }
+            })
+            start()
         }
     }
 

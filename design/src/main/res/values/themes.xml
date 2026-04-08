@@ -124,7 +124,6 @@
         <item name="colorMainDashboardText">#DE121212</item>
         <item name="colorMainModeChipLabel">#DE1A1A1A</item>
         <item name="colorMainCardGlass">#CCE8EEF5</item>
-        <item name="colorMainPowerStroke">#668B5CF6</item>
         <item name="colorMainGlassStroke">#28000000</item>
 
         <item name="colorSurface">#FFFFFFFF</item>
@@ -159,7 +158,6 @@
         <item name="colorMainDashboardText">@color/tech_text_primary</item>
         <item name="colorMainModeChipLabel">@color/tech_mode_chip_label</item>
         <item name="colorMainCardGlass">@color/main_card_glass</item>
-        <item name="colorMainPowerStroke">@color/main_power_stroke</item>
         <item name="colorMainGlassStroke">#55FFFFFF</item>
 
         <item name="profileCardBackground">@drawable/bg_profile_card_gradient</item>
