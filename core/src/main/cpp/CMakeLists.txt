@@ -27,13 +27,28 @@ string (REGEX REPLACE "[\n\t\r]" "" CURRENT_BRANCH ${CURRENT_BRANCH})
 #string(SUBSTRING ${CURRENT_BRANCH} 0 8 CURRENT_BRANCH)
 message(STATUS "git current branch = ${CURRENT_BRANCH}")
 
+# 获取核心语义化版本标签（例如 v1.19.23）
+execute_process(
+  COMMAND git -C ${CMAKE_CURRENT_SOURCE_DIR}/../../foss/golang/clash describe --tags --abbrev=0 --match v[0-9]*
+  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+  OUTPUT_VARIABLE CORE_TAG
+  RESULT_VARIABLE CORE_TAG_RESULT
+)
+string (REGEX REPLACE "[\n\t\r]" "" CORE_TAG ${CORE_TAG})
+message(STATUS "core tag = ${CORE_TAG}")
+
 # 获取生成时间
 string(TIMESTAMP COMPILE_TIME "%y%m%d")
 string (REGEX REPLACE "[\n\t\r]" "" COMPILE_TIME ${COMPILE_TIME})
 string(REGEX REPLACE "\"" "" COMPILE_TIME ${COMPILE_TIME})
 
 # 生成版本信息
-set(GIT_VERSION "${CURRENT_BRANCH}_${COMMIT_HASH}_${COMPILE_TIME}")
+# Prefer release tag for stable core version display in app UI.
+if (CORE_TAG_RESULT EQUAL 0 AND NOT "${CORE_TAG}" STREQUAL "")
+  set(GIT_VERSION "${CORE_TAG}_${COMMIT_HASH}_${COMPILE_TIME}")
+else ()
+  set(GIT_VERSION "${CURRENT_BRANCH}_${COMMIT_HASH}_${COMPILE_TIME}")
+endif ()
 message(STATUS "version info = ${GIT_VERSION}")
 
 # 去除空格
