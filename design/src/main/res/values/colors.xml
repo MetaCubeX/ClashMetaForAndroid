@@ -1,11 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Light (legacy names kept for compatibility) -->
-    <color name="color_clash_light">#1e4376</color>
+    <color name="color_clash_light">#2FA36B</color>
     <color name="color_system_ui_overlay">#50000000</color>
-    <color name="color_light_background">#FFF7F9FC</color>
-    <color name="color_light_clash_stopped">#FF808080</color>
-    <color name="color_light_control_disabled">#FFD3D3D3</color>
+    <color name="color_light_background">#FFF4F7FB</color>
+    <color name="color_light_surface">#FFF8FAFD</color>
+    <color name="color_light_text_primary">#FF1D2733</color>
+    <color name="color_light_text_secondary">#FF5C6978</color>
+    <color name="color_light_clash_stopped">#FF7F8A98</color>
+    <color name="color_light_control_disabled">#FFCAD2DC</color>
     <color name="color_error">#FFB00020</color>
 
     <!-- Dark Tech palette (ClashFest default dark) -->
@@ -30,10 +33,9 @@
     <!-- Home dashboard -->
     <color name="main_gradient_top">#151C28</color>
     <color name="main_gradient_bottom">@color/tech_bg</color>
-    <color name="main_gradient_top_light">#E8EEF5</color>
-    <color name="main_gradient_bottom_light">#F5F7FA</color>
+    <color name="main_gradient_top_light">#E5ECF4</color>
+    <color name="main_gradient_bottom_light">#F2F6FA</color>
     <color name="main_card_glass">#4D1A2330</color>
-    <color name="main_power_stroke">#668B5CF6</color>
     <!-- Readable on both tech_primary (active) and tech_card (inactive) mode chips -->
     <color name="tech_mode_chip_label">#E6EDF3</color>
 

@@ -23,12 +23,6 @@
             name="profileName"
             type="String" />
         <variable
-            name="colorClashStarted"
-            type="int" />
-        <variable
-            name="colorClashStopped"
-            type="int" />
-        <variable
             name="modeActiveColor"
             type="int" />
         <variable
@@ -42,6 +36,9 @@
             type="boolean" />
         <variable
             name="isDirectMode"
+            type="boolean" />
+        <variable
+            name="hasProfiles"
             type="boolean" />
 
         <import type="android.view.View" />
@@ -113,8 +110,8 @@
             <FrameLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:paddingTop="12dp"
-                android:paddingBottom="8dp">
+                android:paddingTop="@dimen/main_power_section_padding_top"
+                android:paddingBottom="@dimen/main_power_section_padding_bottom">
 
                 <View
                     android:id="@+id/main_power_glow"
@@ -132,36 +129,35 @@
                     android:clickable="true"
                     android:focusable="true"
                     android:onClick="@{() -> self.request(Request.ToggleStatus)}"
-                    app:cardBackgroundColor="@{tunnelStarting ? colorClashStopped : (clashRunning ? colorClashStarted : colorClashStopped)}"
+                    app:cardBackgroundColor="@android:color/transparent"
                     app:cardCornerRadius="@dimen/main_power_button_radius"
-                    app:cardElevation="8dp"
-                    app:cardMaxElevation="14dp"
+                    app:cardElevation="0dp"
+                    app:cardMaxElevation="0dp"
                     app:cardUseCompatPadding="false"
-                    app:cardStrokeWidthBound="@{clashRunning ? @dimen/stroke_neon : (tunnelStarting ? @dimen/stroke_neon : @dimen/stroke_hairline)}"
-                    app:rippleColor="@color/tech_secondary_soft"
-                    app:strokeColor="@color/tech_primary">
+                    app:rippleColor="?attr/colorControlHighlight"
+                    app:strokeColor="@android:color/transparent">
 
                     <FrameLayout
                         android:layout_width="match_parent"
                         android:layout_height="match_parent">
 
-                        <TextView
-                            android:id="@+id/main_power_icon"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
+                        <ImageView
+                            android:id="@+id/main_power_icon_base"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
                             android:layout_gravity="center"
                             android:contentDescription="@string/tap_to_start"
-                            android:text="@string/main_emoji_rocket"
-                            android:textSize="56sp" />
+                            android:src="@drawable/ic_clash"
+                            android:scaleType="fitCenter" />
 
-                        <TextView
-                            android:id="@+id/main_power_flame"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="bottom|center_horizontal"
-                            android:layout_marginBottom="10dp"
-                            android:text="@string/main_emoji_flame"
-                            android:textSize="22sp"
+                        <ImageView
+                            android:id="@+id/main_power_icon_overlay"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:layout_gravity="center"
+                            android:alpha="0"
+                            android:contentDescription="@string/tap_to_start"
+                            android:scaleType="fitCenter"
                             android:visibility="gone" />
                     </FrameLayout>
                 </com.google.android.material.card.MaterialCardView>
@@ -183,7 +179,7 @@
                 android:layout_height="wrap_content"
                 android:alpha="0.85"
                 android:gravity="center"
-                android:paddingBottom="8dp"
+                android:paddingBottom="@dimen/main_profile_label_padding_bottom"
                 android:text="@{profileName != null ? @string/format_profile_activated(profileName) : @string/not_selected}"
                 android:textAppearance="@style/TextAppearance.MaterialComponents.Caption"
                 android:textColor="?attr/colorMainDashboardText"
@@ -203,7 +199,7 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
+                android:layout_marginBottom="@dimen/main_mode_row_margin_bottom"
                 android:orientation="horizontal"
                 android:paddingHorizontal="@dimen/main_padding_horizontal"
                 android:visibility="@{clashRunning ? View.VISIBLE : View.GONE}"
@@ -220,27 +216,27 @@
                     app:cardCornerRadius="20dp"
                     app:cardElevation="2dp"
                     app:cardStrokeWidthBound="@{isRuleMode ? @dimen/stroke_neon : @dimen/stroke_hairline}"
-                    app:strokeColor="@color/tech_primary">
+                    app:strokeColor="?attr/colorPrimary">
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:gravity="center"
                         android:orientation="vertical"
-                        android:paddingHorizontal="8dp"
-                        android:paddingVertical="12dp">
+                        android:paddingHorizontal="@dimen/main_mode_chip_padding_horizontal"
+                        android:paddingVertical="@dimen/main_mode_chip_padding_vertical">
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:contentDescription="@string/mode_chip_rule"
                             android:text="@string/mode_emoji_rule"
-                            android:textSize="28sp" />
+                            android:textSize="@dimen/main_mode_chip_emoji_size" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
+                            android:layout_marginTop="@dimen/main_mode_chip_label_margin_top"
                             android:text="@string/mode_chip_rule"
                             android:textAppearance="@style/TextAppearance.MaterialComponents.Body2"
                             android:textColor="?attr/colorMainDashboardText"
@@ -263,27 +259,27 @@
                     app:cardCornerRadius="20dp"
                     app:cardElevation="2dp"
                     app:cardStrokeWidthBound="@{isGlobalMode ? @dimen/stroke_neon : @dimen/stroke_hairline}"
-                    app:strokeColor="@color/tech_primary">
+                    app:strokeColor="?attr/colorPrimary">
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:gravity="center"
                         android:orientation="vertical"
-                        android:paddingHorizontal="8dp"
-                        android:paddingVertical="12dp">
+                        android:paddingHorizontal="@dimen/main_mode_chip_padding_horizontal"
+                        android:paddingVertical="@dimen/main_mode_chip_padding_vertical">
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:contentDescription="@string/mode_chip_global"
                             android:text="@string/mode_emoji_global"
-                            android:textSize="28sp" />
+                            android:textSize="@dimen/main_mode_chip_emoji_size" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
+                            android:layout_marginTop="@dimen/main_mode_chip_label_margin_top"
                             android:text="@string/mode_chip_global"
                             android:textAppearance="@style/TextAppearance.MaterialComponents.Body2"
                             android:textColor="?attr/colorMainDashboardText"
@@ -306,27 +302,27 @@
                     app:cardCornerRadius="20dp"
                     app:cardElevation="2dp"
                     app:cardStrokeWidthBound="@{isDirectMode ? @dimen/stroke_neon : @dimen/stroke_hairline}"
-                    app:strokeColor="@color/tech_primary">
+                    app:strokeColor="?attr/colorPrimary">
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:gravity="center"
                         android:orientation="vertical"
-                        android:paddingHorizontal="8dp"
-                        android:paddingVertical="12dp">
+                        android:paddingHorizontal="@dimen/main_mode_chip_padding_horizontal"
+                        android:paddingVertical="@dimen/main_mode_chip_padding_vertical">
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:contentDescription="@string/mode_chip_direct"
                             android:text="@string/mode_emoji_direct"
-                            android:textSize="28sp" />
+                            android:textSize="@dimen/main_mode_chip_emoji_size" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
+                            android:layout_marginTop="@dimen/main_mode_chip_label_margin_top"
                             android:text="@string/mode_chip_direct"
                             android:textAppearance="@style/TextAppearance.MaterialComponents.Body2"
                             android:textColor="?attr/colorMainDashboardText"
@@ -335,18 +331,72 @@
                 </com.google.android.material.card.MaterialCardView>
             </LinearLayout>
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/profile_list"
+            <FrameLayout
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1"
-                android:clipChildren="true"
-                android:clipToPadding="true"
                 android:minHeight="120dp"
-                android:nestedScrollingEnabled="true"
-                android:overScrollMode="never"
-                android:paddingBottom="8dp"
-                tools:listitem="@layout/adapter_profile" />
+                android:paddingBottom="8dp">
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/profile_list"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:clipChildren="true"
+                    android:clipToPadding="true"
+                    android:nestedScrollingEnabled="true"
+                    android:overScrollMode="never"
+                    android:visibility="@{hasProfiles ? View.VISIBLE : View.GONE}"
+                    tools:listitem="@layout/adapter_profile" />
+
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/main_empty_profiles_card"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginHorizontal="@dimen/main_padding_horizontal"
+                    android:visibility="@{hasProfiles ? View.GONE : View.VISIBLE}"
+                    app:cardBackgroundColor="?attr/colorMainCardGlass"
+                    app:cardCornerRadius="18dp"
+                    app:cardElevation="0dp"
+                    app:strokeColor="?attr/colorMainGlassStroke"
+                    app:strokeWidth="1dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/main_no_profiles_title"
+                            android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1"
+                            android:textColor="?attr/colorMainDashboardText"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="6dp"
+                            android:alpha="0.86"
+                            android:text="@string/main_no_profiles_subtitle"
+                            android:textAppearance="@style/TextAppearance.MaterialComponents.Body2"
+                            android:textColor="?attr/colorMainDashboardText" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="14dp"
+                            android:onClick="@{() -> self.request(Request.OpenNewProfile)}"
+                            android:text="@string/main_add_subscription"
+                            app:icon="@drawable/ic_neon_toolbar_add"
+                            app:iconGravity="textStart"
+                            app:iconPadding="10dp" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+            </FrameLayout>
 
             <LinearLayout
                 android:layout_width="match_parent"

@@ -4,7 +4,6 @@ import java.nio.file.StandardCopyOption
 
 plugins {
     kotlin("android")
-    kotlin("kapt")
     id("com.android.application")
 }
 
@@ -19,7 +18,6 @@ dependencies {
     implementation(libs.kotlin.coroutine)
     implementation(libs.kotlin.serialization.json)
     implementation(libs.androidx.core)
-    implementation(libs.androidx.activity)
     implementation(libs.androidx.fragment)
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.coordinator)

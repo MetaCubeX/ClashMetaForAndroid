@@ -214,7 +214,7 @@ class ProfileManager(private val context: Context) : IProfileManager,
             }
 
         } catch (e: Exception) {
-            Log.w("updateFlow failed: ${e.message}", e)
+            Log.w("updateFlow failed", e)
         }
     }
 
@@ -270,7 +270,7 @@ class ProfileManager(private val context: Context) : IProfileManager,
         return withContext(Dispatchers.IO) {
             if (ImportedDao().queryByUUID(uuid) == null) return@withContext false
             val ok = ruleApplyService.mergeProviderShortcut(uuid, ruleProvidersYaml, prependRuleLine)
-            Log.d("mergeRuleProviderYaml profile=$uuid ok=$ok")
+            Log.d("mergeRuleProviderYaml ok=$ok")
             ok
         }
     }
@@ -343,7 +343,7 @@ class ProfileManager(private val context: Context) : IProfileManager,
         return withContext(Dispatchers.IO) {
             if (ImportedDao().queryByUUID(uuid) == null) return@withContext false
             val ok = ruleApplyService.applyStateJson(uuid, stateJson)
-            Log.d("applyRuleState profile=$uuid ok=$ok")
+            Log.d("applyRuleState ok=$ok")
             ok
         }
     }
@@ -357,7 +357,7 @@ class ProfileManager(private val context: Context) : IProfileManager,
         return withContext(Dispatchers.IO) {
             if (ImportedDao().queryByUUID(uuid) == null) return@withContext false
             val ok = ruleApplyService.addRules(uuid, rawRules, addMode, insertMode)
-            Log.d("addRules profile=$uuid addMode=$addMode insertMode=$insertMode count=${rawRules.size} ok=$ok")
+            Log.d("addRules addMode=$addMode insertMode=$insertMode count=${rawRules.size} ok=$ok")
             ok
         }
     }
@@ -366,7 +366,7 @@ class ProfileManager(private val context: Context) : IProfileManager,
         return withContext(Dispatchers.IO) {
             if (ImportedDao().queryByUUID(uuid) == null) return@withContext false
             val ok = ruleApplyService.mutateRule(uuid, ruleId, action, enabled)
-            Log.d("mutateRule profile=$uuid ruleId=$ruleId action=$action enabled=$enabled ok=$ok")
+            Log.d("mutateRule action=$action enabled=$enabled ok=$ok")
             ok
         }
     }

@@ -14,6 +14,7 @@ import com.github.kr328.clash.design.ui.ToastDuration
 import com.github.kr328.clash.service.model.RuleItem
 import com.github.kr328.clash.service.model.RuleProviderItem
 import com.github.kr328.clash.service.model.RuleState
+import com.github.kr328.clash.util.clashDir
 import com.github.kr328.clash.util.withClash
 import com.github.kr328.clash.util.withProfile
 import com.google.android.material.switchmaterial.SwitchMaterial
@@ -22,6 +23,7 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.select
 import kotlinx.serialization.json.Json
+import java.io.File
 import java.util.UUID
 
 class RuleSnippetActivity : BaseActivity<RuleSnippetDesign>() {
@@ -110,14 +112,15 @@ class RuleSnippetActivity : BaseActivity<RuleSnippetDesign>() {
                 getString(DesignR.string.rule_quick_openai),
                 getString(DesignR.string.rule_quick_telegram),
                 getString(DesignR.string.rule_quick_discord),
-                getString(DesignR.string.rule_quick_ads),
                 getString(DesignR.string.rule_quick_ai),
-                "Facebook",
-                "Instagram",
-                "X/Twitter",
-                "YouTube",
-                "TikTok",
-                "Netflix",
+                getString(DesignR.string.rule_quick_facebook),
+                getString(DesignR.string.rule_quick_instagram),
+                getString(DesignR.string.rule_quick_twitter),
+                getString(DesignR.string.rule_quick_youtube),
+                getString(DesignR.string.rule_quick_tiktok),
+                getString(DesignR.string.rule_quick_netflix),
+                getString(DesignR.string.rule_quick_whatsapp),
+                getString(DesignR.string.rule_quick_messengers),
             )
         )
         val insertModes = listOf(
@@ -238,6 +241,7 @@ class RuleSnippetActivity : BaseActivity<RuleSnippetDesign>() {
                         } else {
                             chosen.ifBlank { preferredPolicy(policyOptions) }
                         }
+                        runPresetSoftChecks(design, presetSpinner.selectedItemPosition)
                         val rules = presetLines(presetSpinner.selectedItemPosition, policy)
                         withProfile {
                             addRules(uuid, rules, addMode = true, insertMode = "append")
@@ -338,18 +342,23 @@ class RuleSnippetActivity : BaseActivity<RuleSnippetDesign>() {
     private fun presetLines(index: Int, policy: String): List<String> = when (index) {
         1 -> listOf("GEOSITE,telegram,$policy")
         2 -> listOf("GEOSITE,discord,$policy")
-        3 -> listOf("GEOSITE,category-ads-all,REJECT-DROP")
-        4 -> listOf(
+        3 -> listOf(
             "GEOSITE,openai,$policy",
             "GEOSITE,anthropic,$policy",
             "GEOSITE,huggingface,$policy",
         )
-        5 -> listOf("GEOSITE,facebook,$policy")
-        6 -> listOf("GEOSITE,instagram,$policy")
-        7 -> listOf("GEOSITE,twitter,$policy")
-        8 -> listOf("GEOSITE,youtube,$policy")
-        9 -> listOf("GEOSITE,tiktok,$policy")
-        10 -> listOf("GEOSITE,netflix,$policy")
+        4 -> listOf("GEOSITE,facebook,$policy")
+        5 -> listOf("GEOSITE,instagram,$policy")
+        6 -> listOf("GEOSITE,twitter,$policy")
+        7 -> listOf("GEOSITE,youtube,$policy")
+        8 -> listOf("GEOSITE,tiktok,$policy")
+        9 -> listOf("GEOSITE,netflix,$policy")
+        10 -> listOf("GEOSITE,whatsapp,$policy")
+        11 -> listOf(
+            "GEOSITE,telegram,$policy",
+            "GEOSITE,whatsapp,$policy",
+            "GEOSITE,discord,$policy",
+        )
         else -> listOf("GEOSITE,openai,$policy")
     }
 
@@ -405,6 +414,21 @@ class RuleSnippetActivity : BaseActivity<RuleSnippetDesign>() {
             withProfile { readProxyGroupsPreview(uuid).keys.toList() }
         }.getOrDefault(emptyList())
         return fromProfile
+    }
+
+    private suspend fun runPresetSoftChecks(design: RuleSnippetDesign, presetIndex: Int) {
+        val needsGeosite = presetLines(presetIndex, "DIRECT").any { it.startsWith("GEOSITE,", ignoreCase = true) }
+        if (!needsGeosite) return
+
+        val geositeFile = File(clashDir, "geosite.dat")
+        if (!geositeFile.isFile || geositeFile.length() <= 0L) {
+            design.showToast(DesignR.string.rule_preset_geosite_missing_data, ToastDuration.Long)
+            return
+        }
+
+        if (presetIndex >= 5) {
+            design.showToast(DesignR.string.rule_preset_geosite_soft_check_note, ToastDuration.Short)
+        }
     }
 }
 

@@ -1,5 +1,7 @@
 package com.github.kr328.clash
 
+import android.os.PowerManager
+import androidx.core.content.getSystemService
 import com.github.kr328.clash.common.util.intent
 import com.github.kr328.clash.core.model.ConnectionsSnapshot
 import com.github.kr328.clash.design.ConnectionsDesign
@@ -23,13 +25,29 @@ class ConnectionsActivity : BaseActivity<ConnectionsDesign>() {
         }
 
         val refresh = launch {
+            var lastRevision: Long = Long.MIN_VALUE
+            var lastRawSnapshot: String? = null
             while (isActive) {
                 if (!activityStarted) {
-                    delay(800)
+                    delay(1200)
                     continue
                 }
+                val interactive = getSystemService<PowerManager>()?.isInteractive ?: true
                 try {
+                    val revision = withClash {
+                        queryTrafficTotal()
+                    }
+                    if (revision == lastRevision) {
+                        delay(if (interactive) 1200 else 2200)
+                        continue
+                    }
+                    lastRevision = revision
                     val raw = withClash { queryConnectionsSnapshot() }
+                    if (raw == lastRawSnapshot) {
+                        delay(if (interactive) 1200 else 2200)
+                        continue
+                    }
+                    lastRawSnapshot = raw
                     val snap = withContext(Dispatchers.Default) {
                         runCatching {
                             json.decodeFromString(ConnectionsSnapshot.serializer(), raw)
@@ -38,7 +56,7 @@ class ConnectionsActivity : BaseActivity<ConnectionsDesign>() {
                     design.patchSnapshot(snap)
                 } catch (_: Exception) {
                 }
-                delay(1200)
+                delay(if (interactive) 1200 else 2200)
             }
         }
 

@@ -19,8 +19,6 @@
     <string name="main_nav_dot" translatable="false">\u00b7</string>
     <string name="main_emoji_moon" translatable="false">\uD83C\uDF19</string>
     <string name="main_emoji_sun" translatable="false">\u2600</string>
-    <string name="main_emoji_rocket" translatable="false">\uD83D\uDE80</string>
-    <string name="main_emoji_flame" translatable="false">\uD83D\uDD25</string>
     <string name="mode_emoji_rule" translatable="false">\uD83D\uDCDC</string>
     <string name="mode_emoji_global" translatable="false">\uD83C\uDF0D</string>
     <string name="mode_emoji_direct" translatable="false">\u27A1\uFE0F</string>
@@ -136,7 +134,15 @@
     <string name="rule_quick_discord">Discord</string>
     <string name="rule_quick_ads">Ads Block</string>
     <string name="rule_quick_ai">AI Services</string>
-    <string name="rule_manager_intro">Manage current providers here. Add or edit in a focused creation sheet.</string>
+    <string name="rule_quick_facebook">Facebook</string>
+    <string name="rule_quick_instagram">Instagram</string>
+    <string name="rule_quick_twitter">X/Twitter</string>
+    <string name="rule_quick_youtube">YouTube</string>
+    <string name="rule_quick_tiktok">TikTok</string>
+    <string name="rule_quick_netflix">Netflix</string>
+    <string name="rule_quick_whatsapp">WhatsApp</string>
+    <string name="rule_quick_messengers">Messengers Bundle</string>
+    <string name="rule_manager_intro">Manage current providers here. Add or edit in a focused creation sheet. Note: aggressive ads geosite lists may be unstable on some cores/devices.</string>
     <string name="rule_add_new">Add provider or rule</string>
     <string name="rule_open_manual_rules">Open manual rules manager</string>
     <string name="rule_create_type">Creation type</string>
@@ -144,6 +150,8 @@
     <string name="rule_create_online">Online list (provider)</string>
     <string name="rule_create_manual">Manual rule</string>
     <string name="rule_policy_auto">Auto (best group)</string>
+    <string name="rule_preset_geosite_missing_data">GeoSite database is missing. Install/update geodata first for GEOSITE presets.</string>
+    <string name="rule_preset_geosite_soft_check_note">Preset added. If it does not match traffic, verify GeoSite key availability in current geodata build.</string>
 
     <string name="format_minutes_ago">%d min ago</string>
     <string name="format_hours_ago">%d hours ago</string>
@@ -345,10 +353,17 @@
 
     <string name="google_play_url" translatable="false">https://play.google.com/store/apps/details?id=com.github.kr328.clash</string>
     <string name="about_check_updates">Check updates</string>
+    <string name="about_checking_updates">Checking updates…</string>
     <string name="about_update_available">Update available: %1$s</string>
     <string name="about_update_latest">You already have the latest version</string>
     <string name="about_open_release">Open release page</string>
     <string name="about_update_check_failed">Could not check updates</string>
+    <string name="about_powered_by">ClashFest for Android</string>
+    <string name="about_app_version_label">App version</string>
+    <string name="about_core_version_label">Core version</string>
+    <string name="main_no_profiles_title">No subscriptions yet</string>
+    <string name="main_no_profiles_subtitle">Add your first subscription to start routing traffic and manage proxy groups.</string>
+    <string name="main_add_subscription">Add subscription</string>
 
     <string name="app">App</string>
     <string name="service">Service</string>

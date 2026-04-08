@@ -7,6 +7,7 @@ import android.graphics.Typeface
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.PowerManager
 import android.view.View
 import android.widget.ScrollView
 import android.widget.TextView
@@ -35,6 +36,7 @@ import com.github.kr328.clash.util.startClashService
 import com.github.kr328.clash.util.stopClashService
 import com.github.kr328.clash.util.withClash
 import com.github.kr328.clash.util.withProfile
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.github.g00fy2.quickie.QRResult
 import io.github.g00fy2.quickie.QRResult.QRError
 import io.github.g00fy2.quickie.QRResult.QRMissingPermission
@@ -60,6 +62,8 @@ class MainActivity : BaseActivity<MainDesign>() {
     )
 
     private val scanLauncher = registerForActivityResult(ScanQRCode(), ::onScanResult)
+    private var lastForwardedTrafficTotal: Long = Long.MIN_VALUE
+    private var isCheckingUpdates: Boolean = false
 
     private fun parseTunnelMode(name: String): TunnelState.Mode? =
         when (name) {
@@ -128,7 +132,8 @@ class MainActivity : BaseActivity<MainDesign>() {
         setContentDesign(design)
         design.fetch()
 
-        val ticker = ticker(TimeUnit.SECONDS.toMillis(1))
+        val tickerInteractive = ticker(TimeUnit.SECONDS.toMillis(1))
+        val tickerIdle = ticker(TimeUnit.SECONDS.toMillis(3))
         val profileTicker = ticker(TimeUnit.MINUTES.toMillis(1))
 
         while (isActive) {
@@ -182,8 +187,21 @@ class MainActivity : BaseActivity<MainDesign>() {
                             startActivity(SettingsActivity::class.intent)
 
                         MainDesign.Request.OpenAbout ->
-                            design.showAbout(queryAppVersionName()) {
-                                launch { checkForUpdates(design) }
+                            design.showAbout(
+                                versionName = queryAppVersionName(),
+                                coreVersion = queryCoreVersionName(),
+                            ) { setLoading ->
+                                if (isCheckingUpdates) return@showAbout
+                                launch {
+                                    isCheckingUpdates = true
+                                    setLoading(true)
+                                    try {
+                                        checkForUpdates(design)
+                                    } finally {
+                                        isCheckingUpdates = false
+                                        setLoading(false)
+                                    }
+                                }
                             }
 
                         MainDesign.Request.OpenImportClipboard ->
@@ -331,7 +349,9 @@ class MainActivity : BaseActivity<MainDesign>() {
                 }
 
                 if (clashRunning && activityStarted) {
-                    ticker.onReceive {
+                    val interactive = getSystemService<PowerManager>()?.isInteractive ?: true
+                    val trafficTicker = if (interactive) tickerInteractive else tickerIdle
+                    trafficTicker.onReceive {
                         design.fetchTraffic()
                     }
                 }
@@ -389,7 +409,7 @@ class MainActivity : BaseActivity<MainDesign>() {
                     true
                 }
                 R.id.profile_menu_delete -> {
-                    AlertDialog.Builder(this)
+                    MaterialAlertDialogBuilder(this)
                         .setTitle(R.string.delete)
                         .setMessage(R.string.profile_delete_confirm)
                         .setPositiveButton(R.string.delete) { _, _ ->
@@ -552,7 +572,11 @@ class MainActivity : BaseActivity<MainDesign>() {
 
     private suspend fun MainDesign.fetchTraffic() {
         withClash {
-            setForwarded(queryTrafficTotal())
+            val total = queryTrafficTotal()
+            if (total != lastForwardedTrafficTotal) {
+                lastForwardedTrafficTotal = total
+                setForwarded(total)
+            }
         }
     }
 
@@ -592,9 +616,16 @@ class MainActivity : BaseActivity<MainDesign>() {
 
     private suspend fun queryAppVersionName(): String {
         return withContext(Dispatchers.IO) {
-            packageManager.getPackageInfo(packageName, 0).versionName +
-                    "\n" +
-                    Bridge.nativeCoreVersion().replace("_", "-")
+            packageManager.getPackageInfo(packageName, 0).versionName ?: "unknown"
+        }
+    }
+
+    private suspend fun queryCoreVersionName(): String {
+        return withContext(Dispatchers.IO) {
+            val raw = Bridge.nativeCoreVersion().replace("_", "-")
+            val semver = Regex("""v?(\d+\.\d+\.\d+)""").find(raw)?.groupValues?.getOrNull(1)
+            val normalized = semver ?: raw
+            "Mihomo $normalized"
         }
     }
 
@@ -613,7 +644,7 @@ class MainActivity : BaseActivity<MainDesign>() {
                 design.showToast(R.string.about_update_latest, ToastDuration.Short)
                 return@withContext
             }
-            AlertDialog.Builder(this@MainActivity)
+            MaterialAlertDialogBuilder(this@MainActivity)
                 .setTitle(getString(R.string.about_update_available, latest.tagName))
                 .setMessage(latest.body.take(1200))
                 .setPositiveButton(R.string.about_open_release) { _, _ ->

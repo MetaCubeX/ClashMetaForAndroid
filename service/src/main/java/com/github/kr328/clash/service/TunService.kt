@@ -15,6 +15,7 @@ import com.github.kr328.clash.service.model.AccessControlMode
 import com.github.kr328.clash.service.store.ServiceStore
 import com.github.kr328.clash.service.util.cancelAndJoinBlocking
 import com.github.kr328.clash.service.util.parseCIDR
+import com.github.kr328.clash.service.util.ProxyPropertyGuard
 import com.github.kr328.clash.service.util.sendClashStarted
 import com.github.kr328.clash.service.util.sendClashStopped
 import kotlinx.coroutines.*
@@ -54,7 +55,7 @@ class TunService : VpnService(), CoroutineScope by CoroutineScope(Dispatchers.De
                     }
                     config.onEvent {
                         reason = it.message
-                        Log.e("TunService received fatal config event: ${it.message}")
+                        Log.e("TunService received fatal config event")
 
                         true
                     }
@@ -70,7 +71,7 @@ class TunService : VpnService(), CoroutineScope by CoroutineScope(Dispatchers.De
                 if (quit) break
             }
         } catch (e: Exception) {
-            Log.e("Create clash runtime: ${e.message}", e)
+            Log.e("Create clash runtime failed", e)
 
             reason = e.message
         } finally {
@@ -84,6 +85,7 @@ class TunService : VpnService(), CoroutineScope by CoroutineScope(Dispatchers.De
 
     override fun onCreate() {
         super.onCreate()
+        ProxyPropertyGuard.clearGlobalProxyProperties()
 
         if (StatusProvider.serviceRunning)
             return stopSelf()

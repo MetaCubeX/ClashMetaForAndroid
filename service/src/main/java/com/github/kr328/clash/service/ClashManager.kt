@@ -9,6 +9,7 @@ import com.github.kr328.clash.service.data.SelectionDao
 import com.github.kr328.clash.service.remote.IClashManager
 import com.github.kr328.clash.service.remote.ILogObserver
 import com.github.kr328.clash.service.store.ServiceStore
+import com.github.kr328.clash.service.util.RuntimeSocksAuth
 import com.github.kr328.clash.service.util.sendOverrideChanged
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.ReceiveChannel
@@ -63,6 +64,9 @@ class ClashManager(private val context: Context) : IClashManager,
     }
 
     override fun patchOverride(slot: Clash.OverrideSlot, configuration: ConfigurationOverride) {
+        if (slot == Clash.OverrideSlot.Session) {
+            RuntimeSocksAuth.applyTo(configuration)
+        }
         Clash.patchOverride(slot, configuration)
 
         context.sendOverrideChanged()

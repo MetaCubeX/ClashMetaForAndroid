@@ -76,7 +76,14 @@
     <dimen name="main_power_button_size">152dp</dimen>
     <dimen name="main_power_glow_size">196dp</dimen>
     <dimen name="main_power_button_radius">76dp</dimen>
-    <dimen name="main_power_icon_size">72dp</dimen>
+    <dimen name="main_power_section_padding_top">12dp</dimen>
+    <dimen name="main_power_section_padding_bottom">8dp</dimen>
+    <dimen name="main_profile_label_padding_bottom">8dp</dimen>
+    <dimen name="main_mode_row_margin_bottom">8dp</dimen>
+    <dimen name="main_mode_chip_padding_horizontal">8dp</dimen>
+    <dimen name="main_mode_chip_padding_vertical">12dp</dimen>
+    <dimen name="main_mode_chip_emoji_size">28sp</dimen>
+    <dimen name="main_mode_chip_label_margin_top">4dp</dimen>
     <dimen name="main_bottom_action_height">52dp</dimen>
 
     <!--  Proxy Design -->

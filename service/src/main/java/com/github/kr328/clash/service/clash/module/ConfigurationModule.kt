@@ -8,6 +8,7 @@ import com.github.kr328.clash.service.StatusProvider
 import com.github.kr328.clash.service.data.ImportedDao
 import com.github.kr328.clash.service.data.SelectionDao
 import com.github.kr328.clash.service.store.ServiceStore
+import com.github.kr328.clash.service.util.RuntimeSocksAuth
 import com.github.kr328.clash.service.util.importedDir
 import com.github.kr328.clash.service.util.sendProfileLoaded
 import kotlinx.coroutines.channels.Channel
@@ -55,6 +56,12 @@ class ConfigurationModule(service: Service) : Module<ConfigurationModule.LoadExc
 
                 Clash.load(service.importedDir.resolve(active.uuid.toString())).await()
 
+                // Security hardening: enforce runtime-only local inbound auth for each session.
+                val sessionOverride = Clash.queryOverride(Clash.OverrideSlot.Session)
+                if (RuntimeSocksAuth.applyTo(sessionOverride)) {
+                    Clash.patchOverride(Clash.OverrideSlot.Session, sessionOverride)
+                }
+
                 val remove = SelectionDao().querySelections(active.uuid)
                     .filterNot { Clash.patchSelector(it.proxy, it.selected) }
                     .map { it.proxy }
@@ -66,14 +73,13 @@ class ConfigurationModule(service: Service) : Module<ConfigurationModule.LoadExc
                 service.sendProfileLoaded(current)
                 loaded = current
 
-                Log.d("Profile ${active.name} loaded")
+                Log.d("Active profile loaded")
             } catch (e: Exception) {
-                val message = e.message ?: "Unknown"
-                Log.e("Failed to load active profile, keeping runtime alive: $message", e)
+                Log.e("Failed to load active profile, keeping runtime alive", e)
                 // Keep VPN running if there is already a previously loaded profile.
                 // A bad rules/config update should not hard-stop tunnel.
                 if (loaded == null) {
-                    return enqueueEvent(LoadException(message))
+                    return enqueueEvent(LoadException(e.message ?: "Unknown"))
                 }
             }
         }

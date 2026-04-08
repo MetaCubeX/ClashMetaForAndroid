@@ -17,7 +17,12 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: recursive
-          fetch-depth: 50
+          fetch-depth: 0
+
+      - name: Ensure tags for root and core submodule
+        run: |
+          git fetch --tags --force
+          git -C core/src/foss/golang/clash fetch --tags --force
 
       - name: Set up JDK 21
         uses: actions/setup-java@v4
@@ -31,6 +36,14 @@ jobs:
       - name: Grant gradlew execute permission
         run: chmod +x gradlew
 
+      - name: Guard - HandlerService must not exist
+        run: |
+          if grep -R --line-number --fixed-strings "HandlerService" app/src/main service/src/main core/src/main; then
+            echo "HandlerService reference detected. This path is forbidden."
+            exit 1
+          fi
+          echo "HandlerService guard passed."
+
       - name: Build Alpha Debug APK
         run: ./gradlew assembleAlphaDebug
 
@@ -38,8 +51,10 @@ jobs:
         run: |
           mkdir -p release-artifacts
           SHORT_SHA="${GITHUB_SHA::7}"
+
           find app/build/outputs/apk -name "*.apk" | while read -r apk; do
             base="$(basename "$apk")"
+
             abi="universal"
             if [[ "$base" == *"arm64-v8a"* ]]; then abi="arm64-v8a"; fi
             if [[ "$base" == *"armeabi-v7a"* ]]; then abi="armeabi-v7a"; fi
@@ -52,10 +67,23 @@ jobs:
             out="clashfest-dev-${SHORT_SHA}-${flavor}-${abi}.apk"
             cp "$apk" "release-artifacts/$out"
           done
+
           ls -la release-artifacts
 
       - name: Generate changelog
         run: |
+          BASE_TAG="$(git tag --merged HEAD --list 'v0.*' --sort=-v:refname | head -n1)"
+
+          if [ -n "$BASE_TAG" ]; then
+            CHANGE_COMMITS="$(git log "${BASE_TAG}..HEAD" --pretty=format:'- `%h` %s - @%an')"
+          else
+            CHANGE_COMMITS="$(git log -n 15 --pretty=format:'- `%h` %s - @%an')"
+          fi
+
+          if [ -z "$CHANGE_COMMITS" ]; then
+            CHANGE_COMMITS="- No code changes since the last stable tag."
+          fi
+
           {
             echo "## Dev Pre-Release"
             echo
@@ -63,19 +91,38 @@ jobs:
             echo
             echo "**Commit:** \`${GITHUB_SHA::7}\`"
             echo
+            if [ -n "$BASE_TAG" ]; then
+              echo "**Changes since:** \`${BASE_TAG}\`"
+              echo
+            fi
             echo "## What's included"
             echo
-            git log -n 10 --pretty=format:'- `%h` %s — @%an'
+            echo "$CHANGE_COMMITS"
           } > RELEASE_BODY.md
 
           cat RELEASE_BODY.md
 
-      - name: Delete existing dev prerelease assets
-        uses: mknejp/delete-release-assets@v1
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          tag: dev-latest
-          fail-if-no-assets: false
+      - name: Delete previous dev-latest assets
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          RELEASE_ID="$(gh api "repos/${GITHUB_REPOSITORY}/releases/tags/dev-latest" --jq .id 2>/dev/null || true)"
+          if [ -z "$RELEASE_ID" ]; then
+            echo "No existing dev-latest release yet, skip asset cleanup."
+            exit 0
+          fi
+
+          ASSET_IDS="$(gh api "repos/${GITHUB_REPOSITORY}/releases/${RELEASE_ID}/assets" --jq '.[].id' 2>/dev/null || true)"
+          if [ -z "$ASSET_IDS" ]; then
+            echo "No old assets to delete."
+            exit 0
+          fi
+
+          echo "$ASSET_IDS" | while read -r ASSET_ID; do
+            [ -z "$ASSET_ID" ] && continue
+            gh api --method DELETE "repos/${GITHUB_REPOSITORY}/releases/assets/${ASSET_ID}"
+            echo "Deleted asset id=$ASSET_ID"
+          done
 
       - name: Publish/Update Dev Pre-Release
         uses: softprops/action-gh-release@v2
@@ -84,5 +131,7 @@ jobs:
           name: ClashFest Dev Build
           prerelease: true
           make_latest: false
+          target_commitish: dev
           body_path: RELEASE_BODY.md
+          overwrite_files: true
           files: release-artifacts/*.apk

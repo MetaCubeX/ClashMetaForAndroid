@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Compact-height tuning for foldables/split-window/small effective height -->
+    <dimen name="toolbar_height">52dp</dimen>
+    <dimen name="main_padding_horizontal">22dp</dimen>
+    <dimen name="main_power_button_size">124dp</dimen>
+    <dimen name="main_power_glow_size">160dp</dimen>
+    <dimen name="main_power_button_radius">62dp</dimen>
+    <dimen name="main_power_section_padding_top">6dp</dimen>
+    <dimen name="main_power_section_padding_bottom">4dp</dimen>
+    <dimen name="main_profile_label_padding_bottom">4dp</dimen>
+    <dimen name="main_mode_row_margin_bottom">4dp</dimen>
+    <dimen name="main_mode_chip_padding_horizontal">6dp</dimen>
+    <dimen name="main_mode_chip_padding_vertical">8dp</dimen>
+    <dimen name="main_mode_chip_emoji_size">24sp</dimen>
+    <dimen name="main_mode_chip_label_margin_top">2dp</dimen>
+</resources>
