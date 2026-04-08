@@ -349,6 +349,9 @@
     <string name="about_update_latest">You already have the latest version</string>
     <string name="about_open_release">Open release page</string>
     <string name="about_update_check_failed">Could not check updates</string>
+    <string name="about_powered_by">ClashFest for Android</string>
+    <string name="about_app_version_label">App version</string>
+    <string name="about_core_version_label">Core version</string>
 
     <string name="app">App</string>
     <string name="service">Service</string>

@@ -182,7 +182,10 @@ class MainActivity : BaseActivity<MainDesign>() {
                             startActivity(SettingsActivity::class.intent)
 
                         MainDesign.Request.OpenAbout ->
-                            design.showAbout(queryAppVersionName()) {
+                            design.showAbout(
+                                versionName = queryAppVersionName(),
+                                coreVersion = queryCoreVersionName(),
+                            ) {
                                 launch { checkForUpdates(design) }
                             }
 
@@ -592,9 +595,16 @@ class MainActivity : BaseActivity<MainDesign>() {
 
     private suspend fun queryAppVersionName(): String {
         return withContext(Dispatchers.IO) {
-            packageManager.getPackageInfo(packageName, 0).versionName +
-                    "\n" +
-                    Bridge.nativeCoreVersion().replace("_", "-")
+            packageManager.getPackageInfo(packageName, 0).versionName ?: "unknown"
+        }
+    }
+
+    private suspend fun queryCoreVersionName(): String {
+        return withContext(Dispatchers.IO) {
+            val raw = Bridge.nativeCoreVersion().replace("_", "-")
+            val semver = Regex("""v?(\d+\.\d+\.\d+)""").find(raw)?.groupValues?.getOrNull(1)
+            val normalized = semver ?: raw
+            "Mihomo $normalized"
         }
     }
 

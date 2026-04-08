@@ -290,18 +290,33 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         profileAdapter.updateElapsed()
     }
 
-    suspend fun showAbout(versionName: String, onCheckUpdates: (() -> Unit)? = null) {
+    suspend fun showAbout(
+        versionName: String,
+        coreVersion: String,
+        onCheckUpdates: (() -> Unit)? = null
+    ) {
         withContext(Dispatchers.Main) {
             val binding = DesignAboutBinding.inflate(context.layoutInflater).apply {
                 this.versionName = versionName
+                this.coreVersion = coreVersion
+                runCatching {
+                    aboutAppIcon.setImageDrawable(context.packageManager.getApplicationIcon(context.packageName))
+                }
             }
 
-            AlertDialog.Builder(context).apply {
+            val dialog = AlertDialog.Builder(context).apply {
                 setView(binding.root)
-                if (onCheckUpdates != null) {
-                    setNeutralButton(R.string.about_check_updates) { _, _ -> onCheckUpdates() }
-                }
             }.show()
+
+            if (onCheckUpdates != null) {
+                binding.aboutCheckUpdatesButton.apply {
+                    visibility = View.VISIBLE
+                    setOnClickListener {
+                        dialog.dismiss()
+                        onCheckUpdates()
+                    }
+                }
+            }
         }
     }
 
