@@ -17,7 +17,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: recursive
-          fetch-depth: 0
+          fetch-depth: 50
 
       - name: Set up JDK 21
         uses: actions/setup-java@v4
@@ -54,6 +54,22 @@ jobs:
           done
           ls -la release-artifacts
 
+      - name: Generate changelog
+        run: |
+          {
+            echo "## Dev Pre-Release"
+            echo
+            echo "Automatic development build from \`dev\`."
+            echo
+            echo "**Commit:** \`${GITHUB_SHA::7}\`"
+            echo
+            echo "## What's included"
+            echo
+            git log -n 10 --pretty=format:'- `%h` %s — @%an'
+          } > RELEASE_BODY.md
+
+          cat RELEASE_BODY.md
+
       - name: Delete existing dev prerelease assets
         uses: mknejp/delete-release-assets@v1
         with:
@@ -68,11 +84,5 @@ jobs:
           name: ClashFest Dev Build
           prerelease: true
           make_latest: false
+          body_path: RELEASE_BODY.md
           files: release-artifacts/*.apk
-          body: |
-            Automatic development pre-release build from `dev`.
-
-            This build is intended for testing only.
-            It is updated on every push to the `dev` branch.
-
-            Commit: ${{ github.sha }}
