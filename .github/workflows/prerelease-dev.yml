@@ -75,13 +75,6 @@ jobs:
 
           cat RELEASE_BODY.md
 
-      - name: Delete existing dev prerelease assets
-        uses: mknejp/delete-release-assets@v1
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          tag: dev-latest
-          fail-if-no-assets: false
-
       - name: Publish/Update Dev Pre-Release
         uses: softprops/action-gh-release@v2
         with:
@@ -89,5 +82,6 @@ jobs:
           name: ClashFest Dev Build
           prerelease: true
           make_latest: false
+          target_commitish: dev
           body_path: RELEASE_BODY.md
           files: release-artifacts/*.apk
