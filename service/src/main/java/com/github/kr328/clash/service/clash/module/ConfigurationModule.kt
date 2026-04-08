@@ -73,14 +73,13 @@ class ConfigurationModule(service: Service) : Module<ConfigurationModule.LoadExc
                 service.sendProfileLoaded(current)
                 loaded = current
 
-                Log.d("Profile ${active.name} loaded")
+                Log.d("Active profile loaded")
             } catch (e: Exception) {
-                val message = e.message ?: "Unknown"
-                Log.e("Failed to load active profile, keeping runtime alive: $message", e)
+                Log.e("Failed to load active profile, keeping runtime alive", e)
                 // Keep VPN running if there is already a previously loaded profile.
                 // A bad rules/config update should not hard-stop tunnel.
                 if (loaded == null) {
-                    return enqueueEvent(LoadException(message))
+                    return enqueueEvent(LoadException(e.message ?: "Unknown"))
                 }
             }
         }

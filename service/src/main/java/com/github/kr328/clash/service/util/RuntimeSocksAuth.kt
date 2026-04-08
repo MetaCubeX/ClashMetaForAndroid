@@ -9,6 +9,7 @@ import java.util.Base64
  * Values are never persisted and are rotated on service restart.
  */
 object RuntimeSocksAuth {
+    private const val LOOPBACK_BIND = "127.0.0.1"
     private val secureRandom = SecureRandom()
     @Volatile private var sessionCredential: String? = null
     @Volatile private var sessionControllerSecret: String? = null
@@ -19,6 +20,29 @@ object RuntimeSocksAuth {
      */
     fun applyTo(configuration: ConfigurationOverride): Boolean {
         var changed = false
+
+        if (configuration.allowLan != false) {
+            configuration.allowLan = false
+            changed = true
+        }
+
+        val normalizedBind = normalizeBindAddress(configuration.bindAddress)
+        if (configuration.bindAddress != normalizedBind) {
+            configuration.bindAddress = normalizedBind
+            changed = true
+        }
+
+        val normalizedController = normalizeControllerAddress(configuration.externalController)
+        if (configuration.externalController != normalizedController) {
+            configuration.externalController = normalizedController
+            changed = true
+        }
+
+        val normalizedControllerTls = normalizeControllerAddress(configuration.externalControllerTLS)
+        if (configuration.externalControllerTLS != normalizedControllerTls) {
+            configuration.externalControllerTLS = normalizedControllerTls
+            changed = true
+        }
 
         val credential = sessionCredential ?: newCredential().also { sessionCredential = it }
         val current = configuration.authentication
@@ -37,6 +61,22 @@ object RuntimeSocksAuth {
         }
 
         return changed
+    }
+
+    private fun normalizeBindAddress(bindAddress: String?): String {
+        if (bindAddress.isNullOrBlank()) return LOOPBACK_BIND
+        if (bindAddress == "*" || bindAddress == "0.0.0.0" || bindAddress == "::") {
+            return LOOPBACK_BIND
+        }
+        return bindAddress
+    }
+
+    private fun normalizeControllerAddress(address: String?): String? {
+        if (address.isNullOrBlank()) return address
+        return address
+            .replace("0.0.0.0:", "$LOOPBACK_BIND:")
+            .replace("[::]:", "$LOOPBACK_BIND:")
+            .replace(":::", "$LOOPBACK_BIND:")
     }
 
     private fun newCredential(): String {

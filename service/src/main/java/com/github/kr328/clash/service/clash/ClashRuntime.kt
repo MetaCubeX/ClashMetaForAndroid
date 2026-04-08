@@ -38,7 +38,7 @@ fun CoroutineScope.clashRuntime(block: suspend ClashRuntimeScope.() -> Unit): Cl
                                     runCatching {
                                         module.execute()
                                     }.onFailure { e ->
-                                        Log.e("Module ${module.javaClass.simpleName} crashed: ${e.message}", e)
+                                        Log.e("Module ${module.javaClass.simpleName} crashed", e)
                                     }
                                 }
 

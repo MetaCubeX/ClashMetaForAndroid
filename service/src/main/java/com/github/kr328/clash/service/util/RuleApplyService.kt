@@ -14,14 +14,14 @@ class RuleApplyService(
 ) {
     fun readStateJson(uuid: UUID): String? {
         val config = configFile(uuid) ?: return null
-        Log.d("Read rule state for profile=$uuid")
+        Log.d("Read rule state")
         return repository.readStateJson(uuid, config.readText())
     }
 
     fun applyStateJson(uuid: UUID, stateJson: String): Boolean {
         val config = configFile(uuid) ?: return false
         val state = repository.parseStateJson(stateJson)
-        Log.d("Apply structured rule state for profile=$uuid, rules=${state.rules.size}, providers=${state.providers.size}")
+        Log.d("Apply structured rule state rules=${state.rules.size}, providers=${state.providers.size}")
         return applyState(uuid, config, state)
     }
 
@@ -30,7 +30,7 @@ class RuleApplyService(
         val current = repository.load(uuid, config.readText())
         val incomingProviders = RuleMapper.parseProvidersYaml(providersYaml)
         val incomingRule = parseRuleLine(prependRuleLine, current.rules.size)
-        Log.d("Merge provider shortcut profile=$uuid incomingProviders=${incomingProviders.size} incomingRule=${incomingRule != null}")
+        Log.d("Merge provider shortcut incomingProviders=${incomingProviders.size} incomingRule=${incomingRule != null}")
 
         val mergedProviders = (current.providers + incomingProviders)
             .groupBy { it.name }
@@ -110,10 +110,10 @@ class RuleApplyService(
             repository.save(uuid, normalized)
             config.writeText(mergedYaml)
             context.sendProfileChanged(uuid)
-            Log.d("Rules applied profile=$uuid mergedRules=${normalized.rules.count { it.enabled }} mergedProviders=${normalized.providers.count { it.enabled }}")
+            Log.d("Rules applied mergedRules=${normalized.rules.count { it.enabled }} mergedProviders=${normalized.providers.count { it.enabled }}")
             true
         }.onFailure {
-            Log.e("Apply rules failed for profile=$uuid: ${it.message}", it)
+            Log.e("Apply rules failed", it)
         }.getOrElse { false }
     }
 

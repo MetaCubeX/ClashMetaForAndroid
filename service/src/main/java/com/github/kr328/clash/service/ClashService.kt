@@ -56,7 +56,7 @@ class ClashService : BaseService() {
                 if (quit) break
             }
         } catch (e: Exception) {
-            Log.e("Create clash runtime: ${e.message}", e)
+            Log.e("Create clash runtime failed", e)
 
             reason = e.message
         } finally {
