@@ -11,7 +11,6 @@ import com.github.kr328.clash.store.AppStore
 import com.github.kr328.clash.util.ApplicationObserver
 import com.github.kr328.clash.util.verifyApk
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 
 object Remote {
@@ -24,8 +23,6 @@ object Remote {
 
         Global.application.startActivity(intent)
     }
-
-    private val visible = Channel<Boolean>(Channel.CONFLATED)
 
     fun launch() {
         ApplicationObserver.attach(Global.application)

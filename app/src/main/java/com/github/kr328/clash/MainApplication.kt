@@ -91,38 +91,20 @@ class MainApplication : Application() {
         clashDir.mkdirs()
 
         val updateDate = packageManager.getPackageInfo(packageName, 0).lastUpdateTime
-        val geoipFile = File(clashDir, "geoip.metadb")
-        if (geoipFile.exists() && geoipFile.lastModified() < updateDate) {
-            geoipFile.delete()
-        }
-        if (!geoipFile.exists()) {
-            FileOutputStream(geoipFile).use {
-                assets.open("geoip.metadb").copyTo(it)
-            }
-        }
-
-        val geositeFile = File(clashDir, "geosite.dat")
-        if (geositeFile.exists() && geositeFile.lastModified() < updateDate) {
-            geositeFile.delete()
-        }
-        if (!geositeFile.exists()) {
-            FileOutputStream(geositeFile).use {
-                assets.open("geosite.dat").copyTo(it)
-            }
-        }
-
-        val asnFile = File(clashDir, "ASN.mmdb")
-        if (asnFile.exists() && asnFile.lastModified() < updateDate) {
-            asnFile.delete()
-        }
-        if (!asnFile.exists()) {
-            FileOutputStream(asnFile).use {
-                assets.open("ASN.mmdb").copyTo(it)
-            }
-        }
+        ensureAssetFresh("geoip.metadb", "geoip.metadb", updateDate)
+        ensureAssetFresh("geosite.dat", "geosite.dat", updateDate)
+        ensureAssetFresh("ASN.mmdb", "ASN.mmdb", updateDate)
     }
 
-    fun finalize() {
-        Global.destroy()
+    private fun ensureAssetFresh(assetName: String, targetName: String, updateDate: Long) {
+        val target = File(clashDir, targetName)
+        if (target.exists() && target.lastModified() < updateDate) {
+            target.delete()
+        }
+        if (!target.exists()) {
+            FileOutputStream(target).use {
+                assets.open(assetName).copyTo(it)
+            }
+        }
     }
 }
