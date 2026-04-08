@@ -61,6 +61,17 @@ jobs:
 
       - name: Generate changelog
         run: |
+          BASE_TAG="$(git tag --merged HEAD --list 'v[0-9]*' --sort=-v:refname | head -n1)"
+          if [ -n "$BASE_TAG" ]; then
+            CHANGE_COMMITS="$(git log "${BASE_TAG}..HEAD" --pretty=format:'- `%h` %s — @%an')"
+          else
+            CHANGE_COMMITS="$(git log -n 15 --pretty=format:'- `%h` %s — @%an')"
+          fi
+
+          if [ -z "$CHANGE_COMMITS" ]; then
+            CHANGE_COMMITS="- No code changes since the last stable tag."
+          fi
+
           {
             echo "## Dev Pre-Release"
             echo
@@ -68,12 +79,38 @@ jobs:
             echo
             echo "**Commit:** \`${GITHUB_SHA::7}\`"
             echo
+            if [ -n "$BASE_TAG" ]; then
+              echo "**Changes since:** \`${BASE_TAG}\`"
+              echo
+            fi
             echo "## What's included"
             echo
-            git log -n 10 --pretty=format:'- `%h` %s — @%an'
+            echo "$CHANGE_COMMITS"
           } > RELEASE_BODY.md
 
           cat RELEASE_BODY.md
+
+      - name: Delete previous dev-latest assets
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          RELEASE_ID="$(gh api "repos/${GITHUB_REPOSITORY}/releases/tags/dev-latest" --jq .id 2>/dev/null || true)"
+          if [ -z "$RELEASE_ID" ]; then
+            echo "No existing dev-latest release yet, skip asset cleanup."
+            exit 0
+          fi
+
+          ASSET_IDS="$(gh api "repos/${GITHUB_REPOSITORY}/releases/${RELEASE_ID}/assets" --jq '.[].id' 2>/dev/null || true)"
+          if [ -z "$ASSET_IDS" ]; then
+            echo "No old assets to delete."
+            exit 0
+          fi
+
+          echo "$ASSET_IDS" | while read -r ASSET_ID; do
+            [ -z "$ASSET_ID" ] && continue
+            gh api --method DELETE "repos/${GITHUB_REPOSITORY}/releases/assets/${ASSET_ID}"
+            echo "Deleted asset id=$ASSET_ID"
+          done
 
       - name: Publish/Update Dev Pre-Release
         uses: softprops/action-gh-release@v2
@@ -84,4 +121,5 @@ jobs:
           make_latest: false
           target_commitish: dev
           body_path: RELEASE_BODY.md
+          overwrite_files: true
           files: release-artifacts/*.apk
