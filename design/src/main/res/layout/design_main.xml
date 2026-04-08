@@ -134,7 +134,7 @@
                     app:cardElevation="0dp"
                     app:cardMaxElevation="0dp"
                     app:cardUseCompatPadding="false"
-                    app:rippleColor="@color/tech_secondary_soft"
+                    app:rippleColor="?attr/colorControlHighlight"
                     app:strokeColor="@android:color/transparent">
 
                     <FrameLayout
@@ -216,7 +216,7 @@
                     app:cardCornerRadius="20dp"
                     app:cardElevation="2dp"
                     app:cardStrokeWidthBound="@{isRuleMode ? @dimen/stroke_neon : @dimen/stroke_hairline}"
-                    app:strokeColor="@color/tech_primary">
+                    app:strokeColor="?attr/colorPrimary">
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -259,7 +259,7 @@
                     app:cardCornerRadius="20dp"
                     app:cardElevation="2dp"
                     app:cardStrokeWidthBound="@{isGlobalMode ? @dimen/stroke_neon : @dimen/stroke_hairline}"
-                    app:strokeColor="@color/tech_primary">
+                    app:strokeColor="?attr/colorPrimary">
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -302,7 +302,7 @@
                     app:cardCornerRadius="20dp"
                     app:cardElevation="2dp"
                     app:cardStrokeWidthBound="@{isDirectMode ? @dimen/stroke_neon : @dimen/stroke_hairline}"
-                    app:strokeColor="@color/tech_primary">
+                    app:strokeColor="?attr/colorPrimary">
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -356,10 +356,10 @@
                     android:layout_gravity="center"
                     android:layout_marginHorizontal="@dimen/main_padding_horizontal"
                     android:visibility="@{hasProfiles ? View.GONE : View.VISIBLE}"
-                    app:cardBackgroundColor="@color/main_card_glass"
+                    app:cardBackgroundColor="?attr/colorMainCardGlass"
                     app:cardCornerRadius="18dp"
                     app:cardElevation="0dp"
-                    app:strokeColor="@color/tech_secondary_soft"
+                    app:strokeColor="?attr/colorMainGlassStroke"
                     app:strokeWidth="1dp">
 
                     <LinearLayout

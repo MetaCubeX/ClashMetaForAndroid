@@ -49,8 +49,8 @@
                 android:layout_marginHorizontal="@dimen/main_padding_horizontal"
                 android:layout_marginBottom="8dp"
                 android:hint="@string/connections_search_hint"
-                app:boxStrokeColor="@color/tech_primary"
-                app:hintTextColor="@color/tech_secondary">
+                app:boxStrokeColor="?attr/colorPrimary"
+                app:hintTextColor="?attr/colorOnSurfaceVariant">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/connections_search"
@@ -93,7 +93,7 @@
                 android:layout_marginHorizontal="@dimen/main_padding_horizontal"
                 android:layout_marginBottom="12dp"
                 android:text="@string/connections_open_log"
-                app:strokeColor="@color/tech_primary" />
+                app:strokeColor="?attr/colorPrimary" />
         </LinearLayout>
 
         <com.github.kr328.clash.design.view.ActivityBarLayout

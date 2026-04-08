@@ -15,7 +15,7 @@
 
         <item name="colorPrimary">@color/color_clash_light</item>
         <item name="colorOnPrimary">@android:color/white</item>
-        <item name="colorControlNormal">@android:color/black</item>
+        <item name="colorControlNormal">@color/color_light_text_primary</item>
         <item name="colorClashStopped">@color/color_light_clash_stopped</item>
         <item name="colorControlDisabled">@color/color_light_control_disabled</item>
 
@@ -68,7 +68,7 @@
 
         <item name="colorPrimary">@color/color_clash_light</item>
         <item name="colorOnPrimary">@android:color/white</item>
-        <item name="colorControlNormal">@android:color/black</item>
+        <item name="colorControlNormal">@color/color_light_text_primary</item>
         <item name="colorClashStopped">@color/color_light_clash_stopped</item>
         <item name="colorControlDisabled">@color/color_light_control_disabled</item>
 
@@ -121,20 +121,20 @@
         <item name="android:spotShadowAlpha">0.08</item>
 
         <item name="mainDashboardBackground">@drawable/bg_main_gradient_light</item>
-        <item name="colorMainDashboardText">#DE121212</item>
-        <item name="colorMainModeChipLabel">#DE1A1A1A</item>
-        <item name="colorMainCardGlass">#CCE8EEF5</item>
-        <item name="colorMainGlassStroke">#28000000</item>
+        <item name="colorMainDashboardText">@color/color_light_text_primary</item>
+        <item name="colorMainModeChipLabel">@color/color_light_text_primary</item>
+        <item name="colorMainCardGlass">#CCE3EAF3</item>
+        <item name="colorMainGlassStroke">#265B7390</item>
 
-        <item name="colorSurface">#FFFFFFFF</item>
-        <item name="colorOnSurface">#DE121212</item>
-        <item name="colorOnSurfaceVariant">#990E0E0E</item>
+        <item name="colorSurface">@color/color_light_surface</item>
+        <item name="colorOnSurface">@color/color_light_text_primary</item>
+        <item name="colorOnSurfaceVariant">@color/color_light_text_secondary</item>
         <item name="profileCardBackground">@drawable/bg_profile_card_gradient_light</item>
         <item name="profileProxyBlockBackground">@drawable/bg_proxy_block_light</item>
 
         <item name="colorPrimary">@color/color_clash_light</item>
         <item name="colorOnPrimary">@android:color/white</item>
-        <item name="colorControlNormal">@android:color/black</item>
+        <item name="colorControlNormal">@color/color_light_text_primary</item>
         <item name="colorClashStopped">@color/color_light_clash_stopped</item>
         <item name="colorControlDisabled">@color/color_light_control_disabled</item>
 
@@ -142,6 +142,7 @@
         <item name="colorSecondary">?attr/colorPrimary</item>
         <item name="colorOnSecondary">?attr/colorOnPrimary</item>
         <item name="colorControlActivated">?attr/colorPrimary</item>
+        <item name="colorControlHighlight">#145B7390</item>
         <item name="colorLogo">?attr/colorControlActivated</item>
         <item name="android:textColor">?attr/colorControlNormal</item>
 

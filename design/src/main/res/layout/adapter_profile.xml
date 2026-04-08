@@ -30,7 +30,7 @@
             app:cardCornerRadius="14dp"
             app:cardElevation="3dp"
             app:strokeWidth="0dp"
-            app:strokeColor="@color/tech_primary">
+            app:strokeColor="?attr/colorPrimary">
 
             <LinearLayout
                 android:id="@+id/root_view"
@@ -54,7 +54,7 @@
                     android:layout_height="@dimen/profile_header_strip_height"
                     android:layout_gravity="center_vertical"
                     android:layout_marginEnd="10dp"
-                    android:background="@color/tech_primary"
+                    android:background="?attr/colorPrimary"
                     android:visibility="@{profile.active ? View.VISIBLE : View.INVISIBLE}" />
 
                 <LinearLayout
