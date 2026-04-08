@@ -25,6 +25,7 @@ class ConnectionsActivity : BaseActivity<ConnectionsDesign>() {
         }
 
         val refresh = launch {
+            var lastRevision: Long = Long.MIN_VALUE
             var lastRawSnapshot: String? = null
             while (isActive) {
                 if (!activityStarted) {
@@ -33,6 +34,14 @@ class ConnectionsActivity : BaseActivity<ConnectionsDesign>() {
                 }
                 val interactive = getSystemService<PowerManager>()?.isInteractive ?: true
                 try {
+                    val revision = withClash {
+                        queryTrafficTotal()
+                    }
+                    if (revision == lastRevision) {
+                        delay(if (interactive) 1200 else 2200)
+                        continue
+                    }
+                    lastRevision = revision
                     val raw = withClash { queryConnectionsSnapshot() }
                     if (raw == lastRawSnapshot) {
                         delay(if (interactive) 1200 else 2200)
