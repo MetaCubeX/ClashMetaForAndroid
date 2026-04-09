@@ -46,9 +46,10 @@ class ServiceStore(context: Context) {
         defaultValue = true
     )
 
+    /** When true, [android.net.VpnService.Builder.allowBypass] is used (apps may exit the VPN). Default off; UI hidden — prefer profile rules. */
     var allowBypass by store.boolean(
         key = "allow_bypass",
-        defaultValue = true
+        defaultValue = false
     )
 
     var allowIpv6 by store.boolean(
@@ -65,4 +66,22 @@ class ServiceStore(context: Context) {
         key = "dynamic_notification",
         defaultValue = true
     )
+
+    companion object {
+        private const val KEY_ALLOW_BYPASS = "allow_bypass"
+        private const val MIGRATION_ALLOW_BYPASS_OFF_V1 = "migration_allow_bypass_off_v1"
+
+        /**
+         * One-time: force allow-bypass off for upgrades (previously default true).
+         * Keeps the preference key for a future dev/advanced toggle.
+         */
+        fun runMigrations(context: Context) {
+            val prefs = PreferenceProvider.createSharedPreferencesFromContext(context)
+            if (prefs.getBoolean(MIGRATION_ALLOW_BYPASS_OFF_V1, false)) return
+            prefs.edit()
+                .putBoolean(KEY_ALLOW_BYPASS, false)
+                .putBoolean(MIGRATION_ALLOW_BYPASS_OFF_V1, true)
+                .apply()
+        }
+    }
 }

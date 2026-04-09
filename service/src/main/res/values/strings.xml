@@ -18,4 +18,7 @@
     <string name="provider_files">Provider Files</string>
     <string name="profile_updater">Profile Updater</string>
     <string name="profile_updating">Profile Updating</string>
+
+    <!-- Shown as VPN session name in Android settings (cosmetic). -->
+    <string name="vpn_session_name" translatable="true">ClashFest</string>
 </resources>

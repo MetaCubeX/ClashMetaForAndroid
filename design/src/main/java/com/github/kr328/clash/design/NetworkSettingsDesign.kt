@@ -71,13 +71,6 @@ class NetworkSettingsDesign(
             )
 
             switch(
-                value = srvStore::allowBypass,
-                title = R.string.allow_bypass,
-                summary = R.string.allow_bypass_summary,
-                configure = vpnDependencies::add,
-            )
-
-            switch(
                 value = srvStore::allowIpv6,
                 title = R.string.allow_ipv6,
                 summary = R.string.allow_ipv6_summary,

@@ -178,8 +178,8 @@ class TunService : VpnService(), CoroutineScope by CoroutineScope(Dispatchers.De
             // Mtu
             setMtu(TUN_MTU)
 
-            // Session Name
-            setSession("Clash")
+            // Session name shown in system VPN UI (not related to traffic encryption).
+            setSession(getString(R.string.vpn_session_name))
 
             // Virtual Dns Server
             addDnsServer(TUN_DNS)

@@ -1,6 +1,7 @@
 import java.net.URL
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
+import org.gradle.api.GradleException
 
 plugins {
     kotlin("android")
@@ -35,21 +36,66 @@ val geoFilesDownloadDir = "src/main/assets"
 
 task("downloadGeoFiles") {
 
-    val geoFilesUrls = mapOf(
-        "https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geoip.metadb" to "geoip.metadb",
-        "https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geosite.dat" to "geosite.dat",
-        // "https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/country.mmdb" to "country.mmdb",
-        "https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/GeoLite2-ASN.mmdb" to "ASN.mmdb",
+    // GitHub raw TLS can fail in some networks; try jsDelivr (@release) first, then GitHub releases.
+    val geoFileMirrors = mapOf(
+        "geoip.metadb" to listOf(
+            "https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@release/geoip.metadb",
+            "https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geoip.metadb",
+        ),
+        "geosite.dat" to listOf(
+            "https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@release/geosite.dat",
+            "https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geosite.dat",
+        ),
+        "ASN.mmdb" to listOf(
+            "https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@release/GeoLite2-ASN.mmdb",
+            "https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/GeoLite2-ASN.mmdb",
+        ),
     )
 
     doLast {
-        geoFilesUrls.forEach { (downloadUrl, outputFileName) ->
-            val url = URL(downloadUrl)
+        geoFileMirrors.forEach { (outputFileName, urls) ->
             val outputPath = file("$geoFilesDownloadDir/$outputFileName")
             outputPath.parentFile.mkdirs()
-            url.openStream().use { input ->
-                Files.copy(input, outputPath.toPath(), StandardCopyOption.REPLACE_EXISTING)
-                println("$outputFileName downloaded to $outputPath")
+
+            if (outputPath.isFile && outputPath.length() > 0L) {
+                var ok = false
+                for (url in urls) {
+                    try {
+                        URL(url).openStream().use { input ->
+                            Files.copy(input, outputPath.toPath(), StandardCopyOption.REPLACE_EXISTING)
+                        }
+                        println("$outputFileName downloaded from $url -> $outputPath")
+                        ok = true
+                        break
+                    } catch (e: Exception) {
+                        println("WARN: $outputFileName failed from $url (${e.javaClass.simpleName}: ${e.message})")
+                    }
+                }
+                if (!ok) {
+                    println("WARN: keeping existing $outputFileName (${outputPath.length()} bytes) after failed refresh")
+                }
+                return@forEach
+            }
+
+            var last: Exception? = null
+            for (url in urls) {
+                try {
+                    URL(url).openStream().use { input ->
+                        Files.copy(input, outputPath.toPath(), StandardCopyOption.REPLACE_EXISTING)
+                    }
+                    println("$outputFileName downloaded from $url -> $outputPath")
+                    last = null
+                    break
+                } catch (e: Exception) {
+                    last = e
+                    println("WARN: $outputFileName failed from $url (${e.javaClass.simpleName}: ${e.message})")
+                }
+            }
+            if (last != null && (!outputPath.isFile || outputPath.length() == 0L)) {
+                throw GradleException(
+                    "Could not download $outputFileName (network/TLS). Last error: ${last?.message}. " +
+                        "Place files manually under $geoFilesDownloadDir or retry with a stable connection."
+                )
             }
         }
     }
