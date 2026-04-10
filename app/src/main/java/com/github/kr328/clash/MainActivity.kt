@@ -39,6 +39,7 @@ import com.github.kr328.clash.design.model.DarkMode
 import com.github.kr328.clash.design.ui.ToastDuration
 import com.github.kr328.clash.design.util.showExceptionToast
 import com.github.kr328.clash.service.model.Profile
+import com.github.kr328.clash.util.showProfileQuickEditSheet
 import com.github.kr328.clash.util.startClashService
 import com.github.kr328.clash.util.stopClashService
 import com.github.kr328.clash.util.withClash
@@ -201,8 +202,8 @@ class MainActivity : BaseActivity<MainDesign>() {
                         MainDesign.Request.OpenConnections ->
                             startActivity(ConnectionsActivity::class.intent)
 
-                        MainDesign.Request.OpenProfiles ->
-                            startActivity(ProfilesActivity::class.intent)
+                        MainDesign.Request.OpenProxies ->
+                            startActivity(ProxyActivity::class.intent)
 
                         MainDesign.Request.OpenRules ->
                             startActivity(RuleSnippetActivity::class.intent)
@@ -373,7 +374,7 @@ class MainActivity : BaseActivity<MainDesign>() {
                 }
 
                 design.profileEditRequests.onReceive { profile ->
-                    startActivity(PropertiesActivity::class.intent.setUUID(profile.uuid))
+                    showProfileQuickEditSheet(design, profile) { design.fetch() }
                 }
 
                 if (clashRunning && activityStarted) {
@@ -426,7 +427,7 @@ class MainActivity : BaseActivity<MainDesign>() {
                     true
                 }
                 R.id.profile_menu_edit -> {
-                    startActivity(PropertiesActivity::class.intent.setUUID(profile.uuid))
+                    showProfileQuickEditSheet(design, profile) { design.fetch() }
                     true
                 }
                 R.id.profile_menu_duplicate -> {

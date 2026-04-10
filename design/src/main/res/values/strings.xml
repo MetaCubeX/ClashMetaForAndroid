@@ -30,6 +30,7 @@
 
     <string name="logs">Logs</string>
     <string name="settings">Settings</string>
+    <string name="advanced_settings">Advanced</string>
     <string name="help">Help</string>
     <string name="about">About</string>
 
@@ -111,6 +112,9 @@
     <string name="profile_update_scheduled">Subscription update started</string>
     <string name="profile_menu_set_active">Set active</string>
     <string name="profile_delete_confirm">Delete this profile? This cannot be undone.</string>
+    <string name="profile_quick_edit_title">Quick edit subscription</string>
+    <string name="profile_quick_open_advanced">Open full editor</string>
+    <string name="profile_quick_saved">Subscription updated</string>
     <string name="proxy_offline_need_vpn">Start the VPN to switch nodes</string>
     <string name="rule_apply_active_only">Active profile only</string>
     <string name="rule_apply_replace_all">Active profile (replace all rules)</string>
@@ -249,6 +253,8 @@
     <string name="block_loopback_summary">Block loopback connections</string>
     <string name="allow_bypass">Allow Bypass</string>
     <string name="allow_bypass_summary">Allows all apps to bypass this VPN connection</string>
+    <string name="allow_bypass_dev_summary">Developer mode: allows apps to bypass VPN. This can cause leak tests to fail.</string>
+    <string name="advanced_vpn_experiments">VPN experiments</string>
     <string name="allow_ipv6">Allow Ipv6</string>
     <string name="allow_ipv6_summary">Allows ipv6 traffic via VpnService</string>
     <string name="system_proxy">System Proxy</string>

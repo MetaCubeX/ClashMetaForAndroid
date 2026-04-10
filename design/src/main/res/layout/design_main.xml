@@ -416,10 +416,10 @@
                     android:focusable="true"
                     android:gravity="center"
                     android:maxLines="2"
-                    android:onClick="@{() -> self.request(Request.OpenProfiles)}"
+                    android:onClick="@{() -> self.request(Request.OpenProxies)}"
                     android:paddingHorizontal="2dp"
                     android:paddingVertical="8dp"
-                    android:text="@string/profiles"
+                    android:text="@string/home_proxy"
                     android:textAlignment="center"
                     android:textColor="?attr/colorMainDashboardText"
                     android:textSize="11sp" />

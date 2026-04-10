@@ -34,7 +34,7 @@ import java.util.UUID
 class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
     enum class Request {
         ToggleStatus,
-        OpenProfiles,
+        OpenProxies,
         OpenNewProfile,
         OpenRules,
         OpenSettings,

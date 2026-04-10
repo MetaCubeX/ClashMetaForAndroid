@@ -9,6 +9,7 @@
     <string name="rule_mode">Режим правил</string>
     <string name="global_mode">Глобальный режим</string>
     <string name="proxy_empty_tips">Нет групп для отображения</string>
+    <string name="home_proxy">Прокси</string>
 
     <string name="profiles">Профили</string>
     <string name="not_selected">Не выбран</string>
@@ -16,6 +17,7 @@
 
     <string name="logs">Логи</string>
     <string name="settings">Настройки</string>
+    <string name="advanced_settings">Расширенные</string>
     <string name="help">Помощь</string>
     <string name="about">О программе</string>
 
@@ -120,6 +122,11 @@
     <string name="block_loopback_summary">Заблокировать loopback-соединения</string>
     <string name="allow_bypass">Разрешить обход</string>
     <string name="allow_bypass_summary">Разрешить приложениям обходить VPN соединение</string>
+    <string name="allow_bypass_dev_summary">Режим для продвинутых: приложения могут обходить VPN. Это может приводить к утечкам в тестах.</string>
+    <string name="advanced_vpn_experiments">VPN-эксперименты</string>
+    <string name="profile_quick_edit_title">Быстрое редактирование подписки</string>
+    <string name="profile_quick_open_advanced">Открыть полный редактор</string>
+    <string name="profile_quick_saved">Подписка обновлена</string>
     <string name="system_proxy">Системный прокси</string>
     <string name="system_proxy_summary">Дополнительно запустить HTTP прокси, помимо VPN</string>
     <string name="access_control_mode">Режим контроля доступа</string>

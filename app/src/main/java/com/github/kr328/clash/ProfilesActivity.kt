@@ -7,9 +7,11 @@ import android.content.IntentFilter
 import com.github.kr328.clash.common.util.intent
 import com.github.kr328.clash.common.util.setUUID
 import com.github.kr328.clash.common.util.ticker
+import com.github.kr328.clash.design.R as DesignR
 import com.github.kr328.clash.design.ProfilesDesign
 import com.github.kr328.clash.design.ui.ToastDuration
 import com.github.kr328.clash.service.model.Profile
+import com.github.kr328.clash.util.showProfileQuickEditSheet
 import com.github.kr328.clash.util.withProfile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.isActive
@@ -18,7 +20,6 @@ import kotlinx.coroutines.selects.select
 import kotlinx.coroutines.withContext
 import java.util.*
 import java.util.concurrent.TimeUnit
-import com.github.kr328.clash.design.R
 
 class ProfilesActivity : BaseActivity<ProfilesDesign>() {
     override suspend fun main() {
@@ -61,7 +62,7 @@ class ProfilesActivity : BaseActivity<ProfilesDesign>() {
                         is ProfilesDesign.Request.Delete ->
                             withProfile { delete(it.profile.uuid) }
                         is ProfilesDesign.Request.Edit ->
-                            startActivity(PropertiesActivity::class.intent.setUUID(it.profile.uuid))
+                            showProfileQuickEditSheet(design, it.profile) { design.fetch() }
                         is ProfilesDesign.Request.Active -> {
                             withProfile {
                                 if (it.profile.imported)
@@ -101,7 +102,7 @@ class ProfilesActivity : BaseActivity<ProfilesDesign>() {
                 name = queryByUUID(uuid)?.name
             }
             design?.showToast(
-                getString(R.string.toast_profile_updated_complete, name),
+                getString(DesignR.string.toast_profile_updated_complete, name),
                 ToastDuration.Long
             )
         }
@@ -115,10 +116,10 @@ class ProfilesActivity : BaseActivity<ProfilesDesign>() {
                 name = queryByUUID(uuid)?.name
             }
             design?.showToast(
-                getString(R.string.toast_profile_updated_failed, name, reason),
+                getString(DesignR.string.toast_profile_updated_failed, name, reason),
                 ToastDuration.Long
             ){
-                setAction(R.string.edit) {
+                setAction(DesignR.string.edit) {
                     startActivity(PropertiesActivity::class.intent.setUUID(uuid))
                 }
             }
