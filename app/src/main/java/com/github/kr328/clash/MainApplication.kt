@@ -1,8 +1,10 @@
 package com.github.kr328.clash
 
 import android.app.Application
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import androidx.core.content.pm.ShortcutInfoCompat
 import androidx.core.content.pm.ShortcutManagerCompat
 import androidx.core.graphics.drawable.IconCompat
@@ -43,6 +45,16 @@ class MainApplication : Application() {
     }
 
     private fun setupShortcuts() {
+        val aliasState = packageManager.getComponentEnabledSetting(
+            ComponentName(this, mainActivityAlias)
+        )
+        if (aliasState != PackageManager.COMPONENT_ENABLED_STATE_ENABLED &&
+            aliasState != PackageManager.COMPONENT_ENABLED_STATE_DEFAULT
+        ) {
+            ShortcutManagerCompat.removeAllDynamicShortcuts(this)
+            return
+        }
+
         val icon = IconCompat.createWithResource(this, R.mipmap.ic_launcher)
         val flags = Intent.FLAG_ACTIVITY_NEW_TASK or
             Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS or
