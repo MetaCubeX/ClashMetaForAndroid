@@ -2,6 +2,7 @@ package com.github.kr328.clash
 
 import android.content.ComponentName
 import android.content.pm.PackageManager
+import androidx.core.content.pm.ShortcutManagerCompat
 import com.github.kr328.clash.common.util.componentName
 import com.github.kr328.clash.design.AppSettingsDesign
 import com.github.kr328.clash.design.model.Behavior
@@ -73,5 +74,9 @@ class AppSettingsActivity : BaseActivity<AppSettingsDesign>(), Behavior {
             newState,
             PackageManager.DONT_KILL_APP
         )
+        if (hide) {
+            // Prevent launcher activity not found.
+            ShortcutManagerCompat.removeAllDynamicShortcuts(this)
+        }
     }
 }
