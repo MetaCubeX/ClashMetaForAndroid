@@ -1,10 +1,8 @@
 package com.github.kr328.clash
 
 import android.app.Application
-import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
 import androidx.core.content.pm.ShortcutInfoCompat
 import androidx.core.content.pm.ShortcutManagerCompat
 import androidx.core.graphics.drawable.IconCompat
@@ -12,6 +10,7 @@ import com.github.kr328.clash.common.Global
 import com.github.kr328.clash.common.compat.currentProcessName
 import com.github.kr328.clash.common.constants.Intents
 import com.github.kr328.clash.common.log.Log
+import com.github.kr328.clash.design.store.UiStore
 import com.github.kr328.clash.remote.Remote
 import com.github.kr328.clash.service.util.sendServiceRecreated
 import com.github.kr328.clash.util.clashDir
@@ -22,6 +21,8 @@ import com.github.kr328.clash.design.R as DesignR
 
 @Suppress("unused")
 class MainApplication : Application() {
+    private val uiStore by lazy(LazyThreadSafetyMode.NONE) { UiStore(this) }
+
     override fun attachBaseContext(base: Context?) {
         super.attachBaseContext(base)
 
@@ -45,12 +46,8 @@ class MainApplication : Application() {
     }
 
     private fun setupShortcuts() {
-        val aliasState = packageManager.getComponentEnabledSetting(
-            ComponentName(this, mainActivityAlias)
-        )
-        if (aliasState != PackageManager.COMPONENT_ENABLED_STATE_ENABLED &&
-            aliasState != PackageManager.COMPONENT_ENABLED_STATE_DEFAULT
-        ) {
+        if (uiStore.hideAppIcon) {
+            // Prevent launcher activity not found.
             ShortcutManagerCompat.removeAllDynamicShortcuts(this)
             return
         }

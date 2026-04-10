@@ -159,5 +159,3 @@ class MainActivity : BaseActivity<MainDesign>() {
         }
     }
 }
-
-val mainActivityAlias = "${MainActivity::class.java.name}Alias"

@@ -6,6 +6,7 @@ import androidx.core.content.pm.ShortcutManagerCompat
 import com.github.kr328.clash.common.util.componentName
 import com.github.kr328.clash.design.AppSettingsDesign
 import com.github.kr328.clash.design.model.Behavior
+import com.github.kr328.clash.design.store.UiStore.Companion.mainActivityAlias
 import com.github.kr328.clash.service.store.ServiceStore
 import com.github.kr328.clash.util.ApplicationObserver
 import kotlinx.coroutines.isActive
@@ -70,7 +71,7 @@ class AppSettingsActivity : BaseActivity<AppSettingsDesign>(), Behavior {
             PackageManager.COMPONENT_ENABLED_STATE_ENABLED
         }
         packageManager.setComponentEnabledSetting(
-            ComponentName(this, mainActivityAlias),
+            mainActivityAlias,
             newState,
             PackageManager.DONT_KILL_APP
         )
