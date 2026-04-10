@@ -75,6 +75,7 @@ class MainActivity : BaseActivity<MainDesign>() {
     private var isCheckingUpdates: Boolean = false
     private var pendingApkDownloadId: Long = -1L
     private var downloadReceiverRegistered: Boolean = false
+    private val updatePrefs by lazy { getSharedPreferences("app_update", MODE_PRIVATE) }
 
     private val apkDownloadReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
@@ -82,18 +83,9 @@ class MainActivity : BaseActivity<MainDesign>() {
             val id = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1L)
             if (id <= 0L || id != pendingApkDownloadId) return
             pendingApkDownloadId = -1L
+            updatePrefs.edit().remove("pending_download_id").apply()
 
-            val dm = getSystemService<DownloadManager>() ?: return
-            val query = DownloadManager.Query().setFilterById(id)
-            dm.query(query)?.use { cursor ->
-                if (!cursor.moveToFirst()) return
-                val status = cursor.getInt(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS))
-                if (status == DownloadManager.STATUS_SUCCESSFUL) {
-                    installDownloadedApk(dm, id)
-                } else {
-                    Toast.makeText(this@MainActivity, R.string.about_download_failed, Toast.LENGTH_SHORT).show()
-                }
-            }
+            checkDownloadedApkAndInstall(id)
         }
     }
 
@@ -777,8 +769,23 @@ class MainActivity : BaseActivity<MainDesign>() {
             .setDestinationInExternalFilesDir(this, Environment.DIRECTORY_DOWNLOADS, fileName)
 
         pendingApkDownloadId = dm.enqueue(request)
+        updatePrefs.edit().putLong("pending_download_id", pendingApkDownloadId).apply()
         Toast.makeText(this, R.string.about_download_started, Toast.LENGTH_SHORT).show()
         return true
+    }
+
+    private fun checkDownloadedApkAndInstall(downloadId: Long) {
+        val dm = getSystemService<DownloadManager>() ?: return
+        val query = DownloadManager.Query().setFilterById(downloadId)
+        dm.query(query)?.use { cursor ->
+            if (!cursor.moveToFirst()) return
+            val status = cursor.getInt(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS))
+            when (status) {
+                DownloadManager.STATUS_SUCCESSFUL -> installDownloadedApk(dm, downloadId)
+                DownloadManager.STATUS_FAILED -> Toast.makeText(this, R.string.about_download_failed, Toast.LENGTH_SHORT).show()
+                else -> Unit
+            }
+        }
     }
 
     private fun installDownloadedApk(dm: DownloadManager, downloadId: Long) {
@@ -795,6 +802,7 @@ class MainActivity : BaseActivity<MainDesign>() {
                 }
             )
             Toast.makeText(this, R.string.about_enable_unknown_apps, Toast.LENGTH_LONG).show()
+            updatePrefs.edit().putLong("pending_download_id", downloadId).apply()
             return
         }
 
@@ -832,12 +840,21 @@ class MainActivity : BaseActivity<MainDesign>() {
                 registerReceiver(
                     apkDownloadReceiver,
                     IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE),
-                    RECEIVER_NOT_EXPORTED
+                    RECEIVER_EXPORTED
                 )
             } else {
                 registerReceiver(apkDownloadReceiver, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE))
             }
             downloadReceiverRegistered = true
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        val pending = updatePrefs.getLong("pending_download_id", -1L)
+        if (pending > 0L) {
+            pendingApkDownloadId = pending
+            checkDownloadedApkAndInstall(pending)
         }
     }
 
