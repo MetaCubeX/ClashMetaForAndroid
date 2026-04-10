@@ -28,6 +28,8 @@
     <string name="allow_all_apps">Cho phép tất cả các ứng dụng</string>
     <string name="allow_bypass">Cho phép bỏ qua</string>
     <string name="allow_bypass_summary">Cho phép tất cả các ứng dụng bỏ qua kết nối VPN này</string>
+    <string name="allow_bypass_dev_summary">Chế độ nâng cao: cho phép ứng dụng bỏ qua VPN. Có thể làm sai kết quả kiểm tra rò rỉ.</string>
+    <string name="advanced_vpn_experiments">Thử nghiệm VPN</string>
     <string name="allow_clash_auto_restart">Cho phép Clash tự khởi động lại</string>
     <string name="allow_lan">Cho phép mạng LAN</string>
     <string name="allow_selected_apps">Cho phép các ứng dụng đã chọn</string>
@@ -179,6 +181,7 @@
     <string name="provider_files">Tệp nhà cung cấp</string>
     <string name="providers">Nhà cung cấp</string>
     <string name="proxy">Proxy</string>
+    <string name="home_proxy">Proxy</string>
     <string name="proxy_empty_tips">Không có nhóm nào được hiển thị</string>
     <string name="recently">Vừa xong</string>
     <string name="redirect_port">Cổng Redirect</string>
@@ -201,6 +204,7 @@
     <string name="select_none">Không chọn</string>
     <string name="service">Dịch vụ</string>
     <string name="settings">Cài đặt</string>
+    <string name="advanced_settings">Nâng cao</string>
     <string name="should_not_be_blank">Không được để trống</string>
     <string name="show_traffic">Hiển thị lưu lượng truy cập</string>
     <string name="show_traffic_summary">Tự động làm mới lưu lượng truy cập trong thông báo</string>
@@ -237,6 +241,9 @@
     <string name="vpn_service_options">Tuỳ chọn VpnService</string>
     <string name="warning">Cảnh báo</string>
     <string name="import_from_qr">Nhập từ Mã QR</string>
+    <string name="profile_quick_edit_title">Sửa nhanh đăng ký</string>
+    <string name="profile_quick_open_advanced">Mở trình chỉnh sửa đầy đủ</string>
+    <string name="profile_quick_saved">Đã cập nhật đăng ký</string>
     <string name="import_from_qr_no_permission">Quyền truy cập camera bị hạn chế. Vui lòng bật trong Cài đặt.</string>
     <string name="import_from_qr_exception">Đã xảy ra ngoại lệ hệ thống không xử lý được.</string>
 </resources>

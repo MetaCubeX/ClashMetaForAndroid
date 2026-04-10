@@ -248,6 +248,13 @@
     <string name="force_dns_mapping">Force DNS Mapping</string>
     <string name="parse_pure_ip">Parse Pure IP</string>
     <string name="override_destination">Override Destination</string>
+    <string name="advanced_settings">進階</string>
+    <string name="home_proxy">代理</string>
+    <string name="allow_bypass_dev_summary">進階：允許 App 略過 VPN，洩漏測試可能失準。</string>
+    <string name="advanced_vpn_experiments">VPN 實驗</string>
+    <string name="profile_quick_edit_title">快速編輯訂閱</string>
+    <string name="profile_quick_open_advanced">開啟完整編輯器</string>
+    <string name="profile_quick_saved">訂閱已更新</string>
     <string name="import_from_qr_no_permission">相機權限受限，請前往設定開啟。</string>
     <string name="import_from_qr_exception">發生系統未知異常，操作失敗。</string>
 </resources>

@@ -9,11 +9,13 @@
     <string name="rule_mode">ルールモード</string>
     <string name="global_mode">グローバルモード</string>
     <string name="proxy_empty_tips">表示するグループがありません</string>
+    <string name="home_proxy">プロキシ</string>
     <string name="profiles">プロファイル</string>
     <string name="not_selected">未選択</string>
     <string name="format_profile_activated">%sがアクティベートされました</string>
     <string name="logs">ログ</string>
     <string name="settings">設定</string>
+    <string name="advanced_settings">詳細設定</string>
     <string name="help">ヘルプ</string>
     <string name="about">アプリについて</string>
     <string name="copied">コピーしました</string>
@@ -97,6 +99,8 @@
     <string name="block_loopback_summary">ループバックをブロック</string>
     <string name="allow_bypass">アプリのバイパスを許可</string>
     <string name="allow_bypass_summary">アプリにVPNのバイパスを許可</string>
+    <string name="allow_bypass_dev_summary">上級者向け：アプリがVPNをバイパスできます。リークテストの結果に影響する場合があります。</string>
+    <string name="advanced_vpn_experiments">VPNの実験機能</string>
     <string name="system_proxy">システムプロキシ</string>
     <string name="system_proxy_summary">VPNサービスにHTTPプロキシを追加</string>
     <string name="access_control_mode">アクセスコントロールモード</string>
@@ -243,6 +247,9 @@
     <string name="geofile_unknown_db_format">Unknown Database format</string>
     <string name="geofile_unknown_db_format_message">Only %1$s are supported</string>
     <string name="geofile_imported">%1$s imported</string>
+    <string name="profile_quick_edit_title">サブスクリプションを簡易編集</string>
+    <string name="profile_quick_open_advanced">フルエディタを開く</string>
+    <string name="profile_quick_saved">サブスクリプションを更新しました</string>
     <string name="toast_profile_updated_complete">Update profile %s completed</string>
     <string name="toast_profile_updated_failed">Update profile %1$s failed: %2$s</string>
     <string name="external_control_activity">External Control</string>

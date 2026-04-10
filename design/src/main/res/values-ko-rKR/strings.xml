@@ -9,11 +9,13 @@
     <string name="rule_mode">규칙</string>
     <string name="global_mode">글로벌</string>
     <string name="proxy_empty_tips">표시할 그룹이 없습니다.</string>
+    <string name="home_proxy">프록시</string>
     <string name="profiles">구성 목록</string>
     <string name="not_selected">선택되지 않음</string>
     <string name="format_profile_activated">%s 활성화됨</string>
     <string name="logs">로그</string>
     <string name="settings">설정</string>
+    <string name="advanced_settings">고급</string>
     <string name="help">도움</string>
     <string name="about">정보</string>
     <string name="copied">복사됨</string>
@@ -97,6 +99,8 @@
     <string name="block_loopback_summary">로컬 루프백 연결을 차단합니다.</string>
     <string name="allow_bypass">앱 제외 허용</string>
     <string name="allow_bypass_summary">모든 앱이 VPN 우회 연결에서 제외될 수 있도록 합니다.</string>
+    <string name="allow_bypass_dev_summary">고급: 앱이 VPN을 우회할 수 있습니다. 유출 테스트 결과에 영향을 줄 수 있습니다.</string>
+    <string name="advanced_vpn_experiments">VPN 실험</string>
     <string name="system_proxy">시스템 프록시</string>
     <string name="system_proxy_summary">Vpn 서비스에 HTTP 프록시 추가</string>
     <string name="access_control_mode">연결 허용 모드</string>
@@ -243,6 +247,9 @@
     <string name="geofile_unknown_db_format">Unknown Database format</string>
     <string name="geofile_unknown_db_format_message">Only %1$s are supported</string>
     <string name="geofile_imported">%1$s imported</string>
+    <string name="profile_quick_edit_title">구독 빠른 편집</string>
+    <string name="profile_quick_open_advanced">전체 편집기 열기</string>
+    <string name="profile_quick_saved">구독이 업데이트됨</string>
     <string name="toast_profile_updated_complete">Update profile %s completed</string>
     <string name="toast_profile_updated_failed">Update profile %1$s failed: %2$s</string>
     <string name="external_control_activity">External Control</string>
