@@ -199,11 +199,11 @@ class MainActivity : BaseActivity<MainDesign>() {
                         MainDesign.Request.OpenNewProfile ->
                             showHomeImportSheet(design)
 
+                        MainDesign.Request.OpenProxyGroups ->
+                            startActivity(ProxyActivity::class.intent)
+
                         MainDesign.Request.OpenConnections ->
                             startActivity(ConnectionsActivity::class.intent)
-
-                        MainDesign.Request.OpenProxies ->
-                            startActivity(ProxyActivity::class.intent)
 
                         MainDesign.Request.OpenRules ->
                             startActivity(RuleSnippetActivity::class.intent)

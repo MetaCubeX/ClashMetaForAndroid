@@ -34,7 +34,6 @@ import java.util.UUID
 class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
     enum class Request {
         ToggleStatus,
-        OpenProxies,
         OpenNewProfile,
         OpenRules,
         OpenSettings,
@@ -47,6 +46,8 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         CycleTheme,
         OpenEffectiveRules,
         OpenConnections,
+        /** Full-screen proxy group list; future entry point for group/chain constructor UI. */
+        OpenProxyGroups,
     }
 
     val profileActivateRequests = Channel<Profile>(Channel.UNLIMITED)

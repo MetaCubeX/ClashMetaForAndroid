@@ -12,6 +12,10 @@ import kotlinx.coroutines.selects.select
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 
+/**
+ * Full-screen proxy group list (core). Opened from the main dock (first tab).
+ * Roadmap: grow into a hub with a visual proxy-group / proxy-chain constructor instead of raw YAML for common cases.
+ */
 class ProxyActivity : BaseActivity<ProxyDesign>() {
     override suspend fun main() {
         val mode = withClash { queryOverride(Clash.OverrideSlot.Session).mode }

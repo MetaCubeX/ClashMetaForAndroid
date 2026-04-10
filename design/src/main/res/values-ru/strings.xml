@@ -8,18 +8,29 @@
     <string name="direct_mode">Прямой режим</string>
     <string name="rule_mode">Режим правил</string>
     <string name="global_mode">Глобальный режим</string>
+    <string name="mode_chip_rule">Правила</string>
+    <string name="mode_chip_global">Глобальный</string>
+    <string name="mode_chip_direct">Прямой</string>
     <string name="proxy_empty_tips">Нет групп для отображения</string>
     <string name="home_proxy">Прокси</string>
 
     <string name="profiles">Профили</string>
     <string name="not_selected">Не выбран</string>
     <string name="format_profile_activated">%s активирован</string>
+    <string name="main_no_profiles_title">Пока нет подписок</string>
+    <string name="main_no_profiles_subtitle">Добавьте подписку, чтобы настроить маршрутизацию и открыть группы прокси на карточке (стрелка).</string>
+    <string name="main_add_subscription">Добавить подписку</string>
 
     <string name="logs">Логи</string>
     <string name="settings">Настройки</string>
     <string name="advanced_settings">Расширенные</string>
     <string name="help">Помощь</string>
     <string name="about">О программе</string>
+    <string name="add">Добавить</string>
+    <string name="rules">Правила</string>
+    <string name="routing_rules">Маршрутизация</string>
+    <string name="connections_title">Соединения</string>
+    <string name="theme_toggle">Сменить тему (светлая / тёмная)</string>
 
     <string name="copied">Скопировано</string>
 
@@ -127,6 +138,16 @@
     <string name="profile_quick_edit_title">Быстрое редактирование подписки</string>
     <string name="profile_quick_open_advanced">Открыть полный редактор</string>
     <string name="profile_quick_saved">Подписка обновлена</string>
+    <string name="profile_proxy_group">Группа прокси</string>
+    <string name="profile_ping_ms_result">Задержка ~%d мс (напрямую)</string>
+    <string name="profile_ping_timeout">Пинг: таймаут</string>
+    <string name="profile_ping_need_url">Для пинга нужен профиль с URL подписки</string>
+    <string name="profile_expand_proxies">Группы прокси</string>
+    <string name="profile_ping_all">Задержка: все узлы</string>
+    <string name="profile_force_update">Обновить подписку по ссылке</string>
+    <string name="profile_update_scheduled">Запущено обновление подписки</string>
+    <string name="profile_menu_set_active">Сделать активным</string>
+    <string name="profile_delete_confirm">Удалить этот профиль? Действие необратимо.</string>
     <string name="system_proxy">Системный прокси</string>
     <string name="system_proxy_summary">Дополнительно запустить HTTP прокси, помимо VPN</string>
     <string name="access_control_mode">Режим контроля доступа</string>
@@ -241,7 +262,7 @@
     <string name="single">Одиночное</string>
     <string name="doubles">Двойное</string>
     <string name="multiple">Множественное</string>
-    <string name="not_selectable">Not Selectable</string>
+    <string name="not_selectable">Недоступно для выбора</string>
 
     <string name="providers">Провайдеры</string>
 

@@ -416,7 +416,7 @@
                     android:focusable="true"
                     android:gravity="center"
                     android:maxLines="2"
-                    android:onClick="@{() -> self.request(Request.OpenProxies)}"
+                    android:onClick="@{() -> self.request(Request.OpenProxyGroups)}"
                     android:paddingHorizontal="2dp"
                     android:paddingVertical="8dp"
                     android:text="@string/home_proxy"
