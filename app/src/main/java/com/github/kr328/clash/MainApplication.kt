@@ -22,6 +22,8 @@ import com.github.kr328.clash.design.R as DesignR
 
 @Suppress("unused")
 class MainApplication : Application() {
+    private var wifiAutomator: WifiAutomator? = null
+
     override fun attachBaseContext(base: Context?) {
         super.attachBaseContext(base)
 
@@ -39,6 +41,8 @@ class MainApplication : Application() {
         if (processName == packageName) {
             Remote.launch()
             setupShortcuts()
+            wifiAutomator = WifiAutomator(this)
+            wifiAutomator?.start()
         } else {
             sendServiceRecreated()
         }
@@ -97,6 +101,11 @@ class MainApplication : Application() {
             .build()
 
         ShortcutManagerCompat.setDynamicShortcuts(this, listOf(toggle, start, stop))
+    }
+
+    override fun onTerminate() {
+        super.onTerminate()
+        wifiAutomator?.stop()
     }
 
     private fun extractGeoFiles() {
