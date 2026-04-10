@@ -76,14 +76,17 @@ class MainActivity : BaseActivity<MainDesign>() {
     private var pendingApkDownloadId: Long = -1L
     private var downloadReceiverRegistered: Boolean = false
     private val updatePrefs by lazy { getSharedPreferences("app_update", MODE_PRIVATE) }
+    private fun clearPendingDownloadState() {
+        pendingApkDownloadId = -1L
+        updatePrefs.edit().remove("pending_download_id").apply()
+    }
 
     private val apkDownloadReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             if (intent?.action != DownloadManager.ACTION_DOWNLOAD_COMPLETE) return
             val id = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1L)
             if (id <= 0L || id != pendingApkDownloadId) return
-            pendingApkDownloadId = -1L
-            updatePrefs.edit().remove("pending_download_id").apply()
+            clearPendingDownloadState()
 
             checkDownloadedApkAndInstall(id)
         }
@@ -782,7 +785,10 @@ class MainActivity : BaseActivity<MainDesign>() {
             val status = cursor.getInt(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS))
             when (status) {
                 DownloadManager.STATUS_SUCCESSFUL -> installDownloadedApk(dm, downloadId)
-                DownloadManager.STATUS_FAILED -> Toast.makeText(this, R.string.about_download_failed, Toast.LENGTH_SHORT).show()
+                DownloadManager.STATUS_FAILED -> {
+                    clearPendingDownloadState()
+                    Toast.makeText(this, R.string.about_download_failed, Toast.LENGTH_SHORT).show()
+                }
                 else -> Unit
             }
         }
@@ -806,6 +812,9 @@ class MainActivity : BaseActivity<MainDesign>() {
             return
         }
 
+        // Clear pending marker before opening installer to avoid install loop
+        // if user cancels installation and returns to the app.
+        clearPendingDownloadState()
         runCatching {
             startActivity(
                 Intent(Intent.ACTION_VIEW).apply {
