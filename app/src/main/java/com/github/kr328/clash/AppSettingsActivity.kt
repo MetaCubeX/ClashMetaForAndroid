@@ -4,6 +4,7 @@ import android.content.ComponentName
 import android.content.pm.PackageManager
 import androidx.core.content.pm.ShortcutManagerCompat
 import com.github.kr328.clash.common.util.componentName
+import com.github.kr328.clash.common.util.intent
 import com.github.kr328.clash.design.AppSettingsDesign
 import com.github.kr328.clash.design.model.Behavior
 import com.github.kr328.clash.service.store.ServiceStore
@@ -34,8 +35,14 @@ class AppSettingsActivity : BaseActivity<AppSettingsDesign>(), Behavior {
                     }
                 }
                 design.requests.onReceive {
-                    ApplicationObserver.createdActivities.forEach {
-                        it.recreate()
+                    when (it) {
+                        AppSettingsDesign.Request.ReCreateAllActivities ->
+                            ApplicationObserver.createdActivities.forEach { activity ->
+                                activity.recreate()
+                            }
+
+                        AppSettingsDesign.Request.OpenAutoSwitchSettings ->
+                            startActivity(AutoSwitchSettingsActivity::class.intent)
                     }
                 }
             }
