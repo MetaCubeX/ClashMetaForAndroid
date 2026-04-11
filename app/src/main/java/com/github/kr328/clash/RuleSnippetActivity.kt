@@ -15,10 +15,12 @@ import com.github.kr328.clash.service.model.RuleItem
 import com.github.kr328.clash.service.model.RuleProviderItem
 import com.github.kr328.clash.service.model.RuleState
 import com.github.kr328.clash.util.clashDir
+import com.github.kr328.clash.service.util.ProxyGroupsYamlPreview
 import com.github.kr328.clash.util.withClash
 import com.github.kr328.clash.util.withProfile
 import com.google.android.material.switchmaterial.SwitchMaterial
 import com.google.android.material.textfield.TextInputEditText
+import com.google.android.material.textfield.TextInputLayout
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.select
@@ -154,8 +156,12 @@ class RuleSnippetActivity : BaseActivity<RuleSnippetDesign>() {
         }
         view.findViewById<Spinner>(R.id.spinner_provider_behavior).adapter =
             ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, listOf("classical", "domain", "ipcidr"))
+        val manualTypeOptions = listOf("GEOSITE", "GEOIP", "Custom")
         view.findViewById<Spinner>(R.id.spinner_manual_type).adapter =
-            ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, listOf("GEOSITE", "GEOIP", "Custom"))
+            ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, manualTypeOptions)
+        val customKindOptions = resources.getStringArray(DesignR.array.clash_manual_rule_types).toList()
+        view.findViewById<Spinner>(R.id.spinner_manual_custom_kind).adapter =
+            ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, customKindOptions)
 
         title.text = if (editingProvider != null) getString(DesignR.string.edit) else getString(DesignR.string.rule_add_new)
         if (editingProvider != null) {
@@ -209,11 +215,41 @@ class RuleSnippetActivity : BaseActivity<RuleSnippetDesign>() {
                     val value = view.findViewById<TextInputEditText>(R.id.input_manual_value).text?.toString()?.trim().orEmpty()
                     val policy = selected(view.findViewById(R.id.spinner_manual_policy)).ifBlank { "DIRECT" }
                     val line = when (type) {
-                        "GEOSITE", "GEOIP" -> "$type,$value,$policy"
+                        "GEOSITE", "GEOIP" -> if (value.isBlank()) "" else "$type,$value,$policy"
+                        "Custom" -> {
+                            val kind = selected(view.findViewById(R.id.spinner_manual_custom_kind)).ifBlank { "DOMAIN" }
+                            when {
+                                kind.equals("MATCH", true) -> "MATCH,$policy"
+                                value.isBlank() -> ""
+                                else -> "$kind,$value,$policy"
+                            }
+                        }
                         else -> value
                     }
-                    preview.text = "- $line"
+                    preview.text = if (line.isBlank()) "—" else "- $line"
                 }
+            }
+        }
+
+        fun syncManualHintsAndCustomRow() {
+            val type = selected(view.findViewById(R.id.spinner_manual_type))
+            val til = view.findViewById<TextInputLayout>(R.id.til_manual_content)
+            val customRow = type == "Custom"
+            view.findViewById<TextView>(R.id.tv_manual_custom_kind).visibility =
+                if (customRow) View.VISIBLE else View.GONE
+            view.findViewById<Spinner>(R.id.spinner_manual_custom_kind).visibility =
+                if (customRow) View.VISIBLE else View.GONE
+            when (type) {
+                "Custom" -> {
+                    val kind = selected(view.findViewById(R.id.spinner_manual_custom_kind))
+                    til.hint = if (kind.equals("MATCH", true)) {
+                        getString(DesignR.string.rule_manual_match_hint)
+                    } else {
+                        getString(DesignR.string.rule_manual_content_payload_hint)
+                    }
+                }
+                "GEOSITE", "GEOIP" -> til.hint = getString(DesignR.string.rule_manual_content)
+                else -> til.hint = getString(DesignR.string.rule_manual_content)
             }
         }
 
@@ -221,6 +257,7 @@ class RuleSnippetActivity : BaseActivity<RuleSnippetDesign>() {
             presetGroup.visibility = if (typeSpinner.selectedItemPosition == 0) View.VISIBLE else View.GONE
             providerGroup.visibility = if (typeSpinner.selectedItemPosition == 1) View.VISIBLE else View.GONE
             manualGroup.visibility = if (typeSpinner.selectedItemPosition == 2) View.VISIBLE else View.GONE
+            syncManualHintsAndCustomRow()
             buildPreview()
         }
         typeSpinner.onItemSelectedListener = SimpleItemSelectedListener { syncGroups() }
@@ -229,7 +266,13 @@ class RuleSnippetActivity : BaseActivity<RuleSnippetDesign>() {
         view.findViewById<Spinner>(R.id.spinner_provider_behavior).onItemSelectedListener = SimpleItemSelectedListener { buildPreview() }
         view.findViewById<Spinner>(R.id.spinner_provider_policy).onItemSelectedListener = SimpleItemSelectedListener { buildPreview() }
         view.findViewById<Spinner>(R.id.spinner_manual_policy).onItemSelectedListener = SimpleItemSelectedListener { buildPreview() }
-        view.findViewById<Spinner>(R.id.spinner_manual_type).onItemSelectedListener = SimpleItemSelectedListener { buildPreview() }
+        view.findViewById<Spinner>(R.id.spinner_manual_type).onItemSelectedListener =
+            SimpleItemSelectedListener { syncGroups() }
+        view.findViewById<Spinner>(R.id.spinner_manual_custom_kind).onItemSelectedListener =
+            SimpleItemSelectedListener {
+                syncManualHintsAndCustomRow()
+                buildPreview()
+            }
 
         applyButton.setOnClickListener {
             launch {
@@ -335,6 +378,15 @@ class RuleSnippetActivity : BaseActivity<RuleSnippetDesign>() {
         val policy = view.findViewById<Spinner>(R.id.spinner_manual_policy).selectedItem?.toString()?.trim().orEmpty().ifBlank { "DIRECT" }
         return when (type) {
             "GEOSITE", "GEOIP" -> if (value.isBlank()) null else "$type,$value,$policy"
+            "Custom" -> {
+                val kind = view.findViewById<Spinner>(R.id.spinner_manual_custom_kind).selectedItem?.toString()?.trim().orEmpty()
+                if (kind.isBlank()) return null
+                when {
+                    kind.equals("MATCH", true) -> "MATCH,$policy"
+                    value.isBlank() -> null
+                    else -> "$kind,$value,$policy"
+                }
+            }
             else -> value.ifBlank { null }
         }
     }
@@ -407,13 +459,15 @@ class RuleSnippetActivity : BaseActivity<RuleSnippetDesign>() {
     private suspend fun loadAvailableProxyGroups(uuid: UUID): List<String> {
         val fromRuntime = runCatching {
             withClash { queryProxyGroupNames(uiStore.proxyExcludeNotSelectable) }
-        }.getOrDefault(emptyList())
-        if (fromRuntime.isNotEmpty()) return fromRuntime
-
-        val fromProfile = runCatching {
+        }.getOrElse { emptyList() }
+        val fromPreview = runCatching {
             withProfile { readProxyGroupsPreview(uuid).keys.toList() }
-        }.getOrDefault(emptyList())
-        return fromProfile
+        }.getOrElse { emptyList() }
+        val fromYaml = runCatching {
+            withProfile { readImportedConfigYaml(uuid) }
+                ?.let { ProxyGroupsYamlPreview.listProxyGroupNames(it) }
+        }.getOrNull() ?: emptyList()
+        return (fromRuntime + fromPreview + fromYaml).distinct().sorted()
     }
 
     private suspend fun runPresetSoftChecks(design: RuleSnippetDesign, presetIndex: Int) {

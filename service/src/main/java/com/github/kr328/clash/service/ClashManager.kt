@@ -51,16 +51,36 @@ class ClashManager(private val context: Context) : IClashManager,
         return Clash.queryOverride(slot)
     }
 
+    /**
+     * In **Global** mode all traffic uses the [GLOBAL] adapter only. Changing a leaf inside
+     * another group (e.g. MainGroup → Sweden) has no effect until [GLOBAL]’s active child is that
+     * group — otherwise the engine keeps routing through whatever [GLOBAL] had selected (often the
+     * first subscription). When the user picks a node in a non-GLOBAL group that is listed under
+     * GLOBAL, we first patch GLOBAL to that group, then patch the leaf.
+     */
     override fun patchSelector(group: String, name: String): Boolean {
-        return Clash.patchSelector(group, name).also {
-            val current = store.activeProfile ?: return@also
-
-            if (it) {
-                SelectionDao().setSelected(Selection(current, group, name))
-            } else {
-                SelectionDao().removeSelected(current, group)
+        var syncedGlobal = false
+        if (group != "GLOBAL") {
+            val state = Clash.queryTunnelState()
+            if (state.mode == TunnelState.Mode.Global) {
+                val global = Clash.queryGroup("GLOBAL", ProxySort.Default)
+                val children = global.proxies.map { it.name }.toSet()
+                if (group in children) {
+                    syncedGlobal = Clash.patchSelector("GLOBAL", group)
+                }
             }
         }
+        val ok = Clash.patchSelector(group, name)
+        val current = store.activeProfile ?: return ok
+        if (ok) {
+            SelectionDao().setSelected(Selection(current, group, name))
+            if (syncedGlobal) {
+                SelectionDao().setSelected(Selection(current, "GLOBAL", group))
+            }
+        } else {
+            SelectionDao().removeSelected(current, group)
+        }
+        return ok
     }
 
     override fun patchOverride(slot: Clash.OverrideSlot, configuration: ConfigurationOverride) {

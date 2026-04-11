@@ -46,7 +46,7 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         CycleTheme,
         OpenEffectiveRules,
         OpenConnections,
-        /** Full-screen proxy group list; future entry point for group/chain constructor UI. */
+        /** Full-screen proxy group list; proxy chain is in the Proxy screen overflow menu. */
         OpenProxyGroups,
     }
 

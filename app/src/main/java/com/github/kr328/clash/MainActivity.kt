@@ -282,6 +282,10 @@ class MainActivity : BaseActivity<MainDesign>() {
                 design.patchHomeProxyRequests.onReceive { (profile, group, name) ->
                     launch {
                         if (!clashRunning) {
+                            if (isProxyProviderKeyName(name)) {
+                                design.fetch()
+                                return@launch
+                            }
                             withProfile {
                                 rememberProxySelection(profile.uuid, group, name)
                             }
@@ -402,6 +406,7 @@ class MainActivity : BaseActivity<MainDesign>() {
             profile.imported && !profile.active
         m.findItem(R.id.profile_menu_update).isVisible =
             profile.imported && profile.type != Profile.Type.File
+        m.findItem(R.id.profile_menu_subscription_sources).isVisible = profile.imported
         m.findItem(R.id.profile_menu_duplicate).isVisible = profile.imported
         popup.setOnMenuItemClickListener { item ->
             when (item.itemId) {
@@ -428,6 +433,12 @@ class MainActivity : BaseActivity<MainDesign>() {
                 }
                 R.id.profile_menu_edit -> {
                     showProfileQuickEditSheet(design, profile) { design.fetch() }
+                    true
+                }
+                R.id.profile_menu_subscription_sources -> {
+                    if (profile.imported) {
+                        startActivity(ProxyProvidersEditorActivity::class.intent.setUUID(profile.uuid))
+                    }
                     true
                 }
                 R.id.profile_menu_duplicate -> {
@@ -875,4 +886,8 @@ class MainActivity : BaseActivity<MainDesign>() {
         }
         super.onDestroy()
     }
+
+    /** Proxy-provider YAML keys (sub1, sub2, …) are not leaf proxy names; never persist as selection. */
+    private fun isProxyProviderKeyName(name: String): Boolean =
+        name.matches(Regex("^sub\\d+$", RegexOption.IGNORE_CASE))
 }

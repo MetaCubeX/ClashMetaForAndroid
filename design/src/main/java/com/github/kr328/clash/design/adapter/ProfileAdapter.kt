@@ -345,6 +345,17 @@ class ProfileAdapter(
         val groupName = groupNames.getOrNull(groupIndex) ?: return
         val pg = proxyGroupForRow(profile, groupName) ?: return
         val inflater = binding.root.context.layoutInflater
+        val context = binding.root.context
+
+        if (pg.proxies.isEmpty()) {
+            val tv = TextView(context).apply {
+                text = context.getString(R.string.proxy_nodes_empty_connect_vpn)
+                val pad = (8 * context.resources.displayMetrics.density).toInt()
+                setPadding(pad, pad, pad, pad)
+            }
+            list.addView(tv)
+            return
+        }
 
         for (p in pg.proxies) {
             val row = inflater.inflate(R.layout.adapter_home_proxy_node, list, false)

@@ -145,7 +145,24 @@
                 android:layout_height="wrap_content"
                 android:minHeight="48dp" />
 
+            <TextView
+                android:id="@+id/tv_manual_custom_kind"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/rule_manual_custom_kind"
+                android:textSize="12sp"
+                android:visibility="gone" />
+
+            <Spinner
+                android:id="@+id/spinner_manual_custom_kind"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="48dp"
+                android:visibility="gone" />
+
             <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/til_manual_content"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
