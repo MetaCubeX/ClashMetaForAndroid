@@ -82,7 +82,7 @@
     <string name="proxy_chain_runtime_pick_title">新建链</string>
     <string name="proxy_chain_saved_empty">本配置没有 dialer-proxy 项。</string>
     <string name="proxy_chain_saved_title">已保存在配置中（YAML）</string>
-    <string name="proxy_chain_usage_hint">使用方式：没有单独的「链模式」。请使用规则或全局（不要直连）。流量必须走你在此设置的同一出站；若应用选了其他代理或直连，链不会生效。规则模式下在对应选择器中选该出站（或添加指向它的规则）。在「连接」中确认：启用链时路径应出现多跳。</string>
+    <string name="proxy_chain_usage_hint">使用链：保存 dialer-proxy、切换到全局并选中该出站（类似桌面「连接」）。仅保存：只写 YAML，不切换模式/选择器。规则模式仍按规则分流；要用链请用全局或指向该节点的规则。</string>
     <string name="proxy_nodes_empty_connect_vpn">订阅提供商的节点在 VPN 启动后由核心加载。请先开启 VPN，再选择真实节点（不要选 sub1/sub2 — 那是提供商键名）。</string>
     <string name="proxy_offline_need_vpn">请开启 VPN 以切换节点</string>
     <string name="proxy_open_yaml">配置中的代理 YAML</string>

@@ -13,11 +13,15 @@ import com.github.kr328.clash.design.util.layoutInflater
 import com.github.kr328.clash.design.util.root
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.button.MaterialButton
+import com.google.android.material.card.MaterialCardView
+import com.google.android.material.color.MaterialColors
 
 class ProxyChainDesign(
     context: Context,
 ) : Design<ProxyChainDesign.Request>(context) {
     sealed class Request {
+        /** Save dialer-proxy to YAML, switch to Global, select outbound (desktop-style). */
+        object Connect : Request()
         object Apply : Request()
         object Clear : Request()
         object ClearAllDiskChains : Request()
@@ -45,8 +49,14 @@ class ProxyChainDesign(
     val outboundProxySpinner: Spinner = rootView.findViewById(R.id.outbound_proxy_spinner)
     val dialerGroupSpinner: Spinner = rootView.findViewById(R.id.dialer_group_spinner)
     val dialerProxySpinner: Spinner = rootView.findViewById(R.id.dialer_proxy_spinner)
+    private val chainStatusCard: MaterialCardView = rootView.findViewById(R.id.chain_status_card)
+    private val chainStatusText: TextView = rootView.findViewById(R.id.chain_status_text)
+    private val btnConnect: MaterialButton = rootView.findViewById(R.id.btn_connect)
+    private val btnApply: MaterialButton = rootView.findViewById(R.id.btn_apply)
+    private val connectLabel: String = rootView.context.getString(R.string.proxy_chain_connect)
 
     private var diskRows: List<DiskRow> = emptyList()
+    private var runtimeGroups: List<String> = emptyList()
 
     override val root: View
         get() = rootView
@@ -63,7 +73,10 @@ class ProxyChainDesign(
             (context as? AppCompatActivity)?.onBackPressedDispatcher?.onBackPressed()
         }
 
-        rootView.findViewById<MaterialButton>(R.id.btn_apply).setOnClickListener {
+        btnConnect.setOnClickListener {
+            requests.trySend(Request.Connect)
+        }
+        btnApply.setOnClickListener {
             requests.trySend(Request.Apply)
         }
         rootView.findViewById<MaterialButton>(R.id.btn_clear).setOnClickListener {
@@ -117,10 +130,12 @@ class ProxyChainDesign(
     ) {
         val ctx = rootView.context
         if (groups.isEmpty()) {
+            runtimeGroups = emptyList()
             runtimeOfflineNotice.visibility = View.VISIBLE
             runtimeProxySection.visibility = View.GONE
             return
         }
+        runtimeGroups = groups
         runtimeOfflineNotice.visibility = View.GONE
         runtimeProxySection.visibility = View.VISIBLE
 
@@ -157,6 +172,13 @@ class ProxyChainDesign(
         }
     }
 
+    fun selectedOutboundGroupName(): String? {
+        if (runtimeGroups.isEmpty()) return null
+        val ix = outboundGroupSpinner.selectedItemPosition
+        if (ix < 0 || ix >= runtimeGroups.size) return null
+        return runtimeGroups[ix]
+    }
+
     fun selectedOutboundProxyName(): String? {
         val adapter = outboundProxySpinner.adapter ?: return null
         val ix = outboundProxySpinner.selectedItemPosition
@@ -169,5 +191,48 @@ class ProxyChainDesign(
         val ix = dialerProxySpinner.selectedItemPosition
         if (ix < 0 || ix >= adapter.count) return null
         return adapter.getItem(ix)?.toString()
+    }
+
+    enum class ChainStatusKind {
+        Progress,
+        Success,
+        Warning,
+        Error,
+    }
+
+    /** Shows last connect/save outcome; persists until the next action. */
+    fun showChainStatus(kind: ChainStatusKind, message: String) {
+        chainStatusCard.visibility = View.VISIBLE
+        chainStatusText.text = message
+        val attr = when (kind) {
+            ChainStatusKind.Progress ->
+                com.google.android.material.R.attr.colorOnSurfaceVariant
+            ChainStatusKind.Success ->
+                com.google.android.material.R.attr.colorPrimary
+            ChainStatusKind.Warning ->
+                com.google.android.material.R.attr.colorSecondary
+            ChainStatusKind.Error ->
+                com.google.android.material.R.attr.colorError
+        }
+        chainStatusText.setTextColor(resolveChainStatusColor(attr))
+    }
+
+    /** [MaterialColors] throws if the theme omits an attr (e.g. colorSecondary on some OEM themes). */
+    private fun resolveChainStatusColor(attr: Int): Int {
+        return try {
+            MaterialColors.getColor(chainStatusText, attr)
+        } catch (_: IllegalArgumentException) {
+            MaterialColors.getColor(
+                chainStatusText,
+                com.google.android.material.R.attr.colorOnSurfaceVariant,
+            )
+        }
+    }
+
+    fun setChainBusy(busy: Boolean) {
+        btnConnect.isEnabled = !busy
+        btnApply.isEnabled = !busy
+        btnConnect.text =
+            if (busy) rootView.context.getString(R.string.proxy_chain_connecting) else connectLabel
     }
 }

@@ -1,14 +1,19 @@
 package com.github.kr328.clash
 
 import android.os.Bundle
+import android.widget.Toast
 import androidx.core.view.WindowCompat
+import com.github.kr328.clash.core.Clash
+import com.github.kr328.clash.core.model.TunnelState
+import androidx.annotation.StringRes
 import com.github.kr328.clash.design.ProxyChainDesign
+import com.github.kr328.clash.design.ProxyChainDesign.ChainStatusKind
 import com.github.kr328.clash.design.R
-import com.github.kr328.clash.design.ui.ToastDuration
 import com.github.kr328.clash.design.util.showExceptionToast
 import com.github.kr328.clash.util.withClash
 import com.github.kr328.clash.util.withProfile
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.select
@@ -19,6 +24,7 @@ private const val CHAIN_FIELD_SEP = '\u001F'
 
 /**
  * Sets **dialer-proxy** on a proxy entry (config `proxies:` or provider YAML files).
+ * **Use chain** also switches tunnel to Global and selects the outbound (desktop-style).
  * Opened from the Proxy screen overflow menu.
  */
 class ProxyChainActivity : BaseActivity<ProxyChainDesign>() {
@@ -28,8 +34,23 @@ class ProxyChainActivity : BaseActivity<ProxyChainDesign>() {
     }
 
     override suspend fun main() {
+        try {
+            mainImpl()
+        } catch (e: Exception) {
+            withContext(Dispatchers.Main) {
+                Toast.makeText(
+                    this@ProxyChainActivity,
+                    e.message ?: e.toString(),
+                    Toast.LENGTH_LONG,
+                ).show()
+                finish()
+            }
+        }
+    }
+
+    private suspend fun mainImpl() {
         val profile = withProfile { queryActive() }
-        if (profile == null || !profile.imported) {
+        if (profile == null) {
             withContext(Dispatchers.Main) {
                 finish()
             }
@@ -81,6 +102,8 @@ class ProxyChainActivity : BaseActivity<ProxyChainDesign>() {
             select<Unit> {
                 design.requests.onReceive { req ->
                     when (req) {
+                        ProxyChainDesign.Request.Connect ->
+                            launch { connectChain(uuid, design) { refreshDiskUi() } }
                         ProxyChainDesign.Request.Apply ->
                             launch { applyChain(uuid, design) { refreshDiskUi() } }
                         ProxyChainDesign.Request.Clear ->
@@ -101,6 +124,86 @@ class ProxyChainActivity : BaseActivity<ProxyChainDesign>() {
         return Triple(p[0], p[1], p[2])
     }
 
+    private suspend fun waitForProxyEngineReady() {
+        delay(350L)
+        repeat(40) {
+            val ok = runCatching {
+                withClash { queryProxyGroupNames(false).isNotEmpty() }
+            }.getOrDefault(false)
+            if (ok) return
+            delay(200L)
+        }
+    }
+
+    private fun chainErr(@StringRes msg: Int): String = getString(msg)
+
+    private suspend fun connectChain(
+        uuid: UUID,
+        design: ProxyChainDesign,
+        refreshDiskUi: suspend () -> Unit,
+    ) {
+        val outbound = design.selectedOutboundProxyName()?.trim().orEmpty()
+        val dialer = design.selectedDialerProxyName()?.trim().orEmpty()
+        val group = design.selectedOutboundGroupName()?.trim().orEmpty()
+        if (outbound.isEmpty()) {
+            design.showChainStatus(ChainStatusKind.Error, chainErr(R.string.proxy_chain_pick_outbound))
+            return
+        }
+        if (dialer.isEmpty()) {
+            design.showChainStatus(ChainStatusKind.Error, chainErr(R.string.proxy_chain_pick_dialer))
+            return
+        }
+        if (outbound == dialer) {
+            design.showChainStatus(ChainStatusKind.Error, chainErr(R.string.proxy_chain_same_proxy))
+            return
+        }
+        if (group.isEmpty()) {
+            design.showChainStatus(ChainStatusKind.Error, chainErr(R.string.proxy_chain_pick_outbound_group))
+            return
+        }
+        if (!clashRunning) {
+            design.showChainStatus(ChainStatusKind.Error, chainErr(R.string.proxy_chain_connect_need_vpn))
+            return
+        }
+        design.setChainBusy(true)
+        design.showChainStatus(ChainStatusKind.Progress, getString(R.string.proxy_chain_status_working))
+        try {
+            val ok = withProfile { setProxyDialerProxy(uuid, outbound, dialer) }
+            if (!ok) {
+                design.showChainStatus(ChainStatusKind.Error, chainErr(R.string.proxy_chain_not_found))
+                return
+            }
+            refreshDiskUi()
+            waitForProxyEngineReady()
+            uiStore.tunnelModePreference = TunnelState.Mode.Global.name
+            val patched = withClash {
+                val o = queryOverride(Clash.OverrideSlot.Session)
+                o.mode = TunnelState.Mode.Global
+                patchOverride(Clash.OverrideSlot.Session, o)
+                patchSelector(group, outbound)
+            }
+            if (patched) {
+                design.showChainStatus(
+                    ChainStatusKind.Success,
+                    getString(R.string.proxy_chain_status_success, outbound, dialer),
+                )
+            } else {
+                design.showChainStatus(
+                    ChainStatusKind.Warning,
+                    getString(R.string.proxy_chain_connect_selector_failed),
+                )
+            }
+        } catch (e: Exception) {
+            design.showExceptionToast(e)
+            design.showChainStatus(
+                ChainStatusKind.Error,
+                e.message?.takeIf { it.isNotBlank() } ?: chainErr(R.string.proxy_chain_not_found),
+            )
+        } finally {
+            design.setChainBusy(false)
+        }
+    }
+
     private suspend fun applyChain(
         uuid: UUID,
         design: ProxyChainDesign,
@@ -109,27 +212,34 @@ class ProxyChainActivity : BaseActivity<ProxyChainDesign>() {
         val outbound = design.selectedOutboundProxyName()?.trim().orEmpty()
         val dialer = design.selectedDialerProxyName()?.trim().orEmpty()
         if (outbound.isEmpty()) {
-            design.showToast(R.string.proxy_chain_pick_outbound, ToastDuration.Long)
+            design.showChainStatus(ChainStatusKind.Error, chainErr(R.string.proxy_chain_pick_outbound))
             return
         }
         if (dialer.isEmpty()) {
-            design.showToast(R.string.proxy_chain_pick_dialer, ToastDuration.Long)
+            design.showChainStatus(ChainStatusKind.Error, chainErr(R.string.proxy_chain_pick_dialer))
             return
         }
         if (outbound == dialer) {
-            design.showToast(R.string.proxy_chain_same_proxy, ToastDuration.Long)
+            design.showChainStatus(ChainStatusKind.Error, chainErr(R.string.proxy_chain_same_proxy))
             return
         }
+        design.setChainBusy(true)
         try {
             val ok = withProfile { setProxyDialerProxy(uuid, outbound, dialer) }
             if (ok) {
-                design.showToast(R.string.proxy_chain_applied, ToastDuration.Long)
                 refreshDiskUi()
+                design.showChainStatus(ChainStatusKind.Success, getString(R.string.proxy_chain_status_saved_only))
             } else {
-                design.showToast(R.string.proxy_chain_not_found, ToastDuration.Long)
+                design.showChainStatus(ChainStatusKind.Error, chainErr(R.string.proxy_chain_not_found))
             }
         } catch (e: Exception) {
             design.showExceptionToast(e)
+            design.showChainStatus(
+                ChainStatusKind.Error,
+                e.message?.takeIf { it.isNotBlank() } ?: chainErr(R.string.proxy_chain_not_found),
+            )
+        } finally {
+            design.setChainBusy(false)
         }
     }
 
@@ -140,16 +250,16 @@ class ProxyChainActivity : BaseActivity<ProxyChainDesign>() {
     ) {
         val outbound = design.selectedOutboundProxyName()?.trim().orEmpty()
         if (outbound.isEmpty()) {
-            design.showToast(R.string.proxy_chain_pick_outbound, ToastDuration.Long)
+            design.showChainStatus(ChainStatusKind.Error, chainErr(R.string.proxy_chain_pick_outbound))
             return
         }
         try {
             val ok = withProfile { setProxyDialerProxy(uuid, outbound, null) }
             if (ok) {
-                design.showToast(R.string.proxy_chain_cleared, ToastDuration.Long)
                 refreshDiskUi()
+                design.showChainStatus(ChainStatusKind.Success, getString(R.string.proxy_chain_cleared))
             } else {
-                design.showToast(R.string.proxy_chain_not_found, ToastDuration.Long)
+                design.showChainStatus(ChainStatusKind.Error, chainErr(R.string.proxy_chain_not_found))
             }
         } catch (e: Exception) {
             design.showExceptionToast(e)
@@ -164,9 +274,9 @@ class ProxyChainActivity : BaseActivity<ProxyChainDesign>() {
         try {
             val ok = withProfile { clearAllProxyDialerChains(uuid) }
             if (ok) {
-                design.showToast(R.string.proxy_chain_cleared_all, ToastDuration.Long)
+                design.showChainStatus(ChainStatusKind.Success, getString(R.string.proxy_chain_cleared_all))
             } else {
-                design.showToast(R.string.proxy_chain_saved_empty, ToastDuration.Long)
+                design.showChainStatus(ChainStatusKind.Warning, getString(R.string.proxy_chain_saved_empty))
             }
             refreshDiskUi()
         } catch (e: Exception) {
@@ -181,15 +291,15 @@ class ProxyChainActivity : BaseActivity<ProxyChainDesign>() {
     ) {
         val target = design.selectedDiskChainTarget()?.trim().orEmpty()
         if (target.isEmpty()) {
-            design.showToast(R.string.proxy_chain_pick_saved_row, ToastDuration.Long)
+            design.showChainStatus(ChainStatusKind.Error, chainErr(R.string.proxy_chain_pick_saved_row))
             return
         }
         try {
             val ok = withProfile { setProxyDialerProxy(uuid, target, null) }
             if (ok) {
-                design.showToast(R.string.proxy_chain_cleared_selected, ToastDuration.Long)
+                design.showChainStatus(ChainStatusKind.Success, getString(R.string.proxy_chain_cleared_selected))
             } else {
-                design.showToast(R.string.proxy_chain_not_found, ToastDuration.Long)
+                design.showChainStatus(ChainStatusKind.Error, chainErr(R.string.proxy_chain_not_found))
             }
             refreshDiskUi()
         } catch (e: Exception) {
