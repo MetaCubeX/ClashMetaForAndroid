@@ -13,6 +13,7 @@
     <string name="mode_chip_direct">Прямой</string>
     <string name="proxy_empty_tips">Нет групп для отображения</string>
     <string name="home_proxy">Прокси</string>
+    <string name="proxy_nodes_empty_connect_vpn">Узлы из proxy-providers появляются в ядре после запуска VPN. Включите VPN и выберите реальный узел (sub1/sub2 — это ключи провайдеров в YAML, не имена прокси).</string>
 
     <string name="profiles">Профили</string>
     <string name="not_selected">Не выбран</string>
@@ -30,6 +31,8 @@
     <string name="rules">Правила</string>
     <string name="routing_rules">Маршрутизация</string>
     <string name="connections_title">Соединения</string>
+    <string name="connections_intro">Потоки из ядра (VPN включён). Счётчики — за сессию; список обновляется примерно раз в секунду. Подзаголовок: процесс, цепочка (маршрут: селектор / группы / лист; [тег] — proxy-provider при наличии), тип сети. dialer-proxy сюда не попадает — ядро отдаёт только узлы политики, а не отдельный апстрим для дозвона до сервера прокси.</string>
+    <string name="connections_chain_label">Цепочка: %1$s</string>
     <string name="theme_toggle">Сменить тему (светлая / тёмная)</string>
 
     <string name="copied">Скопировано</string>
@@ -268,6 +271,49 @@
 
     <string name="files">Файлы</string>
     <string name="browse_files">Обзор файлов</string>
+    <string name="properties_proxy_providers">HTTP-источники подписок</string>
+    <string name="properties_proxy_providers_summary">Несколько proxy-providers (sub1, sub2, …) без правки YAML</string>
+    <string name="proxy_providers_editor_title">Источники подписок</string>
+    <string name="proxy_providers_editor_hint">Каждая строка — proxy-providers sub1, sub2, … с путём ./providers/subN.yaml. Если строк больше одной, к именам узлов в ядре добавляется префикс [subN], иначе одинаковые имена из двух подписок сливаются и всегда выигрывает первая подписка. На каждом HTTP-провайдере включается health-check, чтобы в объединённой select-группе снова показывались задержки. Блок сохраняется при обновлении подписки. Меню «⋯» — объединённая группа. С VPN откройте «Провайдеры» для обновления узлов. После добавления второй строки сохраните снова и выберите узлы заново (имена меняются).</string>
+    <string name="proxy_providers_add">Добавить строку</string>
+    <string name="proxy_providers_merge_section_title">Из ваших профилей</string>
+    <string name="proxy_providers_merge_section_summary">Выберите другой импортированный профиль с HTTP(S)-URL и добавьте его как строку proxy-provider (sub1, sub2, …).</string>
+    <string name="proxy_providers_add_selected">Добавить в список</string>
+    <string name="proxy_providers_menu_merged_constructor">Объединить в группу…</string>
+    <string name="proxy_providers_merged_screen_title">Объединённая proxy-group</string>
+    <string name="proxy_providers_merged_screen_body">Ключи sub1, sub2 — это провайдеры, не имена узлов: узлы берутся из файлов провайдеров. Здесь добавляется select-группа с use: [sub1, …], чтобы выбранный вами узел совпадал с трафиком. (У url-test ядро само выбирает минимальную задержку к тестовому URL; если выбранный узел не проходит health-check, срабатывает откат — часто кажется, что «всегда основная подписка».)\n\nRelay в ядре удалён; многоходовые цепочки — dialer-proxy в YAML или «Proxy chain» на вкладке Прокси.\n\nНиже — ключи из сохранённого профиля (после «Сохранить в профиль»).</string>
+    <string name="proxy_providers_keys_title">Ключи в этом профиле</string>
+    <string name="proxy_providers_keys_empty">Нет сохранённых proxy-providers. Вернитесь, добавьте строки и нажмите «Сохранить в профиль».</string>
+    <string name="proxy_providers_key_line">%1$s (%2$s)</string>
+    <string name="proxy_providers_add_merged_select">Добавить объединённую select-группу</string>
+    <string name="proxy_providers_relay_dialog_title">Имя новой группы</string>
+    <string name="proxy_providers_relay_dialog_hint">В proxy-groups (уникально)</string>
+    <string name="proxy_providers_relay_need_rows">В сохранённых proxy-providers нет валидных http(s) строк.</string>
+    <string name="proxy_providers_relay_save_first">Сначала на экране источников нажмите «Сохранить в профиль», чтобы sub1, sub2, … попали в конфиг.</string>
+    <string name="proxy_providers_relay_duplicate">Не удалось: группа с таким именем уже есть или конфиг недоступен.</string>
+    <string name="proxy_providers_merged_select_ok">Добавлена объединённая select-группа. Укажите её в правилах или в Global; внутри группы переключайте узлы. Если осталась старая merged url-test — удалите и создайте заново.</string>
+    <string name="proxy_providers_merged_existing_title">Группы с use (провайдеры)</string>
+    <string name="proxy_providers_merged_existing_empty">Пока нет — добавьте ниже. Здесь же можно удалить лишнюю группу из config.yaml.</string>
+    <string name="proxy_providers_merged_remove">Удалить</string>
+    <string name="proxy_providers_merged_remove_confirm">Удалить proxy-group «%s» из этого профиля?</string>
+    <string name="proxy_providers_merged_removed_ok">Группа удалена из конфига.</string>
+    <string name="profile_menu_subscription_sources">Источники подписок</string>
+    <string name="properties_section_subscription">Подписка</string>
+    <string name="properties_section_configuration">Дополнительно</string>
+    <string name="properties_section_about">О экране</string>
+    <string name="properties_interval_helper">Пусто или 0 — выкл.; при включении не меньше 15 минут</string>
+    <string name="proxy_providers_save">Сохранить в профиль</string>
+    <string name="proxy_providers_update_all">Обновить все (ядро)</string>
+    <string name="proxy_providers_field_title">Название</string>
+    <string name="proxy_providers_field_url">HTTPS URL</string>
+    <string name="proxy_providers_field_interval">Интервал (сек)</string>
+    <string name="proxy_providers_hint_interval_default">По умолчанию 3600, если пусто</string>
+    <string name="proxy_providers_remove_row">Удалить</string>
+    <string name="proxy_providers_toast_saved">Proxy-providers сохранены</string>
+    <string name="proxy_providers_toast_failed">Не удалось сохранить proxy-providers</string>
+    <string name="proxy_providers_need_vpn">Включите VPN, чтобы ядро обновило провайдеры</string>
+    <string name="proxy_providers_update_all_ok">Запущено обновление провайдеров</string>
+    <string name="proxy_providers_invalid_url">Нужен корректный http(s) URL в каждой заполненной строке</string>
     <string name="browse_configuration_providers"><![CDATA[Обзор конфигурации и провайдеров]]></string>
     <string name="rename">Переименовать</string>
     <string name="file_name">Название файла</string>
@@ -345,4 +391,32 @@
     <string name="override_destination">Override Destination</string>
     <string name="import_from_qr_no_permission">Доступ к камере ограничен. Разрешите его в настройках.</string>
     <string name="import_from_qr_exception">Произошла не обрабатываемая системная ошибка.</string>
+
+    <string name="proxy_chain_menu">Цепочка прокси…</string>
+    <string name="proxy_chain_title">Цепочка прокси</string>
+    <string name="proxy_chain_intro">Сначала исходящий, затем dialer. Dialer — только как дойти до сервера исходящего; сайты обычно видят регион исходящего (последний узел), а не dialer — например, Испания на выходе → испанский каталог, даже если dialer в Швеции. В конфиг пишется dialer-proxy. Обновление подписки может перезаписать файлы провайдеров — при необходимости настройте снова.</string>
+    <string name="proxy_chain_usage_hint">Как это используется: отдельного «режима цепочки» нет. Нужен Rule или Global (не Direct — там прокси не участвуют). Трафик должен идти через тот же исходящий, для которого вы задали dialer-proxy; если в приложении выбран другой узел или DIRECT, цепочка не применяется. В Rule выберите этот исходящий в нужном селекторе (или правило, которое ведёт на него). Проверка: в «Соединениях» у активного потока должна быть цепочка из нескольких узлов, когда задействован именно этот исходящий.</string>
+    <string name="proxy_chain_outbound_label">Исходящий (получит dialer-proxy)</string>
+    <string name="proxy_chain_dialer_label">Dialer (апстрим)</string>
+    <string name="proxy_chain_apply">Применить цепочку</string>
+    <string name="proxy_chain_clear">Снять dialer с исходящего</string>
+    <string name="proxy_chain_no_groups">Сначала запустите VPN и загрузите профиль.</string>
+    <string name="proxy_chain_pick_outbound">Выберите исходящий прокси.</string>
+    <string name="proxy_chain_pick_dialer">Выберите прокси-dialer.</string>
+    <string name="proxy_chain_same_proxy">Исходящий и dialer должны различаться.</string>
+    <string name="proxy_chain_applied">Цепочка сохранена. Конфиг перезагрузится.</string>
+    <string name="proxy_chain_cleared">Dialer снят с исходящего.</string>
+    <string name="proxy_chain_not_found">Узел не найден в config или файлах провайдеров.</string>
+    <string name="proxy_chain_saved_title">Сохранено в профиле (YAML)</string>
+    <string name="proxy_chain_saved_empty">В профиле нет полей dialer-proxy.</string>
+    <string name="proxy_chain_clear_selected">Снять dialer с выбранной строки</string>
+    <string name="proxy_chain_clear_all">Удалить все dialer-proxy</string>
+    <string name="proxy_chain_cleared_all">Все dialer-proxy удалены. Конфиг перезагрузится.</string>
+    <string name="proxy_chain_cleared_selected">Dialer снят с этого прокси.</string>
+    <string name="proxy_chain_runtime_offline">Список прокси из ядра недоступен (VPN выкл. или профиль не загружен). Цепочки на диске — выше; их можно снять без выбора прокси здесь.</string>
+    <string name="proxy_chain_runtime_pick_title">Собрать новую цепочку</string>
+    <string name="proxy_chain_pick_saved_row">Сначала выберите сохранённую цепочку.</string>
+
+    <string name="rule_manual_custom_kind">Тип правила Clash</string>
+    <string name="rule_manual_content_payload_hint">Значение (домен, IP/CIDR, порт, …)</string>
 </resources>

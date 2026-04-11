@@ -260,4 +260,19 @@
     <string name="override_destination">Override Destination</string>
     <string name="import_from_qr_no_permission">カメラのアクセスが制限されています。設定から有効にしてください。</string>
     <string name="import_from_qr_exception">システムで予期しない例外が発生しました。</string>
+
+    <string name="proxy_chain_menu">プロキシチェーン…</string>
+    <string name="proxy_chain_title">プロキシチェーン</string>
+    <string name="proxy_chain_intro">アウトバウンドを選び、上流のダイアラーを選びます。設定またはプロバイダー YAML に dialer-proxy を書き込みます。購読の更新でプロバイダーファイルが上書きされる場合があります。</string>
+    <string name="proxy_chain_outbound_label">アウトバウンド（dialer-proxy を付与）</string>
+    <string name="proxy_chain_dialer_label">ダイアラー（上流）</string>
+    <string name="proxy_chain_apply">チェーンを適用</string>
+    <string name="proxy_chain_clear">アウトバウンドのダイアラーを解除</string>
+    <string name="proxy_chain_no_groups">先に VPN を起動してプロファイルを読み込んでください。</string>
+    <string name="proxy_chain_pick_outbound">アウトバウンドを選択してください。</string>
+    <string name="proxy_chain_pick_dialer">ダイアラーを選択してください。</string>
+    <string name="proxy_chain_same_proxy">アウトバウンドとダイアラーは別名にしてください。</string>
+    <string name="proxy_chain_applied">保存しました。設定を再読み込みします。</string>
+    <string name="proxy_chain_cleared">アウトバウンドからダイアラーを削除しました。</string>
+    <string name="proxy_chain_not_found">設定またはプロバイダーファイルに該当ノードがありません。</string>
 </resources>

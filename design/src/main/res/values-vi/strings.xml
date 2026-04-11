@@ -246,4 +246,19 @@
     <string name="profile_quick_saved">Đã cập nhật đăng ký</string>
     <string name="import_from_qr_no_permission">Quyền truy cập camera bị hạn chế. Vui lòng bật trong Cài đặt.</string>
     <string name="import_from_qr_exception">Đã xảy ra ngoại lệ hệ thống không xử lý được.</string>
+
+    <string name="proxy_chain_menu">Chuỗi proxy…</string>
+    <string name="proxy_chain_title">Chuỗi proxy</string>
+    <string name="proxy_chain_intro">Chọn proxy đi (outbound), rồi proxy upstream làm dialer. Ghi dialer-proxy vào cấu hình hoặc YAML provider. Làm mới đăng ký có thể ghi đè file provider — áp dụng lại nếu cần.</string>
+    <string name="proxy_chain_outbound_label">Outbound (nhận dialer-proxy)</string>
+    <string name="proxy_chain_dialer_label">Dialer (upstream)</string>
+    <string name="proxy_chain_apply">Áp dụng chuỗi</string>
+    <string name="proxy_chain_clear">Xóa dialer trên outbound</string>
+    <string name="proxy_chain_no_groups">Hãy bật VPN và tải hồ sơ trước.</string>
+    <string name="proxy_chain_pick_outbound">Chọn proxy outbound.</string>
+    <string name="proxy_chain_pick_dialer">Chọn proxy dialer.</string>
+    <string name="proxy_chain_same_proxy">Outbound và dialer phải khác nhau.</string>
+    <string name="proxy_chain_applied">Đã lưu chuỗi. Cấu hình sẽ tải lại.</string>
+    <string name="proxy_chain_cleared">Đã xóa dialer khỏi outbound.</string>
+    <string name="proxy_chain_not_found">Không tìm thấy proxy trong config hoặc file provider.</string>
 </resources>

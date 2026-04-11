@@ -260,4 +260,19 @@
     <string name="override_destination">Override Destination</string>
     <string name="import_from_qr_no_permission">카메라 접근이 제한되었습니다. 설정에서 허용해 주세요.</string>
     <string name="import_from_qr_exception">처리되지 않은 시스템 예외가 발생했습니다.</string>
+
+    <string name="proxy_chain_menu">프록시 체인…</string>
+    <string name="proxy_chain_title">프록시 체인</string>
+    <string name="proxy_chain_intro">아웃바운드 프록시를 고른 뒤 상위 다이얼러를 선택합니다. 구성 또는 프로바이더 YAML에 dialer-proxy가 기록됩니다. 구독 새로고침 시 프로바이더 파일이 덮어씌워질 수 있으니 필요하면 다시 설정하세요.</string>
+    <string name="proxy_chain_outbound_label">아웃바운드 (dialer-proxy 적용)</string>
+    <string name="proxy_chain_dialer_label">다이얼러 (상위)</string>
+    <string name="proxy_chain_apply">체인 적용</string>
+    <string name="proxy_chain_clear">아웃바운드에서 다이얼러 제거</string>
+    <string name="proxy_chain_no_groups">먼저 VPN을 켜고 프로필을 불러오세요.</string>
+    <string name="proxy_chain_pick_outbound">아웃바운드 프록시를 선택하세요.</string>
+    <string name="proxy_chain_pick_dialer">다이얼러 프록시를 선택하세요.</string>
+    <string name="proxy_chain_same_proxy">아웃바운드와 다이얼러는 달라야 합니다.</string>
+    <string name="proxy_chain_applied">체인이 저장되었습니다. 구성이 다시 로드됩니다.</string>
+    <string name="proxy_chain_cleared">아웃바운드에서 다이얼러를 제거했습니다.</string>
+    <string name="proxy_chain_not_found">구성 또는 프로바이더 파일에서 해당 프록시를 찾지 못했습니다.</string>
 </resources>

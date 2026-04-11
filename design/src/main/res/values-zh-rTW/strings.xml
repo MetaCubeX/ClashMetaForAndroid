@@ -257,4 +257,19 @@
     <string name="profile_quick_saved">訂閱已更新</string>
     <string name="import_from_qr_no_permission">相機權限受限，請前往設定開啟。</string>
     <string name="import_from_qr_exception">發生系統未知異常，操作失敗。</string>
+
+    <string name="proxy_chain_menu">代理鏈…</string>
+    <string name="proxy_chain_title">代理鏈</string>
+    <string name="proxy_chain_intro">先選擇出站代理，再選擇作為上游的 dialer。會將 dialer-proxy 寫入設定或提供者 YAML。訂閱更新可能覆寫提供者檔案，必要時請重新設定。</string>
+    <string name="proxy_chain_outbound_label">出站（將設定 dialer-proxy）</string>
+    <string name="proxy_chain_dialer_label">Dialer（上游）</string>
+    <string name="proxy_chain_apply">套用鏈</string>
+    <string name="proxy_chain_clear">清除出站的 dialer</string>
+    <string name="proxy_chain_no_groups">請先啟動 VPN 並載入設定檔。</string>
+    <string name="proxy_chain_pick_outbound">請選擇出站代理。</string>
+    <string name="proxy_chain_pick_dialer">請選擇 dialer 代理。</string>
+    <string name="proxy_chain_same_proxy">出站與 dialer 不可相同。</string>
+    <string name="proxy_chain_applied">已儲存鏈，設定將重新載入。</string>
+    <string name="proxy_chain_cleared">已清除出站上的 dialer。</string>
+    <string name="proxy_chain_not_found">在設定或提供者檔案中找不到該節點。</string>
 </resources>

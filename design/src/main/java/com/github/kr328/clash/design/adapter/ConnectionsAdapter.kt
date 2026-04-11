@@ -9,6 +9,7 @@ import com.github.kr328.clash.design.R
 import com.github.kr328.clash.design.util.layoutInflater
 import com.github.kr328.clash.design.util.toBytesString
 
+/** Lists policy hops only; dialer-proxy used inside the leaf is not reported as a chain hop. */
 class ConnectionsAdapter : RecyclerView.Adapter<ConnectionsAdapter.Holder>() {
     class Holder(view: View) : RecyclerView.ViewHolder(view) {
         val title: TextView = view.findViewById(R.id.conn_title)
@@ -40,11 +41,11 @@ class ConnectionsAdapter : RecyclerView.Adapter<ConnectionsAdapter.Holder>() {
         }
         holder.title.text = title
 
+        val ctx = holder.itemView.context
         val parts = buildList {
             m?.process?.takeIf { it.isNotBlank() }?.let { add(it) }
-            when {
-                c.chains.isNotEmpty() -> add(c.chains.joinToString(" › "))
-                c.providerChains.isNotEmpty() -> add(c.providerChains.joinToString(" › "))
+            formatChainLine(c)?.let { line ->
+                add(ctx.getString(R.string.connections_chain_label, line))
             }
             m?.network?.takeIf { it.isNotBlank() }?.let { add(it) }
         }
@@ -64,4 +65,22 @@ class ConnectionsAdapter : RecyclerView.Adapter<ConnectionsAdapter.Holder>() {
     }
 
     override fun getItemCount(): Int = rows.size
+
+    /**
+     * Merges [ConnectionTracker.chains] with [ConnectionTracker.providerChains] when lengths match
+     * (same hop order). If only one list is set, uses that. dialer-proxy is never in these lists.
+     */
+    private fun formatChainLine(c: ConnectionTracker): String? {
+        val ch = c.chains
+        val pd = c.providerChains
+        if (ch.isEmpty() && pd.isEmpty()) return null
+        if (ch.isNotEmpty() && pd.isNotEmpty() && ch.size == pd.size) {
+            return ch.mapIndexed { i, name ->
+                val tag = pd[i].trim()
+                if (tag.isNotEmpty()) "$name [$tag]" else name
+            }.joinToString(" › ")
+        }
+        if (ch.isNotEmpty()) return ch.joinToString(" › ")
+        return pd.joinToString(" › ")
+    }
 }

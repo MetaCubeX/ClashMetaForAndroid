@@ -276,4 +276,19 @@
     <string name="shortcut_start_long">启动 Clash 服务</string>
     <string name="shortcut_stop_short">停止 Clash</string>
     <string name="shortcut_stop_long">停止 Clash 服务</string>
+
+    <string name="proxy_chain_menu">代理链…</string>
+    <string name="proxy_chain_title">代理链</string>
+    <string name="proxy_chain_intro">先选择出站代理，再选择作为上游的 dialer。将把 dialer-proxy 写入配置或提供商 YAML。订阅刷新可能会覆盖提供商文件，如有需要请重新设置。</string>
+    <string name="proxy_chain_outbound_label">出站（将设置 dialer-proxy）</string>
+    <string name="proxy_chain_dialer_label">Dialer（上游）</string>
+    <string name="proxy_chain_apply">应用链</string>
+    <string name="proxy_chain_clear">清除出站的 dialer</string>
+    <string name="proxy_chain_no_groups">请先启动 VPN 并加载配置。</string>
+    <string name="proxy_chain_pick_outbound">请选择出站代理。</string>
+    <string name="proxy_chain_pick_dialer">请选择 dialer 代理。</string>
+    <string name="proxy_chain_same_proxy">出站与 dialer 不能相同。</string>
+    <string name="proxy_chain_applied">已保存链，配置将重新加载。</string>
+    <string name="proxy_chain_cleared">已清除出站上的 dialer。</string>
+    <string name="proxy_chain_not_found">在配置或提供商文件中找不到该节点。</string>
 </resources>
