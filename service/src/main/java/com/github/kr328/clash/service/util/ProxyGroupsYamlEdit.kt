@@ -4,8 +4,7 @@ import org.yaml.snakeyaml.Yaml
 
 /**
  * Append proxy-groups entries. Provider keys (sub1, sub2) use the use field, not the proxies field.
- * Relay type is removed; merged groups use **select** with `use` so manual picks match real traffic.
- * (url-test auto-picks lowest latency and only honors a manual choice if that node passes the test URL.)
+ * Merged groups use **select** with `use` so manual picks match real traffic.
  *
  * Rule mode: policy is the group name in rules. Global mode: tunnel uses the GLOBAL adapter, so new
  * merged names are also added to GLOBAL proxies so they appear in the Global selector.
@@ -23,37 +22,6 @@ object ProxyGroupsYamlEdit {
         groupName: String,
         providerKeys: List<String>,
     ): String? {
-        return appendMergedGroupUsingProviders(
-            configText,
-            groupName,
-            providerKeys,
-            mergedType = "select",
-        )
-    }
-
-    /**
-     * Appends a **url-test** group with `use: [providerKeys]` (auto lowest-latency; manual selection
-     * is easy to override — see core `URLTest.fast`). Prefer [appendSelectGroupUsingProviders] for merged providers.
-     */
-    fun appendUrlTestGroupUsingProviders(
-        configText: String,
-        groupName: String,
-        providerKeys: List<String>,
-    ): String? {
-        return appendMergedGroupUsingProviders(
-            configText,
-            groupName,
-            providerKeys,
-            mergedType = "url-test",
-        )
-    }
-
-    private fun appendMergedGroupUsingProviders(
-        configText: String,
-        groupName: String,
-        providerKeys: List<String>,
-        mergedType: String,
-    ): String? {
         if (providerKeys.isEmpty()) return null
         val trimmedName = groupName.trim()
         if (trimmedName.isEmpty()) return null
@@ -64,23 +32,11 @@ object ProxyGroupsYamlEdit {
             val g = raw as? Map<*, *> ?: continue
             if ((g["name"] as? String) == trimmedName) return null
         }
-        val newGroup = when (mergedType) {
-            "url-test" -> linkedMapOf<String, Any?>(
-                "name" to trimmedName,
-                "type" to "url-test",
-                "url" to "http://www.gstatic.com/generate_204",
-                "interval" to 300,
-                "timeout" to 3000,
-                "max-failed-times" to 5,
-                "lazy" to true,
-                "use" to providerKeys,
-            )
-            else -> linkedMapOf<String, Any?>(
-                "name" to trimmedName,
-                "type" to "select",
-                "use" to providerKeys,
-            )
-        }
+        val newGroup = linkedMapOf<String, Any?>(
+            "name" to trimmedName,
+            "type" to "select",
+            "use" to providerKeys,
+        )
         groups.add(newGroup)
         root["proxy-groups"] = groups
         ensureGlobalGroupListsMergedName(root, trimmedName)

@@ -27,7 +27,6 @@ class ProxyProviderMergedGroupDesign(
 
     private val toolbar: MaterialToolbar = rootView.findViewById(R.id.toolbar)
     val summaryKeys: TextView = rootView.findViewById(R.id.provider_keys_summary)
-    private val mergedExistingTitle: TextView = rootView.findViewById(R.id.merged_existing_title)
     private val mergedExistingEmpty: TextView = rootView.findViewById(R.id.merged_existing_empty)
     private val mergedExistingList: LinearLayout = rootView.findViewById(R.id.merged_existing_list)
 
