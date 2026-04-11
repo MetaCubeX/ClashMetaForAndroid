@@ -2,12 +2,16 @@ package com.github.kr328.clash.design
 
 import android.content.Context
 import android.view.View
+import androidx.core.widget.doAfterTextChanged
 import com.github.kr328.clash.core.model.FetchStatus
 import com.github.kr328.clash.design.databinding.DesignPropertiesBinding
 import com.github.kr328.clash.design.dialog.ModelProgressBarConfigure
-import com.github.kr328.clash.design.dialog.requestModelTextInput
 import com.github.kr328.clash.design.dialog.withModelProgressBar
-import com.github.kr328.clash.design.util.*
+import com.github.kr328.clash.design.util.applyFrom
+import com.github.kr328.clash.design.util.bindAppBarElevation
+import com.github.kr328.clash.design.util.getHtml
+import com.github.kr328.clash.design.util.layoutInflater
+import com.github.kr328.clash.design.util.root
 import com.github.kr328.clash.service.model.Profile
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.Dispatchers
@@ -21,10 +25,13 @@ class PropertiesDesign(context: Context) : Design<PropertiesDesign.Request>(cont
     sealed class Request {
         object Commit : Request()
         object BrowseFiles : Request()
+        object BrowseProxyProviders : Request()
     }
 
     private val binding = DesignPropertiesBinding
         .inflate(context.layoutInflater, context.root, false)
+
+    private var suppressFieldSync: Boolean = false
 
     override val root: View
         get() = binding.root
@@ -33,6 +40,8 @@ class PropertiesDesign(context: Context) : Design<PropertiesDesign.Request>(cont
         get() = binding.profile!!
         set(value) {
             binding.profile = value
+            syncFieldsFromProfile()
+            applyFieldEnabled()
         }
 
     val progressing: Boolean
@@ -84,61 +93,41 @@ class PropertiesDesign(context: Context) : Design<PropertiesDesign.Request>(cont
         binding.tips.text = context.getHtml(R.string.tips_properties)
 
         binding.scrollRoot.bindAppBarElevation(binding.activityBarLayout)
-    }
 
-    fun inputName() {
-        launch {
-            val name = context.requestModelTextInput(
-                initial = profile.name,
-                title = context.getText(R.string.name),
-                hint = context.getText(R.string.properties),
-                error = context.getText(R.string.should_not_be_blank),
-                validator = ValidatorNotBlank
-            )
-
-            if (name != profile.name) {
-                profile = profile.copy(name = name)
-            }
+        binding.editName.doAfterTextChanged { text ->
+            if (suppressFieldSync) return@doAfterTextChanged
+            profile = profile.copy(name = text?.toString().orEmpty())
+        }
+        binding.editUrl.doAfterTextChanged { text ->
+            if (suppressFieldSync) return@doAfterTextChanged
+            profile = profile.copy(source = text?.toString().orEmpty())
+        }
+        binding.editInterval.doAfterTextChanged { text ->
+            if (suppressFieldSync) return@doAfterTextChanged
+            val raw = text?.toString()?.trim().orEmpty()
+            val minutes = raw.toLongOrNull() ?: 0L
+            val interval = TimeUnit.MINUTES.toMillis(minutes.coerceAtLeast(0))
+            profile = profile.copy(interval = interval)
         }
     }
 
-    fun inputUrl() {
-        if (profile.type == Profile.Type.External)
-            return
-
-        launch {
-            val url = context.requestModelTextInput(
-                initial = profile.source,
-                title = context.getText(R.string.url),
-                hint = context.getText(R.string.profile_url),
-                error = context.getText(R.string.accept_http_content),
-                validator = ValidatorHttpUrl
-            )
-
-            if (url != profile.source) {
-                profile = profile.copy(source = url)
-            }
+    private fun syncFieldsFromProfile() {
+        val p = profile
+        suppressFieldSync = true
+        try {
+            binding.editName.setText(p.name)
+            binding.editUrl.setText(p.source)
+            val minutes = TimeUnit.MILLISECONDS.toMinutes(p.interval)
+            binding.editInterval.setText(if (minutes == 0L) "" else minutes.toString())
+        } finally {
+            suppressFieldSync = false
         }
     }
 
-    fun inputInterval() {
-        launch {
-            var minutes = TimeUnit.MILLISECONDS.toMinutes(profile.interval)
-
-            minutes = context.requestModelTextInput(
-                initial = if (minutes == 0L) "" else minutes.toString(),
-                title = context.getText(R.string.auto_update),
-                hint = context.getText(R.string.auto_update_minutes),
-                error = context.getText(R.string.at_least_15_minutes),
-                validator = ValidatorAutoUpdateInterval
-            ).toLongOrNull() ?: 0
-
-            val interval = TimeUnit.MINUTES.toMillis(minutes)
-
-            if (interval != profile.interval) {
-                profile = profile.copy(interval = interval)
-            }
-        }
+    private fun applyFieldEnabled() {
+        val p = profile
+        binding.layoutUrl.isEnabled = p.type == Profile.Type.Url
+        binding.layoutInterval.isEnabled = p.type != Profile.Type.File
     }
 
     fun requestCommit() {
@@ -147,6 +136,10 @@ class PropertiesDesign(context: Context) : Design<PropertiesDesign.Request>(cont
 
     fun requestBrowseFiles() {
         requests.trySend(Request.BrowseFiles)
+    }
+
+    fun requestProxyProviders() {
+        requests.trySend(Request.BrowseProxyProviders)
     }
 
     private fun ModelProgressBarConfigure.applyFrom(status: FetchStatus) {

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
     <data>
         <variable
             name="self"
@@ -12,7 +13,6 @@
             name="processing"
             type="boolean" />
 
-        <import type="com.github.kr328.clash.service.model.Profile.Type" />
         <import type="android.view.View" />
     </data>
 
@@ -32,70 +32,177 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
+                android:paddingHorizontal="@dimen/main_padding_horizontal"
                 android:paddingTop="@{(float) self.surface.insets.top + @dimen/toolbar_height}"
                 android:paddingBottom="@{self.surface.insets.bottom}">
 
-                <LinearLayout
-                    android:layout_width="wrap_content"
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:paddingVertical="@dimen/item_padding_vertical">
+                    android:layout_marginBottom="12dp"
+                    app:cardBackgroundColor="?attr/colorSurface"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="2dp"
+                    app:strokeWidth="0dp">
 
-                    <View
-                        android:layout_width="@dimen/tips_icon_size"
-                        android:layout_height="@dimen/tips_icon_size"
-                        android:layout_marginHorizontal="@dimen/tips_icon_margin"
-                        android:background="@drawable/ic_outline_info" />
-
-                    <TextView
-                        android:id="@+id/tips"
-                        android:layout_width="wrap_content"
+                    <LinearLayout
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginEnd="@dimen/item_tailing_margin"
-                        android:textAppearance="@style/TextAppearance.MaterialComponents.Body2" />
-                </LinearLayout>
+                        android:orientation="vertical"
+                        android:padding="14dp">
 
-                <com.github.kr328.clash.design.view.ActionTextField
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:paddingBottom="8dp"
+                            android:text="@string/properties_section_about"
+                            android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle2"
+                            android:textColor="?attr/colorOnSurface" />
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <View
+                                android:layout_width="@dimen/tips_icon_size"
+                                android:layout_height="@dimen/tips_icon_size"
+                                android:layout_marginEnd="@dimen/tips_icon_margin"
+                                android:background="@drawable/ic_outline_info" />
+
+                            <TextView
+                                android:id="@+id/tips"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:textAppearance="@style/TextAppearance.MaterialComponents.Body2"
+                                android:textColor="?attr/colorOnSurfaceVariant"
+                                tools:text="@string/tips_properties" />
+                        </LinearLayout>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <com.google.android.material.card.MaterialCardView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginVertical="@dimen/properties_element_margin_vertical"
-                    android:onClick="@{() -> self.inputName()}"
-                    app:icon="@drawable/ic_outline_label"
-                    app:placeholder="@string/profile_name"
-                    app:text="@{profile.name}"
-                    app:title="@string/name" />
+                    android:layout_marginBottom="12dp"
+                    app:cardBackgroundColor="?attr/colorSurface"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="2dp"
+                    app:strokeWidth="0dp">
 
-                <com.github.kr328.clash.design.view.ActionTextField
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:paddingTop="12dp"
+                        android:paddingBottom="4dp">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:paddingHorizontal="14dp"
+                            android:paddingBottom="4dp"
+                            android:text="@string/properties_section_subscription"
+                            android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle2"
+                            android:textColor="?attr/colorOnSurface" />
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/layout_name"
+                            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginHorizontal="14dp"
+                            android:layout_marginVertical="@dimen/properties_element_margin_vertical"
+                            android:hint="@string/name">
+
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/edit_name"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:inputType="textCapSentences" />
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/layout_url"
+                            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginHorizontal="14dp"
+                            android:layout_marginVertical="@dimen/properties_element_margin_vertical"
+                            android:hint="@string/url">
+
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/edit_url"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:inputType="textUri" />
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/layout_interval"
+                            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginHorizontal="14dp"
+                            android:layout_marginVertical="@dimen/properties_element_margin_vertical"
+                            android:hint="@string/auto_update_minutes"
+                            app:helperText="@string/properties_interval_helper">
+
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/edit_interval"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:inputType="number" />
+                        </com.google.android.material.textfield.TextInputLayout>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <com.google.android.material.card.MaterialCardView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginVertical="@dimen/properties_element_margin_vertical"
-                    android:onClick="@{() -> self.inputUrl()}"
-                    app:enabled="@{profile.type != Type.File}"
-                    app:icon="@drawable/ic_outline_inbox"
-                    app:placeholder="@string/accept_http_content"
-                    app:text="@{profile.source}"
-                    app:title="@string/url" />
+                    android:layout_marginBottom="12dp"
+                    app:cardBackgroundColor="?attr/colorSurface"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="2dp"
+                    app:strokeWidth="0dp">
 
-                <com.github.kr328.clash.design.view.ActionTextField
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginVertical="@dimen/properties_element_margin_vertical"
-                    android:onClick="@{() -> self.inputInterval()}"
-                    app:enabled="@{profile.type != Type.File}"
-                    app:icon="@drawable/ic_outline_update"
-                    app:placeholder="@string/at_least_15_minutes"
-                    app:text="@{profile.interval == 0 ? @string/disabled : @string/format_minutes(profile.interval / 1000 / 60)}"
-                    app:title="@string/auto_update" />
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:paddingTop="12dp"
+                        android:paddingBottom="4dp">
 
-                <com.github.kr328.clash.design.view.ActionLabel
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginVertical="@dimen/properties_element_margin_vertical"
-                    android:onClick="@{() -> self.requestBrowseFiles()}"
-                    app:icon="@drawable/ic_outline_folder"
-                    app:subtext="@string/browse_configuration_providers"
-                    app:text="@string/browse_files" />
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:paddingHorizontal="14dp"
+                            android:paddingBottom="4dp"
+                            android:text="@string/properties_section_configuration"
+                            android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle2"
+                            android:textColor="?attr/colorOnSurface" />
+
+                        <com.github.kr328.clash.design.view.ActionLabel
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginVertical="@dimen/properties_element_margin_vertical"
+                            android:onClick="@{() -> self.requestProxyProviders()}"
+                            app:icon="@drawable/ic_baseline_cloud_download"
+                            app:subtext="@string/properties_proxy_providers_summary"
+                            app:text="@string/properties_proxy_providers" />
+
+                        <com.github.kr328.clash.design.view.ActionLabel
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginVertical="@dimen/properties_element_margin_vertical"
+                            android:onClick="@{() -> self.requestBrowseFiles()}"
+                            app:icon="@drawable/ic_outline_folder"
+                            app:subtext="@string/browse_configuration_providers"
+                            app:text="@string/browse_files" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
             </LinearLayout>
         </com.github.kr328.clash.design.view.ObservableScrollView>
 

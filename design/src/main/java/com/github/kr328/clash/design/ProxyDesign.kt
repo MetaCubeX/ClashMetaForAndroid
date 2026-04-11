@@ -31,6 +31,7 @@ class ProxyDesign(
     sealed class Request {
         object ReloadAll : Request()
         object ReLaunch : Request()
+        object OpenProxyChain : Request()
 
         data class PatchMode(val mode: TunnelState.Mode?) : Request()
         data class Reload(val index: Int) : Request()

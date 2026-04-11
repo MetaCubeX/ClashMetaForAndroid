@@ -26,6 +26,13 @@ class ProxyMenu(
     }
 
     override fun onMenuItemClick(item: MenuItem): Boolean {
+        when (item.itemId) {
+            R.id.proxy_chain -> {
+                requests.trySend(ProxyDesign.Request.OpenProxyChain)
+                return true
+            }
+        }
+
         item.isChecked = !item.isChecked
 
         when (item.itemId) {

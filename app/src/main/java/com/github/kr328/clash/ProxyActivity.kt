@@ -55,6 +55,9 @@ class ProxyActivity : BaseActivity<ProxyDesign>() {
                 }
                 design.requests.onReceive {
                     when (it) {
+                        ProxyDesign.Request.OpenProxyChain -> {
+                            startActivity(ProxyChainActivity::class.intent)
+                        }
                         ProxyDesign.Request.ReLaunch -> {
                             startActivity(ProxyActivity::class.intent)
 

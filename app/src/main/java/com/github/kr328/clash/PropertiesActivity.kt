@@ -13,6 +13,7 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.select
 import com.github.kr328.clash.design.R
+import java.util.concurrent.TimeUnit
 
 class PropertiesActivity : BaseActivity<PropertiesDesign>() {
     private var canceled: Boolean = false
@@ -60,6 +61,11 @@ class PropertiesActivity : BaseActivity<PropertiesDesign>() {
                         PropertiesDesign.Request.BrowseFiles -> {
                             startActivity(FilesActivity::class.intent.setUUID(uuid))
                         }
+                        PropertiesDesign.Request.BrowseProxyProviders -> {
+                            if (original.imported) {
+                                startActivity(ProxyProvidersEditorActivity::class.intent.setUUID(uuid))
+                            }
+                        }
                         PropertiesDesign.Request.Commit -> {
                             design.verifyAndCommit()
                         }
@@ -81,36 +87,48 @@ class PropertiesActivity : BaseActivity<PropertiesDesign>() {
     }
 
     private suspend fun PropertiesDesign.verifyAndCommit() {
-        when {
-            profile.name.isBlank() -> {
-                showToast(R.string.empty_name, ToastDuration.Long)
+        if (profile.name.isBlank()) {
+            showToast(R.string.empty_name, ToastDuration.Long)
+            return
+        }
+        if (profile.type != Profile.Type.File && profile.source.isBlank()) {
+            showToast(R.string.invalid_url, ToastDuration.Long)
+            return
+        }
+        if (profile.type == Profile.Type.Url) {
+            val s = profile.source.trim()
+            if (!s.startsWith("http://", ignoreCase = true) &&
+                !s.startsWith("https://", ignoreCase = true)
+            ) {
+                showToast(R.string.accept_http_content, ToastDuration.Long)
+                return
             }
-            profile.type != Profile.Type.File && profile.source.isBlank() -> {
-                showToast(R.string.invalid_url, ToastDuration.Long)
-            }
-            else -> {
-                try {
-                    withProcessing { updateStatus ->
-                        withProfile {
-                            patch(profile.uuid, profile.name, profile.source, profile.interval)
+        }
+        val minutes = TimeUnit.MILLISECONDS.toMinutes(profile.interval)
+        if (profile.type != Profile.Type.File && minutes in 1..14) {
+            showToast(R.string.at_least_15_minutes, ToastDuration.Long)
+            return
+        }
+        try {
+            withProcessing { updateStatus ->
+                withProfile {
+                    patch(profile.uuid, profile.name, profile.source, profile.interval)
 
-                            coroutineScope {
-                                commit(profile.uuid) {
-                                    launch {
-                                        updateStatus(it)
-                                    }
-                                }
+                    coroutineScope {
+                        commit(profile.uuid) {
+                            launch {
+                                updateStatus(it)
                             }
                         }
                     }
-
-                    setResult(RESULT_OK)
-
-                    finish()
-                } catch (e: Exception) {
-                    showExceptionToast(e)
                 }
             }
+
+            setResult(RESULT_OK)
+
+            finish()
+        } catch (e: Exception) {
+            showExceptionToast(e)
         }
     }
 }

@@ -126,6 +126,11 @@
             android:exported="false"
             android:label="@string/proxy" />
         <activity
+            android:name=".ProxyChainActivity"
+            android:configChanges="uiMode"
+            android:exported="false"
+            android:label="@string/proxy_chain_title" />
+        <activity
             android:name=".ProvidersActivity"
             android:configChanges="uiMode"
             android:exported="false"
@@ -180,6 +185,16 @@
             android:configChanges="uiMode"
             android:exported="false"
             android:label="@string/rule_providers_editor_title" />
+        <activity
+            android:name=".ProxyProvidersEditorActivity"
+            android:configChanges="uiMode"
+            android:exported="false"
+            android:label="@string/proxy_providers_editor_title" />
+        <activity
+            android:name=".ProxyProviderMergedGroupActivity"
+            android:configChanges="uiMode"
+            android:exported="false"
+            android:label="@string/proxy_providers_merged_screen_title" />
         <activity
             android:name=".MetaFeatureSettingsActivity"
             android:configChanges="uiMode"
