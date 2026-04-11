@@ -104,7 +104,7 @@ class RuleApplyService(
         return runCatching {
             val normalized = state.copy(rules = normalizeRuleOrder(state.rules))
             val mergedYaml = RuleMapper.mergeStateIntoConfig(config.readText(), normalized)
-            val proxyGroups = ProxyGroupsYamlPreview.parseProxyNamesByGroup(mergedYaml).keys
+            val proxyGroups = ProxyGroupsYamlPreview.listProxyGroupNames(mergedYaml).toSet()
             RuleValidator.validate(normalized, proxyGroups)
             validateMergedYaml(mergedYaml)
             repository.save(uuid, normalized)

@@ -27,7 +27,8 @@ object RuleValidator {
             }
             require(it.policy.isNotBlank()) { "Rule policy is empty" }
             val policy = it.policy.trim()
-            val knownPolicy = builtInPolicies.contains(policy) || availableProxyGroups.contains(policy)
+            val knownPolicy = builtInPolicies.any { b -> b.equals(policy, true) } ||
+                availableProxyGroups.any { g -> g.equals(policy, true) }
             require(knownPolicy) { "Unknown rule policy/group: $policy" }
         }
     }

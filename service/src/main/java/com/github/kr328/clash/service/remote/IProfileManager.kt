@@ -36,6 +36,40 @@ interface IProfileManager {
 
     suspend fun replaceRuleProvidersYaml(uuid: UUID, yaml: String): Boolean
 
+    /** `proxy-providers` YAML block or null. */
+    suspend fun readProxyProvidersYaml(uuid: UUID): String?
+
+    suspend fun replaceProxyProvidersYaml(uuid: UUID, yaml: String): Boolean
+
+    /**
+     * Appends a **url-test** [proxy-groups] entry with `use: [providerKeys]` (proxy-provider keys
+     * such as sub1, sub2), health-check URL, interval, etc. Fails if a group with the same name exists.
+     */
+    suspend fun appendRelayProxyGroup(uuid: UUID, groupName: String, providerKeys: List<String>): Boolean
+
+    /** Removes one [proxy-groups] entry by [groupName]. Returns false if missing or not found. */
+    suspend fun removeProxyGroup(uuid: UUID, groupName: String): Boolean
+
+    /**
+     * Sets **dialer-proxy** on a proxy entry in config or provider YAML.
+     * [dialerProxyName] null removes the field. Returns false if the proxy was not found.
+     */
+    suspend fun setProxyDialerProxy(uuid: UUID, targetProxyName: String, dialerProxyName: String?): Boolean
+
+    /**
+     * Lists saved **dialer-proxy** entries by scanning YAML on disk (no running engine required).
+     * Each string is `targetName\u001FdialerName\u001FrelativePath` ([U+001F] unit separator).
+     */
+    suspend fun listProxyDialerChains(uuid: UUID): List<String>
+
+    /** Removes every **dialer-proxy** from config and provider `proxies:` lists. */
+    suspend fun clearAllProxyDialerChains(uuid: UUID): Boolean
+
+    /** Optional JSON map `{"sub1":"Display name",...}` for proxy-provider UI labels. */
+    suspend fun readProxyProviderLabelsJson(uuid: UUID): String?
+
+    suspend fun writeProxyProviderLabelsJson(uuid: UUID, json: String): Boolean
+
     /** Structured rules model json (source of truth for Rules UI). */
     suspend fun readRuleState(uuid: UUID): String?
 

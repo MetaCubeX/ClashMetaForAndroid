@@ -19,6 +19,9 @@ import com.github.kr328.clash.service.util.importedDir
 import com.github.kr328.clash.service.util.ProxyGroupsYamlPreview
 import com.github.kr328.clash.service.util.ProxyYamlPreview
 import com.github.kr328.clash.service.util.RuleApplyService
+import com.github.kr328.clash.service.util.ProxyDialerYamlEdit
+import com.github.kr328.clash.service.util.ProxyGroupsYamlEdit
+import com.github.kr328.clash.service.util.ProxyProvidersYamlEdit
 import com.github.kr328.clash.service.util.RuleProvidersYamlEdit
 import com.github.kr328.clash.service.util.pendingDir
 import com.github.kr328.clash.service.util.sendProfileChanged
@@ -325,6 +328,167 @@ class ProfileManager(private val context: Context) : IProfileManager,
                 // Keep structured repository synchronized with manual YAML edits.
                 ruleApplyService.readStateJson(uuid)
                 context.sendProfileChanged(uuid)
+                true
+            } catch (_: Exception) {
+                false
+            }
+        }
+    }
+
+    override suspend fun readProxyProvidersYaml(uuid: UUID): String? {
+        return withContext(Dispatchers.IO) {
+            if (ImportedDao().queryByUUID(uuid) == null) {
+                return@withContext null
+            }
+            val file = File(context.importedDir, "$uuid/config.yaml")
+            if (!file.isFile) {
+                return@withContext null
+            }
+            try {
+                ProxyProvidersYamlEdit.extractBlock(file.readText())
+            } catch (_: Exception) {
+                null
+            }
+        }
+    }
+
+    override suspend fun replaceProxyProvidersYaml(uuid: UUID, yaml: String): Boolean {
+        return withContext(Dispatchers.IO) {
+            if (ImportedDao().queryByUUID(uuid) == null) {
+                return@withContext false
+            }
+            val file = File(context.importedDir, "$uuid/config.yaml")
+            if (!file.isFile) {
+                return@withContext false
+            }
+            try {
+                val merged = ProxyProvidersYamlEdit.mergeIntoConfig(file.readText(), yaml)
+                file.writeText(merged)
+                context.sendProfileChanged(uuid)
+                true
+            } catch (_: Exception) {
+                false
+            }
+        }
+    }
+
+    override suspend fun appendRelayProxyGroup(
+        uuid: UUID,
+        groupName: String,
+        providerKeys: List<String>,
+    ): Boolean {
+        return withContext(Dispatchers.IO) {
+            if (ImportedDao().queryByUUID(uuid) == null) {
+                return@withContext false
+            }
+            val file = File(context.importedDir, "$uuid/config.yaml")
+            if (!file.isFile) {
+                return@withContext false
+            }
+            try {
+                val text = file.readText()
+                val merged = ProxyGroupsYamlEdit.appendSelectGroupUsingProviders(text, groupName, providerKeys)
+                    ?: return@withContext false
+                file.writeText(merged)
+                context.sendProfileChanged(uuid)
+                true
+            } catch (_: Exception) {
+                false
+            }
+        }
+    }
+
+    override suspend fun removeProxyGroup(uuid: UUID, groupName: String): Boolean {
+        return withContext(Dispatchers.IO) {
+            if (ImportedDao().queryByUUID(uuid) == null) {
+                return@withContext false
+            }
+            val file = File(context.importedDir, "$uuid/config.yaml")
+            if (!file.isFile) {
+                return@withContext false
+            }
+            try {
+                val merged = ProxyGroupsYamlEdit.removeGroupByName(file.readText(), groupName)
+                    ?: return@withContext false
+                file.writeText(merged)
+                context.sendProfileChanged(uuid)
+                true
+            } catch (_: Exception) {
+                false
+            }
+        }
+    }
+
+    override suspend fun setProxyDialerProxy(
+        uuid: UUID,
+        targetProxyName: String,
+        dialerProxyName: String?,
+    ): Boolean {
+        return withContext(Dispatchers.IO) {
+            if (ImportedDao().queryByUUID(uuid) == null) {
+                return@withContext false
+            }
+            val dir = File(context.importedDir, uuid.toString())
+            try {
+                val ok = ProxyDialerYamlEdit.applyDialerProxy(dir, targetProxyName, dialerProxyName)
+                if (ok) context.sendProfileChanged(uuid)
+                ok
+            } catch (_: Exception) {
+                false
+            }
+        }
+    }
+
+    override suspend fun listProxyDialerChains(uuid: UUID): List<String> {
+        return withContext(Dispatchers.IO) {
+            if (ImportedDao().queryByUUID(uuid) == null) {
+                return@withContext emptyList()
+            }
+            val dir = File(context.importedDir, uuid.toString())
+            try {
+                ProxyDialerYamlEdit.listDialerChains(dir).map { row ->
+                    listOf(row.targetName, row.dialerName, row.relativePath).joinToString("\u001F")
+                }
+            } catch (_: Exception) {
+                emptyList()
+            }
+        }
+    }
+
+    override suspend fun clearAllProxyDialerChains(uuid: UUID): Boolean {
+        return withContext(Dispatchers.IO) {
+            if (ImportedDao().queryByUUID(uuid) == null) {
+                return@withContext false
+            }
+            val dir = File(context.importedDir, uuid.toString())
+            try {
+                val ok = ProxyDialerYamlEdit.clearAllDialerProxies(dir)
+                if (ok) context.sendProfileChanged(uuid)
+                ok
+            } catch (_: Exception) {
+                false
+            }
+        }
+    }
+
+    override suspend fun readProxyProviderLabelsJson(uuid: UUID): String? {
+        return withContext(Dispatchers.IO) {
+            if (ImportedDao().queryByUUID(uuid) == null) return@withContext null
+            val f = File(context.importedDir, "$uuid/proxy_providers_labels.json")
+            if (!f.isFile) return@withContext null
+            try {
+                f.readText()
+            } catch (_: Exception) {
+                null
+            }
+        }
+    }
+
+    override suspend fun writeProxyProviderLabelsJson(uuid: UUID, json: String): Boolean {
+        return withContext(Dispatchers.IO) {
+            if (ImportedDao().queryByUUID(uuid) == null) return@withContext false
+            try {
+                File(context.importedDir, "$uuid/proxy_providers_labels.json").writeText(json)
                 true
             } catch (_: Exception) {
                 false
