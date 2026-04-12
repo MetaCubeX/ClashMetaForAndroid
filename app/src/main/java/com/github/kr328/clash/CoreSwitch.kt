@@ -98,23 +98,29 @@ internal suspend fun Context.scheduleCoreRestart(
     coreStore.pendingAction = pendingAction
     coreStore.pendingProfileUuid = profileUuid
 
-    val previousRemote = runCatching { Remote.service.remote.get() }.getOrNull()
+    Remote.service.coreSwitchInProgress = true
 
-    runCatching {
-        previousRemote?.reload()
-    }.onFailure {
-        Log.w("Failed to request core reload: $it")
+    try {
+        val previousRemote = runCatching { Remote.service.remote.get() }.getOrNull()
+
+        runCatching {
+            previousRemote?.reload()
+        }.onFailure {
+            Log.w("Failed to request core reload: $it")
+        }
+
+        previousRemote?.let {
+            Remote.service.remote.reset(it)
+        }
+
+        Remote.service.unbind()
+        Remote.service.bind()
+
+        val reboundRemote = Remote.service.remote.get()
+        reboundRemote.clash().queryCoreVersion()
+    } finally {
+        Remote.service.coreSwitchInProgress = false
     }
-
-    previousRemote?.let {
-        Remote.service.remote.reset(it)
-    }
-
-    Remote.service.unbind()
-    Remote.service.bind()
-
-    val reboundRemote = Remote.service.remote.get()
-    reboundRemote.clash().queryCoreVersion()
 }
 
 internal fun AppCompatActivity.reloadProgramPages() {

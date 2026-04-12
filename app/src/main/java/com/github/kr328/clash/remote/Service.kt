@@ -17,6 +17,9 @@ import java.util.concurrent.TimeUnit
 class Service(private val context: Application, val crashed: () -> Unit) {
     val remote = Resource<IRemoteService>()
 
+    @Volatile
+    var coreSwitchInProgress: Boolean = false
+
     private val connection = object : ServiceConnection {
         private var lastCrashed: Long = -1
 
@@ -27,7 +30,8 @@ class Service(private val context: Application, val crashed: () -> Unit) {
         override fun onServiceDisconnected(name: ComponentName?) {
             remote.set(null)
 
-            if (CoreStore(context).pendingAction != CoreStore.PendingAction.None) {
+            if (coreSwitchInProgress ||
+                CoreStore(context).pendingAction != CoreStore.PendingAction.None) {
                 lastCrashed = -1
                 Log.i("RemoteService restarting for core switch")
                 return

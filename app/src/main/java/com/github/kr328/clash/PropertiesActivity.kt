@@ -138,16 +138,15 @@ class PropertiesActivity : BaseActivity<PropertiesDesign>() {
                         }
                     }
 
-                    CoreStore(this@PropertiesActivity).clearPendingAction()
                     setResult(RESULT_OK)
 
                     finish()
                 } catch (e: Exception) {
                     awaitingCoreReload = false
-                    CoreStore(this@PropertiesActivity).clearPendingAction()
                     showExceptionToast(e)
                 } finally {
                     committing = false
+                    CoreStore(this@PropertiesActivity).clearPendingAction()
                 }
             }
         }

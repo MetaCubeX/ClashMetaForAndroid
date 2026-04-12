@@ -192,7 +192,9 @@ class MainActivity : BaseActivity<Design<*>>() {
         })
 
         show(Page.Main)
-        consumePendingCoreAction(coreStore)
+        if (consumePendingCoreAction(coreStore)) {
+            requestMainRefresh(mainDesign)
+        }
 
         val ticker = ticker(TimeUnit.SECONDS.toMillis(1))
 
@@ -207,7 +209,10 @@ class MainActivity : BaseActivity<Design<*>>() {
                                 Page.Settings, Page.About -> Unit
                             }
                         }
-                        Event.ServiceRecreated,
+                        Event.ServiceRecreated -> {
+                            consumePendingCoreAction(coreStore)
+                            if (currentPage == Page.Main) requestMainRefresh(mainDesign)
+                        }
                         Event.ClashStop, Event.ClashStart,
                         Event.ProfileLoaded, Event.ProfileChanged ->
                             if (currentPage == Page.Main) requestMainRefresh(mainDesign)
@@ -374,22 +379,22 @@ class MainActivity : BaseActivity<Design<*>>() {
         return versionName + "\n" + coreVersion.replace("_", "-")
     }
 
-    private suspend fun consumePendingCoreAction(coreStore: CoreStore) {
+    private suspend fun consumePendingCoreAction(coreStore: CoreStore): Boolean {
         val pendingAction = coreStore.pendingAction
         val profileUuid = coreStore.pendingProfileUuid
 
         if (pendingAction == PendingAction.None) {
-            return
+            return false
         }
 
         if (pendingAction == PendingAction.ReloadCore) {
             coreStore.clearPendingAction()
-            return
+            return true
         }
 
         if (profileUuid == null) {
             coreStore.clearPendingAction()
-            return
+            return false
         }
 
         when (pendingAction) {
@@ -414,9 +419,10 @@ class MainActivity : BaseActivity<Design<*>>() {
                             }
                         }
                     }
-                    coreStore.clearPendingAction()
                 } catch (e: Exception) {
                     design?.showExceptionToast(e)
+                } finally {
+                    coreStore.clearPendingAction()
                 }
             }
             PendingAction.UpdateProfile -> {
@@ -430,12 +436,15 @@ class MainActivity : BaseActivity<Design<*>>() {
                             update(profileUuid)
                         }
                     }
-                    coreStore.clearPendingAction()
                 } catch (e: Exception) {
                     design?.showExceptionToast(e)
+                } finally {
+                    coreStore.clearPendingAction()
                 }
             }
         }
+
+        return true
     }
 
     private fun loadFiles(): List<LogFile> {

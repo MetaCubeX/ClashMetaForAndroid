@@ -67,14 +67,16 @@ class ProfilesActivity : BaseActivity<ProfilesDesign>() {
                             try {
                                 val switchedCore = it.profile.coreMode != currentCoreMode()
                                 if (switchedCore) {
-                                    scheduleCoreRestart(it.profile.coreMode, PendingAction.ReloadCore, it.profile.uuid)
-                                    withProfile { update(it.profile.uuid) }
-                                    CoreStore(this@ProfilesActivity).clearPendingAction()
+                                    try {
+                                        scheduleCoreRestart(it.profile.coreMode, PendingAction.ReloadCore, it.profile.uuid)
+                                        withProfile { update(it.profile.uuid) }
+                                    } finally {
+                                        CoreStore(this@ProfilesActivity).clearPendingAction()
+                                    }
                                 } else {
                                     withProfile { update(it.profile.uuid) }
                                 }
                             } catch (e: Exception) {
-                                CoreStore(this@ProfilesActivity).clearPendingAction()
                                 design.showExceptionToast(e)
                             }
                         is ProfilesDesign.Request.Delete ->
@@ -93,12 +95,17 @@ class ProfilesActivity : BaseActivity<ProfilesDesign>() {
                                         return@onReceive
                                     }
 
-                                    scheduleCoreRestart(
-                                        it.profile.coreMode,
-                                        PendingAction.ActivateProfile,
-                                        it.profile.uuid
-                                    )
-                                    reloadProgramPages()
+                                    try {
+                                        scheduleCoreRestart(
+                                            it.profile.coreMode,
+                                            PendingAction.ActivateProfile,
+                                            it.profile.uuid
+                                        )
+                                        reloadProgramPages()
+                                    } catch (e: Exception) {
+                                        CoreStore(this@ProfilesActivity).clearPendingAction()
+                                        throw e
+                                    }
                                 } else {
                                     withProfile {
                                         if (it.profile.pending || !it.profile.imported) {
@@ -115,7 +122,6 @@ class ProfilesActivity : BaseActivity<ProfilesDesign>() {
                                     }
                                 }
                             } catch (e: Exception) {
-                                CoreStore(this@ProfilesActivity).clearPendingAction()
                                 design.showExceptionToast(e)
                             }
                         }
