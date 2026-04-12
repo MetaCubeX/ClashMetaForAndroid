@@ -13,6 +13,7 @@
             type="boolean" />
 
         <import type="com.github.kr328.clash.service.model.Profile.Type" />
+        <import type="com.github.kr328.clash.common.model.CoreMode" />
         <import type="android.view.View" />
     </data>
 
@@ -87,6 +88,17 @@
                     app:placeholder="@string/at_least_15_minutes"
                     app:text="@{profile.interval == 0 ? @string/disabled : @string/format_minutes(profile.interval / 1000 / 60)}"
                     app:title="@string/auto_update" />
+
+                <com.github.kr328.clash.design.view.ActionTextField
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginVertical="@dimen/properties_element_margin_vertical"
+                    android:onClick="@{() -> self.inputCoreMode()}"
+                    app:enabled="@{!profile.active}"
+                    app:icon="@drawable/ic_baseline_settings"
+                    app:placeholder="@string/select_core_mode"
+                    app:text="@{profile.coreMode == CoreMode.Ninja ? @string/ninja_core : @string/meta_core}"
+                    app:title="@string/core_mode" />
 
                 <com.github.kr328.clash.design.view.ActionLabel
                     android:layout_width="match_parent"

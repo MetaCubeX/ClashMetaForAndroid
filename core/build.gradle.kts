@@ -22,7 +22,7 @@ golang {
             srcDir.set(file("src/foss/golang"))
         }
         all {
-            fileName.set("libclash.so")
+            fileName.set("libclash_meta.so")
             packageName.set("cfa/native")
         }
     }

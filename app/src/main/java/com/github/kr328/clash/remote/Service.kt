@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.ServiceConnection
 import android.os.IBinder
 import com.github.kr328.clash.common.log.Log
+import com.github.kr328.clash.common.store.CoreStore
 import com.github.kr328.clash.common.util.intent
 import com.github.kr328.clash.service.RemoteService
 import com.github.kr328.clash.service.remote.IRemoteService
@@ -25,6 +26,12 @@ class Service(private val context: Application, val crashed: () -> Unit) {
 
         override fun onServiceDisconnected(name: ComponentName?) {
             remote.set(null)
+
+            if (CoreStore(context).pendingAction != CoreStore.PendingAction.None) {
+                lastCrashed = -1
+                Log.i("RemoteService restarting for core switch")
+                return
+            }
 
             if (System.currentTimeMillis() - lastCrashed < TOGGLE_CRASHED_INTERVAL) {
                 unbind()

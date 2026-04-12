@@ -11,9 +11,12 @@ import androidx.activity.result.contract.ActivityResultContracts.RequestPermissi
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import com.github.kr328.clash.common.store.CoreStore
 import com.github.kr328.clash.common.util.intent
+import com.github.kr328.clash.common.util.setUUID
 import com.github.kr328.clash.common.util.setFileName
 import com.github.kr328.clash.common.util.ticker
+import com.github.kr328.clash.common.store.CoreStore.PendingAction
 import com.github.kr328.clash.design.Design
 import com.github.kr328.clash.design.AboutDesign
 import com.github.kr328.clash.design.LogsDesign
@@ -21,16 +24,17 @@ import com.github.kr328.clash.design.MainDesign
 import com.github.kr328.clash.design.SettingsDesign
 import com.github.kr328.clash.design.model.LogFile
 import com.github.kr328.clash.design.ui.ToastDuration
+import com.github.kr328.clash.design.util.showExceptionToast
 import com.github.kr328.clash.util.logsDir
 import com.github.kr328.clash.util.startClashService
 import com.github.kr328.clash.util.stopClashService
 import com.github.kr328.clash.util.withClash
 import com.github.kr328.clash.util.withProfile
-import com.github.kr328.clash.core.bridge.*
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.navigation.NavigationBarView
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.select
 import kotlinx.coroutines.withContext
@@ -55,12 +59,24 @@ class MainActivity : BaseActivity<Design<*>>() {
         val host = layoutInflater.inflate(R.layout.activity_main_host, null, false)
         val container = host.findViewById<ViewGroup>(R.id.design_content_container)
         val bottomNavigation = host.findViewById<BottomNavigationView>(R.id.main_bottom_navigation)
+        val coreStore = CoreStore(this)
         var currentPage = Page.Main
         var requestedPage: Page? = null
         var handlingPageRequest = false
+        var mainRefreshJob: Job? = null
 
         defer {
             expandedSettingsPane?.save()
+        }
+
+        fun requestMainRefresh(design: MainDesign): Job {
+            mainRefreshJob?.cancel()
+
+            return launch {
+                design.fetch()
+            }.also {
+                mainRefreshJob = it
+            }
         }
 
         suspend fun show(page: Page) {
@@ -74,7 +90,7 @@ class MainActivity : BaseActivity<Design<*>>() {
                 Page.Main -> {
                     setContentDesign(mainDesign)
                     bottomNavigation.selectedItemId = R.id.navigation_main
-                    mainDesign.fetch()
+                    requestMainRefresh(mainDesign).join()
                 }
                 Page.Logs -> {
                     setContentDesign(logsDesign)
@@ -94,7 +110,7 @@ class MainActivity : BaseActivity<Design<*>>() {
                                 id = "version",
                                 icon = R.drawable.ic_clash,
                                 text = getString(R.string.application_name),
-                                subtext = queryAppVersionName(),
+                                subtext = queryAppVersionName() + "\n" + getString(R.string.meta_ninja_core),
                                 clickable = false,
                             ),
                             com.github.kr328.clash.design.adapter.AboutItemAdapter.AboutItem(
@@ -176,6 +192,7 @@ class MainActivity : BaseActivity<Design<*>>() {
         })
 
         show(Page.Main)
+        consumePendingCoreAction(coreStore)
 
         val ticker = ticker(TimeUnit.SECONDS.toMillis(1))
 
@@ -185,7 +202,7 @@ class MainActivity : BaseActivity<Design<*>>() {
                     when (it) {
                         Event.ActivityStart -> {
                             when (currentPage) {
-                                Page.Main -> mainDesign.fetch()
+                                Page.Main -> requestMainRefresh(mainDesign)
                                 Page.Logs -> logsDesign.patchLogs(loadFiles())
                                 Page.Settings, Page.About -> Unit
                             }
@@ -193,7 +210,7 @@ class MainActivity : BaseActivity<Design<*>>() {
                         Event.ServiceRecreated,
                         Event.ClashStop, Event.ClashStart,
                         Event.ProfileLoaded, Event.ProfileChanged ->
-                            if (currentPage == Page.Main) mainDesign.fetch()
+                            if (currentPage == Page.Main) requestMainRefresh(mainDesign)
                         else -> Unit
                     }
                 }
@@ -277,20 +294,36 @@ class MainActivity : BaseActivity<Design<*>>() {
     }
 
     private suspend fun MainDesign.fetch() {
-        setClashRunning(clashRunning)
+        setLoading(true)
 
-        val state = withClash {
-            queryTunnelState()
-        }
-        val providers = withClash {
-            queryProviders()
-        }
+        try {
+            val running = clashRunning
+            val state = runCatching {
+                withClash {
+                    queryTunnelState()
+                }
+            }.getOrNull()
+            val hasProviders = runCatching {
+                withClash {
+                    queryProviders().isNotEmpty()
+                }
+            }.getOrDefault(false)
+            val profileName = runCatching {
+                withProfile {
+                    queryActive()?.name
+                }
+            }.getOrNull()
 
-        setMode(state.mode)
-        setHasProviders(providers.isNotEmpty())
-
-        withProfile {
-            setProfileName(queryActive()?.name)
+            setClashRunning(running)
+            state?.let {
+                setMode(it.mode)
+            }
+            setHasProviders(hasProviders)
+            if (profileName != null || !running) {
+                setProfileName(profileName)
+            }
+        } finally {
+            setLoading(false)
         }
     }
 
@@ -331,8 +364,77 @@ class MainActivity : BaseActivity<Design<*>>() {
     }
 
     private suspend fun queryAppVersionName(): String {
-        return withContext(Dispatchers.IO) {
-            packageManager.getPackageInfo(packageName, 0).versionName + "\n" + Bridge.nativeCoreVersion().replace("_", "-")
+        val versionName = withContext(Dispatchers.IO) {
+            packageManager.getPackageInfo(packageName, 0).versionName
+        }
+        val coreVersion = withClash {
+            queryCoreVersion()
+        }
+
+        return versionName + "\n" + coreVersion.replace("_", "-")
+    }
+
+    private suspend fun consumePendingCoreAction(coreStore: CoreStore) {
+        val pendingAction = coreStore.pendingAction
+        val profileUuid = coreStore.pendingProfileUuid
+
+        if (pendingAction == PendingAction.None) {
+            return
+        }
+
+        if (pendingAction == PendingAction.ReloadCore) {
+            coreStore.clearPendingAction()
+            return
+        }
+
+        if (profileUuid == null) {
+            coreStore.clearPendingAction()
+            return
+        }
+
+        when (pendingAction) {
+            PendingAction.None -> Unit
+            PendingAction.ReloadCore -> Unit
+            PendingAction.OpenProperties -> {
+                coreStore.clearPendingAction()
+                startActivity(PropertiesActivity::class.intent.setUUID(profileUuid))
+            }
+            PendingAction.ActivateProfile -> {
+                try {
+                    withProfile {
+                        val profile = queryByUUID(profileUuid)
+
+                        if (profile?.pending == true || profile?.imported == false) {
+                            commit(profileUuid, null)
+                        }
+
+                        queryByUUID(profileUuid)?.let { importedProfile ->
+                            if (importedProfile.imported) {
+                                setActive(importedProfile)
+                            }
+                        }
+                    }
+                    coreStore.clearPendingAction()
+                } catch (e: Exception) {
+                    design?.showExceptionToast(e)
+                }
+            }
+            PendingAction.UpdateProfile -> {
+                try {
+                    withProfile {
+                        val profile = queryByUUID(profileUuid)
+
+                        if (profile?.pending == true) {
+                            commit(profileUuid, null)
+                        } else {
+                            update(profileUuid)
+                        }
+                    }
+                    coreStore.clearPendingAction()
+                } catch (e: Exception) {
+                    design?.showExceptionToast(e)
+                }
+            }
         }
     }
 

@@ -22,8 +22,12 @@ execute_process(
 )
 string(REPLACE "\n" ";" CURRENT_BRANCH "${CURRENT_BRANCH}")
 list(GET CURRENT_BRANCH 1 CURRENT_BRANCH)
-string (REGEX REPLACE "origin/" "" CURRENT_BRANCH ${CURRENT_BRANCH})
-string (REGEX REPLACE "[\n\t\r]" "" CURRENT_BRANCH ${CURRENT_BRANCH})
+if (DEFINED CURRENT_BRANCH AND NOT "${CURRENT_BRANCH}" STREQUAL "")
+    string(REGEX REPLACE "origin/" "" CURRENT_BRANCH "${CURRENT_BRANCH}")
+    string(REGEX REPLACE "[\n\t\r]" "" CURRENT_BRANCH "${CURRENT_BRANCH}")
+else ()
+    set(CURRENT_BRANCH "unknown")
+endif ()
 #string(SUBSTRING ${CURRENT_BRANCH} 0 8 CURRENT_BRANCH)
 message(STATUS "git current branch = ${CURRENT_BRANCH}")
 
@@ -65,5 +69,5 @@ include_directories("${GO_SOURCE}")
 
 link_directories("${GO_OUTPUT_BASE}/${CMAKE_ANDROID_ARCH_ABI}")
 
-add_library(bridge SHARED main.c jni_helper.c bridge_helper.c)
-target_link_libraries(bridge log clash)
+add_library(bridge_meta SHARED main.c jni_helper.c bridge_helper.c)
+target_link_libraries(bridge_meta log clash_meta)

@@ -15,6 +15,7 @@ import com.github.kr328.clash.remote.Remote
 import com.github.kr328.clash.service.util.sendServiceRecreated
 import com.github.kr328.clash.util.clashDir
 import java.io.File
+import java.io.FileNotFoundException
 import java.io.FileOutputStream
 import com.github.kr328.clash.design.R as DesignR
 
@@ -100,33 +101,29 @@ class MainApplication : Application() {
         clashDir.mkdirs()
 
         val updateDate = packageManager.getPackageInfo(packageName, 0).lastUpdateTime
-        val geoipFile = File(clashDir, "geoip.metadb")
-        if (geoipFile.exists() && geoipFile.lastModified() < updateDate) {
-            geoipFile.delete()
-        }
-        if (!geoipFile.exists()) {
-            FileOutputStream(geoipFile).use {
-                assets.open("geoip.metadb").copyTo(it)
-            }
+        extractAssetIfExists("geoip.metadb", File(clashDir, "geoip.metadb"), updateDate)
+        extractAssetIfExists("geosite.dat", File(clashDir, "geosite.dat"), updateDate)
+        extractAssetIfExists("ASN.mmdb", File(clashDir, "ASN.mmdb"), updateDate)
+    }
+
+    private fun extractAssetIfExists(assetName: String, target: File, updateDate: Long) {
+        if (target.exists() && target.lastModified() < updateDate) {
+            target.delete()
         }
 
-        val geositeFile = File(clashDir, "geosite.dat")
-        if (geositeFile.exists() && geositeFile.lastModified() < updateDate) {
-            geositeFile.delete()
-        }
-        if (!geositeFile.exists()) {
-            FileOutputStream(geositeFile).use {
-                assets.open("geosite.dat").copyTo(it)
-            }
+        if (target.exists()) {
+            return
         }
 
-        val asnFile = File(clashDir, "ASN.mmdb")
-        if (asnFile.exists() && asnFile.lastModified() < updateDate) {
-            asnFile.delete()
-        }
-        if (!asnFile.exists()) {
-            FileOutputStream(asnFile).use {
-                assets.open("ASN.mmdb").copyTo(it)
+        try {
+            FileOutputStream(target).use { output ->
+                assets.open(assetName).use { input ->
+                    input.copyTo(output)
+                }
+            }
+        } catch (_: FileNotFoundException) {
+            if (target.exists()) {
+                target.delete()
             }
         }
     }

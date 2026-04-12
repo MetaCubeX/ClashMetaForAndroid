@@ -5,11 +5,17 @@ import android.os.ParcelFileDescriptor
 import androidx.annotation.Keep
 import com.github.kr328.clash.common.Global
 import com.github.kr328.clash.common.log.Log
+import com.github.kr328.clash.common.model.CoreMode
 import kotlinx.coroutines.CompletableDeferred
 import java.io.File
 
 @Keep
 object Bridge {
+    private var loadedCoreMode: CoreMode = CoreMode.Meta
+
+    val coreMode: CoreMode
+        get() = loadedCoreMode
+
     external fun nativeReset()
     external fun nativeForceGc()
     external fun nativeSuspend(suspend: Boolean)
@@ -54,9 +60,8 @@ object Bridge {
     private external fun nativeInit(home: String, versionName: String, sdkVersion: Int)
 
     init {
-        System.loadLibrary("bridge")
-
         val ctx = Global.application
+        loadedCoreMode = CoreLoader.load(ctx)
 
         ParcelFileDescriptor.open(File(ctx.packageCodePath), ParcelFileDescriptor.MODE_READ_ONLY)
             .detachFd()

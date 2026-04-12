@@ -1,6 +1,7 @@
 package com.github.kr328.clash.service
 
 import android.content.Context
+import com.github.kr328.clash.common.model.CoreMode
 import com.github.kr328.clash.service.data.Database
 import com.github.kr328.clash.service.data.Imported
 import com.github.kr328.clash.service.data.ImportedDao
@@ -27,7 +28,7 @@ import java.util.*
 class ProfileManager(private val context: Context) : IProfileManager,
     CoroutineScope by CoroutineScope(Dispatchers.IO) {
     private companion object {
-        const val subscriptionUserAgent = "Ninja/2.10.4"
+        const val ninjaSubscriptionUserAgent = "Ninja/2.10.4"
     }
 
     private val store = ServiceStore(context)
@@ -40,7 +41,7 @@ class ProfileManager(private val context: Context) : IProfileManager,
         }
     }
 
-    override suspend fun create(type: Profile.Type, name: String, source: String): UUID {
+    override suspend fun create(type: Profile.Type, name: String, source: String, coreMode: CoreMode): UUID {
         val uuid = generateProfileUUID()
         val pending = Pending(
             uuid = uuid,
@@ -52,6 +53,7 @@ class ProfileManager(private val context: Context) : IProfileManager,
             total = 0,
             download = 0,
             expire = 0,
+            coreMode = coreMode,
             home = null,
             crisp = null,
         )
@@ -86,6 +88,7 @@ class ProfileManager(private val context: Context) : IProfileManager,
             total = imported.total,
             download = imported.download,
             expire = imported.expire,
+            coreMode = imported.coreMode,
             home = imported.home,
             crisp = imported.crisp,
         )
@@ -97,7 +100,7 @@ class ProfileManager(private val context: Context) : IProfileManager,
         return newUUID
     }
 
-    override suspend fun patch(uuid: UUID, name: String, source: String, interval: Long) {
+    override suspend fun patch(uuid: UUID, name: String, source: String, interval: Long, coreMode: CoreMode) {
         val pending = PendingDao().queryByUUID(uuid)
 
         if (pending == null) {
@@ -117,6 +120,7 @@ class ProfileManager(private val context: Context) : IProfileManager,
                     total = 0,
                     download = 0,
                     expire = 0,
+                    coreMode = coreMode,
                     home = imported.home,
                     crisp = imported.crisp,
                 )
@@ -126,6 +130,7 @@ class ProfileManager(private val context: Context) : IProfileManager,
                 name = name,
                 source = source,
                 interval = interval,
+                coreMode = coreMode,
                 upload = 0,
                 total = 0,
                 download = 0,
@@ -150,7 +155,7 @@ class ProfileManager(private val context: Context) : IProfileManager,
         try {
             val request = Request.Builder()
                 .url(old.source)
-                .header("User-Agent", subscriptionUserAgent)
+                .header("User-Agent", subscriptionUserAgent(old.coreMode))
                 .build()
 
             client.newCall(request).execute().use { response ->
@@ -176,6 +181,7 @@ class ProfileManager(private val context: Context) : IProfileManager,
                     parsed.download,
                     parsed.total,
                     parsed.expire,
+                    old.coreMode,
                     parsed.home,
                     parsed.crisp,
                     old.createdAt
@@ -249,6 +255,7 @@ class ProfileManager(private val context: Context) : IProfileManager,
         val download = pending?.download ?: imported?.download ?: return null
         val total = pending?.total ?: imported?.total ?: return null
         val expire = pending?.expire ?: imported?.expire ?: return null
+        val coreMode = pending?.coreMode ?: imported?.coreMode ?: CoreMode.Meta
         val home = pending?.home ?: imported?.home
         val crisp = pending?.crisp ?: imported?.crisp
 
@@ -263,6 +270,7 @@ class ProfileManager(private val context: Context) : IProfileManager,
             download,
             total,
             expire,
+            coreMode,
             home,
             crisp,
             resolveUpdatedAt(uuid),
@@ -301,5 +309,12 @@ class ProfileManager(private val context: Context) : IProfileManager,
 
     private fun String.isRemoteUrl(): Boolean {
         return startsWith("https://", true) || startsWith("http://", true)
+    }
+
+    private fun subscriptionUserAgent(mode: CoreMode): String {
+        return when (mode) {
+            CoreMode.Meta -> "ClashMetaForAndroid/${context.packageManager.getPackageInfo(context.packageName, 0).versionName.orEmpty()}"
+            CoreMode.Ninja -> ninjaSubscriptionUserAgent
+        }
     }
 }

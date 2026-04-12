@@ -68,7 +68,7 @@ fun Context.verifyApk(): Boolean {
         val info = applicationInfo
         val sources = info.splitSourceDirs ?: arrayOf(info.sourceDir) ?: return false
 
-        val regexNativeLibrary = Regex("lib/(\\S+)/libclash.so")
+        val regexNativeLibrary = Regex("lib/(\\S+)/libclash(?:_meta)?\\.so")
         val availableAbi = Build.SUPPORTED_ABIS.toSet()
         val apkAbi = sources
             .asSequence()

@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import com.github.kr328.clash.common.constants.Intents
+import com.github.kr328.clash.common.store.CoreStore
 import com.github.kr328.clash.common.util.intent
 import com.github.kr328.clash.common.util.setUUID
 import com.github.kr328.clash.design.MainDesign
@@ -43,7 +44,7 @@ class ExternalControlActivity : Activity(), CoroutineScope by MainScope() {
                         val name = uri.getQueryParameter("name") ?: getString(R.string.new_profile)
 
                         create(type, name).also {
-                            patch(it, name, url, 0)
+                            patch(it, name, url, 0, CoreStore(this@ExternalControlActivity).currentMode)
                         }
                     }
                     startActivity(PropertiesActivity::class.intent.setUUID(uuid))

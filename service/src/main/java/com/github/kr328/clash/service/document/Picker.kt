@@ -2,6 +2,7 @@ package com.github.kr328.clash.service.document
 
 import android.content.Context
 import android.provider.DocumentsContract
+import com.github.kr328.clash.common.model.CoreMode
 import com.github.kr328.clash.service.R
 import com.github.kr328.clash.service.data.ImportedDao
 import com.github.kr328.clash.service.data.Pending
@@ -135,6 +136,7 @@ class Picker(private val context: Context) {
                 imported.source,
                 imported.interval,
                 0, 0, 0, 0,
+                imported.coreMode,
                 imported.home,
                 imported.crisp
             )

@@ -239,6 +239,13 @@
     <string name="theme_style">Theme Style</string>
     <string name="dynamic_color">Dynamic Color</string>
     <string name="classic_theme">Classic Theme</string>
+    <string name="core_mode">Core Mode</string>
+    <string name="select_core_mode">Select Core</string>
+    <string name="meta_core">Meta Core</string>
+    <string name="ninja_core">Ninja Core</string>
+    <string name="meta_ninja_core">Meta + Ninja</string>
+    <string name="core_switch_restart_title">Restart Required</string>
+    <string name="core_switch_restart_message">Switching to %1$s requires restarting the app.</string>
 
     <string name="show_traffic">Show Traffic</string>
     <string name="show_traffic_summary">Auto refresh traffic in notification</string>

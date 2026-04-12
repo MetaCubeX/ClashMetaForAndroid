@@ -3,6 +3,7 @@ package com.github.kr328.clash.design
 import android.content.Context
 import android.view.View
 import com.github.kr328.clash.core.model.FetchStatus
+import com.github.kr328.clash.common.model.CoreMode
 import com.github.kr328.clash.design.databinding.DesignPropertiesBinding
 import com.github.kr328.clash.design.dialog.ModelProgressBarConfigure
 import com.github.kr328.clash.design.dialog.requestModelTextInput
@@ -21,6 +22,7 @@ class PropertiesDesign(context: Context) : Design<PropertiesDesign.Request>(cont
     sealed class Request {
         object Commit : Request()
         object BrowseFiles : Request()
+        object SelectCoreMode : Request()
     }
 
     private val binding = DesignPropertiesBinding
@@ -139,6 +141,14 @@ class PropertiesDesign(context: Context) : Design<PropertiesDesign.Request>(cont
                 profile = profile.copy(interval = interval)
             }
         }
+    }
+
+    fun inputCoreMode() {
+        if (profile.active) {
+            return
+        }
+
+        requests.trySend(Request.SelectCoreMode)
     }
 
     fun requestCommit() {

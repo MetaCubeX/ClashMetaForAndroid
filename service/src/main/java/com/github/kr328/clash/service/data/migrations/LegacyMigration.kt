@@ -6,6 +6,7 @@ import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import androidx.core.text.isDigitsOnly
 import com.github.kr328.clash.common.log.Log
+import com.github.kr328.clash.common.model.CoreMode
 import com.github.kr328.clash.service.data.Pending
 import com.github.kr328.clash.service.data.PendingDao
 import com.github.kr328.clash.service.model.Profile
@@ -93,6 +94,7 @@ private suspend fun migrationFromLegacy234(
                 source = if (newType != Profile.Type.File) cursor.getString(uri) else "",
                 interval = if (version == 2) intervalValue * 1000 else intervalValue,
                 0, 0, 0, 0,
+                CoreMode.Meta,
                 null,
                 null
             )
@@ -169,6 +171,7 @@ private suspend fun migrationFromLegacy1(context: Context, legacy: SQLiteDatabas
                 source = source,
                 interval = 0,
                 0, 0, 0, 0,
+                CoreMode.Meta,
                 null,
                 null
             )

@@ -94,12 +94,6 @@ subprojects {
                 resources {
                     excludes.add("DebugProbesKt.bin")
                 }
-                jniLibs {
-                    pickFirsts += setOf(
-                        "**/libbridge.so",
-                        "**/libclash.so"
-                    )
-                }
             }
         }
 

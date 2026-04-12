@@ -65,6 +65,12 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         }
     }
 
+    suspend fun setLoading(loading: Boolean) {
+        withContext(Dispatchers.Main) {
+            binding.loading = loading
+        }
+    }
+
     suspend fun showAbout(versionName: String) {
         withContext(Dispatchers.Main) {
             val binding = DesignAboutBinding.inflate(context.layoutInflater).apply {

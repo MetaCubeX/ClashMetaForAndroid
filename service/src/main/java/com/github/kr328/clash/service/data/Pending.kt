@@ -3,6 +3,7 @@ package com.github.kr328.clash.service.data
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.TypeConverters
+import com.github.kr328.clash.common.model.CoreMode
 import com.github.kr328.clash.service.model.Profile
 import java.util.*
 
@@ -18,6 +19,7 @@ data class Pending(
     @ColumnInfo(name = "download") val download: Long,
     @ColumnInfo(name = "total") val total: Long,
     @ColumnInfo(name = "expire") val expire: Long,
+    @ColumnInfo(name = "coreMode") val coreMode: CoreMode,
     @ColumnInfo(name = "home") val home: String?,
     @ColumnInfo(name = "crisp") val crisp: String?,
     @ColumnInfo(name = "createdAt") val createdAt: Long = System.currentTimeMillis(),

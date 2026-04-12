@@ -8,6 +8,8 @@ import android.provider.Settings
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.lifecycle.lifecycleScope
 import com.github.kr328.clash.common.constants.Intents
+import com.github.kr328.clash.common.model.CoreMode
+import com.github.kr328.clash.common.store.CoreStore
 import com.github.kr328.clash.common.util.intent
 import com.github.kr328.clash.common.util.setUUID
 import com.github.kr328.clash.design.NewProfileDesign
@@ -50,15 +52,17 @@ class NewProfileActivity : BaseActivity<NewProfileDesign>() {
                 design.requests.onReceive {
                     when (it) {
                         is NewProfileDesign.Request.Create -> {
+                            val coreMode = currentCoreMode()
+
                             withProfile {
                                 val name = getString(R.string.new_profile)
 
                                 val uuid: UUID? = when (val p = it.provider) {
                                     is ProfileProvider.File ->
-                                        create(Profile.Type.File, name)
+                                        create(Profile.Type.File, name, coreMode = coreMode)
 
                                     is ProfileProvider.Url ->
-                                        create(Profile.Type.Url, name)
+                                        create(Profile.Type.Url, name, coreMode = coreMode)
 
                                     is ProfileProvider.QR -> {
                                         null
@@ -73,7 +77,8 @@ class NewProfileActivity : BaseActivity<NewProfileDesign>() {
                                             create(
                                                 Profile.Type.External,
                                                 initialName ?: name,
-                                                uri.toString()
+                                                uri.toString(),
+                                                coreMode
                                             )
                                         } else {
                                             null
@@ -81,8 +86,9 @@ class NewProfileActivity : BaseActivity<NewProfileDesign>() {
                                     }
                                 }
 
-                                if (uuid != null)
+                                if (uuid != null) {
                                     launchProperties(uuid)
+                                }
                             }
                         }
 
@@ -110,6 +116,8 @@ class NewProfileActivity : BaseActivity<NewProfileDesign>() {
     }
 
     private suspend fun launchProperties(uuid: UUID) {
+        CoreStore(this).clearPendingAction()
+
         val r = startActivityForResult(
             ActivityResultContracts.StartActivityForResult(),
             PropertiesActivity::class.intent.setUUID(uuid)
@@ -186,14 +194,17 @@ class NewProfileActivity : BaseActivity<NewProfileDesign>() {
     }
 
     private suspend fun createProfileByQrCode(url: String) {
+        val coreMode = currentCoreMode()
+
         withProfile {
-            launchProperties(
-                create(
-                    type = Profile.Type.Url,
-                    name = getString(R.string.new_profile),
-                    url,
-                )
+            val uuid = create(
+                type = Profile.Type.Url,
+                name = getString(R.string.new_profile),
+                source = url,
+                coreMode = coreMode,
             )
+
+            launchProperties(uuid)
         }
     }
 

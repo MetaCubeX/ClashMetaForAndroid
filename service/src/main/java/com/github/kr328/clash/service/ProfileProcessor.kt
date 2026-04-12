@@ -3,6 +3,7 @@ package com.github.kr328.clash.service
 import android.content.Context
 import android.net.Uri
 import com.github.kr328.clash.common.log.Log
+import com.github.kr328.clash.common.model.CoreMode
 import com.github.kr328.clash.core.Clash
 import com.github.kr328.clash.service.data.Imported
 import com.github.kr328.clash.service.data.ImportedDao
@@ -36,7 +37,7 @@ import java.util.concurrent.TimeUnit
 object ProfileProcessor {
     private val profileLock = Mutex()
     private val processLock = Mutex()
-    private const val subscriptionUserAgent = "Ninja/2.10.4"
+    private const val ninjaSubscriptionUserAgent = "Ninja/2.10.4"
     private val contentDispositionFilename = Regex(
         """filename\*=UTF-8''([^;]+)|filename="?([^";]+)"?""",
         RegexOption.IGNORE_CASE
@@ -56,6 +57,7 @@ object ProfileProcessor {
     suspend fun apply(context: Context, uuid: UUID, callback: IFetchObserver? = null) {
         withContext(NonCancellable) {
             processLock.withLock {
+                Log.i("ProfileProcessor.apply start uuid=$uuid")
                 val snapshot = profileLock.withLock {
                     val pending = PendingDao().queryByUUID(uuid)
                         ?: throw IllegalArgumentException("profile $uuid not found")
@@ -70,16 +72,22 @@ object ProfileProcessor {
 
                     pending
                 }
+                Log.i("ProfileProcessor.apply snapshot uuid=${snapshot.uuid} type=${snapshot.type} core=${snapshot.coreMode}")
 
                 val force = snapshot.type != Profile.Type.File
                 var cb = callback
 
                 if (snapshot.type == Profile.Type.Url && snapshot.source.isRemoteUrl()) {
-                    downloadRemoteProfile(context.processingDir.resolve("config.yaml"), snapshot.source)
+                    Log.i("ProfileProcessor.apply download start uuid=${snapshot.uuid}")
+                    downloadRemoteProfile(context, context.processingDir.resolve("config.yaml"), snapshot.source, snapshot.coreMode)
+                    Log.i("ProfileProcessor.apply download end uuid=${snapshot.uuid}")
                 }
 
-                processNinjaProxies(context.processingDir)
+                Log.i("ProfileProcessor.apply process content start uuid=${snapshot.uuid}")
+                processProfileContent(snapshot.coreMode, context.processingDir)
+                Log.i("ProfileProcessor.apply process content end uuid=${snapshot.uuid}")
 
+                Log.i("ProfileProcessor.apply fetchAndValid start uuid=${snapshot.uuid}")
                 Clash.fetchAndValid(context.processingDir, snapshot.source, force && !snapshot.source.isRemoteUrl()) {
                     try {
                         cb?.updateStatus(it)
@@ -89,9 +97,11 @@ object ProfileProcessor {
                         Log.w("Report fetch status: $e", e)
                     }
                 }.await()
+                Log.i("ProfileProcessor.apply fetchAndValid end uuid=${snapshot.uuid}")
 
                 profileLock.withLock {
                     if (PendingDao().queryByUUID(snapshot.uuid) == snapshot) {
+                        Log.i("ProfileProcessor.apply persist begin uuid=${snapshot.uuid}")
                         context.importedDir.resolve(snapshot.uuid.toString())
                             .deleteRecursively()
                         context.processingDir
@@ -113,7 +123,7 @@ object ProfileProcessor {
                                 val client = OkHttpClient()
                                 val request = Request.Builder()
                                     .url(snapshot.source)
-                                    .header("User-Agent", subscriptionUserAgent)
+                                    .header("User-Agent", subscriptionUserAgent(context, snapshot.coreMode))
                                     .build()
 
                                 client.newCall(request).execute().use { response ->
@@ -140,6 +150,7 @@ object ProfileProcessor {
                                 parsed.download,
                                 parsed.total,
                                 parsed.expire,
+                                snapshot.coreMode,
                                 parsed.home,
                                 parsed.crisp,
                                 old?.createdAt ?: System.currentTimeMillis()
@@ -167,6 +178,7 @@ object ProfileProcessor {
                                 parsed.download,
                                 parsed.total,
                                 parsed.expire,
+                                snapshot.coreMode,
                                 parsed.home,
                                 parsed.crisp,
                                 old?.createdAt ?: System.currentTimeMillis()
@@ -184,8 +196,10 @@ object ProfileProcessor {
 
                             context.sendProfileChanged(snapshot.uuid)
                         }
+                        Log.i("ProfileProcessor.apply persist end uuid=${snapshot.uuid}")
                     }
                 }
+                Log.i("ProfileProcessor.apply done uuid=${snapshot.uuid}")
             }
         }
     }
@@ -209,10 +223,10 @@ object ProfileProcessor {
                 var cb = callback
 
                 if (snapshot.source.isRemoteUrl()) {
-                    downloadRemoteProfile(context.processingDir.resolve("config.yaml"), snapshot.source)
+                    downloadRemoteProfile(context, context.processingDir.resolve("config.yaml"), snapshot.source, snapshot.coreMode)
                 }
 
-                processNinjaProxies(context.processingDir)
+                processProfileContent(snapshot.coreMode, context.processingDir)
 
                 Clash.fetchAndValid(context.processingDir, snapshot.source, !snapshot.source.isRemoteUrl()) {
                     try {
@@ -407,10 +421,10 @@ object ProfileProcessor {
         return startsWith("https://", true) || startsWith("http://", true)
     }
 
-    private fun downloadRemoteProfile(target: File, source: String) {
+    private fun downloadRemoteProfile(context: Context, target: File, source: String, coreMode: CoreMode) {
         val request = Request.Builder()
             .url(source)
-            .header("User-Agent", subscriptionUserAgent)
+            .header("User-Agent", subscriptionUserAgent(context, coreMode))
             .build()
 
         OkHttpClient().newCall(request).execute().use { response ->
@@ -426,6 +440,12 @@ object ProfileProcessor {
                     input.copyTo(output)
                 }
             }
+        }
+    }
+
+    private fun processProfileContent(coreMode: CoreMode, root: File) {
+        if (coreMode == CoreMode.Ninja) {
+            processNinjaProxies(root)
         }
     }
 
@@ -487,6 +507,13 @@ object ProfileProcessor {
                 ),
                 Charsets.UTF_8
             )
+        }
+    }
+
+    private fun subscriptionUserAgent(context: Context, mode: CoreMode): String {
+        return when (mode) {
+            CoreMode.Meta -> "ClashMetaForAndroid/${context.packageManager.getPackageInfo(context.packageName, 0).versionName.orEmpty()}"
+            CoreMode.Ninja -> ninjaSubscriptionUserAgent
         }
     }
 }

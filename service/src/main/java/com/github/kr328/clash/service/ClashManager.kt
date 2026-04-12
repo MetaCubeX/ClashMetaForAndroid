@@ -3,6 +3,7 @@ package com.github.kr328.clash.service
 import android.content.Context
 import com.github.kr328.clash.common.log.Log
 import com.github.kr328.clash.core.Clash
+import com.github.kr328.clash.core.bridge.Bridge
 import com.github.kr328.clash.core.model.*
 import com.github.kr328.clash.service.data.Selection
 import com.github.kr328.clash.service.data.SelectionDao
@@ -17,6 +18,10 @@ class ClashManager(private val context: Context) : IClashManager,
     CoroutineScope by CoroutineScope(Dispatchers.IO) {
     private val store = ServiceStore(context)
     private var logReceiver: ReceiveChannel<LogMessage>? = null
+
+    override fun queryCoreVersion(): String {
+        return Bridge.nativeCoreVersion()
+    }
 
     override fun queryTunnelState(): TunnelState {
         return Clash.queryTunnelState()

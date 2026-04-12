@@ -26,6 +26,9 @@
         <variable
             name="hasProviders"
             type="boolean" />
+        <variable
+            name="loading"
+            type="boolean" />
 
         <import type="android.view.View" />
         <import type="com.github.kr328.clash.design.MainDesign.Request" />
@@ -93,7 +96,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginVertical="@dimen/main_card_margin_vertical"
                     android:onClick="@{() -> self.request(Request.OpenProxy)}"
-                    android:visibility="@{clashRunning ? View.VISIBLE : View.GONE}"
+                    android:visibility="@{clashRunning &amp;&amp; !loading ? View.VISIBLE : View.GONE}"
                     app:icon="@drawable/ic_baseline_apps"
                     app:subtext="@{mode}"
                     app:text="@string/proxy" />
@@ -104,7 +107,7 @@
                     android:layout_marginVertical="@dimen/main_card_margin_vertical"
                     android:onClick="@{() -> self.request(Request.OpenProfiles)}"
                     app:icon="@drawable/ic_baseline_view_list"
-                    app:subtext="@{profileName != null ? @string/format_profile_activated(profileName) : @string/not_selected}"
+                    app:subtext="@{loading ? @string/initializing : (profileName != null ? @string/format_profile_activated(profileName) : @string/not_selected)}"
                     app:text="@string/profile" />
 
                 <com.github.kr328.clash.design.view.LargeActionLabel
@@ -112,7 +115,7 @@
                     android:layout_height="match_parent"
                     android:layout_marginVertical="@dimen/main_label_margin_vertical"
                     android:onClick="@{() -> self.request(Request.OpenProviders)}"
-                    android:visibility="@{clashRunning &amp;&amp; hasProviders ? View.VISIBLE : View.GONE}"
+                    android:visibility="@{clashRunning &amp;&amp; hasProviders &amp;&amp; !loading ? View.VISIBLE : View.GONE}"
                     app:icon="@drawable/ic_baseline_swap_vertical_circle"
                     app:text="@string/providers" />
 

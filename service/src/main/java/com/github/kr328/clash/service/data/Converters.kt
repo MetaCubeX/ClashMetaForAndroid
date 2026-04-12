@@ -1,6 +1,7 @@
 package com.github.kr328.clash.service.data
 
 import androidx.room.TypeConverter
+import com.github.kr328.clash.common.model.CoreMode
 import com.github.kr328.clash.service.model.Profile
 import java.util.*
 
@@ -23,5 +24,15 @@ class Converters {
     @TypeConverter
     fun toProfileType(type: String): Profile.Type {
         return Profile.Type.valueOf(type)
+    }
+
+    @TypeConverter
+    fun fromCoreMode(mode: CoreMode): String {
+        return mode.name
+    }
+
+    @TypeConverter
+    fun toCoreMode(mode: String): CoreMode {
+        return CoreMode.valueOf(mode)
     }
 }

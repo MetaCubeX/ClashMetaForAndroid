@@ -2,11 +2,14 @@ package com.github.kr328.clash.service
 
 import android.content.Intent
 import android.os.IBinder
+import android.os.Process
 import com.github.kr328.clash.service.remote.IClashManager
 import com.github.kr328.clash.service.remote.IRemoteService
 import com.github.kr328.clash.service.remote.IProfileManager
 import com.github.kr328.clash.service.remote.wrap
 import com.github.kr328.clash.service.util.cancelAndJoinBlocking
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
 class RemoteService : BaseService(), IRemoteService {
     private val binder = this.wrap()
@@ -42,5 +45,12 @@ class RemoteService : BaseService(), IRemoteService {
 
     override fun profile(): IProfileManager {
         return profileBinder!!
+    }
+
+    override fun reload() {
+        GlobalScope.launch {
+            android.os.SystemClock.sleep(200)
+            Process.killProcess(Process.myPid())
+        }
     }
 }

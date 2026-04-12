@@ -4,6 +4,7 @@ package com.github.kr328.clash.service.model
 
 import android.os.Parcel
 import android.os.Parcelable
+import com.github.kr328.clash.common.model.CoreMode
 import com.github.kr328.clash.core.util.Parcelizer
 import com.github.kr328.clash.service.util.UUIDSerializer
 import kotlinx.serialization.Serializable
@@ -22,6 +23,7 @@ data class Profile(
     var download: Long,
     val total: Long,
     val expire: Long,
+    val coreMode: CoreMode,
     val home: String?,
     val crisp: String?,
 

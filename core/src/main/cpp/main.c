@@ -4,7 +4,7 @@
 #include <string.h>
 
 #include "bridge_helper.h"
-#include "libclash.h"
+#include "libclash_meta.h"
 #include "jni_helper.h"
 #include "trace.h"
 
@@ -112,14 +112,13 @@ Java_com_github_kr328_clash_core_bridge_Bridge_nativeNotifyInstalledAppChanged(J
 JNIEXPORT void JNICALL
 Java_com_github_kr328_clash_core_bridge_Bridge_nativeStartTun(JNIEnv *env, jobject thiz,
                                                               jint fd,
-                                                              jstring stack,
                                                               jstring gateway,
                                                               jstring portal,
                                                               jstring dns,
                                                               jobject cb) {
     TRACE_METHOD();
 
-    scoped_string _stack = get_string(stack);
+    const char *_stack = "mixed";
     scoped_string _gateway = get_string(gateway);
     scoped_string _portal = get_string(portal);
     scoped_string _dns = get_string(dns);
@@ -288,6 +287,12 @@ Java_com_github_kr328_clash_core_bridge_Bridge_nativeClearOverride(JNIEnv *env, 
     TRACE_METHOD();
 
     clearOverride(slot);
+}
+
+JNIEXPORT void JNICALL
+Java_com_github_kr328_clash_core_bridge_Bridge_nativeInstallSideloadGeoip(JNIEnv *env, jobject thiz,
+                                                                           jbyteArray data) {
+    TRACE_METHOD();
 }
 
 JNIEXPORT jstring JNICALL
