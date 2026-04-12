@@ -92,8 +92,10 @@ private suspend fun migrationFromLegacy234(
                 type = newType,
                 source = if (newType != Profile.Type.File) cursor.getString(uri) else "",
                 interval = if (version == 2) intervalValue * 1000 else intervalValue,
-                0,0,0,0
-                )
+                0, 0, 0, 0,
+                null,
+                null
+            )
 
             val base = context.pendingDir.resolve(pending.uuid.toString())
 
@@ -166,7 +168,9 @@ private suspend fun migrationFromLegacy1(context: Context, legacy: SQLiteDatabas
                 type = newType,
                 source = source,
                 interval = 0,
-                0,0,0,0
+                0, 0, 0, 0,
+                null,
+                null
             )
 
             val base = context.pendingDir.resolve(pending.uuid.toString())

@@ -65,4 +65,9 @@ class ServiceStore(context: Context) {
         key = "dynamic_notification",
         defaultValue = true
     )
+
+    var sideloadGeoip by store.string(
+        key = "sideload_geoip",
+        defaultValue = ""
+    )
 }

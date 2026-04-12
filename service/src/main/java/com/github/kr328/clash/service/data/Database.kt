@@ -12,7 +12,7 @@ import java.lang.ref.SoftReference
 import androidx.room.Database as DB
 
 @DB(
-    version = 1,
+    version = 2,
     entities = [Imported::class, Pending::class, Selection::class],
     exportSchema = false,
 )

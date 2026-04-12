@@ -65,12 +65,12 @@ subprojects {
             resValue("integer", "release_code", "$versionCode")
 
             ndk {
-                abiFilters += listOf("arm64-v8a", "armeabi-v7a", "x86", "x86_64")
+                abiFilters += listOf("arm64-v8a", "armeabi-v7a")
             }
 
             externalNativeBuild {
                 cmake {
-                    abiFilters("arm64-v8a", "armeabi-v7a", "x86", "x86_64")
+                    abiFilters("arm64-v8a", "armeabi-v7a")
                 }
             }
 
@@ -89,6 +89,12 @@ subprojects {
             packagingOptions {
                 resources {
                     excludes.add("DebugProbesKt.bin")
+                }
+                jniLibs {
+                    pickFirsts += setOf(
+                        "**/libbridge.so",
+                        "**/libclash.so"
+                    )
                 }
             }
         }
@@ -188,7 +194,7 @@ subprojects {
                     isEnable = true
                     isUniversalApk = true
                     reset()
-                    include("arm64-v8a", "armeabi-v7a", "x86", "x86_64")
+                    include("arm64-v8a", "armeabi-v7a")
                 }
             }
         }

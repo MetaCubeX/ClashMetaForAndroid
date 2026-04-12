@@ -71,7 +71,9 @@ object Clash {
         markSocket: (Int) -> Boolean,
         querySocketUid: (protocol: Int, source: InetSocketAddress, target: InetSocketAddress) -> Int
     ) {
-        Bridge.nativeStartTun(fd, stack, gateway, portal, dns, object : TunInterface {
+        // Ninja's prebuilt bridge exposes the older 4-argument nativeStartTun JNI shape.
+        // Keep the public Kotlin API stable and ignore the stack hint in this experiment.
+        Bridge.nativeStartTun(fd, gateway, portal, dns, object : TunInterface {
             override fun markSocket(fd: Int) {
                 markSocket(fd)
             }
@@ -207,6 +209,10 @@ object Clash {
 
     fun clearOverride(slot: OverrideSlot) {
         Bridge.nativeClearOverride(slot.ordinal)
+    }
+
+    fun installSideloadGeoip(bytes: ByteArray) {
+        Bridge.nativeInstallSideloadGeoip(bytes)
     }
 
     fun queryConfiguration(): UiConfiguration {

@@ -18,5 +18,7 @@ data class Imported(
     @ColumnInfo(name = "download") val download: Long,
     @ColumnInfo(name = "total") val total: Long,
     @ColumnInfo(name = "expire") val expire: Long,
+    @ColumnInfo(name = "home") val home: String?,
+    @ColumnInfo(name = "crisp") val crisp: String?,
     @ColumnInfo(name = "createdAt") val createdAt: Long,
 )

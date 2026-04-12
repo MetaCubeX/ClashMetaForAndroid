@@ -33,6 +33,7 @@ class TunService : VpnService(), CoroutineScope by CoroutineScope(Dispatchers.De
         val tun = install(TunModule(self))
         val config = install(ConfigurationModule(self))
         val network = install(NetworkObserveModule(self))
+        val sideload = install(SideloadDatabaseModule(self))
 
         if (store.dynamicNotification)
             install(DynamicNotificationModule(self))
@@ -52,6 +53,11 @@ class TunService : VpnService(), CoroutineScope by CoroutineScope(Dispatchers.De
                         true
                     }
                     config.onEvent {
+                        reason = it.message
+
+                        true
+                    }
+                    sideload.onEvent {
                         reason = it.message
 
                         true

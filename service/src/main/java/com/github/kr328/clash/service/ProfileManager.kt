@@ -22,11 +22,14 @@ import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.io.FileNotFoundException
-import java.math.BigDecimal
 import java.util.*
 
 class ProfileManager(private val context: Context) : IProfileManager,
     CoroutineScope by CoroutineScope(Dispatchers.IO) {
+    private companion object {
+        const val subscriptionUserAgent = "Ninja/2.10.4"
+    }
+
     private val store = ServiceStore(context)
 
     init {
@@ -49,6 +52,8 @@ class ProfileManager(private val context: Context) : IProfileManager,
             total = 0,
             download = 0,
             expire = 0,
+            home = null,
+            crisp = null,
         )
 
         PendingDao().insert(pending)
@@ -81,6 +86,8 @@ class ProfileManager(private val context: Context) : IProfileManager,
             total = imported.total,
             download = imported.download,
             expire = imported.expire,
+            home = imported.home,
+            crisp = imported.crisp,
         )
 
         cloneImportedFiles(uuid, newUUID)
@@ -110,6 +117,8 @@ class ProfileManager(private val context: Context) : IProfileManager,
                     total = 0,
                     download = 0,
                     expire = 0,
+                    home = imported.home,
+                    crisp = imported.crisp,
                 )
             )
         } else {
@@ -130,7 +139,7 @@ class ProfileManager(private val context: Context) : IProfileManager,
     override suspend fun update(uuid: UUID) {
         scheduleUpdate(uuid, true)
         ImportedDao().queryByUUID(uuid)?.let {
-            if (it.type == Profile.Type.Url && it.source.startsWith("https://",true)) {
+            if (it.type == Profile.Type.Url && it.source.isRemoteUrl()) {
                 updateFlow(it)
             }
         }
@@ -139,67 +148,43 @@ class ProfileManager(private val context: Context) : IProfileManager,
     suspend fun updateFlow(old: Imported) {
         val client = OkHttpClient()
         try {
-            val versionName = context.packageManager.getPackageInfo(context.packageName, 0).versionName
             val request = Request.Builder()
                 .url(old.source)
-                .header("User-Agent", "ClashMetaForAndroid/$versionName")
+                .header("User-Agent", subscriptionUserAgent)
                 .build()
 
             client.newCall(request).execute().use { response ->
-                if (!response.isSuccessful || response.headers["subscription-userinfo"] == null) return
-
-                var upload: Long = 0
-                var download: Long = 0
-                var total: Long = 0
-                var expire: Long = 0
-
-                val userinfo = response.headers["subscription-userinfo"]
-                if (response.isSuccessful && userinfo != null) {
-
-                    val flags = userinfo.split(";")
-                    for (flag in flags) {
-                        val info = flag.split("=")
-                        when {
-                            info[0].contains("upload") && info[1].isNotEmpty() -> upload =
-                                BigDecimal(info[1].split('.').first()).longValueExact()
-
-                            info[0].contains("download") && info[1].isNotEmpty() -> download =
-                                BigDecimal(info[1].split('.').first()).longValueExact()
-
-                            info[0].contains("total") && info[1].isNotEmpty() ->  total =
-                                BigDecimal(info[1].split('.').first()).longValueExact()
-
-                            info[0].contains("expire") && info[1].isNotEmpty() -> {
-                                if (info[1].isNotEmpty()) {
-                                    expire = (info[1].toDouble()*1000).toLong()
-                                }
-                            }
-                        }
-                    }
-                }
+                val parsed = ProfileProcessor.parseResponseHeaders(
+                    response = response,
+                    interval = old.interval,
+                    name = old.name,
+                    upload = old.upload,
+                    download = old.download,
+                    total = old.total,
+                    expire = old.expire,
+                    home = old.home,
+                    crisp = old.crisp
+                )
 
                 val new = Imported(
                     old.uuid,
-                    old.name,
+                    parsed.name,
                     old.type,
                     old.source,
-                    old.interval,
-                    upload,
-                    download,
-                    total,
-                    expire,
-                    old?.createdAt ?: System.currentTimeMillis()
+                    parsed.interval,
+                    parsed.upload,
+                    parsed.download,
+                    parsed.total,
+                    parsed.expire,
+                    parsed.home,
+                    parsed.crisp,
+                    old.createdAt
                 )
 
-                if (old != null) {
-                    ImportedDao().update(new)
-                } else {
-                    ImportedDao().insert(new)
-                }
+                ImportedDao().update(new)
 
                 PendingDao().remove(new.uuid)
                 context.sendProfileChanged(new.uuid)
-                // println(response.body!!.string())
             }
 
         } catch (e: Exception) {
@@ -264,6 +249,8 @@ class ProfileManager(private val context: Context) : IProfileManager,
         val download = pending?.download ?: imported?.download ?: return null
         val total = pending?.total ?: imported?.total ?: return null
         val expire = pending?.expire ?: imported?.expire ?: return null
+        val home = pending?.home ?: imported?.home
+        val crisp = pending?.crisp ?: imported?.crisp
 
         return Profile(
             uuid,
@@ -276,6 +263,8 @@ class ProfileManager(private val context: Context) : IProfileManager,
             download,
             total,
             expire,
+            home,
+            crisp,
             resolveUpdatedAt(uuid),
             imported != null,
             pending != null
@@ -308,5 +297,9 @@ class ProfileManager(private val context: Context) : IProfileManager,
         } else {
             ProfileReceiver.scheduleNext(context, imported)
         }
+    }
+
+    private fun String.isRemoteUrl(): Boolean {
+        return startsWith("https://", true) || startsWith("http://", true)
     }
 }

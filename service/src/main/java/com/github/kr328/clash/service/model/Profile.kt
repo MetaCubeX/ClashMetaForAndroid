@@ -22,7 +22,8 @@ data class Profile(
     var download: Long,
     val total: Long,
     val expire: Long,
-
+    val home: String?,
+    val crisp: String?,
 
     val updatedAt: Long,
     val imported: Boolean,
