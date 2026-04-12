@@ -1,12 +1,7 @@
 package com.github.kr328.clash
 
-import android.content.ComponentName
-import android.content.pm.PackageManager
-import androidx.core.content.pm.ShortcutManagerCompat
-import com.github.kr328.clash.common.util.componentName
 import com.github.kr328.clash.design.AppSettingsDesign
 import com.github.kr328.clash.design.model.Behavior
-import com.github.kr328.clash.design.store.UiStore.Companion.mainActivityAlias
 import com.github.kr328.clash.service.store.ServiceStore
 import com.github.kr328.clash.util.ApplicationObserver
 import kotlinx.coroutines.isActive
@@ -18,9 +13,9 @@ class AppSettingsActivity : BaseActivity<AppSettingsDesign>(), Behavior {
             this,
             uiStore,
             ServiceStore(this),
-            this,
+            createAppSettingsBehavior(),
             clashRunning,
-            ::onHideIconChange,
+            ::updateMainActivityAliasVisibility,
         )
 
         setContentDesign(design)
@@ -44,40 +39,8 @@ class AppSettingsActivity : BaseActivity<AppSettingsDesign>(), Behavior {
     }
 
     override var autoRestart: Boolean
-        get() {
-            val status = packageManager.getComponentEnabledSetting(
-                RestartReceiver::class.componentName
-            )
-
-            return status == PackageManager.COMPONENT_ENABLED_STATE_ENABLED
-        }
+        get() = createAppSettingsBehavior().autoRestart
         set(value) {
-            val status = if (value)
-                PackageManager.COMPONENT_ENABLED_STATE_ENABLED
-            else
-                PackageManager.COMPONENT_ENABLED_STATE_DISABLED
-
-            packageManager.setComponentEnabledSetting(
-                RestartReceiver::class.componentName,
-                status,
-                PackageManager.DONT_KILL_APP,
-            )
+            createAppSettingsBehavior().autoRestart = value
         }
-
-    private fun onHideIconChange(hide: Boolean) {
-        val newState = if (hide) {
-            PackageManager.COMPONENT_ENABLED_STATE_DISABLED
-        } else {
-            PackageManager.COMPONENT_ENABLED_STATE_ENABLED
-        }
-        packageManager.setComponentEnabledSetting(
-            mainActivityAlias,
-            newState,
-            PackageManager.DONT_KILL_APP
-        )
-        if (hide) {
-            // Prevent launcher activity not found.
-            ShortcutManagerCompat.removeAllDynamicShortcuts(this)
-        }
-    }
 }

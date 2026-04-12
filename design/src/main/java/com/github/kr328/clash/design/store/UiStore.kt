@@ -8,6 +8,7 @@ import com.github.kr328.clash.common.store.asStoreProvider
 import com.github.kr328.clash.core.model.ProxySort
 import com.github.kr328.clash.design.model.AppInfoSort
 import com.github.kr328.clash.design.model.DarkMode
+import com.github.kr328.clash.design.model.ThemeMode
 
 class UiStore(context: Context) {
     private val store = Store(
@@ -25,6 +26,12 @@ class UiStore(context: Context) {
         key = "dark_mode",
         defaultValue = DarkMode.Auto,
         values = DarkMode.values()
+    )
+
+    var themeMode: ThemeMode by store.enum(
+        key = "theme_mode",
+        defaultValue = ThemeMode.Dynamic,
+        values = ThemeMode.values()
     )
 
     var hideAppIcon: Boolean by store.boolean(

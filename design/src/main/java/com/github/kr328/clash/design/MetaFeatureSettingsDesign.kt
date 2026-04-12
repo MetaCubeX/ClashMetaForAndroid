@@ -12,7 +12,8 @@ import kotlin.coroutines.resume
 
 class MetaFeatureSettingsDesign(
     context: Context,
-    configuration: ConfigurationOverride
+    configuration: ConfigurationOverride,
+    embedded: Boolean = false,
 ) : Design<MetaFeatureSettingsDesign.Request>(context) {
     enum class Request {
         ResetOverride, ImportGeoIp, ImportGeoSite, ImportCountry, ImportASN
@@ -46,10 +47,12 @@ class MetaFeatureSettingsDesign(
 
     init {
         binding.self = this
+        binding.embedded = embedded
 
-        binding.activityBarLayout.applyFrom(context)
-
-        binding.scrollRoot.bindAppBarElevation(binding.activityBarLayout)
+        if (!embedded) {
+            binding.activityBarLayout.applyFrom(context)
+            binding.scrollRoot.bindAppBarElevation(binding.activityBarLayout)
+        }
 
         val booleanValues: Array<Boolean?> = arrayOf(
             null,

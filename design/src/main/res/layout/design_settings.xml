@@ -25,7 +25,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:paddingTop="@{(float) self.surface.insets.top + @dimen/toolbar_height}"
+                android:paddingTop="@{self.surface.insets.top}"
                 android:paddingBottom="@{self.surface.insets.bottom}">
 
                 <com.github.kr328.clash.design.view.ActionLabel
@@ -58,16 +58,6 @@
 
             </LinearLayout>
         </com.github.kr328.clash.design.view.ObservableScrollView>
-
-        <com.github.kr328.clash.design.view.ActivityBarLayout
-            android:id="@+id/activity_bar_layout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingTop="@{self.surface.insets.top}"
-            android:paddingEnd="@dimen/item_tailing_margin">
-
-            <include layout="@layout/common_activity_bar" />
-        </com.github.kr328.clash.design.view.ActivityBarLayout>
 
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 </layout>

@@ -17,5 +17,6 @@ dependencies {
     implementation(libs.androidx.recyclerview)
     implementation(libs.androidx.fragment)
     implementation(libs.androidx.viewpager)
+    implementation(libs.androidx.slidingpane)
     implementation(libs.google.material)
 }

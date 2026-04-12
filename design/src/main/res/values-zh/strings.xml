@@ -14,6 +14,9 @@
     <string name="clash_logcat">Clash 日志捕捉工具</string>
     <string name="create_profile">创建配置</string>
     <string name="dark_mode">暗黑模式</string>
+    <string name="theme_style">主题风格</string>
+    <string name="dynamic_color">动态配色</string>
+    <string name="classic_theme">经典主题</string>
     <string name="default_">默认</string>
     <string name="delay">延迟</string>
     <string name="delete">删除</string>
@@ -48,6 +51,7 @@
     <string name="interface_">界面</string>
     <string name="invalid_url">无效的 URL</string>
     <string name="logcat">Logcat</string>
+    <string name="main_interface">主界面</string>
     <string name="logs">日志</string>
     <string name="mode">模式</string>
     <string name="name">名称</string>

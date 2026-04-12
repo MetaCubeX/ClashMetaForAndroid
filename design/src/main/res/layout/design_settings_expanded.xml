@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <data>
+        <variable
+            name="self"
+            type="com.github.kr328.clash.design.ExpandedSettingsDesign" />
+    </data>
+
+    <androidx.slidingpanelayout.widget.SlidingPaneLayout
+        android:id="@+id/sliding_pane_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingStart="@{self.surface.insets.start}"
+        android:paddingTop="@{(float) self.surface.insets.top + @dimen/settings_split_top_spacing}"
+        android:paddingEnd="@{self.surface.insets.end}"
+        android:paddingBottom="@{self.surface.insets.bottom}">
+
+        <LinearLayout
+            android:layout_width="@dimen/settings_split_rail_width"
+            android:layout_height="match_parent"
+            android:layout_marginEnd="@dimen/settings_split_gap"
+            android:orientation="vertical">
+
+            <com.google.android.material.navigationrail.NavigationRailView
+                android:id="@+id/settings_sections_navigation"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@android:color/transparent"
+                app:labelVisibilityMode="labeled"
+                app:menu="@menu/menu_settings_sections" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/settings_split_header_bottom_spacing"
+                android:paddingStart="@dimen/main_padding_horizontal"
+                android:paddingEnd="@dimen/item_tailing_margin">
+
+                <TextView
+                    android:id="@+id/settings_section_title_view"
+                    android:layout_width="wrap_content"
+                    android:layout_height="@dimen/toolbar_height"
+                    android:gravity="center_vertical"
+                    android:textAppearance="@style/TextAppearance.Material3.HeadlineSmall" />
+
+                <ImageView
+                    android:id="@+id/settings_section_reset_view"
+                    android:layout_width="@dimen/item_tailing_component_size"
+                    android:layout_height="@dimen/item_tailing_component_size"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:clickable="true"
+                    android:contentDescription="@string/reset"
+                    android:focusable="true"
+                    android:onClick="@{() -> self.requestReset()}"
+                    android:padding="@dimen/toolbar_image_action_padding"
+                    android:src="@drawable/ic_baseline_replay" />
+            </RelativeLayout>
+
+            <FrameLayout
+                android:id="@+id/settings_detail_container"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:paddingStart="@dimen/main_padding_horizontal"
+                android:paddingEnd="@dimen/main_padding_horizontal" />
+        </LinearLayout>
+    </androidx.slidingpanelayout.widget.SlidingPaneLayout>
+</layout>

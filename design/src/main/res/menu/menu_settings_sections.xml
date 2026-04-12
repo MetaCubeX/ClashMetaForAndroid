@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/navigation_settings_app"
+        android:icon="@drawable/ic_baseline_settings"
+        android:title="@string/app" />
+    <item
+        android:id="@+id/navigation_settings_network"
+        android:icon="@drawable/ic_baseline_dns"
+        android:title="@string/network" />
+    <item
+        android:id="@+id/navigation_settings_override"
+        android:icon="@drawable/ic_baseline_extension"
+        android:title="@string/override" />
+    <item
+        android:id="@+id/navigation_settings_meta_feature"
+        android:icon="@drawable/ic_baseline_meta"
+        android:title="@string/meta_features" />
+</menu>

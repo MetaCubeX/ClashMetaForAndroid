@@ -23,6 +23,7 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.coordinator)
     implementation(libs.androidx.recyclerview)
+    implementation(libs.androidx.window.core)
     implementation(libs.google.material)
     implementation(libs.quickie.bundled)
     implementation(libs.androidx.activity.ktx)

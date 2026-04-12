@@ -19,7 +19,8 @@ import kotlin.coroutines.resume
 
 class OverrideSettingsDesign(
     context: Context,
-    configuration: ConfigurationOverride
+    configuration: ConfigurationOverride,
+    embedded: Boolean = false,
 ) : Design<OverrideSettingsDesign.Request>(context) {
     enum class Request {
         ResetOverride
@@ -53,10 +54,12 @@ class OverrideSettingsDesign(
 
     init {
         binding.self = this
+        binding.embedded = embedded
 
-        binding.activityBarLayout.applyFrom(context)
-
-        binding.scrollRoot.bindAppBarElevation(binding.activityBarLayout)
+        if (!embedded) {
+            binding.activityBarLayout.applyFrom(context)
+            binding.scrollRoot.bindAppBarElevation(binding.activityBarLayout)
+        }
 
         val booleanValues: Array<Boolean?> = arrayOf(
             null,

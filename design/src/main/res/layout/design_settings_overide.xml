@@ -4,13 +4,18 @@
         <variable
             name="self"
             type="com.github.kr328.clash.design.OverrideSettingsDesign" />
+        <variable
+            name="embedded"
+            type="Boolean" />
+
+        <import type="android.view.View" />
     </data>
 
     <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:paddingStart="@{self.surface.insets.start}"
-        android:paddingEnd="@{self.surface.insets.end}">
+        android:paddingStart="@{embedded ? 0 : self.surface.insets.start}"
+        android:paddingEnd="@{embedded ? 0 : self.surface.insets.end}">
 
         <com.github.kr328.clash.design.view.ObservableScrollView
             android:id="@+id/scroll_root"
@@ -22,15 +27,16 @@
                 android:id="@+id/content"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:paddingTop="@{(float) self.surface.insets.top + @dimen/toolbar_height}"
-                android:paddingBottom="@{self.surface.insets.bottom}" />
+                android:paddingTop="@{embedded ? 0f : ((float) self.surface.insets.top + @dimen/toolbar_height)}"
+                android:paddingBottom="@{embedded ? 0 : self.surface.insets.bottom}" />
         </com.github.kr328.clash.design.view.ObservableScrollView>
 
         <com.github.kr328.clash.design.view.ActivityBarLayout
             android:id="@+id/activity_bar_layout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingTop="@{self.surface.insets.top}">
+            android:paddingTop="@{embedded ? 0 : self.surface.insets.top}"
+            android:visibility="@{embedded ? View.GONE : View.VISIBLE}">
 
             <RelativeLayout
                 android:layout_width="match_parent"

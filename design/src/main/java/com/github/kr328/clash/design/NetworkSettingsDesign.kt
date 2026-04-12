@@ -20,6 +20,7 @@ class NetworkSettingsDesign(
     uiStore: UiStore,
     srvStore: ServiceStore,
     running: Boolean,
+    embedded: Boolean = false,
 ) : Design<NetworkSettingsDesign.Request>(context) {
     enum class Request {
         StartAccessControlList
@@ -33,10 +34,12 @@ class NetworkSettingsDesign(
 
     init {
         binding.surface = surface
+        binding.embedded = embedded
 
-        binding.activityBarLayout.applyFrom(context)
-
-        binding.scrollRoot.bindAppBarElevation(binding.activityBarLayout)
+        if (!embedded) {
+            binding.activityBarLayout.applyFrom(context)
+            binding.scrollRoot.bindAppBarElevation(binding.activityBarLayout)
+        }
 
         val screen = preferenceScreen(context) {
             val vpnDependencies: MutableList<Preference> = mutableListOf()

@@ -3,11 +3,13 @@
 import com.android.build.gradle.AppExtension
 import com.android.build.gradle.BaseExtension
 import java.net.URL
+import java.text.SimpleDateFormat
 import java.util.*
 
 buildscript {
     repositories {
         mavenCentral()
+        maven("https://maven.aliyun.com/repository/google")
         google()
         maven("https://raw.githubusercontent.com/MetaCubeX/maven-backup/main/releases")
     }
@@ -23,11 +25,13 @@ buildscript {
 subprojects {
     repositories {
         mavenCentral()
+        maven("https://maven.aliyun.com/repository/google")
         google()
         maven("https://raw.githubusercontent.com/MetaCubeX/maven-backup/main/releases")
     }
 
     val isApp = name == "app"
+    val debugBuildStamp = SimpleDateFormat("yyyyMMdd.HHmm", Locale.US).format(Date())
 
     apply(plugin = if (isApp) "com.android.application" else "com.android.library")
 
@@ -176,7 +180,7 @@ subprojects {
                 )
             }
             named("debug") {
-                versionNameSuffix = ".debug"
+                versionNameSuffix = ".debug-$debugBuildStamp"
             }
         }
 

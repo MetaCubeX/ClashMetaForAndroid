@@ -20,7 +20,6 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         OpenProfiles,
         OpenProviders,
         OpenLogs,
-        OpenSettings,
         OpenHelp,
         OpenAbout,
     }
@@ -81,7 +80,7 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
     init {
         binding.self = this
 
-        binding.colorClashStarted = context.resolveThemedColor(com.google.android.material.R.attr.colorPrimary)
+        binding.colorClashStarted = context.resolveThemedColor(androidx.appcompat.R.attr.colorPrimary)
         binding.colorClashStopped = context.resolveThemedColor(R.attr.colorClashStopped)
     }
 

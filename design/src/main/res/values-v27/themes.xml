@@ -1,6 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="AppFullScreenDialogLight" parent="AppFullScreenDialogLightBase">
+    <style name="AppFullScreenDialogLightClassic" parent="AppFullScreenDialogLightBase">
+        <item name="colorPrimary">@color/color_clash_light</item>
+        <item name="colorOnPrimary">@android:color/white</item>
+        <item name="colorControlNormal">@android:color/black</item>
+        <item name="colorClashStopped">@color/color_light_clash_stopped</item>
+        <item name="colorControlDisabled">@color/color_light_control_disabled</item>
+        <item name="colorSecondary">?attr/colorPrimary</item>
+        <item name="colorOnSecondary">?attr/colorOnPrimary</item>
+        <item name="colorControlActivated">?attr/colorPrimary</item>
+        <item name="android:textColor">?attr/colorControlNormal</item>
+        <item name="android:windowBackground">@color/color_light_background</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
         <item name="android:navigationBarDividerColor">@android:color/transparent</item>
@@ -8,7 +18,18 @@
         <item name="android:windowLightNavigationBar">true</item>
     </style>
 
-    <style name="AppFullScreenDialogDark" parent="AppFullScreenDialogDarkBase">
+    <style name="AppFullScreenDialogDarkClassic" parent="AppFullScreenDialogDarkBase">
+        <item name="colorPrimary">@color/color_clash_dark</item>
+        <item name="colorOnPrimary">@android:color/white</item>
+        <item name="colorSurface">@color/color_dark_surface</item>
+        <item name="colorControlNormal">@android:color/white</item>
+        <item name="colorControlDisabled">@color/color_dark_control_disabled</item>
+        <item name="colorSecondary">?attr/colorPrimary</item>
+        <item name="colorOnSecondary">?attr/colorOnPrimary</item>
+        <item name="colorControlActivated">?attr/colorPrimary</item>
+        <item name="colorClashStopped">?attr/colorSurface</item>
+        <item name="android:textColor">?attr/colorControlNormal</item>
+        <item name="android:windowBackground">@color/color_dark_background</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
         <item name="android:navigationBarDividerColor">@android:color/transparent</item>
@@ -16,7 +37,16 @@
         <item name="android:windowLightNavigationBar">false</item>
     </style>
 
-    <style name="AppBottomSheetDialogLight" parent="AppBottomSheetDialogLightBase">
+    <style name="AppBottomSheetDialogLightClassic" parent="AppBottomSheetDialogLightBase">
+        <item name="colorPrimary">@color/color_clash_light</item>
+        <item name="colorOnPrimary">@android:color/white</item>
+        <item name="colorControlNormal">@android:color/black</item>
+        <item name="colorClashStopped">@color/color_light_clash_stopped</item>
+        <item name="colorControlDisabled">@color/color_light_control_disabled</item>
+        <item name="colorSecondary">?attr/colorPrimary</item>
+        <item name="colorOnSecondary">?attr/colorOnPrimary</item>
+        <item name="colorControlActivated">?attr/colorPrimary</item>
+        <item name="android:textColor">?attr/colorControlNormal</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
         <item name="android:navigationBarDividerColor">@android:color/transparent</item>
@@ -24,7 +54,17 @@
         <item name="android:windowLightNavigationBar">true</item>
     </style>
 
-    <style name="AppBottomSheetDialogDark" parent="AppBottomSheetDialogDarkBase">
+    <style name="AppBottomSheetDialogDarkClassic" parent="AppBottomSheetDialogDarkBase">
+        <item name="colorPrimary">@color/color_clash_dark</item>
+        <item name="colorOnPrimary">@android:color/white</item>
+        <item name="colorSurface">@color/color_dark_surface</item>
+        <item name="colorControlNormal">@android:color/white</item>
+        <item name="colorControlDisabled">@color/color_dark_control_disabled</item>
+        <item name="colorSecondary">?attr/colorPrimary</item>
+        <item name="colorOnSecondary">?attr/colorOnPrimary</item>
+        <item name="colorControlActivated">?attr/colorPrimary</item>
+        <item name="colorClashStopped">?attr/colorSurface</item>
+        <item name="android:textColor">?attr/colorControlNormal</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
         <item name="android:navigationBarDividerColor">@android:color/transparent</item>
@@ -32,7 +72,20 @@
         <item name="android:windowLightNavigationBar">false</item>
     </style>
 
-    <style name="AppThemeLight" parent="AppThemeLightBase">
+    <style name="AppThemeLightClassic" parent="AppThemeLightBase">
+        <item name="android:windowBackground">@color/color_light_background</item>
+        <item name="colorPrimary">@color/color_clash_light</item>
+        <item name="colorOnPrimary">@android:color/white</item>
+        <item name="colorControlNormal">@android:color/black</item>
+        <item name="colorClashStopped">@color/color_light_clash_stopped</item>
+        <item name="colorControlDisabled">@color/color_light_control_disabled</item>
+        <item name="colorSecondary">?attr/colorPrimary</item>
+        <item name="colorOnSecondary">?attr/colorOnPrimary</item>
+        <item name="colorControlActivated">?attr/colorPrimary</item>
+        <item name="colorLogo">?attr/colorControlActivated</item>
+        <item name="android:textColor">?attr/colorControlNormal</item>
+        <item name="bottomSheetDialogTheme">@style/AppBottomSheetDialogLightClassic</item>
+        <item name="fullScreenDialogTheme">@style/AppFullScreenDialogLightClassic</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
         <item name="android:navigationBarDividerColor">@android:color/transparent</item>
@@ -40,7 +93,69 @@
         <item name="android:windowLightNavigationBar">true</item>
     </style>
 
-    <style name="AppThemeDark" parent="AppThemeDarkBase">
+    <style name="AppThemeDarkClassic" parent="AppThemeDarkBase">
+        <item name="android:windowBackground">@color/color_dark_background</item>
+        <item name="colorPrimary">@color/color_clash_dark</item>
+        <item name="colorOnPrimary">@android:color/white</item>
+        <item name="colorSurface">@color/color_dark_surface</item>
+        <item name="colorControlNormal">@android:color/white</item>
+        <item name="colorControlDisabled">@color/color_dark_control_disabled</item>
+        <item name="colorSecondary">?attr/colorPrimary</item>
+        <item name="colorOnSecondary">?attr/colorOnPrimary</item>
+        <item name="colorControlActivated">?attr/colorPrimary</item>
+        <item name="colorClashStopped">?attr/colorSurface</item>
+        <item name="colorLogo">?attr/colorControlNormal</item>
+        <item name="android:textColor">?attr/colorControlNormal</item>
+        <item name="bottomSheetDialogTheme">@style/AppBottomSheetDialogDarkClassic</item>
+        <item name="fullScreenDialogTheme">@style/AppFullScreenDialogDarkClassic</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarDividerColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+    </style>
+
+    <style name="AppFullScreenDialogLightDynamic" parent="AppFullScreenDialogLightBase">
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarDividerColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar">true</item>
+    </style>
+
+    <style name="AppFullScreenDialogDarkDynamic" parent="AppFullScreenDialogDarkBase">
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarDividerColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+    </style>
+
+    <style name="AppBottomSheetDialogLightDynamic" parent="AppBottomSheetDialogLightBase">
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarDividerColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar">true</item>
+    </style>
+
+    <style name="AppBottomSheetDialogDarkDynamic" parent="AppBottomSheetDialogDarkBase">
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarDividerColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+    </style>
+
+    <style name="AppThemeLightDynamic" parent="AppThemeLightBase">
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarDividerColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar">true</item>
+    </style>
+
+    <style name="AppThemeDarkDynamic" parent="AppThemeDarkBase">
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
         <item name="android:navigationBarDividerColor">@android:color/transparent</item>

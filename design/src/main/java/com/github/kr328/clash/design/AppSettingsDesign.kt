@@ -5,6 +5,7 @@ import android.view.View
 import com.github.kr328.clash.design.databinding.DesignSettingsCommonBinding
 import com.github.kr328.clash.design.model.Behavior
 import com.github.kr328.clash.design.model.DarkMode
+import com.github.kr328.clash.design.model.ThemeMode
 import com.github.kr328.clash.design.preference.*
 import com.github.kr328.clash.design.store.UiStore
 import com.github.kr328.clash.design.util.applyFrom
@@ -20,6 +21,7 @@ class AppSettingsDesign(
     behavior: Behavior,
     running: Boolean,
     onHideIconChange: (hide: Boolean) -> Unit,
+    embedded: Boolean = false,
 ) : Design<AppSettingsDesign.Request>(context) {
     enum class Request {
         ReCreateAllActivities
@@ -33,10 +35,12 @@ class AppSettingsDesign(
 
     init {
         binding.surface = surface
+        binding.embedded = embedded
 
-        binding.activityBarLayout.applyFrom(context)
-
-        binding.scrollRoot.bindAppBarElevation(binding.activityBarLayout)
+        if (!embedded) {
+            binding.activityBarLayout.applyFrom(context)
+            binding.scrollRoot.bindAppBarElevation(binding.activityBarLayout)
+        }
 
         val screen = preferenceScreen(context) {
             category(R.string.behavior)
@@ -60,6 +64,21 @@ class AppSettingsDesign(
                 ),
                 icon = R.drawable.ic_baseline_brightness_4,
                 title = R.string.dark_mode
+            ) {
+                listener = OnChangedListener {
+                    requests.trySend(Request.ReCreateAllActivities)
+                }
+            }
+
+            selectableList(
+                value = uiStore::themeMode,
+                values = ThemeMode.values(),
+                valuesText = arrayOf(
+                    R.string.dynamic_color,
+                    R.string.classic_theme
+                ),
+                icon = R.drawable.ic_baseline_settings,
+                title = R.string.theme_style
             ) {
                 listener = OnChangedListener {
                     requests.trySend(Request.ReCreateAllActivities)

@@ -15,9 +15,10 @@ class PopupListAdapter(
     private val texts: List<CharSequence>,
     private val selected: Int,
 ) : BaseAdapter() {
-    private val colorPrimary = context.resolveThemedColor(com.google.android.material.R.attr.colorPrimary)
+    private val colorPrimary = context.resolveThemedColor(androidx.appcompat.R.attr.colorPrimary)
     private val colorOnPrimary = context.resolveThemedColor(com.google.android.material.R.attr.colorOnPrimary)
-    private val colorControlNormal = context.resolveThemedColor(com.google.android.material.R.attr.colorControlNormal)
+    private val colorSurface = context.resolveThemedColor(com.google.android.material.R.attr.colorSurface)
+    private val colorOnSurface = context.resolveThemedColor(com.google.android.material.R.attr.colorOnSurface)
 
     override fun getCount(): Int {
         return texts.size
@@ -38,6 +39,7 @@ class PopupListAdapter(
         val text: TextView = view.findViewById(android.R.id.text1)
 
         text.text = texts[position]
+        text.setBackgroundColor(colorSurface)
 
         if (position == selected) {
             text.setBackgroundColor(
@@ -50,8 +52,7 @@ class PopupListAdapter(
             )
             text.setTextColor(colorOnPrimary)
         } else {
-            text.setBackgroundColor(Color.TRANSPARENT)
-            text.setTextColor(colorControlNormal)
+            text.setTextColor(colorOnSurface)
         }
 
         return view

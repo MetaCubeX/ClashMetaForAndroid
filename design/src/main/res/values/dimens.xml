@@ -24,6 +24,7 @@
     <dimen name="bottom_sheet_background_padding_top">10dp</dimen>
     <dimen name="bottom_sheet_header_height">5dp</dimen>
     <dimen name="bottom_sheet_menu_items_padding">5dp</dimen>
+    <dimen name="bottom_navigation_height">80dp</dimen>
 
     <!-- Large Item -->
     <dimen name="large_item_padding_vertical">15dp</dimen>
@@ -60,8 +61,13 @@
     <dimen name="main_card_margin_vertical">5dp</dimen>
     <dimen name="main_label_margin_vertical">2dp</dimen>
     <dimen name="main_padding_horizontal">30dp</dimen>
+    <dimen name="main_padding_top_extra">24dp</dimen>
     <dimen name="main_logo_size">50dp</dimen>
     <dimen name="main_top_banner_height">90dp</dimen>
+    <dimen name="settings_split_rail_width">180dp</dimen>
+    <dimen name="settings_split_gap">20dp</dimen>
+    <dimen name="settings_split_top_spacing">20dp</dimen>
+    <dimen name="settings_split_header_bottom_spacing">12dp</dimen>
 
     <!--  Proxy Design -->
     <dimen name="proxy_layout_padding">3dp</dimen>

@@ -3,8 +3,15 @@
 
     <style name="ThemeOverlay" />
 
+    <style name="ThemeOverlay.MainCard">
+        <item name="colorControlNormal">@android:color/white</item>
+        <item name="android:textColor">@android:color/white</item>
+    </style>
+
     <style name="ThemeOverlay.ControlColorError">
         <item name="colorControlNormal">@color/color_error</item>
         <item name="android:textColor">@color/color_error</item>
     </style>
+
+    <style name="Widget.App.MaterialSwitch" parent="Widget.Material3.CompoundButton.MaterialSwitch" />
 </resources>

@@ -5,6 +5,7 @@ import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
 import android.view.View
+import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContract
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.getSystemService
@@ -15,6 +16,7 @@ import com.github.kr328.clash.common.compat.isSystemBarsTranslucentCompat
 import com.github.kr328.clash.core.bridge.ClashException
 import com.github.kr328.clash.design.Design
 import com.github.kr328.clash.design.model.DarkMode
+import com.github.kr328.clash.design.model.ThemeMode
 import com.github.kr328.clash.design.store.UiStore
 import com.github.kr328.clash.design.ui.DayNight
 import com.github.kr328.clash.design.util.resolveThemedBoolean
@@ -24,6 +26,7 @@ import com.github.kr328.clash.remote.Broadcasts
 import com.github.kr328.clash.remote.Remote
 import com.github.kr328.clash.util.ActivityResultLifecycle
 import com.github.kr328.clash.util.ApplicationObserver
+import com.google.android.material.color.DynamicColors
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import java.util.*
@@ -37,6 +40,8 @@ abstract class BaseActivity<D : Design<*>> : AppCompatActivity(),
     Broadcasts.Observer {
     
     protected val uiStore by lazy { UiStore(this) }
+    internal val uiPreferences: UiStore
+        get() = uiStore
     protected val events = Channel<Event>(Channel.UNLIMITED)
     protected var activityStarted: Boolean = false
     protected val clashRunning: Boolean
@@ -44,12 +49,35 @@ abstract class BaseActivity<D : Design<*>> : AppCompatActivity(),
     protected var design: D? = null
         set(value) {
             field = value
+            val host = designRootHost
             if (value != null) {
-                setContentView(value.root)
+                if (host != null) {
+                    val nextRoot = value.root
+                    val currentRoot = host.getChildAt(0)
+
+                    if (currentRoot === nextRoot && host.childCount == 1) {
+                        return
+                    }
+
+                    (nextRoot.parent as? ViewGroup)?.removeView(nextRoot)
+                    repeat(host.childCount) { index ->
+                        host.getChildAt(index).animate().cancel()
+                    }
+                    host.removeAllViews()
+                    nextRoot.alpha = 1f
+                    host.addView(nextRoot)
+                } else {
+                    setContentView(value.root)
+                }
             } else {
-                setContentView(View(this))
+                if (host != null) {
+                    host.removeAllViews()
+                } else {
+                    setContentView(View(this))
+                }
             }
         }
+    protected var designRootHost: ViewGroup? = null
 
     private var defer: suspend () -> Unit = {}
     private var deferRunning = false
@@ -86,9 +114,19 @@ abstract class BaseActivity<D : Design<*>> : AppCompatActivity(),
         }
     }
 
+    protected suspend fun setActivityContent(content: View, designHost: ViewGroup? = null) {
+        suspendCoroutine<Unit> {
+            window.decorView.post {
+                designRootHost = designHost
+                setContentView(content)
+                it.resume(Unit)
+            }
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
         applyDayNight()
+        super.onCreate(savedInstanceState)
 
         // Apply excludeFromRecents setting to all app tasks.
         checkNotNull(getSystemService<ActivityManager>()).appTasks.forEach { task ->
@@ -198,9 +236,31 @@ abstract class BaseActivity<D : Design<*>> : AppCompatActivity(),
 
     private fun applyDayNight(config: Configuration = resources.configuration) {
         val dayNight = queryDayNight(config)
+        val useDynamicTheme =
+            uiStore.themeMode == ThemeMode.Dynamic && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
         when (dayNight) {
-            DayNight.Night -> theme.applyStyle(R.style.AppThemeDark, true)
-            DayNight.Day -> theme.applyStyle(R.style.AppThemeLight, true)
+            DayNight.Night -> {
+                val style = if (useDynamicTheme) {
+                    R.style.AppThemeDarkDynamic
+                } else {
+                    R.style.AppThemeDarkClassic
+                }
+
+                theme.applyStyle(style, true)
+            }
+            DayNight.Day -> {
+                val style = if (useDynamicTheme) {
+                    R.style.AppThemeLightDynamic
+                } else {
+                    R.style.AppThemeLightClassic
+                }
+
+                theme.applyStyle(style, true)
+            }
+        }
+
+        if (useDynamicTheme) {
+            DynamicColors.applyToActivityIfAvailable(this)
         }
 
         window.isAllowForceDarkCompat = false

@@ -50,8 +50,6 @@ class LogsDesign(context: Context) : Design<LogsDesign.Request>(context) {
     init {
         binding.self = this
 
-        binding.activityBarLayout.applyFrom(context)
-
         binding.recyclerList.applyLinearAdapter(context, adapter)
     }
 }
