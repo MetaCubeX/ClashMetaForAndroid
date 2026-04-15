@@ -73,7 +73,7 @@ android {
                 "proguard-rules.pro"
             )
         }
-        named("debug") {
+        debug {
             versionNameSuffix = ".debug"
         }
     }
