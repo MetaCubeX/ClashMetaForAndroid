@@ -1,10 +1,10 @@
 ## Clash Meta for Android
 
-A Graphical user interface of [Clash.Meta](https://github.com/MetaCubeX/Clash.Meta) for Android
+A Graphical user interface of [Clash.Meta](https://github.com/MetaCubeX/mihomo) for Android
 
 ### Feature
 
-Feature of [Clash.Meta](https://github.com/MetaCubeX/Clash.Meta)
+Feature of [Clash.Meta](https://github.com/MetaCubeX/mihomo)
 
 [<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png"
      alt="Get it on F-Droid"
