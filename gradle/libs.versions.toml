@@ -36,5 +36,5 @@ android-library = { id = "com.android.library", version.ref = "agp" }
 android-legacyKapt = { id = "com.android.legacy-kapt", version.ref = "agp" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 ksp = "com.google.devtools.ksp:2.3.6"
-golang = "io.github.goooler.golang:0.1.0"
+golang = "io.github.goooler.golang:0.1.1"
 download = "de.undercouch.download:5.7.0"
