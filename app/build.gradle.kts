@@ -13,8 +13,8 @@ android {
     defaultConfig {
         applicationId = "com.github.metacubex.clash"
         targetSdk = 35
-        versionCode = 211023
-        versionName = "2.11.23"
+        versionCode = 211026
+        versionName = "2.11.26"
         resValue("integer", "release_code", versionCode.toString())
         resValue("string", "release_name", "v$versionName")
         ndk.abiFilters += listOf("arm64-v8a", "armeabi-v7a", "x86", "x86_64")
@@ -29,6 +29,7 @@ android {
 
     productFlavors {
         named("alpha") {
+            isDefault = true
             resValue("string", "launch_name", "@string/launch_name_alpha")
             resValue("string", "application_name", "@string/application_name_alpha")
             if (!removeSuffix) {
@@ -37,7 +38,6 @@ android {
             }
         }
         named("meta") {
-            isDefault = true
             resValue("string", "launch_name", "@string/launch_name_meta")
             resValue("string", "application_name", "@string/application_name_meta")
             if (!removeSuffix) {

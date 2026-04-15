@@ -4,8 +4,8 @@ cmake_minimum_required(VERSION 4.0)
 
 message(STATUS "CMAKE_CURRENT_SOURCE_DIR= ${CMAKE_CURRENT_SOURCE_DIR}")
 execute_process(
-  COMMAND git submodule foreach git log -1 --format=%H   
-  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} 
+  COMMAND git submodule foreach git log -1 --format=%H
+  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
   OUTPUT_VARIABLE COMMIT_HASH
 )
 string(REPLACE "\n" ";" COMMIT_HASH "${COMMIT_HASH}")
@@ -17,7 +17,7 @@ message(STATUS "git hash= ${COMMIT_HASH}")
 # 获取分支名称
 execute_process(
   COMMAND git submodule foreach git branch -r --contains ${COMMIT_HASH}
-  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} 
+  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
   OUTPUT_VARIABLE CURRENT_BRANCH
 )
 string(REPLACE "\n" ";" CURRENT_BRANCH "${CURRENT_BRANCH}")

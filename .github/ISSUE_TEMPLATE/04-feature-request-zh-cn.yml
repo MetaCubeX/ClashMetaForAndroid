@@ -1,0 +1,27 @@
+name: "[简体中文] 功能请求"
+description: "您希望的能够在应用中增加功能"
+title: "[Feature Request] "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢您在百忙之中填写此功能请求报告。
+
+        注意: 请务必在上方文本框的 `[Feature Request]` **之后**填写清晰明了的标题。
+
+        <!-- template -->
+  - type: textarea
+    id: "description"
+    attributes:
+      label: "功能描述"
+      description: |
+        简介明了的描述此功能。
+    validations:
+      required: true
+  - type: textarea
+    id: "additional"
+    attributes:
+      label: "附加信息"
+      description: |
+        与此功能相关的其他附加信息。

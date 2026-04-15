@@ -1,0 +1,108 @@
+name: "[简体中文] 错误报告"
+description: "创建错误报告以帮助我们修正应用"
+title: "[BUG] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢您在百忙之中填写此错误报告。
+
+        注意: 请务必在上方文本框的 `[BUG]` **之后**填写清晰明了的标题。
+
+        注意：这里不提供像是代理服务器之类的服务，请不要反馈非应用自身引起的问题。
+
+        <!-- template -->
+  - type: textarea
+    id: description
+    attributes:
+      label: "描述此错误"
+      description: "请清晰简洁的描述你遇到的错误。"
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: "如何复现该错误"
+      description: "复现步骤:"
+      value: |
+        步骤 1: ...
+        步骤 2: ...
+        步骤 3: ...
+        ...
+    validations:
+      required: true
+  - type: textarea
+    id: device-info
+    attributes:
+      label: "设备信息"
+      description: |
+        输入您正在使用的设备信息。
+
+        例子:
+        - 机型: Pixel 4
+        - 系统类型: MIUI/AOSP
+        - Android 版本: 10
+      value: |
+        - 机型:
+        - 系统类型:
+        - Android 版本:
+    validations:
+      required: true
+  - type: textarea
+    id: app-info
+    attributes:
+      label: "应用信息"
+      description: |
+        输入您正在使用的应用信息。
+
+        例子:
+        ```
+        - 版本: 2.5.4-premium
+        - 安装包文件名: cfa-2.5.4-premium-arm64-v8a-release.apk
+        - 应用来源: Google Play
+        ```
+      value: |
+        - 版本:
+        - 安装包文件名:
+        - 应用来源:
+    validations:
+      required: true
+  - type: textarea
+    id: configure
+    attributes:
+      render: yml
+      label: "配置文件"
+      description: |
+        请在此粘贴和上传配置文件。
+
+        提示：如果您仅有一个订阅链接，请使用浏览器打开此链接以下载配置文件。
+
+        **注意: 请在上传配置文件前，移除其中的代理服务器信息。**
+        **注意: 请在上传配置文件前，移除其中的代理服务器信息。**
+        **注意: 请在上传配置文件前，移除其中的代理服务器信息。**
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      render: raw
+      label: "日志"
+      description: |
+        请在此粘贴或上传日志。
+
+        提示: 请使用应用内的 `Logcat` 或 `adb logcat` 捕获日志. `adb logcat` 能更好地帮助侦测问题.
+    validations:
+      required: true
+  - type: textarea
+    id: screenshot
+    attributes:
+      label: "屏幕截图"
+      description: "如果适用，请在此粘贴或上传屏幕截图。"
+      placeholder: "可选"
+  - type: textarea
+    id: additional
+    attributes:
+      label: "附加信息"
+      description: "其他的可能与改错误相关的信息。"
+      placeholder: "可选"

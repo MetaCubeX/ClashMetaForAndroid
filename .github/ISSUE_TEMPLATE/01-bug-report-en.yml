@@ -1,0 +1,107 @@
+name: "[English] Bug Report"
+description: "Create a report to help us debug bugs"
+title: "[BUG] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report!
+
+        NOTE: Be sure to put a clear and concise title **AFTER** `[BUG]` in the text box above.
+
+        NOTE: We do not provide any services such as proxies, DO NOT feedback any problems not caused by this application here.
+
+        <!-- template -->
+  - type: textarea
+    id: description
+    attributes:
+      label: "Describe the bug"
+      description: "A clear and concise description of what the bug is."
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: "To Reproduce"
+      description: "Steps to reproduce the behavior:"
+      value: |
+        Step 1: ...
+        Step 2: ...
+        Step 3: ...
+        ...
+    validations:
+      required: true
+  - type: textarea
+    id: device-info
+    attributes:
+      label: "Device Info"
+      description: |
+        Input your device information.
+
+        Example:
+        - Device: Pixel 4
+        - ROM: AOSP
+        - Android Version: 10
+      value: |
+        - Device:
+        - ROM:
+        - Android Version:
+    validations:
+      required: true
+  - type: textarea
+    id: app-info
+    attributes:
+      label: "Application Info"
+      description: |
+        Input application you are using information.
+
+        Example:
+        ```
+        - Version: 2.5.4-premium
+        - APK filename: cfa-2.5.4-premium-arm64-v8a-release.apk
+        - Distribution Channel: Google Play
+        ```
+      value: |
+        - Version:
+        - APK filename:
+        - Distribution Channel:
+    validations:
+      required: true
+  - type: textarea
+    id: configure
+    attributes:
+      render: yml
+      label: "Configure File"
+      description: |
+        Please paste or upload the configuration file here.
+
+        TIPS: If you only have a subscription link, please use your browser to download it.
+
+        **NOTE: Please remove proxies from the configuration file before uploading it.**
+        **NOTE: Please remove proxies from the configuration file before uploading it.**
+        **NOTE: Please remove proxies from the configuration file before uploading it.**
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      render: raw
+      label: "Logs"
+      description: |
+        Please paste or upload the log file here.
+
+        TIPS: Please use the `Logcat` in application or `adb logcat`. `adb logcat` would be better.
+    validations:
+      required: true
+  - type: textarea
+    id: screenshot
+    attributes:
+      label: "Screenshot"
+      description: "If applicable, add screenshots to help explain your problem."
+      placeholder: "Optional"
+  - type: textarea
+    id: additional
+    attributes:
+      label: "Additional"
+      description: "Add any other context about the problem here."
