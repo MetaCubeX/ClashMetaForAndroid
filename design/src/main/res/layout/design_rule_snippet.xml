@@ -55,7 +55,16 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
                     android:text="@string/rule_existing_providers"
-                    android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle2" />
+                    android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1"
+                    android:textColor="?attr/colorPrimary" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:alpha="0.75"
+                    android:text="@string/rule_existing_provider_toggle_hint"
+                    android:textAppearance="@style/TextAppearance.MaterialComponents.Body2" />
 
                 <LinearLayout
                     android:id="@+id/provider_items_container"

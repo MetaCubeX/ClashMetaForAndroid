@@ -1,10 +1,7 @@
 package com.github.kr328.clash.design
 
 import android.content.Context
-import android.view.Gravity
 import android.view.View
-import android.widget.CompoundButton
-import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.TextView
 import com.github.kr328.clash.design.databinding.DesignRuleSnippetBinding
@@ -13,15 +10,12 @@ import com.github.kr328.clash.design.util.applyFrom
 import com.github.kr328.clash.design.util.layoutInflater
 import com.github.kr328.clash.design.util.root
 import com.github.kr328.clash.service.model.RuleProviderItem
-import com.google.android.material.switchmaterial.SwitchMaterial
+import com.google.android.material.color.MaterialColors
 
 class RuleSnippetDesign(context: Context) : Design<RuleSnippetDesign.Request>(context) {
     sealed class Request {
         object OpenCreateSheet : Request()
         object OpenManualRules : Request()
-        data class ToggleProvider(val id: String, val name: String, val enabled: Boolean) : Request()
-        data class DeleteProvider(val id: String, val name: String) : Request()
-        data class EditProvider(val id: String, val name: String) : Request()
     }
 
     private val binding = DesignRuleSnippetBinding
@@ -45,32 +39,10 @@ class RuleSnippetDesign(context: Context) : Design<RuleSnippetDesign.Request>(co
         if (existingProviders.isNotEmpty()) {
             existingProviders.forEach { provider ->
                 container.addView(
-                    buildRowSwitch(
+                    buildExistingProviderRow(
                         title = provider.name,
                         subtitle = provider.url,
-                        checked = provider.enabled,
-                    ) { checked ->
-                        requests.trySend(Request.ToggleProvider(provider.id, provider.name, checked))
-                    }.also { row ->
-                        val actions = LinearLayout(context).apply {
-                            orientation = LinearLayout.HORIZONTAL
-                        }
-                        val edit = ImageButton(context).apply {
-                            setImageResource(R.drawable.ic_baseline_edit)
-                            background = null
-                            layoutParams = LinearLayout.LayoutParams(80, 80).apply { marginEnd = 8 }
-                            setOnClickListener { requests.trySend(Request.EditProvider(provider.id, provider.name)) }
-                        }
-                        val delete = ImageButton(context).apply {
-                            setImageResource(R.drawable.ic_baseline_delete)
-                            background = null
-                            layoutParams = LinearLayout.LayoutParams(80, 80)
-                            setOnClickListener { requests.trySend(Request.DeleteProvider(provider.id, provider.name)) }
-                        }
-                        actions.addView(edit)
-                        actions.addView(delete)
-                        (row as LinearLayout).addView(actions)
-                    }
+                    ),
                 )
             }
             return
@@ -82,35 +54,43 @@ class RuleSnippetDesign(context: Context) : Design<RuleSnippetDesign.Request>(co
         })
     }
 
-    private fun buildRowSwitch(
+    /** Read-only: name + URL (no edit/delete; manage RULE-SET in Routing). */
+    private fun buildExistingProviderRow(
         title: String,
         subtitle: String?,
-        checked: Boolean,
-        onChecked: (Boolean) -> Unit,
     ): View {
         val row = LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            ).apply { topMargin = 8 }
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+            ).apply { topMargin = 10 }
             setPadding(0, 8, 0, 8)
         }
-        val sw = SwitchMaterial(context).apply {
-            text = title
-            isChecked = checked
-            setOnCheckedChangeListener { _: CompoundButton, isCheckedNow: Boolean ->
-                onChecked(isCheckedNow)
-            }
-        }
-        row.addView(sw)
+        row.addView(
+            TextView(context).apply {
+                text = title
+                setTextAppearance(com.google.android.material.R.style.TextAppearance_MaterialComponents_Subtitle1)
+                try {
+                    setTextColor(MaterialColors.getColor(this, com.google.android.material.R.attr.colorPrimary))
+                } catch (_: IllegalArgumentException) {
+                    setTextColor(MaterialColors.getColor(this, com.google.android.material.R.attr.colorOnSurface))
+                }
+            },
+        )
         if (!subtitle.isNullOrBlank()) {
-            row.addView(TextView(context).apply {
-                text = subtitle
-                textSize = 12f
-                alpha = 0.7f
-                gravity = Gravity.START
-            })
+            row.addView(
+                TextView(context).apply {
+                    text = subtitle
+                    setTextAppearance(com.google.android.material.R.style.TextAppearance_MaterialComponents_Body2)
+                    try {
+                        setTextColor(MaterialColors.getColor(this, com.google.android.material.R.attr.colorOnSurfaceVariant))
+                    } catch (_: IllegalArgumentException) {
+                        alpha = 0.75f
+                    }
+                    maxLines = 4
+                },
+            )
         }
         return row
     }

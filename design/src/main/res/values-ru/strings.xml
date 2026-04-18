@@ -15,6 +15,9 @@
     <string name="home_proxy">Прокси</string>
     <string name="proxy_nodes_empty_connect_vpn">Узлы из proxy-providers появляются в ядре после запуска VPN. Включите VPN и выберите реальный узел (sub1/sub2 — это ключи провайдеров в YAML, не имена прокси).</string>
 
+    <string name="import_failed_title">Не удалось импортировать подписку</string>
+    <string name="import_failed_open_editor">Редактировать подписку</string>
+
     <string name="profiles">Профили</string>
     <string name="not_selected">Не выбран</string>
     <string name="format_profile_activated">%s активирован</string>
@@ -394,14 +397,15 @@
 
     <string name="proxy_chain_menu">Цепочка прокси…</string>
     <string name="proxy_chain_title">Цепочка прокси</string>
-    <string name="proxy_chain_intro">Сначала исходящий, затем dialer. Dialer — только как дойти до сервера исходящего; сайты обычно видят регион исходящего (последний узел), а не dialer — например, Испания на выходе → испанский каталог, даже если dialer в Швеции. В конфиг пишется dialer-proxy. Обновление подписки может перезаписать файлы провайдеров — при необходимости настройте снова.</string>
+    <string name="proxy_chain_intro">Путь трафика: Dialer → исходящий → интернет. Сначала выберите dialer (первый хоп от приложения), затем исходящий (выходной узел, чей регион видят сайты). В конфиг пишется dialer-proxy. Обновление подписки может перезаписать файлы провайдеров — при необходимости настройте снова.</string>
+    <string name="proxy_chain_transport_hint">Для стабильной цепочки обычно нужны совместимые транспорты на обоих узлах (например оба TCP/TLS). Смешение разных стеков (QUIC и только TCP, разные ожидания TLS и т.д.) часто ломает цепочку — при сомнении подбирайте одинаковый тип инбаунда.</string>
     <string name="proxy_chain_usage_hint">«Использовать цепочку»: сохраняет dialer-proxy, включает Global и выбирает этот исходящий — как «Connect» на десктопе. «Только в профиль»: только запись в YAML без смены режима и селектора. В Rule по-прежнему действуют правила; для цепочки нужен Global или правила, ведущие на этот узел.</string>
-    <string name="proxy_chain_outbound_label">Исходящий (получит dialer-proxy)</string>
-    <string name="proxy_chain_dialer_label">Dialer (апстрим)</string>
+    <string name="proxy_chain_dialer_label">Шаг 1 — Dialer (первый хоп)</string>
+    <string name="proxy_chain_outbound_label">Шаг 2 — Исходящий (выход)</string>
     <string name="proxy_chain_connect">Использовать цепочку</string>
     <string name="proxy_chain_connecting">Выполняется…</string>
     <string name="proxy_chain_status_working">Сохраняем dialer-proxy, перезагрузка профиля, переключение в Global…</string>
-    <string name="proxy_chain_status_success">Готово — режим Global и исходящий выбраны.\nИсходящий: %1$s\nDialer (в YAML): %2$s</string>
+    <string name="proxy_chain_status_success">Готово — режим Global и исходящий выбраны.\nDialer (в YAML): %2$s\nИсходящий: %1$s</string>
     <string name="proxy_chain_status_saved_only">YAML обновлён (dialer-proxy). Режим туннеля и селекторы не менялись.</string>
     <string name="proxy_chain_save_only_summary">Нужно только если сохранить цепочку без переключения в Global — например остаетесь в Rule или правите офлайн и выберете узел позже.</string>
     <string name="proxy_chain_save_only">Только сохранить в профиль</string>
@@ -409,7 +413,7 @@
     <string name="proxy_chain_connected">Цепочка сохранена — включён Global и выбран исходящий.</string>
     <string name="proxy_chain_connect_selector_failed">Цепочка сохранена, но исходящий не выбрался — укажите его в Global.</string>
     <string name="proxy_chain_connect_need_vpn">Включите VPN — нужен живой список прокси.</string>
-    <string name="proxy_chain_pick_outbound_group">Выберите группу, в которой исходящий (верхний спиннер).</string>
+    <string name="proxy_chain_pick_outbound_group">Выберите группу для исходящего (шаг 2).</string>
     <string name="proxy_chain_clear">Снять dialer с исходящего</string>
     <string name="proxy_chain_no_groups">Сначала запустите VPN и загрузите профиль.</string>
     <string name="proxy_chain_pick_outbound">Выберите исходящий прокси.</string>
@@ -430,4 +434,5 @@
 
     <string name="rule_manual_custom_kind">Тип правила Clash</string>
     <string name="rule_manual_content_payload_hint">Значение (домен, IP/CIDR, порт, …)</string>
+    <string name="rule_existing_provider_toggle_hint">Чтобы отключить набор правил, откройте «Маршрутизация» (ручные правила) и выключите строку RULE-SET — не отключайте провайдера в этом списке.</string>
 </resources>

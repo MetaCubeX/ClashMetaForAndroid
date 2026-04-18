@@ -42,18 +42,9 @@ class RuleSnippetActivity : BaseActivity<RuleSnippetDesign>() {
             select<Unit> {
                 design.requests.onReceive {
                     when (it) {
-                        RuleSnippetDesign.Request.OpenCreateSheet -> launch { showCreateSheet(design, null) }
+                        RuleSnippetDesign.Request.OpenCreateSheet -> launch { showCreateSheet(design) }
                         RuleSnippetDesign.Request.OpenManualRules ->
                             startActivity(EffectiveRulesActivity::class.intent)
-                        is RuleSnippetDesign.Request.ToggleProvider -> launch {
-                            mutateProvider(design, it.id, it.name) { p -> p.copy(enabled = it.enabled) }
-                        }
-                        is RuleSnippetDesign.Request.DeleteProvider -> launch {
-                            deleteProvider(design, it.id, it.name)
-                        }
-                        is RuleSnippetDesign.Request.EditProvider -> launch {
-                            showCreateSheet(design, it.id, it.name)
-                        }
                     }
                 }
             }
@@ -68,11 +59,7 @@ class RuleSnippetActivity : BaseActivity<RuleSnippetDesign>() {
         design.patchExistingProviders(state.providers)
     }
 
-    private suspend fun showCreateSheet(
-        design: RuleSnippetDesign,
-        editingProviderId: String?,
-        editingProviderName: String? = null,
-    ) {
+    private suspend fun showCreateSheet(design: RuleSnippetDesign) {
         val uuid = withProfile { queryActive()?.uuid }
         if (uuid == null) {
             design.showToast(DesignR.string.no_profile_selected, ToastDuration.Long)
@@ -82,10 +69,6 @@ class RuleSnippetActivity : BaseActivity<RuleSnippetDesign>() {
         val state = withProfile { readRuleState(uuid) }
             ?.let { runCatching { json.decodeFromString(RuleState.serializer(), it) }.getOrNull() }
             ?: RuleState()
-        val editingProvider = state.providers.firstOrNull { p ->
-            (editingProviderId != null && p.id == editingProviderId) ||
-                (editingProviderName != null && p.name.equals(editingProviderName, true))
-        }
 
         val dialog = AppBottomSheetDialog(this, fitContentHeight = true)
         val view = layoutInflater.inflate(R.layout.bottom_sheet_rules_create, null)
@@ -163,16 +146,7 @@ class RuleSnippetActivity : BaseActivity<RuleSnippetDesign>() {
         view.findViewById<Spinner>(R.id.spinner_manual_custom_kind).adapter =
             ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, customKindOptions)
 
-        title.text = if (editingProvider != null) getString(DesignR.string.edit) else getString(DesignR.string.rule_add_new)
-        if (editingProvider != null) {
-            typeSpinner.setSelection(1, false)
-            view.findViewById<TextInputEditText>(R.id.input_provider_name).setText(editingProvider.name)
-            view.findViewById<TextInputEditText>(R.id.input_provider_url).setText(editingProvider.url)
-            view.findViewById<SwitchMaterial>(R.id.switch_provider_enabled).isChecked = editingProvider.enabled
-            val behaviors = listOf("classical", "domain", "ipcidr")
-            view.findViewById<Spinner>(R.id.spinner_provider_behavior)
-                .setSelection(behaviors.indexOf(editingProvider.behavior).coerceAtLeast(0), false)
-        }
+        title.text = getString(DesignR.string.rule_add_new)
 
         fun insertModeFromSpinner(s: Spinner): String = when (s.selectedItemPosition) {
             1 -> "prepend"
@@ -291,7 +265,7 @@ class RuleSnippetActivity : BaseActivity<RuleSnippetDesign>() {
                         }
                     }
                     1 -> {
-                        applyProviderFromSheet(uuid, state, editingProvider, view)
+                        applyProviderFromSheet(uuid, state, null, view)
                     }
                     else -> {
                         val line = manualLineFromSheet(view) ?: ""
@@ -417,43 +391,6 @@ class RuleSnippetActivity : BaseActivity<RuleSnippetDesign>() {
     private fun preferredPolicy(all: List<String>): String {
         val builtIn = setOf("DIRECT", "REJECT", "REJECT-DROP", "PASS")
         return all.firstOrNull { it.uppercase() !in builtIn } ?: "DIRECT"
-    }
-
-    private suspend fun mutateProvider(
-        design: RuleSnippetDesign,
-        providerId: String,
-        providerName: String?,
-        transform: (com.github.kr328.clash.service.model.RuleProviderItem) -> com.github.kr328.clash.service.model.RuleProviderItem,
-    ) {
-        val uuid = withProfile { queryActive()?.uuid } ?: return
-        val state = withProfile { readRuleState(uuid) }
-            ?.let { runCatching { json.decodeFromString(RuleState.serializer(), it) }.getOrNull() }
-            ?: return
-        val next = state.copy(
-            providers = state.providers.map {
-                if (it.id == providerId || (providerName != null && it.name.equals(providerName, true))) transform(it) else it
-            }
-        )
-        val ok = withProfile { applyRuleState(uuid, json.encodeToString(RuleState.serializer(), next)) }
-        if (ok) refreshExistingProviders(design)
-    }
-
-    private suspend fun deleteProvider(design: RuleSnippetDesign, providerId: String, providerName: String?) {
-        val uuid = withProfile { queryActive()?.uuid } ?: return
-        val state = withProfile { readRuleState(uuid) }
-            ?.let { runCatching { json.decodeFromString(RuleState.serializer(), it) }.getOrNull() }
-            ?: return
-        val provider = state.providers.firstOrNull {
-            it.id == providerId || (providerName != null && it.name.equals(providerName, true))
-        } ?: return
-        val next = state.copy(
-            providers = state.providers.filterNot { it.id == providerId },
-            rules = state.rules.map { r ->
-                if (r.providerName.equals(provider.name, true)) r.copy(deleted = true, enabled = false) else r
-            }
-        )
-        val ok = withProfile { applyRuleState(uuid, json.encodeToString(RuleState.serializer(), next)) }
-        if (ok) refreshExistingProviders(design)
     }
 
     private suspend fun loadAvailableProxyGroups(uuid: UUID): List<String> {

@@ -47,6 +47,8 @@
     <string name="home_import_url_row">🔗  从 URL</string>
     <string name="home_qr">二维码</string>
     <string name="import_done_named">已导入为「%s」</string>
+    <string name="import_failed_title">无法导入订阅</string>
+    <string name="import_failed_open_editor">编辑订阅</string>
     <string name="import_resolving">正在获取订阅…</string>
     <string name="launch_name_alpha">ClashFest Alpha</string>
     <string name="launch_name_meta">ClashFest</string>
@@ -139,6 +141,7 @@
     <string name="rule_draft_provider_title">草稿提供商（未保存）</string>
     <string name="rule_existing_providers">已有提供商</string>
     <string name="rule_existing_providers_empty">活动配置中尚无提供商。</string>
+    <string name="rule_existing_provider_toggle_hint">要关闭规则集，请打开“手动规则”并禁用对应的 RULE-SET 行（请勿在此处关闭提供商）。</string>
     <string name="rule_insert_append">追加到底部</string>
     <string name="rule_insert_mode">新规则插入方式</string>
     <string name="rule_insert_prepend">插入到顶部</string>
