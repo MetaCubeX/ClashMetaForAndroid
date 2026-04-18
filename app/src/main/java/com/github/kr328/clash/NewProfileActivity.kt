@@ -5,6 +5,7 @@ import android.content.ComponentName
 import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.lifecycle.lifecycleScope
 import com.github.kr328.clash.common.constants.Intents
@@ -14,6 +15,7 @@ import com.github.kr328.clash.common.util.setUUID
 import com.github.kr328.clash.design.NewProfileDesign
 import com.github.kr328.clash.design.R
 import com.github.kr328.clash.design.model.ProfileProvider
+import com.github.kr328.clash.design.ui.ToastDuration
 import com.github.kr328.clash.design.util.showExceptionToast
 import com.github.kr328.clash.service.model.Profile
 import com.github.kr328.clash.util.withProfile
@@ -187,15 +189,49 @@ class NewProfileActivity : BaseActivity<NewProfileDesign>() {
     }
 
     private suspend fun createProfileByQrCode(url: String) {
-        val name = SubscriptionNameGuesser.guess(self, url)
-        withProfile {
-            launchProperties(
-                create(
-                    type = Profile.Type.Url,
-                    name = name,
-                    url,
-                ),
-            )
+        val trimmed = url.trim()
+        if (!trimmed.startsWith("http://", ignoreCase = true) &&
+            !trimmed.startsWith("https://", ignoreCase = true)
+        ) {
+            design?.showToast(R.string.invalid_url, ToastDuration.Long)
+            return
+        }
+        val d = design ?: return
+        d.showToast(R.string.import_resolving, ToastDuration.Short)
+        val name = SubscriptionNameGuesser.guess(self, trimmed)
+        val uuid = withProfile {
+            create(Profile.Type.Url, name, trimmed)
+        }
+        try {
+            withProfile { commit(uuid) }
+        } catch (e: Exception) {
+            showImportCommitFailureDialog(uuid, e)
+            return
+        }
+        val profile = withProfile { queryByUUID(uuid) }
+        if (profile?.imported == true) {
+            withProfile { setActive(profile) }
+            d.showToast(getString(R.string.import_done_named, name), ToastDuration.Long)
+            finish()
+        } else {
+            launchProperties(uuid)
+        }
+    }
+
+    /** Commit failed after QR scan: show error in a dialog first; Properties only if user chooses. */
+    private suspend fun showImportCommitFailureDialog(uuid: UUID, e: Throwable) {
+        withContext(Dispatchers.Main) {
+            val raw = e.message?.trim().orEmpty().ifBlank { e.javaClass.simpleName }
+            val msg = if (raw.length > 6000) raw.take(6000) + "…" else raw
+            MaterialAlertDialogBuilder(self)
+                .setTitle(getString(R.string.import_failed_title))
+                .setMessage(msg)
+                .setNegativeButton(android.R.string.cancel, null)
+                .setPositiveButton(getString(R.string.import_failed_open_editor)) { _, _ ->
+                    // Do not use suspend startActivityForResult from a dialog click — it can fail to open; plain start is reliable.
+                    startActivity(PropertiesActivity::class.intent.setUUID(uuid))
+                }
+                .show()
         }
     }
 
