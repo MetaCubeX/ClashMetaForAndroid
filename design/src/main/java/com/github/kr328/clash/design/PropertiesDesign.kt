@@ -115,10 +115,12 @@ class PropertiesDesign(context: Context) : Design<PropertiesDesign.Request>(cont
         val p = profile
         suppressFieldSync = true
         try {
-            binding.editName.setText(p.name)
-            binding.editUrl.setText(p.source)
             val minutes = TimeUnit.MILLISECONDS.toMinutes(p.interval)
-            binding.editInterval.setText(if (minutes == 0L) "" else minutes.toString())
+            val intervalText = if (minutes == 0L) "" else minutes.toString()
+            // Avoid setText when unchanged — setText resets the cursor and breaks inline rename (issue #2).
+            if (binding.editName.text?.toString() != p.name) binding.editName.setText(p.name)
+            if (binding.editUrl.text?.toString() != p.source) binding.editUrl.setText(p.source)
+            if (binding.editInterval.text?.toString() != intervalText) binding.editInterval.setText(intervalText)
         } finally {
             suppressFieldSync = false
         }
