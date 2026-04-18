@@ -87,7 +87,7 @@ class ProfileWorker : BaseService() {
                 ProfileProcessor.update(this, imported.uuid, null)
             }
 
-            completed(imported.uuid, imported.name)
+            completed(imported.uuid)
 
             ProfileReceiver.scheduleNext(this, imported)
         } catch (e: Exception) {
@@ -169,17 +169,8 @@ class ProfileWorker : BaseService() {
             .setGroup(RESULT_CHANNEL)
     }
 
-    private fun completed(uuid: UUID, name: String) {
-        val id = UndefinedIds.next()
-
-        val notification = resultBuilder(id, uuid)
-            .setContentTitle(getString(R.string.update_successfully))
-            .setContentText(getString(R.string.format_update_complete, name))
-            .build()
-
-        NotificationManagerCompat.from(this)
-            .notify(id, notification)
-
+    private fun completed(uuid: UUID) {
+        // No system notification on success — callers use broadcast; avoids noisy "subscription updated" toasts.
         sendProfileUpdateCompleted(uuid)
     }
 
