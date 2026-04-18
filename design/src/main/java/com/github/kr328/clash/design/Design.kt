@@ -33,15 +33,15 @@ abstract class Design<R>(val context: Context) :
         configure: Snackbar.() -> Unit = {}
     ) {
         withContext(Dispatchers.Main) {
-            Snackbar.make(
-                root,
-                message,
-                when (duration) {
-                    ToastDuration.Short -> Snackbar.LENGTH_SHORT
-                    ToastDuration.Long -> Snackbar.LENGTH_LONG
-                    ToastDuration.Indefinite -> Snackbar.LENGTH_INDEFINITE
-                }
-            ).apply(configure).show()
+            val len = when (duration) {
+                ToastDuration.Short -> Snackbar.LENGTH_SHORT
+                ToastDuration.Long -> Snackbar.LENGTH_LONG
+                ToastDuration.Indefinite -> Snackbar.LENGTH_INDEFINITE
+            }
+            Snackbar.make(root, message, len).apply {
+                root.findViewById<View>(R.id.main_bottom_bar)?.let { anchorView = it }
+                configure()
+            }.show()
         }
     }
 

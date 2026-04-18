@@ -499,8 +499,7 @@ class MainActivity : BaseActivity<MainDesign>() {
         try {
             withProfile { commit(uuid) }
         } catch (e: Exception) {
-            design.showExceptionToast(e)
-            launchProperties(uuid)
+            showImportCommitFailureDialog(uuid, e)
             return
         }
         val profile = withProfile { queryByUUID(uuid) }
@@ -518,6 +517,21 @@ class MainActivity : BaseActivity<MainDesign>() {
             ActivityResultContracts.StartActivityForResult(),
             PropertiesActivity::class.intent.setUUID(uuid)
         )
+    }
+
+    private suspend fun showImportCommitFailureDialog(uuid: UUID, e: Throwable) {
+        withContext(Dispatchers.Main) {
+            val raw = e.message?.trim().orEmpty().ifBlank { e.javaClass.simpleName }
+            val msg = if (raw.length > 6000) raw.take(6000) + "…" else raw
+            MaterialAlertDialogBuilder(this@MainActivity)
+                .setTitle(getString(R.string.import_failed_title))
+                .setMessage(msg)
+                .setNegativeButton(android.R.string.cancel, null)
+                .setPositiveButton(getString(R.string.import_failed_open_editor)) { _, _ ->
+                    startActivity(PropertiesActivity::class.intent.setUUID(uuid))
+                }
+                .show()
+        }
     }
 
     private suspend fun showProxyYamlDialog(title: String, body: String) {
