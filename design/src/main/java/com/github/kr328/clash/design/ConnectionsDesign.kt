@@ -52,7 +52,10 @@ class ConnectionsDesign(context: Context) : Design<ConnectionsDesign.Request>(co
                     searchJob?.cancel()
                     searchJob = launch {
                         delay(250)
-                        applyFilteredList()
+                        // Unconfined scope resumes after delay off the main thread; UI updates must run on Main.
+                        withContext(Dispatchers.Main) {
+                            applyFilteredList()
+                        }
                     }
                 }
             },
@@ -93,6 +96,7 @@ class ConnectionsDesign(context: Context) : Design<ConnectionsDesign.Request>(co
         if (c.rule.lowercase().contains(q)) return true
         if (c.rulePayload.lowercase().contains(q)) return true
         if (c.chains.any { it.lowercase().contains(q) }) return true
+        if (c.providerChains.any { it.lowercase().contains(q) }) return true
         val m = c.metadata ?: return false
         return sequenceOf(
             m.host,
