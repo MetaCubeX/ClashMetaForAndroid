@@ -68,8 +68,11 @@ func QueryProxyGroupNames(excludeNotSelectable bool) []string {
 	}
 
 	for _, p := range proxies {
-		if _, ok := p.Adapter().(outboundgroup.ProxyGroup); ok {
+		if g, ok := p.Adapter().(outboundgroup.ProxyGroup); ok {
 			if !excludeNotSelectable || p.Type() == C.Selector {
+				if g.Hidden() {
+					continue
+				}
 				result = append(result, p.Name())
 			}
 		}

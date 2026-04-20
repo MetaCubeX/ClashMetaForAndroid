@@ -10,6 +10,7 @@ import com.github.kr328.clash.common.Global
 import com.github.kr328.clash.common.compat.currentProcessName
 import com.github.kr328.clash.common.constants.Intents
 import com.github.kr328.clash.common.log.Log
+import com.github.kr328.clash.design.store.UiStore
 import com.github.kr328.clash.remote.Remote
 import com.github.kr328.clash.service.util.sendServiceRecreated
 import com.github.kr328.clash.util.clashDir
@@ -20,6 +21,8 @@ import com.github.kr328.clash.design.R as DesignR
 
 @Suppress("unused")
 class MainApplication : Application() {
+    private val uiStore by lazy(LazyThreadSafetyMode.NONE) { UiStore(this) }
+
     private var wifiAutomator: WifiAutomator? = null
 
     override fun attachBaseContext(base: Context?) {
@@ -47,6 +50,12 @@ class MainApplication : Application() {
     }
 
     private fun setupShortcuts() {
+        if (uiStore.hideAppIcon) {
+            // Prevent launcher activity not found.
+            ShortcutManagerCompat.removeAllDynamicShortcuts(this)
+            return
+        }
+
         val icon = IconCompat.createWithResource(this, R.mipmap.ic_launcher)
         val flags = Intent.FLAG_ACTIVITY_NEW_TASK or
             Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS or
