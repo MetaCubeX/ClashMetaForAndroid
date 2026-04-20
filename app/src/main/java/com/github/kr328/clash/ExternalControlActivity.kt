@@ -31,6 +31,7 @@ class ExternalControlActivity : Activity(), CoroutineScope by MainScope() {
         when(intent.action) {
             Intent.ACTION_VIEW -> {
                 val uri = intent.data ?: return finish()
+                if (uri.host != "install-config") return finish()
                 val url = uri.getQueryParameter("url") ?: return finish()
 
                 launch {
