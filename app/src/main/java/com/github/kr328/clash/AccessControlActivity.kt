@@ -7,9 +7,11 @@ import android.content.pm.ApplicationInfo
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import androidx.core.content.getSystemService
+import com.github.kr328.clash.common.util.uuid
 import com.github.kr328.clash.design.AccessControlDesign
 import com.github.kr328.clash.design.model.AppInfo
 import com.github.kr328.clash.design.util.toAppInfo
+import com.github.kr328.clash.service.model.AppsStrategyConfig
 import com.github.kr328.clash.service.store.ServiceStore
 import com.github.kr328.clash.util.startClashService
 import com.github.kr328.clash.util.stopClashService
@@ -21,22 +23,48 @@ import kotlinx.coroutines.withContext
 
 class AccessControlActivity : BaseActivity<AccessControlDesign>() {
     override suspend fun main() {
+        val configUuid = intent.uuid
         val service = ServiceStore(this)
 
-        val selected = withContext(Dispatchers.IO) {
-            service.accessControlPackages.toMutableSet()
+        val (config, selected) = withContext(Dispatchers.IO) {
+            if (configUuid != null) {
+                val cfg = service.appsStrategyConfigs.find { it.uuid == configUuid }
+                if (cfg != null) {
+                    cfg to cfg.packages.toMutableSet()
+                } else {
+                    null to service.accessControlPackages.toMutableSet()
+                }
+            } else {
+                null to service.accessControlPackages.toMutableSet()
+            }
         }
 
         defer {
             withContext(Dispatchers.IO) {
-                val changed = selected != service.accessControlPackages
-                service.accessControlPackages = selected
-                if (clashRunning && changed) {
-                    stopClashService()
-                    while (clashRunning) {
-                        delay(200)
+                if (config != null) {
+                    val changed = selected != config.packages.toSet()
+                    if (changed) {
+                        val updatedConfig = AppsStrategyConfig(
+                            uuid = config.uuid,
+                            name = config.name,
+                            mode = config.mode,
+                            packages = selected.toList()
+                        )
+                        val configs = service.appsStrategyConfigs.map {
+                            if (it.uuid == config.uuid) updatedConfig else it
+                        }
+                        service.appsStrategyConfigs = configs
                     }
-                    startClashService()
+                } else {
+                    val changed = selected != service.accessControlPackages
+                    service.accessControlPackages = selected
+                    if (clashRunning && changed) {
+                        stopClashService()
+                        while (clashRunning) {
+                            delay(200)
+                        }
+                        startClashService()
+                    }
                 }
             }
         }
