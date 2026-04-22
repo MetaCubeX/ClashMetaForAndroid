@@ -3,14 +3,18 @@ package com.github.kr328.clash
 import android.app.Application
 import android.content.Context
 import android.content.Intent
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.pm.ShortcutInfoCompat
 import androidx.core.content.pm.ShortcutManagerCompat
 import androidx.core.graphics.drawable.IconCompat
+import androidx.core.os.LocaleListCompat
 import com.github.kr328.clash.common.Global
 import com.github.kr328.clash.common.compat.currentProcessName
 import com.github.kr328.clash.common.constants.Intents
 import com.github.kr328.clash.common.log.Log
 import com.github.kr328.clash.remote.Remote
+import com.github.kr328.clash.design.model.AppLanguage
+import com.github.kr328.clash.design.store.UiStore
 import com.github.kr328.clash.service.store.ServiceStore
 import com.github.kr328.clash.service.util.sendServiceRecreated
 import com.github.kr328.clash.util.clashDir
@@ -36,12 +40,23 @@ class MainApplication : Application() {
         Log.d("Process $processName started")
 
         if (processName == packageName) {
+            applyStoredAppLocales()
             ServiceStore.runMigrations(this)
             Remote.launch()
             setupShortcuts()
         } else {
             sendServiceRecreated()
         }
+    }
+
+    private fun applyStoredAppLocales() {
+        val locales = when (UiStore(this).appLanguage) {
+            AppLanguage.System -> LocaleListCompat.getEmptyLocaleList()
+            AppLanguage.English -> LocaleListCompat.forLanguageTags("en")
+            AppLanguage.Russian -> LocaleListCompat.forLanguageTags("ru")
+            AppLanguage.Chinese -> LocaleListCompat.forLanguageTags("zh")
+        }
+        AppCompatDelegate.setApplicationLocales(locales)
     }
 
     private fun setupShortcuts() {

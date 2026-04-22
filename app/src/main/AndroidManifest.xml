@@ -162,6 +162,16 @@
             android:exported="false"
             android:label="@string/app" />
         <activity
+            android:name=".FeaturesSettingsActivity"
+            android:configChanges="uiMode"
+            android:exported="false"
+            android:label="@string/features" />
+        <activity
+            android:name=".GeoDataSourceSettingsActivity"
+            android:configChanges="uiMode"
+            android:exported="false"
+            android:label="@string/geo_data_source" />
+        <activity
             android:name=".OverrideSettingsActivity"
             android:configChanges="uiMode"
             android:exported="false"

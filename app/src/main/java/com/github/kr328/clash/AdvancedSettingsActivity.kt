@@ -1,5 +1,6 @@
 package com.github.kr328.clash
 
+import com.github.kr328.clash.common.util.intent
 import com.github.kr328.clash.design.AdvancedSettingsDesign
 import com.github.kr328.clash.service.store.ServiceStore
 import kotlinx.coroutines.isActive
@@ -17,6 +18,14 @@ class AdvancedSettingsActivity : BaseActivity<AdvancedSettingsDesign>() {
             select<Unit> {
                 events.onReceive {
                     // no-op; keep design alive until activity finishes
+                }
+                design.requests.onReceive {
+                    when (it) {
+                        AdvancedSettingsDesign.Request.StartExpertMetaFeatures ->
+                            startActivity(MetaFeatureSettingsActivity::class.intent)
+                        AdvancedSettingsDesign.Request.StartExpertOverride ->
+                            startActivity(OverrideSettingsActivity::class.intent)
+                    }
                 }
             }
         }

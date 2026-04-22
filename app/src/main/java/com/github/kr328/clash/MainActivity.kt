@@ -25,6 +25,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.result.contract.ActivityResultContracts.RequestPermission
 import androidx.core.content.ContextCompat
 import androidx.core.content.getSystemService
+import com.github.kr328.clash.common.util.ShareImportSupport
 import com.github.kr328.clash.common.util.StandalonePing
 import com.github.kr328.clash.common.util.SubscriptionNameGuesser
 import com.github.kr328.clash.common.util.intent
@@ -477,9 +478,7 @@ class MainActivity : BaseActivity<MainDesign>() {
             design.showToast(R.string.clipboard_empty, ToastDuration.Short)
             return
         }
-        if (!text.startsWith("http://", ignoreCase = true) &&
-            !text.startsWith("https://", ignoreCase = true)
-        ) {
+        if (!ShareImportSupport.isAllowedUrlProfileSource(text)) {
             design.showToast(R.string.clipboard_no_url, ToastDuration.Long)
             return
         }

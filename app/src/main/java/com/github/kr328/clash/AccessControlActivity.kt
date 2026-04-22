@@ -10,6 +10,7 @@ import androidx.core.content.getSystemService
 import com.github.kr328.clash.design.AccessControlDesign
 import com.github.kr328.clash.design.model.AppInfo
 import com.github.kr328.clash.design.util.toAppInfo
+import com.github.kr328.clash.service.model.AccessControlMode
 import com.github.kr328.clash.service.store.ServiceStore
 import com.github.kr328.clash.util.startClashService
 import com.github.kr328.clash.util.stopClashService
@@ -26,12 +27,17 @@ class AccessControlActivity : BaseActivity<AccessControlDesign>() {
         val selected = withContext(Dispatchers.IO) {
             service.accessControlPackages.toMutableSet()
         }
+        var currentMode: AccessControlMode = withContext(Dispatchers.IO) {
+            service.accessControlMode
+        }
 
         defer {
             withContext(Dispatchers.IO) {
-                val changed = selected != service.accessControlPackages
+                val changedPackages = selected != service.accessControlPackages
+                val changedMode = currentMode != service.accessControlMode
                 service.accessControlPackages = selected
-                if (clashRunning && changed) {
+                service.accessControlMode = currentMode
+                if (clashRunning && (changedPackages || changedMode)) {
                     stopClashService()
                     while (clashRunning) {
                         delay(200)
@@ -41,7 +47,7 @@ class AccessControlActivity : BaseActivity<AccessControlDesign>() {
             }
         }
 
-        val design = AccessControlDesign(this, uiStore, selected)
+        val design = AccessControlDesign(this, uiStore, selected, currentMode)
 
         setContentDesign(design)
 
@@ -110,6 +116,11 @@ class AccessControlActivity : BaseActivity<AccessControlDesign>() {
                             )
 
                             clipboard?.setPrimaryClip(data)
+                        }
+
+                        AccessControlDesign.Request.ChangeMode -> {
+                            currentMode = design.pendingMode ?: currentMode
+                            design.setMode(currentMode)
                         }
                     }
                 }

@@ -9,6 +9,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.lifecycle.lifecycleScope
 import com.github.kr328.clash.common.constants.Intents
+import com.github.kr328.clash.common.util.ShareImportSupport
 import com.github.kr328.clash.common.util.SubscriptionNameGuesser
 import com.github.kr328.clash.common.util.intent
 import com.github.kr328.clash.common.util.setUUID
@@ -190,9 +191,7 @@ class NewProfileActivity : BaseActivity<NewProfileDesign>() {
 
     private suspend fun createProfileByQrCode(url: String) {
         val trimmed = url.trim()
-        if (!trimmed.startsWith("http://", ignoreCase = true) &&
-            !trimmed.startsWith("https://", ignoreCase = true)
-        ) {
+        if (!ShareImportSupport.isAllowedUrlProfileSource(trimmed)) {
             design?.showToast(R.string.invalid_url, ToastDuration.Long)
             return
         }

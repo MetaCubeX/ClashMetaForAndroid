@@ -1,5 +1,6 @@
 package com.github.kr328.clash
 
+import com.github.kr328.clash.common.util.ShareImportSupport
 import com.github.kr328.clash.common.util.intent
 import com.github.kr328.clash.common.util.setUUID
 import com.github.kr328.clash.common.util.uuid
@@ -97,9 +98,7 @@ class PropertiesActivity : BaseActivity<PropertiesDesign>() {
         }
         if (profile.type == Profile.Type.Url) {
             val s = profile.source.trim()
-            if (!s.startsWith("http://", ignoreCase = true) &&
-                !s.startsWith("https://", ignoreCase = true)
-            ) {
+            if (!ShareImportSupport.isAllowedUrlProfileSource(s)) {
                 showToast(R.string.accept_http_content, ToastDuration.Long)
                 return
             }
