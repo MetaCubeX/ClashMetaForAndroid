@@ -5,6 +5,7 @@ import com.github.kr328.clash.common.store.Store
 import com.github.kr328.clash.common.store.asStoreProvider
 import com.github.kr328.clash.service.PreferenceProvider
 import com.github.kr328.clash.service.model.AccessControlMode
+import com.github.kr328.clash.service.model.GeoDataSourcePreset
 import java.util.*
 
 class ServiceStore(context: Context) {
@@ -65,6 +66,32 @@ class ServiceStore(context: Context) {
     var dynamicNotification by store.boolean(
         key = "dynamic_notification",
         defaultValue = true
+    )
+
+    var geoDataSourcePreset: GeoDataSourcePreset by store.enum(
+        key = "geo_data_source_preset",
+        defaultValue = GeoDataSourcePreset.Global,
+        values = GeoDataSourcePreset.values()
+    )
+
+    var geoDataCustomGeoIp: String by store.string(
+        key = "geo_data_custom_geoip",
+        defaultValue = ""
+    )
+
+    var geoDataCustomGeoSite: String by store.string(
+        key = "geo_data_custom_geosite",
+        defaultValue = ""
+    )
+
+    var geoDataCustomMmdb: String by store.string(
+        key = "geo_data_custom_mmdb",
+        defaultValue = ""
+    )
+
+    var geoDataCustomAsn: String by store.string(
+        key = "geo_data_custom_asn",
+        defaultValue = ""
     )
 
     companion object {

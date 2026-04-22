@@ -5,6 +5,7 @@ import com.github.kr328.clash.common.log.Log
 import com.github.kr328.clash.service.model.RuleItem
 import com.github.kr328.clash.service.model.RuleState
 import com.github.kr328.clash.service.model.RuleSource
+import com.github.kr328.clash.service.store.ServiceStore
 import java.io.File
 import java.util.UUID
 
@@ -12,6 +13,8 @@ class RuleApplyService(
     private val context: Context,
     private val repository: RuleRepository = RuleRepository(context),
 ) {
+    private val serviceStore = ServiceStore(context)
+
     fun readStateJson(uuid: UUID): String? {
         val config = configFile(uuid) ?: return null
         Log.d("Read rule state")
@@ -103,7 +106,14 @@ class RuleApplyService(
     private fun applyState(uuid: UUID, config: File, state: RuleState): Boolean {
         return runCatching {
             val normalized = state.copy(rules = normalizeRuleOrder(state.rules))
-            val mergedYaml = RuleMapper.mergeStateIntoConfig(config.readText(), normalized)
+            val geoDataUrls = GeoDataSources.resolve(
+                preset = serviceStore.geoDataSourcePreset,
+                customGeoIp = serviceStore.geoDataCustomGeoIp,
+                customGeoSite = serviceStore.geoDataCustomGeoSite,
+                customMmdb = serviceStore.geoDataCustomMmdb,
+                customAsn = serviceStore.geoDataCustomAsn,
+            )
+            val mergedYaml = RuleMapper.mergeStateIntoConfig(config.readText(), normalized, geoDataUrls)
             val proxyGroups = ProxyGroupsYamlPreview.listProxyGroupNames(mergedYaml).toSet()
             RuleValidator.validate(normalized, proxyGroups)
             validateMergedYaml(mergedYaml)

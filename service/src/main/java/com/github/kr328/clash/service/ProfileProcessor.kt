@@ -15,6 +15,7 @@ import com.github.kr328.clash.service.util.SubscriptionUpdateMerge
 import com.github.kr328.clash.service.util.importedDir
 import com.github.kr328.clash.service.util.pendingDir
 import com.github.kr328.clash.service.util.processingDir
+import com.github.kr328.clash.common.util.ShareImportSupport
 import com.github.kr328.clash.service.util.sendProfileChanged
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
@@ -269,8 +270,6 @@ object ProfileProcessor {
     }
 
     private fun Pending.enforceFieldValid() {
-        val scheme = Uri.parse(source)?.scheme?.lowercase(Locale.getDefault())
-
         when {
             name.isBlank() ->
                 throw IllegalArgumentException("Empty name")
@@ -278,8 +277,16 @@ object ProfileProcessor {
             source.isEmpty() && type != Profile.Type.File ->
                 throw IllegalArgumentException("Invalid url")
 
-            source.isNotEmpty() && scheme != "https" && scheme != "http" && scheme != "content" ->
+            source.isNotEmpty() && type == Profile.Type.Url &&
+                !ShareImportSupport.isAllowedUrlProfileSource(source) ->
                 throw IllegalArgumentException("Unsupported url $source")
+
+            source.isNotEmpty() && type == Profile.Type.External -> {
+                val scheme = Uri.parse(source).scheme?.lowercase(Locale.getDefault())
+                if (scheme != "https" && scheme != "http" && scheme != "content") {
+                    throw IllegalArgumentException("Unsupported url $source")
+                }
+            }
 
             interval != 0L && TimeUnit.MILLISECONDS.toMinutes(interval) < 15 ->
                 throw IllegalArgumentException("Invalid interval")

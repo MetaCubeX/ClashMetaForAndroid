@@ -9,8 +9,6 @@ import java.util.UUID
 
 object RuleMapper {
     private val yaml = Yaml()
-    private const val DEFAULT_GEOIP_URL = "https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@release/geoip.dat"
-    private const val DEFAULT_GEOSITE_URL = "https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@release/geosite.dat"
 
     fun parseStateFromConfig(configText: String): RuleState {
         val root = YamlFormatting.parseRootMap(configText) ?: return RuleState()
@@ -19,7 +17,7 @@ object RuleMapper {
         return RuleState(providers = providers, rules = rules)
     }
 
-    fun mergeStateIntoConfig(configText: String, state: RuleState): String {
+    fun mergeStateIntoConfig(configText: String, state: RuleState, geoDataUrls: GeoDataUrls): String {
         val root = YamlFormatting.parseRootMap(configText) ?: mutableMapOf()
         root["rule-providers"] = state.providers
             .filter { it.enabled }
@@ -38,12 +36,16 @@ object RuleMapper {
             .sortedBy { it.order }
             .map { toRuleLine(it) }
             .distinct()
-        ensureGeositeConnectivity(root, state.rules)
+        ensureGeositeConnectivity(root, state.rules, geoDataUrls)
 
         return YamlFormatting.blockYaml().dump(root)
     }
 
-    private fun ensureGeositeConnectivity(root: MutableMap<String, Any?>, rules: List<RuleItem>) {
+    private fun ensureGeositeConnectivity(
+        root: MutableMap<String, Any?>,
+        rules: List<RuleItem>,
+        geoDataUrls: GeoDataUrls,
+    ) {
         val usesGeosite = rules.any {
             it.enabled && !it.deleted && it.type.equals("GEOSITE", true)
         }
@@ -56,10 +58,16 @@ object RuleMapper {
             ?.toMutableMap()
             ?: mutableMapOf()
         if (existing["geoip"]?.toString().isNullOrBlank()) {
-            existing["geoip"] = DEFAULT_GEOIP_URL
+            existing["geoip"] = geoDataUrls.geoIp
         }
         if (existing["geosite"]?.toString().isNullOrBlank()) {
-            existing["geosite"] = DEFAULT_GEOSITE_URL
+            existing["geosite"] = geoDataUrls.geoSite
+        }
+        if (existing["mmdb"]?.toString().isNullOrBlank()) {
+            existing["mmdb"] = geoDataUrls.mmdb
+        }
+        if (existing["asn"]?.toString().isNullOrBlank()) {
+            existing["asn"] = geoDataUrls.asn
         }
         root["geox-url"] = existing
     }
