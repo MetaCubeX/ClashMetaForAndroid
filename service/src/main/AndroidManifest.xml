@@ -81,7 +81,7 @@
                 <action android:name="android.intent.action.TIMEZONE_CHANGED" />
             </intent-filter>
             <intent-filter>
-                <action android:name="{applicationId}.intent.action.PROFILE_REQUEST_UPDATE" />
+                <action android:name="${applicationId}.intent.action.REQUEST_UPDATE" />
                 <data android:scheme="uuid" />
             </intent-filter>
         </receiver>
