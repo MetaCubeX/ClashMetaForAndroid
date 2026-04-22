@@ -107,9 +107,6 @@ subprojects {
                     versionNameSuffix = ".Alpha"
                 }
 
-
-                buildConfigField("boolean", "PREMIUM", "Boolean.parseBoolean(\"false\")")
-
                 if (isApp) {
                     resValue("string", "launch_name", "@string/launch_name_alpha")
                     resValue("string", "application_name", "@string/application_name_alpha")
@@ -126,9 +123,6 @@ subprojects {
                 if (!removeSuffix) {
                     versionNameSuffix = ".Meta"
                 }
-
-                buildConfigField("boolean", "PREMIUM", "Boolean.parseBoolean(\"false\")")
-
                 if (isApp) {
                     resValue("string", "launch_name", "@string/launch_name_meta")
                     resValue("string", "application_name", "@string/application_name_meta")

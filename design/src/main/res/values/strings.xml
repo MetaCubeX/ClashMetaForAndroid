@@ -121,7 +121,6 @@
     <string name="profile_quick_edit_title">Quick edit subscription</string>
     <string name="profile_quick_open_advanced">Open full editor</string>
     <string name="profile_quick_saved">Subscription updated</string>
-    <string name="proxy_offline_need_vpn">Start the VPN to switch nodes</string>
     <string name="rule_apply_active_only">Active profile only</string>
     <string name="rule_apply_replace_all">Active profile (replace all rules)</string>
     <string name="rule_insert_mode">Insert mode for new rules</string>
