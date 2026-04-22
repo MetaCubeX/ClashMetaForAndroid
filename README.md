@@ -9,25 +9,27 @@ https://img.shields.io/github/actions/workflow/status/Nemu-x/ClashFest/android-d
 ![Status: WIP](https://img.shields.io/badge/status-WIP-orange)
 ![Branch](https://img.shields.io/badge/branch-feat%2Finit--clashfest-blue)
 
-ClashFest is a modern Android client built on top of the Clash / Clash Meta ecosystem, with refreshed branding, a cleaner UI, slimmer profile cards, routing tools, and a more expressive visual style.
+**ClashFest** is an Android client in the **Clash Meta / Mihomo** family: refreshed branding, a calmer home screen with compact profile cards, routing helpers, and room to grow without inheriting every upstream UI choice.
 
-> Status: work in progress  
-> Active branch: `feat/init-clashfest`
+> **Status:** work in progress · **Active branch:** `feat/init-clashfest`
+
+---
 
 ## Highlights
 
-- ClashFest branding and app identity
-- Modernized home screen with slim profile cards
-- Rule / Global / Direct mode switching
-- Profile management with quick actions
-- Rules and routing related tools
-- Connections / traffic inspection screens
-- Neon-accent dark UI direction
-- Light theme support in progress
-- Delay / ping related helpers
-- Subscription import helpers
+| Area | What you get |
+|------|----------------|
+| **Home** | Slim profile cards, quick actions, import from URL / QR / clipboard |
+| **Modes** | Rule / Global / Direct tunnel modes |
+| **Rules & routing** | Rule snippets, effective rules, app routing (per‑app VPN policy) |
+| **Network** | DNS / VPN options, security-oriented toggles where we wire them |
+| **Features** | Safe “every‑day” toggles (unified delay, geodata mode, TCP concurrent) + entry to **Geo Data Source** |
+| **Geo Data Source** | Presets for **geox-url** mirrors (same upstream data, different CDN paths), custom URLs, on-device geo DB import |
+| **Subscriptions** | HTTP(S) / `content:` profiles; **`mierus://`** shares parsed via the same pipeline as other URL imports |
+| **App** | Dark mode, optional **UI language** (system / EN / RU / ZH), notification & recents options |
+| **Look** | Neon-accent dark direction; light theme still evolving |
 
-## Screenshots
+### Screenshots
 
 <p align="center">
   <img src="docs/screenshots/home.jpg" width="180"/>
@@ -43,94 +45,88 @@ ClashFest is a modern Android client built on top of the Clash / Clash Meta ecos
   <img src="docs/screenshots/routing_rules2.jpg" width="180"/>
 </p>
 
-## Project Structure
+---
 
-- `app/` — Android app entry points, activities, packaging
-- `common/` — shared utilities and helpers
-- `core/` — native/core bridge, tunnel interaction, low-level logic
-- `design/` — UI layer, layouts, themes, adapters, design logic
-- `service/` — background service, profile management, rule helpers
+## Repository layout
 
-## Current Focus
+| Module | Role |
+|--------|------|
+| `app/` | Activities, navigation, packaging |
+| `common/` | Shared helpers (imports, naming, ping helpers, …) |
+| `core/` | JNI bridge, native **Mihomo** integration |
+| `design/` | UI, themes, layouts, preference screens |
+| `service/` | VPN service, profiles, rule merge / **Geo** presets |
 
-- stabilizing the redesigned home screen
-- finishing ClashFest branding across all user-facing screens
-- improving rules and routing UX
-- improving connections visibility
-- fixing theme inconsistencies, especially light theme
-- cleaning up temporary and experimental code safely
-- polishing launcher and app icon assets
+---
 
 ## Build
 
 ### Requirements
 
-- Android Studio
-- Android SDK / NDK required by the project
-- JDK compatible with the project
-- Gradle wrapper included in the repository
+- Android Studio (or compatible IDE)
+- Android SDK + **NDK** as required by the project
+- **JDK** matching the Gradle toolchain (see project / CI notes)
+- Gradle wrapper (included)
 
-### Debug build
+### Debug (default **alpha** flavor)
 
-Linux / macOS:
+**Linux / macOS**
 
 ```bash
 ./gradlew assembleAlphaDebug
 ```
 
-Windows:
+**Windows**
 
 ```powershell
 .\gradlew.bat assembleAlphaDebug
 ```
 
-## Branding Assets
+---
 
-- `app/src/main/res/drawable-nodpi/clashfest_shield.png`
+## Branding & docs
 
-Optional folders:
+- App shield: `app/src/main/res/drawable-nodpi/clashfest_shield.png`
+- Optional: `branding/` — source art · `docs/` — screenshots & notes
 
-- `branding/` — source branding assets
-- `docs/` — documentation materials
+---
 
 ## License
 
-This project is licensed under the GNU General Public License v3.0.
+Licensed under the **GNU General Public License v3.0**. See `LICENSE` and `NOTICE`.
 
-See:
-
-- `LICENSE`
-- `NOTICE`
-
-## Upstream / Attribution
-
-ClashFest is a fork / derivative built on top of the Clash Android ecosystem.
-
-Original copyright notices, license terms, and attribution requirements must be preserved where applicable.
+---
 
 ## Disclaimer
 
-ClashFest is provided as-is, without warranty.
+ClashFest is provided **as-is**, without warranty. Use it responsibly and in compliance with local law, provider terms, and upstream licenses.
 
-Use it at your own responsibility and in accordance with:
-
-- local laws
-- service terms
-- upstream license requirements
-
-## Development Notes
-
-This repository is currently being actively reworked in a personal feature branch.
-
-The current implementation includes:
-
-- UI redesign work
-- branding updates
-- rules and routing tooling experiments
-- connections inspection work
-- subscription UX improvements
+---
 
 ## Contributing
 
-At this stage, development is focused on the ClashFest fork workflow and internal iteration.
-Contribution guidelines may be expanded later.
+Right now development is focused on the ClashFest fork and branch workflow; contribution guidelines may expand later.
+
+---
+
+## Upstream & related projects
+
+ClashFest builds on the open Clash / Meta stack. If you use or ship derivatives, keep **copyright and license notices** intact.
+
+| Project | What it is | Link |
+|---------|----------------|------|
+| **Clash Meta for Android** | Upstream Android client this tree forked from | [MetaCubeX/ClashMetaForAndroid](https://github.com/MetaCubeX/ClashMetaForAndroid) |
+| **mihomo** | Clash.Meta core (Go) used under the hood | [MetaCubeX/mihomo](https://github.com/MetaCubeX/mihomo) |
+| **Meta rules dat** | Community geo / ruleset data releases (our **Geo Data Source** presets mirror these) | [MetaCubeX/meta-rules-dat](https://github.com/MetaCubeX/meta-rules-dat) |
+| **Mieru** | UDP port hopping VPN protocol; **mierus://** subscription links are supported as imports | [enfein/mieru](https://github.com/enfein/mieru) |
+| **Documentation** | Mihomo / Meta docs (rules, parsers, …) | [wiki.metacubex.one](https://wiki.metacubex.one/) |
+
+---
+
+## Current focus
+
+- Stabilize the redesigned home and profile flows
+- Finish branding pass on remaining screens
+- Rules / routing UX and connections clarity
+- Light theme parity and polish
+- Safe removal of experimental leftovers
