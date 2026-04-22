@@ -12,7 +12,6 @@ import com.github.kr328.clash.common.Global
 import com.github.kr328.clash.common.compat.currentProcessName
 import com.github.kr328.clash.common.constants.Intents
 import com.github.kr328.clash.common.log.Log
-import com.github.kr328.clash.design.model.AppLanguage
 import com.github.kr328.clash.design.store.UiStore
 import com.github.kr328.clash.remote.Remote
 import com.github.kr328.clash.service.store.ServiceStore
@@ -40,10 +39,10 @@ class MainApplication : Application() {
         Log.d("Process $processName started")
 
         if (processName == packageName) {
+            applyAppLanguage()
             ServiceStore.runMigrations(this)
             Remote.launch()
             setupShortcuts()
-            applyAppLanguage()
         } else {
             sendServiceRecreated()
         }
