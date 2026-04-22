@@ -10,6 +10,7 @@ import (
 	"os"
 	P "path"
 	"runtime"
+	"strings"
 	"time"
 
 	"cfa/native/app"
@@ -85,22 +86,36 @@ func FetchAndValid(
 ) error {
 	configPath := P.Join(path, "config.yaml")
 
-	if _, err := os.Stat(configPath); os.IsNotExist(err) || force {
-		url, err := U.Parse(url)
-		if err != nil {
-			return err
-		}
-
+	trimmed := strings.TrimSpace(url)
+	if isInlineMierusImport(trimmed) {
 		bytes, _ := json.Marshal(&Status{
 			Action:      "FetchConfiguration",
-			Args:        []string{url.Host},
+			Args:        []string{"mierus"},
 			Progress:    -1,
 			MaxProgress: -1,
 		})
 
 		reportStatus(string(bytes))
 
-		if err := fetch(url, configPath); err != nil {
+		if err := writeConfigFromMierusShare(configPath, trimmed); err != nil {
+			return err
+		}
+	} else if _, err := os.Stat(configPath); os.IsNotExist(err) || force {
+		parsed, err := U.Parse(url)
+		if err != nil {
+			return err
+		}
+
+		bytes, _ := json.Marshal(&Status{
+			Action:      "FetchConfiguration",
+			Args:        []string{parsed.Host},
+			Progress:    -1,
+			MaxProgress: -1,
+		})
+
+		reportStatus(string(bytes))
+
+		if err := fetch(parsed, configPath); err != nil {
 			return err
 		}
 	}
