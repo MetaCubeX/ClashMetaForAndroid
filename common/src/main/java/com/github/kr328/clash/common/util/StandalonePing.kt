@@ -38,7 +38,7 @@ object StandalonePing {
     fun isBuiltinProxyName(name: String): Boolean =
         name.uppercase(Locale.US) in BUILTIN_NAMES
 
-    private val BUILTIN_NAMES = setOf("DIRECT", "REJECT", "PASS", "COMPATIBLE")
+    private val BUILTIN_NAMES = setOf("DIRECT", "REJECT", "REJECT-DROP", "PASS", "COMPATIBLE")
 
     /**
      * Measures time to complete HTTPS/HTTP request handshake (GET; many CDNs block HEAD).

@@ -18,6 +18,10 @@ object SubscriptionNameGuesser {
 
     suspend fun guess(context: Context, urlString: String): String =
         withContext(Dispatchers.IO) {
+            if (isMierusLinkForSubscriptionTitle(urlString.trim())) {
+                parseFragmentName(urlString)?.let { return@withContext sanitizeName(it) }
+                return@withContext "mieru"
+            }
             parseFragmentName(urlString)?.let { return@withContext sanitizeName(it) }
             val requestUrl = stripUrlFragment(urlString)
             try {
@@ -77,6 +81,13 @@ object SubscriptionNameGuesser {
             }
             fallbackName(requestUrl)
         }
+
+    /** First non-empty line starts with `mierus://` (QR / clipboard mierus share). */
+    private fun isMierusLinkForSubscriptionTitle(trimmed: String): Boolean {
+        val first = trimmed.lineSequence().map { it.trim() }.firstOrNull { it.isNotEmpty() }
+            ?: return false
+        return first.startsWith("mierus://", ignoreCase = true)
+    }
 
     private fun stripUrlFragment(urlString: String): String =
         urlString.substringBefore('#')
