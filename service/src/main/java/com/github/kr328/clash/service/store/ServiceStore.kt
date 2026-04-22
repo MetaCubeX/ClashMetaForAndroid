@@ -8,6 +8,7 @@ import com.github.kr328.clash.service.PreferenceProvider
 import com.github.kr328.clash.service.model.AccessControlMode
 import com.github.kr328.clash.service.model.GeoDataSourcePreset
 import com.github.kr328.clash.service.model.ProxyHardeningMode
+import com.github.kr328.clash.service.model.GeoDataSourcePreset
 import java.util.*
 
 class ServiceStore(context: Context) {
