@@ -25,8 +25,6 @@
     <string name="format_minutes_ago">%d 분 전</string>
     <string name="format_hours_ago">%d 시간 전</string>
     <string name="format_days_ago">%d 일 전</string>
-    <string name="format_months_ago">%d 개월 전</string>
-    <string name="format_years_ago">%d 년 전</string>
     <string name="create_profile">구성 추가</string>
     <string name="file">파일</string>
     <string name="import_from_file">파일에서 가져오기</string>
@@ -95,10 +93,7 @@
     <string name="bypass_private_network_summary">사설 네트워크 주소를 제외합니다.</string>
     <string name="dns_hijacking">DNS 하이재킹</string>
     <string name="dns_hijacking_summary">모든 DNS 패킷을 포함합니다.</string>
-    <string name="block_loopback">로컬 루프백 차단</string>
-    <string name="block_loopback_summary">로컬 루프백 연결을 차단합니다.</string>
     <string name="allow_bypass">앱 제외 허용</string>
-    <string name="allow_bypass_summary">모든 앱이 VPN 우회 연결에서 제외될 수 있도록 합니다.</string>
     <string name="allow_bypass_dev_summary">고급: 앱이 VPN을 우회할 수 있습니다. 유출 테스트 결과에 영향을 줄 수 있습니다.</string>
     <string name="advanced_vpn_experiments">VPN 실험</string>
     <string name="system_proxy">시스템 프록시</string>
@@ -227,13 +222,8 @@
     <string name="find_process_mode">프로세스 모드 찾기</string>
     <string name="sniffer_setting">Sniffer 설정</string>
     <string name="sniffer">Sniffer</string>
-    <string name="sniffing">Sniffer 모드</string>
     <string name="force_domain">강제 도메인</string>
     <string name="skip_domain">도메인 건너뛰기</string>
-    <string name="port_whitelist">포트 화이트리스트</string>
-    <string name="disable_sniffer">Sniffer 끔</string>
-    <string name="sniffer_config">구성에서 Sniffer 불러오기</string>
-    <string name="sniffer_override">Sniffer 구성 재정의</string>
     <string name="geox_url_setting">GeoX Url 설정</string>
     <string name="geox_geoip">GeoIP Url</string>
     <string name="geox_mmdb">MMDB Url</string>

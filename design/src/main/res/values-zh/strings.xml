@@ -163,8 +163,6 @@
     <string name="format_minutes_ago">%d 分钟前</string>
     <string name="format_hours_ago">%d 小时前</string>
     <string name="format_days_ago">%d 天前</string>
-    <string name="format_months_ago">%d 月前</string>
-    <string name="format_years_ago">%d 年前</string>
     <string name="system_proxy">系统代理</string>
     <string name="system_proxy_summary">为 VpnService 附加 HTTP 代理</string>
     <string name="dont_modify">不修改</string>
@@ -219,11 +217,8 @@
     <string name="sources">源代码</string>
     <string name="clash_meta_core">Clash Meta 核心</string>
     <string name="name_server_policy">Name Server 策略</string>
-    <string name="block_loopback">阻止本地回环</string>
-    <string name="block_loopback_summary">阻止本地回环连接</string>
     <string name="geoip_fallback_code">GeoIP Fallback 区域代码</string>
     <string name="allow_bypass">允许应用绕过</string>
-    <string name="allow_bypass_summary">允许其他应用绕过 VPN</string>
     <string name="allow_bypass_dev_summary">进阶：允许应用绕过 VPN，可能影响泄露检测测试结果。</string>
     <string name="advanced_vpn_experiments">VPN 实验</string>
     <string name="allow_ipv6">允许 Ipv6</string>

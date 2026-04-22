@@ -48,8 +48,6 @@
     <string name="format_minutes_ago">%d мин. назад</string>
     <string name="format_hours_ago">%d час. назад</string>
     <string name="format_days_ago">%d дн. назад</string>
-    <string name="format_months_ago">%d мес. назад</string>
-    <string name="format_years_ago">%d лет назад</string>
 
     <string name="create_profile">Создать профиль</string>
     <string name="file">Файл</string>
@@ -135,10 +133,7 @@
     <string name="bypass_private_network_summary">Игнорировать адреса частных сетей</string>
     <string name="dns_hijacking">Перехват DNS</string>
     <string name="dns_hijacking_summary">Обрабатывать все DNS запросы</string>
-    <string name="block_loopback">Заблокировать loopback</string>
-    <string name="block_loopback_summary">Заблокировать loopback-соединения</string>
     <string name="allow_bypass">Разрешить обход</string>
-    <string name="allow_bypass_summary">Разрешить приложениям обходить VPN соединение</string>
     <string name="allow_bypass_dev_summary">Режим для продвинутых: приложения могут обходить VPN. Это может приводить к утечкам в тестах.</string>
     <string name="advanced_vpn_experiments">VPN-эксперименты</string>
     <string name="profile_quick_edit_title">Быстрое редактирование подписки</string>
@@ -360,13 +355,8 @@
 
     <string name="sniffer_setting">Настройки перехвата доменов</string>
     <string name="sniffer">Перехват доменов</string>
-    <string name="sniffing">Режим перехвата доменов</string>
     <string name="force_domain">Принудительный перехват доменов</string>
     <string name="skip_domain">Исключения перехвата доменов</string>
-    <string name="port_whitelist">Список портов для перехвата</string>
-    <string name="disable_sniffer">Отключить перехват доменов</string>
-    <string name="sniffer_config">Использовать перехват доменов из конфига</string>
-    <string name="sniffer_override">Переопределить настройки перехвата доменов</string>
 
     <string name="geox_url_setting">Настройка GeoX URL</string>
     <string name="geox_geoip">GeoIP URL</string>

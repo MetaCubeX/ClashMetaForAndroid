@@ -16,7 +16,6 @@
     <string name="mode_chip_rule">Rule</string>
     <string name="mode_chip_global">Global</string>
     <string name="mode_chip_direct">Direct</string>
-    <string name="main_nav_dot" translatable="false">\u00b7</string>
     <string name="main_emoji_moon" translatable="false">\uD83C\uDF19</string>
     <string name="main_emoji_sun" translatable="false">\u2600</string>
     <string name="mode_emoji_rule" translatable="false">\uD83D\uDCDC</string>
@@ -166,8 +165,6 @@
     <string name="format_minutes_ago">%d min ago</string>
     <string name="format_hours_ago">%d hours ago</string>
     <string name="format_days_ago">%d days ago</string>
-    <string name="format_months_ago">%d months ago</string>
-    <string name="format_years_ago">%d years ago</string>
 
     <string name="create_profile">Create Profile</string>
     <string name="file">File</string>
@@ -255,10 +252,7 @@
     <string name="bypass_private_network_summary">Bypass private network addresses</string>
     <string name="dns_hijacking">DNS Hijacking</string>
     <string name="dns_hijacking_summary">Handle all dns packet</string>
-    <string name="block_loopback">Block Loopback</string>
-    <string name="block_loopback_summary">Block loopback connections</string>
     <string name="allow_bypass">Allow Bypass</string>
-    <string name="allow_bypass_summary">Allows all apps to bypass this VPN connection</string>
     <string name="allow_bypass_dev_summary">Developer mode: allows apps to bypass VPN. This can cause leak tests to fail.</string>
     <string name="advanced_vpn_experiments">VPN experiments</string>
     <string name="allow_ipv6">Allow Ipv6</string>

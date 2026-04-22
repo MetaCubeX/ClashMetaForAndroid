@@ -25,8 +25,6 @@
     <string name="format_minutes_ago">%d分前</string>
     <string name="format_hours_ago">%d時間前</string>
     <string name="format_days_ago">%d日前</string>
-    <string name="format_months_ago">%dカ月前</string>
-    <string name="format_years_ago">%d年前</string>
     <string name="create_profile">プロファイルの作成</string>
     <string name="file">ファイル</string>
     <string name="import_from_file">ファイルからインポート</string>
@@ -95,10 +93,7 @@
     <string name="bypass_private_network_summary">プライベートネットワークアドレスをバイパスする</string>
     <string name="dns_hijacking">DNSハイジャック</string>
     <string name="dns_hijacking_summary">すべてのDNSパケットの処理</string>
-    <string name="block_loopback">ループバックをブロックする</string>
-    <string name="block_loopback_summary">ループバックをブロック</string>
     <string name="allow_bypass">アプリのバイパスを許可</string>
-    <string name="allow_bypass_summary">アプリにVPNのバイパスを許可</string>
     <string name="allow_bypass_dev_summary">上級者向け：アプリがVPNをバイパスできます。リークテストの結果に影響する場合があります。</string>
     <string name="advanced_vpn_experiments">VPNの実験機能</string>
     <string name="system_proxy">システムプロキシ</string>
@@ -227,13 +222,8 @@
     <string name="find_process_mode">Find Process Mode</string>
     <string name="sniffer_setting">Sniffer Setting</string>
     <string name="sniffer">Sniffer</string>
-    <string name="sniffing">Sniffer Mode</string>
     <string name="force_domain">Force Domain</string>
     <string name="skip_domain">Skip Domain</string>
-    <string name="port_whitelist">Port Whitelist</string>
-    <string name="disable_sniffer">Disable Sniffer</string>
-    <string name="sniffer_config">Load Sniffer From Config</string>
-    <string name="sniffer_override">Override Sniffer Config</string>
     <string name="geox_url_setting">GeoX URL Setting</string>
     <string name="geox_geoip">GeoIP URL</string>
     <string name="geox_mmdb">MMDB URL</string>

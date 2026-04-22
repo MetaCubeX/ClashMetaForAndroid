@@ -153,8 +153,6 @@
     <string name="format_minutes_ago">%d 分鐘前</string>
     <string name="format_hours_ago">%d 小時前</string>
     <string name="format_days_ago">%d 天前</string>
-    <string name="format_months_ago">%d 月前</string>
-    <string name="format_years_ago">%d 年前</string>
     <string name="system_proxy">作業系統 Proxy</string>
     <string name="system_proxy_summary">為 VpnService 附加 HTTP Proxy</string>
     <string name="dont_modify">不修改</string>
@@ -208,8 +206,6 @@
     <string name="sources">原始碼</string>
     <string name="clash_meta_core">Clash Meta 核心</string>
     <string name="name_server_policy">Name Server 政策</string>
-    <string name="block_loopback">攔截本地回送</string>
-    <string name="block_loopback_summary">攔截本地回送連結</string>
     <string name="clash_meta_for_android">Clash Meta for Android</string>
     <string name="clash_meta_wiki">Clash Meta Wiki</string>
     <string name="meta_features">Meta Features</string>
@@ -219,18 +215,13 @@
     <string name="find_process_mode">Find Process Mode</string>
     <string name="sniffer_setting">Sniffer Setting</string>
     <string name="sniffer">Sniffer</string>
-    <string name="sniffing">Sniffer Mode</string>
     <string name="force_domain">Force Domain</string>
     <string name="skip_domain">Skip Domain</string>
-    <string name="disable_sniffer">Disable Sniffer</string>
-    <string name="sniffer_config">Load Sniffer From Config</string>
-    <string name="sniffer_override">Override Sniffer Config</string>
     <string name="geox_url_setting">GeoX Url Setting</string>
     <string name="geox_geoip">GeoIp Url</string>
     <string name="geox_mmdb">MMDB Url</string>
     <string name="geox_geosite">Geosite Url</string>
     <string name="prefer_h3">Prefer h3</string>
-    <string name="port_whitelist">Port Whitelist</string>
     <string name="geox_files" >Geo Files</string>
     <string name="import_geoip_file">Import GeoIP Database</string>
     <string name="press_to_import">Press to import...</string>

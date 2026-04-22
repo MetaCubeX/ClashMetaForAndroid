@@ -27,7 +27,6 @@
     <string name="active_unsaved_tips">Hồ sơ cần được lưu trước khi kích hoạt</string>
     <string name="allow_all_apps">Cho phép tất cả các ứng dụng</string>
     <string name="allow_bypass">Cho phép bỏ qua</string>
-    <string name="allow_bypass_summary">Cho phép tất cả các ứng dụng bỏ qua kết nối VPN này</string>
     <string name="allow_bypass_dev_summary">Chế độ nâng cao: cho phép ứng dụng bỏ qua VPN. Có thể làm sai kết quả kiểm tra rò rỉ.</string>
     <string name="advanced_vpn_experiments">Thử nghiệm VPN</string>
     <string name="allow_clash_auto_restart">Cho phép Clash tự khởi động lại</string>
@@ -47,8 +46,6 @@
     <string name="auto_update_minutes">Tự động cập nhật (Phút)</string>
     <string name="behavior">Điều hướng</string>
     <string name="bind_address">Địa chỉ ràng buộc</string>
-    <string name="block_loopback">Chặn lặp</string>
-    <string name="block_loopback_summary">Chặn kết nối lặp lại</string>
     <string name="browse_configuration_providers">Duyệt qua tệp cấu hình và nhà cung cấp</string>
     <string name="browse_files">Duyệt qua tệp</string>
     <string name="bypass_private_network">Bỏ qua mạng riêng</string>
@@ -109,7 +106,6 @@
     <string name="format_hours_ago">%d giờ trước</string>
     <string name="format_minutes">%d phút</string>
     <string name="format_minutes_ago">%d phút trước</string>
-    <string name="format_months_ago">%d tháng trước</string>
     <string name="format_profile_activated">%s đang sử dụng</string>
     <string name="format_provider_type">%1$s(%2$s)</string>
     <string name="format_traffic_forwarded">%s được sử dụng</string>
@@ -117,7 +113,6 @@
     <string name="format_update_complete">Cập nhật %s thành công</string>
     <string name="format_update_failure">Cập nhật %1$s: %2$s</string>
     <string name="format_update_provider_failure">Cập nhật %1$s: %2$s</string>
-    <string name="format_years_ago">%d năm trước</string>
     <string name="general">Chung</string>
     <string name="geoip_fallback">Dự phòng GeoIP</string>
     <string name="geoip_fallback_code">Mã dự phòng GeoIP</string>
