@@ -1,0 +1,82 @@
+package com.github.kr328.clash.design
+
+import android.content.Context
+import android.view.View
+import com.github.kr328.clash.core.model.ConfigurationOverride
+import com.github.kr328.clash.design.databinding.DesignSettingsCommonBinding
+import com.github.kr328.clash.design.preference.clickable
+import com.github.kr328.clash.design.preference.preferenceScreen
+import com.github.kr328.clash.design.preference.selectableList
+import com.github.kr328.clash.design.preference.tips
+import com.github.kr328.clash.design.util.applyFrom
+import com.github.kr328.clash.design.util.bindAppBarElevation
+import com.github.kr328.clash.design.util.layoutInflater
+import com.github.kr328.clash.design.util.root
+
+class FeaturesSettingsDesign(
+    context: Context,
+    configuration: ConfigurationOverride,
+) : Design<FeaturesSettingsDesign.Request>(context) {
+    enum class Request {
+        StartGeoDataSource,
+    }
+
+    private val binding = DesignSettingsCommonBinding
+        .inflate(context.layoutInflater, context.root, false)
+
+    override val root: View
+        get() = binding.root
+
+    init {
+        binding.surface = surface
+        binding.activityBarLayout.applyFrom(context)
+        binding.scrollRoot.bindAppBarElevation(binding.activityBarLayout)
+
+        val booleanValues: Array<Boolean?> = arrayOf(
+            null,
+            true,
+            false
+        )
+        val booleanValuesText: Array<Int> = arrayOf(
+            R.string.dont_modify,
+            R.string.enabled,
+            R.string.disabled
+        )
+
+        val screen = preferenceScreen(context) {
+            tips(R.string.features_intro)
+
+            clickable(
+                title = R.string.geo_data_source,
+                summary = R.string.geo_data_source_summary,
+            ) {
+                clicked {
+                    requests.trySend(Request.StartGeoDataSource)
+                }
+            }
+
+            selectableList(
+                value = configuration::unifiedDelay,
+                values = booleanValues,
+                valuesText = booleanValuesText,
+                title = R.string.unified_delay,
+            )
+
+            selectableList(
+                value = configuration::geodataMode,
+                values = booleanValues,
+                valuesText = booleanValuesText,
+                title = R.string.geodata_mode,
+            )
+
+            selectableList(
+                value = configuration::tcpConcurrent,
+                values = booleanValues,
+                valuesText = booleanValuesText,
+                title = R.string.tcp_concurrent,
+            )
+        }
+
+        binding.content.addView(screen.root)
+    }
+}

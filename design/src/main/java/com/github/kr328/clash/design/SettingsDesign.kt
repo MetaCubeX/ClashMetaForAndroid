@@ -12,8 +12,8 @@ class SettingsDesign(context: Context) : Design<SettingsDesign.Request>(context)
     enum class Request {
         StartApp,
         StartNetwork,
-        StartOverride,
-        StartMetaFeature,
+        StartAppRouting,
+        StartFeatures,
         StartAdvanced,
     }
 

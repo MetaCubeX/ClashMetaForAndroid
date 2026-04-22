@@ -29,6 +29,26 @@
 
     <string name="logs">Logs</string>
     <string name="settings">Settings</string>
+    <string name="features">Features</string>
+    <string name="features_intro"><![CDATA[
+<b>Unified delay</b> — latency by real requests, not only TCP.<br/>
+<b>Geodata mode</b> — local GeoIP/GeoSite for GEOIP/GEOSITE rules.<br/>
+<b>TCP concurrent</b> — dial several resolved IPs and keep the fastest.
+]]></string>
+    <string name="geo_data_source">Geo Data Source</string>
+    <string name="geo_data_source_summary">Mirrors for downloading the same geodata pack (or your own URLs)</string>
+    <string name="geo_data_source_intro"><![CDATA[
+Presets only change <b>where</b> files are downloaded from (CDN / host). It is still the same MetaCubeX/meta-rules-dat release — not separate “RU-only” or “CN-only” databases.
+]]></string>
+    <string name="geo_data_source_preset">Download preset</string>
+    <string name="geo_preset_global">Default (jsDelivr)</string>
+    <string name="geo_preset_cn_friendly">China-friendly mirror</string>
+    <string name="geo_preset_ru_friendly">Russia-friendly mirror</string>
+    <string name="geo_preset_custom">Custom URLs</string>
+    <string name="geo_preset_mirrors_title">URLs for this preset:</string>
+    <string name="geo_preset_mirrors_custom">Custom: use the fields above; empty = built-in default for that slot.</string>
+    <string name="geox_asn">ASN URL</string>
+    <string name="import_local_geo_databases">Import local geo databases</string>
     <string name="advanced_settings">Advanced</string>
     <string name="help">Help</string>
     <string name="about">About</string>
@@ -69,7 +89,7 @@
     <string name="connections_open_log">Open core log</string>
     <string name="usage_unlimited_symbol">∞</string>
     <string name="clipboard_empty">Clipboard is empty</string>
-    <string name="clipboard_no_url">No http(s) URL found in clipboard</string>
+    <string name="clipboard_no_url">No subscription link in clipboard (need http(s), content://, or mierus:// lines)</string>
     <string name="import_resolving">Fetching subscription…</string>
     <string name="import_failed_title">Could not import subscription</string>
     <string name="import_failed_open_editor">Edit subscription</string>
@@ -189,7 +209,7 @@
     <string name="auto_update">Auto Update</string>
     <string name="auto_update_minutes">Auto Update (Minutes)</string>
 
-    <string name="accept_http_content">Accept only http(s)</string>
+    <string name="accept_http_content">Use http(s), content://, or mierus:// share text</string>
     <string name="at_least_15_minutes">At least 15 minutes or empty</string>
     <string name="should_not_be_blank">Should not be blank</string>
     <string name="detail">Detail</string>
@@ -255,13 +275,17 @@
     <string name="allow_bypass">Allow Bypass</string>
     <string name="allow_bypass_dev_summary">Developer mode: allows apps to bypass VPN. This can cause leak tests to fail.</string>
     <string name="advanced_vpn_experiments">VPN experiments</string>
+    <string name="advanced_category_runtime_tuning">Runtime tuning</string>
+    <string name="advanced_category_network_control">Network control</string>
+    <string name="advanced_meta_features_summary">Expert runtime and sniffer options</string>
+    <string name="advanced_override_summary">Ports, DNS and controller overrides</string>
     <string name="allow_ipv6">Allow Ipv6</string>
     <string name="allow_ipv6_summary">Allows ipv6 traffic via VpnService</string>
     <string name="system_proxy">System Proxy</string>
     <string name="system_proxy_summary">Attach http proxy to VpnService</string>
     <string name="access_control_mode">Access Control Mode</string>
-    <string name="access_control_packages">Access Control Packages</string>
-    <string name="access_control_packages_summary">Configure access permission for apps</string>
+    <string name="access_control_packages">App Routing</string>
+    <string name="access_control_packages_summary">Choose which apps should be routed through VPN</string>
 
     <string name="options_unavailable">Options Unavailable until Clash Stopped</string>
 
@@ -379,6 +403,11 @@
     <string name="service">Service</string>
 
     <string name="dark_mode">Dark Mode</string>
+    <string name="app_language">App language</string>
+    <string name="app_language_system">System default</string>
+    <string name="app_language_en">English</string>
+    <string name="app_language_ru">Russian</string>
+    <string name="app_language_zh">Chinese</string>
 
     <string name="show_traffic">Show Traffic</string>
     <string name="show_traffic_summary">Auto refresh traffic in notification</string>
@@ -392,9 +421,16 @@
     <string name="tun_stack_gvisor">Gvisor Stack</string>
     <string name="tun_stack_mixed">Mixed Stack</string>
 
-    <string name="allow_all_apps">Allow all apps</string>
-    <string name="allow_selected_apps">Allow selected apps</string>
-    <string name="deny_selected_apps">Deny selected apps</string>
+    <string name="allow_all_apps">All apps</string>
+    <string name="allow_selected_apps">Only selected</string>
+    <string name="deny_selected_apps">Except selected</string>
+    <string name="app_routing_counter">%1$d / %2$d selected</string>
+    <string name="app_routing_selected">Selected</string>
+    <string name="app_routing_not_selected">Not selected</string>
+    <string name="app_routing_filter_ru">ru.*</string>
+    <string name="app_routing_filter_cn">cn.*</string>
+    <string name="app_routing_filter_com">com.*</string>
+    <string name="app_routing_filter_other">other</string>
 
     <string name="no_profile_selected">No profile selected</string>
 
@@ -487,7 +523,7 @@
     <string name="clash_meta_wiki">Documentation (wiki)</string>
     <string name="clash_meta_wiki_url" translatable="false">https://wiki.metacubex.one</string>
 
-    <string name="meta_features">Meta Features</string>
+    <string name="meta_features">Expert Features</string>
     <string name="unified_delay">Unified Delay</string>
     <string name="geodata_mode">Geodata Mode</string>
     <string name="tcp_concurrent">TCP Concurrent</string>

@@ -24,47 +24,146 @@
             android:layout_height="wrap_content"
             android:paddingTop="@{self.surface.insets.top}">
 
-            <RelativeLayout
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:orientation="vertical"
                 android:paddingEnd="@dimen/item_tailing_margin">
 
-                <include
-                    layout="@layout/common_activity_bar"
-                    android:layout_width="wrap_content"
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <include
+                        layout="@layout/common_activity_bar"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentStart="true"
+                        android:layout_centerVertical="true" />
+
+                    <ImageView
+                        android:id="@+id/menu_view"
+                        android:layout_width="@dimen/item_tailing_component_size"
+                        android:layout_height="@dimen/item_tailing_component_size"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:layout_marginStart="@dimen/item_tailing_margin"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:clickable="true"
+                        android:contentDescription="@string/more"
+                        android:focusable="true"
+                        android:padding="@dimen/toolbar_image_action_padding"
+                        android:src="@drawable/ic_baseline_more_vert" />
+                </RelativeLayout>
+
+                <com.google.android.material.button.MaterialButtonToggleGroup
+                    android:id="@+id/mode_group"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_alignParentStart="true"
-                    android:layout_centerVertical="true"
-                    android:layout_toStartOf="@id/search_view" />
+                    android:layout_marginHorizontal="@dimen/item_tailing_margin"
+                    android:layout_marginTop="@dimen/item_tailing_margin"
+                    app:singleSelection="true"
+                    app:selectionRequired="true">
 
-                <ImageView
-                    android:id="@+id/search_view"
-                    android:layout_width="@dimen/item_tailing_component_size"
-                    android:layout_height="@dimen/item_tailing_component_size"
-                    android:layout_centerVertical="true"
-                    android:layout_marginStart="@dimen/item_tailing_margin"
-                    android:layout_toStartOf="@id/menu_view"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:clickable="true"
-                    android:contentDescription="@string/search"
-                    android:focusable="true"
-                    android:padding="@dimen/toolbar_image_action_padding"
-                    android:src="@drawable/ic_baseline_search" />
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/mode_all_button"
+                        style="?attr/materialButtonOutlinedStyle"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:onClick="@{() -> self.requestModeAcceptAll()}"
+                        android:text="@string/allow_all_apps" />
 
-                <ImageView
-                    android:id="@+id/menu_view"
-                    android:layout_width="@dimen/item_tailing_component_size"
-                    android:layout_height="@dimen/item_tailing_component_size"
-                    android:layout_alignParentEnd="true"
-                    android:layout_centerVertical="true"
-                    android:layout_marginStart="@dimen/item_tailing_margin"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:clickable="true"
-                    android:contentDescription="@string/more"
-                    android:focusable="true"
-                    android:padding="@dimen/toolbar_image_action_padding"
-                    android:src="@drawable/ic_baseline_more_vert" />
-            </RelativeLayout>
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/mode_allow_button"
+                        style="?attr/materialButtonOutlinedStyle"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:onClick="@{() -> self.requestModeAcceptSelected()}"
+                        android:text="@string/allow_selected_apps" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/mode_deny_button"
+                        style="?attr/materialButtonOutlinedStyle"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:onClick="@{() -> self.requestModeDenySelected()}"
+                        android:text="@string/deny_selected_apps" />
+                </com.google.android.material.button.MaterialButtonToggleGroup>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="@dimen/item_tailing_margin"
+                    android:layout_marginTop="@dimen/item_text_margin"
+                    android:hint="@string/search"
+                    app:startIconDrawable="@drawable/ic_baseline_search">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/search_input"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:imeOptions="actionDone"
+                        android:inputType="text"
+                        android:maxLines="1" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.chip.ChipGroup
+                    android:id="@+id/namespace_filter_group"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="@dimen/item_tailing_margin"
+                    android:layout_marginTop="@dimen/item_text_margin"
+                    app:singleSelection="true"
+                    app:selectionRequired="true">
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/filter_all_chip"
+                        style="@style/Widget.MaterialComponents.Chip.Choice"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:checked="true"
+                        android:text="@string/filter" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/filter_ru_chip"
+                        style="@style/Widget.MaterialComponents.Chip.Choice"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/app_routing_filter_ru" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/filter_cn_chip"
+                        style="@style/Widget.MaterialComponents.Chip.Choice"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/app_routing_filter_cn" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/filter_com_chip"
+                        style="@style/Widget.MaterialComponents.Chip.Choice"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/app_routing_filter_com" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/filter_other_chip"
+                        style="@style/Widget.MaterialComponents.Chip.Choice"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/app_routing_filter_other" />
+                </com.google.android.material.chip.ChipGroup>
+
+                <TextView
+                    android:id="@+id/counter_view"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="@dimen/item_tailing_margin"
+                    android:layout_marginTop="@dimen/item_text_margin"
+                    android:textAppearance="@style/TextAppearance.MaterialComponents.Body2" />
+            </LinearLayout>
         </com.github.kr328.clash.design.view.ActivityBarLayout>
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 </layout>

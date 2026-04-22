@@ -27,6 +27,25 @@
 
     <string name="logs">Логи</string>
     <string name="settings">Настройки</string>
+    <string name="features">Функции</string>
+    <string name="features_intro"><![CDATA[
+<b>Унифицированная задержка</b> — замер по реальным запросам, не только TCP.<br/>
+<b>Режим геоданных</b> — локальные GeoIP/GeoSite для правил GEOIP/GEOSITE.<br/>
+<b>Параллельный TCP</b> — несколько IP, остаётся самый быстрый.
+]]></string>
+    <string name="geo_data_source">Источник геоданных</string>
+    <string name="geo_data_source_summary">Зеркала загрузки одного и того же пакета (или свои URL)</string>
+    <string name="geo_data_source_intro"><![CDATA[
+Пресеты меняют только <b>откуда</b> скачиваются файлы (CDN/хост). Это по-прежнему ветка релиза MetaCubeX/meta-rules-dat — <b>не</b> отдельные «только для РФ» или «только для КНР» базы.
+]]></string>
+    <string name="geo_data_source_preset">Пресет загрузки</string>
+    <string name="geo_preset_global">По умолчанию (jsDelivr)</string>
+    <string name="geo_preset_cn_friendly">Зеркало для сетей КНР</string>
+    <string name="geo_preset_ru_friendly">Зеркало для сетей РФ</string>
+    <string name="geo_preset_custom">Свои URL</string>
+    <string name="geo_preset_mirrors_title">URL для этого пресета:</string>
+    <string name="geo_preset_mirrors_custom">Свой пресет: поля выше; пусто — встроенный URL для слота.</string>
+    <string name="import_local_geo_databases">Локальный импорт геобаз</string>
     <string name="advanced_settings">Расширенные</string>
     <string name="help">Помощь</string>
     <string name="about">О программе</string>
@@ -71,7 +90,7 @@
     <string name="auto_update">Автообновление</string>
     <string name="auto_update_minutes">Автообновление (минут)</string>
 
-    <string name="accept_http_content">Принимать только http(s)</string>
+    <string name="accept_http_content">Нужен http(s), content:// или текст mierus://</string>
     <string name="at_least_15_minutes">Не менее 15 минут или пустой</string>
     <string name="should_not_be_blank">Не должно быть пустым</string>
     <string name="detail">Детали</string>
@@ -152,8 +171,8 @@
     <string name="system_proxy">Системный прокси</string>
     <string name="system_proxy_summary">Дополнительно запустить HTTP прокси, помимо VPN</string>
     <string name="access_control_mode">Режим контроля доступа</string>
-    <string name="access_control_packages">Приложения с контролируемым доступом</string>
-    <string name="access_control_packages_summary">Настройте доступ для приложения</string>
+    <string name="access_control_packages">Маршрутизация приложений</string>
+    <string name="access_control_packages_summary">Выберите, какие приложения направлять через VPN</string>
 
     <string name="options_unavailable">Настройки недоступны, пока Clash не будет остановлен</string>
 
@@ -221,6 +240,8 @@
     <string name="select_none">Отменить выделение</string>
     <string name="import_from_clipboard">Импорт из буфера обмена</string>
     <string name="export_to_clipboard">Экспорт в буфер обмена</string>
+    <string name="clipboard_empty">Буфер обмена пуст</string>
+    <string name="clipboard_no_url">В буфере нет ссылки на подписку (нужны http(s), content:// или строки mierus://)</string>
 
     <string name="clash_meta_for_android">Clash Meta для Android</string>
 
@@ -245,6 +266,11 @@
     <string name="service">Сервис</string>
 
     <string name="dark_mode">Тёмный режим</string>
+    <string name="app_language">Язык приложения</string>
+    <string name="app_language_system">Как в системе</string>
+    <string name="app_language_en">English</string>
+    <string name="app_language_ru">Русский</string>
+    <string name="app_language_zh">中文</string>
 
     <string name="show_traffic">Показывать трафик</string>
     <string name="show_traffic_summary">Автоматически обновлять счётчик трафика в уведомлении</string>
@@ -253,9 +279,12 @@
     <string name="always_dark">Всегда тёмная</string>
     <string name="always_light">Всегда светлая</string>
 
-    <string name="allow_all_apps">Разрешить все приложения</string>
-    <string name="allow_selected_apps">Разрешить выбранные приложения</string>
-    <string name="deny_selected_apps">Запретить выбранные приложения</string>
+    <string name="allow_all_apps">Все приложения</string>
+    <string name="allow_selected_apps">Только выбранные</string>
+    <string name="deny_selected_apps">Кроме выбранных</string>
+    <string name="app_routing_counter">Выбрано: %1$d / %2$d</string>
+    <string name="app_routing_selected">Выбрано</string>
+    <string name="app_routing_not_selected">Не выбрано</string>
 
     <string name="no_profile_selected">Профиль не выбран</string>
 
@@ -347,7 +376,12 @@
     <string name="clash_meta_wiki">Clash Meta Wiki</string>
     <string name="clash_meta_wiki_url" translatable="false">https://docs.metacubex.one/</string>
 
-    <string name="meta_features">Функции Meta</string>
+    <string name="advanced_category_runtime_tuning">Тонкая настройка рантайма</string>
+    <string name="advanced_category_network_control">Сеть и управление</string>
+    <string name="advanced_meta_features_summary">Экспертные опции ядра и сниффера</string>
+    <string name="advanced_override_summary">Порты, DNS и override контроллера</string>
+
+    <string name="meta_features">Экспертные функции</string>
     <string name="unified_delay">Унифицированная задержка</string>
     <string name="geodata_mode">Режим геоданных</string>
     <string name="tcp_concurrent">Многопоточный TCP</string>
@@ -362,18 +396,20 @@
     <string name="geox_geoip">GeoIP URL</string>
     <string name="geox_mmdb">MMDB URL</string>
     <string name="geox_geosite">Geosite URL</string>
+    <string name="geox_asn">ASN URL</string>
     <string name="geoip_url" translatable="false">https://raw.githubusercontent.com/Loyalsoldier/v2ray-rules-dat/release/geoip.dat</string>
     <string name="mmdb_url" translatable="false">https://raw.githubusercontent.com/Loyalsoldier/geoip/release/Country.mmdb</string>
     <string name="geosite_url" translatable="false">https://raw.githubusercontent.com/Loyalsoldier/v2ray-rules-dat/release/geosite.dat</string>
     <string name="geox_files" >Geo Files</string>
-    <string name="import_geoip_file">Import GeoIP Database</string>
-    <string name="press_to_import">Press to import...</string>
-    <string name="import_geosite_file">Import GeoSite Database</string>
-    <string name="import_country_file">Import Country Database</string>
-    <string name="geofile_import_failed">Import failed</string>
-    <string name="geofile_unknown_db_format">Unknown Database format</string>
-    <string name="geofile_unknown_db_format_message">Only %1$s are supported</string>
-    <string name="geofile_imported">%1$s imported</string>
+    <string name="import_geoip_file">Импорт GeoIP</string>
+    <string name="press_to_import">Нажмите для импорта…</string>
+    <string name="import_geosite_file">Импорт GeoSite</string>
+    <string name="import_country_file">Импорт Country (MMDB)</string>
+    <string name="import_asn_file">Импорт ASN</string>
+    <string name="geofile_import_failed">Импорт не удался</string>
+    <string name="geofile_unknown_db_format">Неизвестный формат базы</string>
+    <string name="geofile_unknown_db_format_message">Поддерживаются только: %1$s</string>
+    <string name="geofile_imported">Импортировано: %1$s</string>
     <string name="toast_profile_updated_complete">Update profile %s completed</string>
     <string name="toast_profile_updated_failed">Update profile %1$s failed: %2$s</string>
     <string name="external_control_activity">External Control</string>

@@ -29,16 +29,19 @@
             android:focusable="false" />
 
         <LinearLayout
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
             android:layout_toStartOf="@id/switch_view"
             android:layout_toEndOf="@id/icon_view"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:paddingVertical="@dimen/item_text_margin">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
                 android:text="@{app.label}"
                 android:textAppearance="@style/TextAppearance.MaterialComponents.Body1" />
 
@@ -46,8 +49,17 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/item_text_margin"
+                android:ellipsize="middle"
+                android:maxLines="1"
                 android:text="@{app.packageName}"
                 android:textAppearance="@style/TextAppearance.MaterialComponents.Body2" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/item_text_margin"
+                android:text="@{selected ? @string/app_routing_selected : @string/app_routing_not_selected}"
+                android:textAppearance="@style/TextAppearance.MaterialComponents.Caption" />
         </LinearLayout>
 
         <com.google.android.material.checkbox.MaterialCheckBox

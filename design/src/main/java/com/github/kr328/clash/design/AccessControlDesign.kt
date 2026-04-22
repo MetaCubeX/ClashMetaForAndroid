@@ -6,19 +6,26 @@ import androidx.core.widget.addTextChangedListener
 import com.github.kr328.clash.design.adapter.AppAdapter
 import com.github.kr328.clash.design.component.AccessControlMenu
 import com.github.kr328.clash.design.databinding.DesignAccessControlBinding
-import com.github.kr328.clash.design.databinding.DialogSearchBinding
-import com.github.kr328.clash.design.dialog.FullScreenDialog
 import com.github.kr328.clash.design.model.AppInfo
 import com.github.kr328.clash.design.store.UiStore
 import com.github.kr328.clash.design.util.*
+import com.github.kr328.clash.service.model.AccessControlMode
 import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.Channel
 
 class AccessControlDesign(
     context: Context,
     uiStore: UiStore,
     private val selected: MutableSet<String>,
+    mode: AccessControlMode,
 ) : Design<AccessControlDesign.Request>(context) {
+    private enum class NamespaceFilter {
+        All,
+        Ru,
+        Cn,
+        Com,
+        Other,
+    }
+
     enum class Request {
         ReloadApps,
         SelectAll,
@@ -26,7 +33,11 @@ class AccessControlDesign(
         SelectInvert,
         Import,
         Export,
+        ChangeMode,
     }
+
+    var pendingMode: AccessControlMode? = null
+        private set
 
     private val binding = DesignAccessControlBinding
         .inflate(context.layoutInflater, context.root, false)
@@ -36,6 +47,8 @@ class AccessControlDesign(
     private val menu: AccessControlMenu by lazy {
         AccessControlMenu(context, binding.menuView, uiStore, requests)
     }
+    private var allApps: List<AppInfo> = emptyList()
+    private var namespaceFilter: NamespaceFilter = NamespaceFilter.All
 
     val apps: List<AppInfo>
         get() = adapter.apps
@@ -44,13 +57,65 @@ class AccessControlDesign(
         get() = binding.root
 
     suspend fun patchApps(apps: List<AppInfo>) {
-        adapter.swapDataSet(adapter::apps, apps, false)
+        allApps = apps
+        applyFilter(binding.searchInput.text?.toString().orEmpty())
+        updateCounter()
     }
 
     suspend fun rebindAll() {
         withContext(Dispatchers.Main) {
             adapter.rebindAll()
+            updateCounter()
         }
+    }
+
+    fun setMode(mode: AccessControlMode) {
+        when (mode) {
+            AccessControlMode.AcceptAll -> binding.modeGroup.check(binding.modeAllButton.id)
+            AccessControlMode.AcceptSelected -> binding.modeGroup.check(binding.modeAllowButton.id)
+            AccessControlMode.DenySelected -> binding.modeGroup.check(binding.modeDenyButton.id)
+        }
+    }
+
+    fun requestModeAcceptAll() = requestModeChange(AccessControlMode.AcceptAll)
+    fun requestModeAcceptSelected() = requestModeChange(AccessControlMode.AcceptSelected)
+    fun requestModeDenySelected() = requestModeChange(AccessControlMode.DenySelected)
+
+    private fun requestModeChange(mode: AccessControlMode) {
+        pendingMode = mode
+        requests.trySend(Request.ChangeMode)
+    }
+
+    private fun updateCounter() {
+        val total = allApps.size
+        val selectedCount = allApps.count { it.packageName in selected }
+        binding.counterView.text = context.getString(
+            R.string.app_routing_counter,
+            selectedCount,
+            total
+        )
+    }
+
+    private suspend fun applyFilter(keyword: String) {
+        val filtered = withContext(Dispatchers.Default) {
+            allApps.filter { app ->
+                val keywordMatched = keyword.isBlank() ||
+                    app.label.contains(keyword, ignoreCase = true) ||
+                    app.packageName.contains(keyword, ignoreCase = true)
+                val namespaceMatched = when (namespaceFilter) {
+                    NamespaceFilter.All -> true
+                    NamespaceFilter.Ru -> app.packageName.startsWith("ru.")
+                    NamespaceFilter.Cn -> app.packageName.startsWith("cn.")
+                    NamespaceFilter.Com -> app.packageName.startsWith("com.")
+                    NamespaceFilter.Other ->
+                        !app.packageName.startsWith("ru.") &&
+                            !app.packageName.startsWith("cn.") &&
+                            !app.packageName.startsWith("com.")
+                }
+                keywordMatched && namespaceMatched
+            }
+        }
+        adapter.swapDataSet(adapter::apps, filtered, false)
     }
 
     init {
@@ -62,73 +127,39 @@ class AccessControlDesign(
             it.bindAppBarElevation(binding.activityBarLayout)
             it.applyLinearAdapter(context, adapter)
         }
+        binding.activityBarLayout.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
+            val recycler = binding.mainList.recyclerList
+            val top = surface.insets.top + binding.activityBarLayout.height
+            if (recycler.paddingTop != top) {
+                recycler.setPadding(recycler.paddingLeft, top, recycler.paddingRight, recycler.paddingBottom)
+            }
+        }
 
         binding.menuView.setOnClickListener {
             menu.show()
         }
 
-        binding.searchView.setOnClickListener {
+        binding.searchInput.addTextChangedListener {
             launch {
-                try {
-                    requestSearch()
-                } finally {
-                    withContext(NonCancellable) {
-                        rebindAll()
-                    }
-                }
+                applyFilter(it?.toString().orEmpty())
+                updateCounter()
             }
         }
-    }
-
-    private suspend fun requestSearch() {
-        coroutineScope {
-            val binding = DialogSearchBinding
-                .inflate(context.layoutInflater, context.root, false)
-            val adapter = AppAdapter(context, selected)
-            val dialog = FullScreenDialog(context)
-            val filter = Channel<Unit>(Channel.CONFLATED)
-
-            dialog.setContentView(binding.root)
-
-            binding.surface = dialog.surface
-            binding.mainList.applyLinearAdapter(context, adapter)
-            binding.keywordView.addTextChangedListener {
-                filter.trySend(Unit)
+        binding.namespaceFilterGroup.setOnCheckedStateChangeListener { _, checkedIds ->
+            namespaceFilter = when (checkedIds.firstOrNull()) {
+                binding.filterRuChip.id -> NamespaceFilter.Ru
+                binding.filterCnChip.id -> NamespaceFilter.Cn
+                binding.filterComChip.id -> NamespaceFilter.Com
+                binding.filterOtherChip.id -> NamespaceFilter.Other
+                else -> NamespaceFilter.All
             }
-            binding.closeView.setOnClickListener {
-                dialog.dismiss()
-            }
-
-            dialog.setOnDismissListener {
-                cancel()
-            }
-
-            dialog.setOnShowListener {
-                binding.keywordView.requestTextInput()
-            }
-
-            dialog.show()
-
-            while (isActive) {
-                filter.receive()
-
-                val keyword = binding.keywordView.text?.toString() ?: ""
-
-                val apps: List<AppInfo> = if (keyword.isEmpty()) {
-                    emptyList()
-                } else {
-                    withContext(Dispatchers.Default) {
-                        apps.filter {
-                            it.label.contains(keyword, ignoreCase = true) ||
-                                    it.packageName.contains(keyword, ignoreCase = true)
-                        }
-                    }
-                }
-
-                adapter.patchDataSet(adapter::apps, apps, false, AppInfo::packageName)
-
-                delay(200)
+            launch {
+                applyFilter(binding.searchInput.text?.toString().orEmpty())
+                updateCounter()
             }
         }
+
+        setMode(mode)
+        updateCounter()
     }
 }

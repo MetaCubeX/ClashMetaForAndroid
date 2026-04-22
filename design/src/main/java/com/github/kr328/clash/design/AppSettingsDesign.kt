@@ -3,6 +3,9 @@ package com.github.kr328.clash.design
 import android.content.Context
 import android.view.View
 import com.github.kr328.clash.design.databinding.DesignSettingsCommonBinding
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.os.LocaleListCompat
+import com.github.kr328.clash.design.model.AppLanguage
 import com.github.kr328.clash.design.model.Behavior
 import com.github.kr328.clash.design.model.DarkMode
 import com.github.kr328.clash.design.preference.*
@@ -62,6 +65,30 @@ class AppSettingsDesign(
                 title = R.string.dark_mode
             ) {
                 listener = OnChangedListener {
+                    requests.trySend(Request.ReCreateAllActivities)
+                }
+            }
+
+            selectableList(
+                value = uiStore::appLanguage,
+                values = AppLanguage.values(),
+                valuesText = arrayOf(
+                    R.string.app_language_system,
+                    R.string.app_language_en,
+                    R.string.app_language_ru,
+                    R.string.app_language_zh,
+                ),
+                icon = R.drawable.ic_baseline_language,
+                title = R.string.app_language,
+            ) {
+                listener = OnChangedListener {
+                    val locales = when (uiStore.appLanguage) {
+                        AppLanguage.System -> LocaleListCompat.getEmptyLocaleList()
+                        AppLanguage.English -> LocaleListCompat.forLanguageTags("en")
+                        AppLanguage.Russian -> LocaleListCompat.forLanguageTags("ru")
+                        AppLanguage.Chinese -> LocaleListCompat.forLanguageTags("zh")
+                    }
+                    AppCompatDelegate.setApplicationLocales(locales)
                     requests.trySend(Request.ReCreateAllActivities)
                 }
             }

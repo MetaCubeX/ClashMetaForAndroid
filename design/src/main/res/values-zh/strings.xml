@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="access_control_packages_summary">为应用配置访问权限</string>
+    <string name="access_control_packages_summary">选择哪些应用通过 VPN 路由</string>
     <string name="about">关于</string>
     <string name="access_control_mode">访问控制模式</string>
-    <string name="access_control_packages">访问控制应用包列表</string>
+    <string name="access_control_packages">应用路由</string>
     <string name="append_system_dns">追加系统 DNS</string>
     <string name="application_broken">应用损坏</string>
     <string name="auto_update">自动更新</string>
@@ -14,6 +14,11 @@
     <string name="clash_logcat">Clash 日志捕捉工具</string>
     <string name="create_profile">创建配置</string>
     <string name="dark_mode">暗黑模式</string>
+    <string name="app_language">应用语言</string>
+    <string name="app_language_system">跟随系统</string>
+    <string name="app_language_en">English</string>
+    <string name="app_language_ru">俄语</string>
+    <string name="app_language_zh">中文</string>
     <string name="default_">默认</string>
     <string name="delay">延迟</string>
     <string name="delete">删除</string>
@@ -67,6 +72,25 @@
     <string name="rule_mode">规则模式</string>
     <string name="running">运行中</string>
     <string name="settings">设置</string>
+    <string name="features">功能</string>
+    <string name="features_intro"><![CDATA[
+<b>统一延迟</b> — 按真实请求测延迟，不仅是 TCP。<br/>
+<b>Geodata 模式</b> — 本地 GeoIP/GeoSite，用于 GEOIP/GEOSITE 规则。<br/>
+<b>TCP 并发</b> — 多 IP 拨号，保留最快线路。
+]]></string>
+    <string name="geo_data_source">地理数据下载</string>
+    <string name="geo_data_source_summary">同一数据包的下载镜像（或自定义 URL）</string>
+    <string name="geo_data_source_intro"><![CDATA[
+各预设只改 <b>下载地址</b>（CDN/主机）。数据仍来自 MetaCubeX/meta-rules-dat 的同一发布线，<b>不是</b>单独的「仅中国库」或「仅俄罗斯库」。
+]]></string>
+    <string name="geo_data_source_preset">下载预设</string>
+    <string name="geo_preset_global">默认（jsDelivr）</string>
+    <string name="geo_preset_cn_friendly">中国大陆友好镜像</string>
+    <string name="geo_preset_ru_friendly">俄罗斯网络友好镜像</string>
+    <string name="geo_preset_custom">自定义 URL</string>
+    <string name="geo_preset_mirrors_title">此预设的 URL：</string>
+    <string name="geo_preset_mirrors_custom">自定义：用上方字段；留空则用该槽位内置默认。</string>
+    <string name="import_local_geo_databases">导入本地地理库</string>
     <string name="advanced_settings">高级</string>
     <string name="show_traffic">显示流量</string>
     <string name="show_traffic_summary">在通知中自动刷新流量</string>
@@ -91,9 +115,12 @@
     <string name="loading">载入中</string>
     <string name="tips_help"><![CDATA[Clash Meta for Android 是一个<strong>免费软件</strong>并且我们<strong>不</strong>为其提供任何服务, <strong>请务必不要反馈非应用自身引起的问题</strong>]]></string>
     <string name="donate">捐赠</string>
-    <string name="allow_all_apps">允许所有应用</string>
-    <string name="allow_selected_apps">仅允许已选择的应用</string>
-    <string name="deny_selected_apps">不允许已选择的应用</string>
+    <string name="allow_all_apps">全部应用</string>
+    <string name="allow_selected_apps">仅所选应用</string>
+    <string name="deny_selected_apps">除所选外</string>
+    <string name="app_routing_counter">已选择：%1$d / %2$d</string>
+    <string name="app_routing_selected">已选择</string>
+    <string name="app_routing_not_selected">未选择</string>
     <string name="no_profile_selected">没有选择配置文件</string>
     <string name="copied">已复制</string>
     <string name="google_play">Google Play</string>
@@ -106,7 +133,7 @@
     <string name="always_dark">总是暗黑模式</string>
     <string name="always_light">总是明亮模式</string>
     <string name="service">服务</string>
-    <string name="accept_http_content">仅接受 http(s) 和 content 类型</string>
+    <string name="accept_http_content">请使用 http(s)、content:// 或 mierus:// 分享文本</string>
     <string name="at_least_15_minutes">至少 15 分钟</string>
     <string name="override">覆写</string>
     <string name="general">常规</string>
@@ -224,7 +251,11 @@
     <string name="allow_ipv6">允许 Ipv6</string>
     <string name="allow_ipv6_summary">通过 VpnService 代理 Ipv6 流量</string>
     <string name="clash_meta_wiki">Clash Meta Wiki</string>
-    <string name="meta_features">Meta 特性</string>
+    <string name="advanced_category_runtime_tuning">运行时调优</string>
+    <string name="advanced_category_network_control">网络与控制</string>
+    <string name="advanced_meta_features_summary">内核与嗅探器等专家选项</string>
+    <string name="advanced_override_summary">端口、DNS 与控制器覆盖</string>
+    <string name="meta_features">专家功能</string>
     <string name="unified_delay">统一延迟</string>
     <string name="geodata_mode">Geodata 模式</string>
     <string name="tcp_concurrent">TCP 并发</string>
@@ -243,6 +274,7 @@
     <string name="geox_geoip">GeoIp 链接</string>
     <string name="geox_mmdb">MMDB 链接</string>
     <string name="geox_geosite">Geosite 链接</string>
+    <string name="geox_asn">ASN 链接</string>
     <string name="prefer_h3">H3 优先</string>
     <string name="geox_files" >Geo 文件</string>
     <string name="import_geoip_file">导入 GeoIP 数据库</string>
@@ -338,6 +370,8 @@
     <string name="import_done_named">已导入为「%s」</string>
     <string name="import_failed_title">无法导入订阅</string>
     <string name="import_failed_open_editor">编辑订阅</string>
+    <string name="clipboard_empty">剪贴板为空</string>
+    <string name="clipboard_no_url">剪贴板中没有可导入的订阅（需要 http(s)、content:// 或 mierus:// 文本）</string>
     <string name="import_resolving">正在获取订阅…</string>
     <string name="main_add_subscription">添加订阅</string>
     <string name="main_no_profiles_subtitle">添加订阅以开始使用</string>

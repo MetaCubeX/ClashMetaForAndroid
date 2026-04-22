@@ -5,6 +5,7 @@ import com.github.kr328.clash.common.store.Store
 import com.github.kr328.clash.common.store.asStoreProvider
 import com.github.kr328.clash.core.model.ProxySort
 import com.github.kr328.clash.design.model.AppInfoSort
+import com.github.kr328.clash.design.model.AppLanguage
 import com.github.kr328.clash.design.model.DarkMode
 
 class UiStore(context: Context) {
@@ -23,6 +24,12 @@ class UiStore(context: Context) {
         key = "dark_mode",
         defaultValue = DarkMode.Auto,
         values = DarkMode.values()
+    )
+
+    var appLanguage: AppLanguage by store.enum(
+        key = "app_language",
+        defaultValue = AppLanguage.System,
+        values = AppLanguage.values(),
     )
 
     var hideAppIcon: Boolean by store.boolean(

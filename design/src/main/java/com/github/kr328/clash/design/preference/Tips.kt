@@ -40,3 +40,33 @@ fun PreferenceScreen.tips(
 
     return impl
 }
+
+fun PreferenceScreen.plainTips(
+    text: CharSequence,
+    configure: TipsPreference.() -> Unit = {},
+): TipsPreference {
+    val binding = PreferenceTipsBinding
+        .inflate(context.layoutInflater, context.root, false)
+    val impl = object : TipsPreference {
+        override var text: CharSequence?
+            get() = binding.tips.text
+            set(value) {
+                binding.tips.text = value
+            }
+        override val view: View
+            get() = binding.root
+        override var enabled: Boolean
+            get() = binding.root.isEnabled
+            set(value) {
+                binding.root.isEnabled = value
+            }
+    }
+
+    binding.tips.text = text
+
+    impl.configure()
+
+    addElement(impl)
+
+    return impl
+}
