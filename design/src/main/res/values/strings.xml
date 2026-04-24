@@ -6,6 +6,7 @@
 
     <string name="stopped">Stopped</string>
     <string name="tap_to_start">Tap to start</string>
+    <string name="main_vpn_ready">Ready to start</string>
     <string name="running">Running</string>
     <string name="format_traffic_forwarded">%s Forwarded</string>
 
@@ -63,6 +64,57 @@ Presets only change <b>where</b> files are downloaded from (CDN / host). It is s
     <string name="add">ADD</string>
     <string name="rules">Rules</string>
     <string name="routing_rules">Routing</string>
+
+    <!-- Bottom navigation labels -->
+    <string name="nav_subscriptions">Profiles</string>
+    <string name="nav_proxies">Proxies</string>
+    <string name="nav_routing">Rules</string>
+    <string name="nav_connections">Connections</string>
+
+    <!-- Routing hub screen -->
+    <string name="routing_hub_tips">Manage how traffic is routed: rule snippets, the active rule list, and per-app inclusion/exclusion.</string>
+    <string name="routing_hub_category_traffic">Traffic routing</string>
+    <string name="routing_hub_category_apps">Per-app routing</string>
+    <string name="routing_hub_effective_summary">Active routing rules from the current profile</string>
+    <string name="routing_hub_rules_summary">Edit reusable rule snippets and providers</string>
+    <string name="routing_hub_per_app_summary">Choose which apps go through the VPN tunnel</string>
+
+    <!-- Announcement &amp; Support settings -->
+    <string name="announcement_settings">Announcements &amp; support</string>
+    <string name="announcement_settings_tips">Show a banner on the main screen and a support button in About. Useful for operators distributing this build.</string>
+    <string name="announcement_category_support">Support</string>
+    <string name="announcement_category_announcement">Announcement</string>
+    <string name="support_url">Support URL</string>
+    <string name="support_url_placeholder">https://t.me/your_support_bot</string>
+    <string name="announcement_text">Announcement</string>
+    <string name="announcement_text_placeholder">Short message shown on the main screen</string>
+    <string name="announcement_url">Announcement URL</string>
+    <string name="announcement_url_placeholder">Optional link with more information</string>
+    <string name="not_set">Not set</string>
+    <string name="dismiss">Dismiss</string>
+    <string name="about_support">Contact support</string>
+    <string name="expires_on">expires %1$s</string>
+    <string name="sub_announcement_traffic_left">Traffic left:</string>
+    <string name="sub_announcement_days_left">Days left:</string>
+    <string name="sub_announcement_expires">Expires:</string>
+    <string name="sub_announcement_never">Never</string>
+    <string name="sub_announcement_unlimited">∞</string>
+    <string name="sub_announcement_if_unavailable">If unavailable, tap</string>
+    <string name="sub_announcement_refresh">Refresh subscription</string>
+    <string name="sub_announcement_open_link">Open link</string>
+    <string name="sub_announcement_support">Support</string>
+    <!-- RU bypass pre-launch prompt -->
+    <string name="ru_bypass_prompt_title">Apply Russian bypass?</string>
+    <string name="ru_bypass_prompt_message">Your per-app exclusion list is empty. Route installed Russian apps (banks, Госуслуги, marketplaces, carriers) directly through your ISP and keep them out of the VPN tunnel? You can edit the list later in Routing → Per-app.</string>
+    <string name="ru_bypass_prompt_apply">Apply</string>
+    <string name="ru_bypass_prompt_skip">Skip</string>
+    <string name="ru_bypass_prompt_seeded">%1$d Russian apps added to bypass list.</string>
+    <string name="sub_meta_lock_user">Ignore operator overrides</string>
+    <string name="sub_meta_lock_user_summary">Don’t let the subscription server overwrite locally edited support URL or announcement.</string>
+    <string name="per_app_mode_all">All apps</string>
+    <string name="per_app_mode_allow">Only selected</string>
+    <string name="per_app_mode_deny">Except selected</string>
+    <string name="per_app_counter">%1$d / %2$d</string>
     <string name="effective_rules_title">Routing rules</string>
     <string name="effective_rules_intro">Rules from the active profile (YAML order). In Rule mode, Clash walks this list top to bottom. This screen does not show live traffic.</string>
     <string name="effective_rules_count">%d rules in config</string>
@@ -73,6 +125,13 @@ Presets only change <b>where</b> files are downloaded from (CDN / host). It is s
     <string name="effective_rules_connections_hint">For live hosts and proxy chains like Clash Verge, turn the VPN on and watch the core log while you use apps.</string>
     <string name="effective_rules_open_logcat">Open core log</string>
     <string name="effective_rules_no_profile">Select an imported profile first</string>
+    <string name="effective_rules_search_hint">Search rules, policies, providers…</string>
+    <string name="effective_rules_summary_fmt">%1$d shown · %2$d active · %3$d disabled · %4$d deleted</string>
+    <string name="effective_rules_source_manual">Manual</string>
+    <string name="effective_rules_source_provider">Provider</string>
+    <string name="rule_action_enable">Enable</string>
+    <string name="rule_action_disable">Disable</string>
+    <string name="rule_action_restore">Restore</string>
     <string name="quick_actions">Quick Actions</string>
     <string name="home_clipboard">Clipboard</string>
     <string name="home_qr">QR-Code</string>
@@ -87,6 +146,27 @@ Presets only change <b>where</b> files are downloaded from (CDN / host). It is s
     <string name="connections_search_hint">Search hosts, process, rule…</string>
     <string name="connections_empty_state">No matching connections — start traffic or clear the search filter.</string>
     <string name="connections_open_log">Open core log</string>
+    <string name="connections_summary_active">Active</string>
+    <string name="connections_summary_upload">Upload</string>
+    <string name="connections_summary_download">Download</string>
+    <string name="connections_summary_memory">Memory</string>
+    <string name="connections_filter_all">All</string>
+    <string name="connections_filter_tcp">TCP</string>
+    <string name="connections_filter_udp">UDP</string>
+    <string name="connections_filter_direct">Direct</string>
+    <string name="connections_filter_proxy">Proxy</string>
+    <string name="connections_filter_reject">Blocked</string>
+    <string name="connections_close">Close connection</string>
+    <string name="connections_close_all">Close all</string>
+    <string name="connections_close_all_confirm">Close all live connections?</string>
+    <string name="connections_closed_one">Connection closed</string>
+    <string name="connections_closed_none">Connection was already closed</string>
+    <string name="connections_closed_many">Closed %d connections</string>
+    <string name="connections_details">Details</string>
+    <string name="connections_endpoint_fmt">%1$s:%2$s → %3$s:%4$s</string>
+    <string name="connections_rule_fmt">Rule: %1$s %2$s</string>
+    <string name="connections_inbound_fmt">Inbound: %1$s</string>
+    <string name="connections_id_fmt">ID: %1$s</string>
     <string name="usage_unlimited_symbol">∞</string>
     <string name="clipboard_empty">Clipboard is empty</string>
     <string name="clipboard_no_url">No subscription link in clipboard (need http(s), content://, or mierus:// lines)</string>
@@ -130,7 +210,14 @@ Presets only change <b>where</b> files are downloaded from (CDN / host). It is s
     <string name="theme_toggle">Switch theme (light / dark)</string>
     <string name="profile_expand_proxies">Proxy groups</string>
     <string name="profile_ping_all">Latency test (all nodes)</string>
+    <string name="profile_ping_all_short">Ping</string>
     <string name="profile_force_update">Update subscription from URL</string>
+    <string name="profile_active_status">Active</string>
+    <string name="profile_inactive_status">Ready</string>
+    <string name="profile_use">Use</string>
+    <string name="profile_selected_group">Selected group</string>
+    <string name="profile_nodes">Nodes</string>
+    <string name="profile_start_to_test">Start VPN to test latency</string>
     <string name="proxy_open_yaml">Proxy YAML from config</string>
     <string name="proxy_yaml_missing">This proxy is not listed under proxies: in the saved config (subscription-only name).</string>
     <string name="proxy_nodes_empty_connect_vpn">Nodes from subscription providers load in the engine after VPN starts. Turn the VPN on, then pick a real node here (not sub1/sub2 — those are provider keys).</string>
@@ -268,6 +355,17 @@ Presets only change <b>where</b> files are downloaded from (CDN / host). It is s
     <string name="routing_via_vpn_service">Auto routing all system traffic via VpnService</string>
 
     <string name="vpn_service_options">VpnService Options</string>
+
+    <!-- ClashFest hardening -->
+    <string name="security_options">Security</string>
+    <string name="proxy_hardening_mode">Local proxy hardening</string>
+    <string name="proxy_hardening_mode_summary">Protects against the SOCKS5/HTTP listener leak (a.k.a. VLESS-SOCKS5 vulnerability) that lets other apps on this device reach the proxy on 127.0.0.1.</string>
+    <string name="proxy_hardening_strict">Strict — disable local SOCKS/HTTP listeners (recommended)</string>
+    <string name="proxy_hardening_compat">Compat — keep listeners on 127.0.0.1 with random session credentials</string>
+    <string name="proxy_hardening_off">Off — upstream Clash.Meta defaults (not recommended)</string>
+    <string name="seed_default_geo_mirrors">Auto-seed GeoIP / GeoSite mirrors</string>
+    <string name="seed_default_geo_mirrors_summary">If the imported subscription does not provide geox-url, ClashFest fills in default mirrors (MetaCubeX/Loyalsoldier). Fixes the «cant download geoip.dat» error.</string>
+
     <string name="bypass_private_network">Bypass Private Network</string>
     <string name="bypass_private_network_summary">Bypass private network addresses</string>
     <string name="dns_hijacking">DNS Hijacking</string>
@@ -408,6 +506,16 @@ Presets only change <b>where</b> files are downloaded from (CDN / host). It is s
     <string name="app_language_en">English</string>
     <string name="app_language_ru">Russian</string>
     <string name="app_language_zh">Chinese</string>
+
+    <string name="home_background">Home background</string>
+    <string name="home_background_material_you">Material You</string>
+    <string name="home_background_plain">Plain surface</string>
+    <string name="home_background_preview">ClashFest Preview</string>
+
+    <string name="app_language">App language</string>
+    <string name="app_language_system">System default</string>
+    <string name="app_language_english">English</string>
+    <string name="app_language_russian">Русский</string>
 
     <string name="show_traffic">Show Traffic</string>
     <string name="show_traffic_summary">Auto refresh traffic in notification</string>
@@ -618,4 +726,27 @@ Presets only change <b>where</b> files are downloaded from (CDN / host). It is s
     <string name="proxy_chain_runtime_offline">Live proxy list is unavailable (VPN off or profile not loaded). Chains saved on disk are shown above — you can remove them without selecting proxies here.</string>
     <string name="proxy_chain_runtime_pick_title">Build a new chain</string>
     <string name="proxy_chain_pick_saved_row">Select a saved chain first.</string>
+    <string name="theme_settings">Theme</string>
+    <string name="theme_mode">Theme mode</string>
+    <string name="theme_auto">Auto</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+    <string name="theme_color">Theme color</string>
+    <string name="theme_dynamic_colors">Material You</string>
+    <string name="theme_true_black">Pure black mode</string>
+    <string name="theme_true_black_summary">Uses black surfaces in dark mode for OLED screens.</string>
+    <string name="theme_text_scale">Text scale</string>
+    <string name="theme_text_small">90%</string>
+    <string name="theme_text_default">100%</string>
+    <string name="theme_text_large">110%</string>
+    <string name="theme_text_extra">120%</string>
+    <string name="theme_reset">Reset theme</string>
+    <string name="theme_palette_clash">ClashFest</string>
+    <string name="theme_palette_blue">Blue</string>
+    <string name="theme_palette_violet">Violet</string>
+    <string name="theme_palette_rose">Rose</string>
+    <string name="theme_palette_amber">Amber</string>
+    <string name="theme_palette_mint">Mint</string>
+    <string name="theme_palette_graphite">Graphite</string>
+    <string name="theme_palette_mono">Mono</string>
 </resources>

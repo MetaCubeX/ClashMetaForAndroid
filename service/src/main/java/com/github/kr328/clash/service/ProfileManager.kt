@@ -154,7 +154,7 @@ class ProfileManager(private val context: Context) : IProfileManager,
             val versionName = context.packageManager.getPackageInfo(context.packageName, 0).versionName
             val request = Request.Builder()
                 .url(old.source)
-                .header("User-Agent", "ClashMetaForAndroid/$versionName")
+                .header("User-Agent", "ClashFest/$versionName")
                 .build()
 
             client.newCall(request).execute().use { response ->

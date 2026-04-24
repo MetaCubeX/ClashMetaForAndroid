@@ -1,6 +1,7 @@
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="PluralsCandidate">
     <string name="stopped">Остановлен</string>
     <string name="tap_to_start">Нажмите для запуска</string>
+    <string name="main_vpn_ready">Готово к запуску</string>
     <string name="running">Запущен</string>
     <string name="format_traffic_forwarded">%s перенаправлено</string>
 
@@ -52,9 +53,101 @@
     <string name="add">Добавить</string>
     <string name="rules">Правила</string>
     <string name="routing_rules">Маршрутизация</string>
+
+    <!-- Bottom navigation labels -->
+    <string name="nav_subscriptions">Подписки</string>
+    <string name="nav_proxies">Прокси</string>
+    <string name="nav_routing">Правила</string>
+    <string name="nav_connections">Соединения</string>
+
+    <!-- Routing hub screen -->
+    <string name="routing_hub_tips">Управляйте тем, как маршрутизируется трафик: фрагменты правил, активный список правил и включение/исключение по приложениям.</string>
+    <string name="routing_hub_category_traffic">Маршрутизация трафика</string>
+    <string name="routing_hub_category_apps">По приложениям</string>
+    <string name="routing_hub_effective_summary">Активные правила маршрутизации из текущего профиля</string>
+    <string name="routing_hub_rules_summary">Редактирование наборов правил и провайдеров</string>
+    <string name="routing_hub_per_app_summary">Какие приложения идут через VPN-туннель</string>
+    <string name="effective_rules_title">Правила маршрутизации</string>
+    <string name="effective_rules_intro">Правила активного профиля в порядке YAML.</string>
+    <string name="effective_rules_count">Правил в конфиге: %d</string>
+    <string name="effective_rules_filter_all">Все</string>
+    <string name="effective_rules_filter_active">Активные</string>
+    <string name="effective_rules_filter_disabled">Отключённые</string>
+    <string name="effective_rules_filter_deleted">Удалённые</string>
+    <string name="effective_rules_connections_hint">Для живых хостов и цепочек откройте соединения или лог ядра.</string>
+    <string name="effective_rules_open_logcat">Открыть лог ядра</string>
+    <string name="effective_rules_no_profile">Сначала выберите импортированный профиль</string>
+    <string name="effective_rules_search_hint">Поиск по правилам, политикам, провайдерам…</string>
+    <string name="effective_rules_summary_fmt">Показано: %1$d · активно: %2$d · отключено: %3$d · удалено: %4$d</string>
+    <string name="effective_rules_source_manual">Вручную</string>
+    <string name="effective_rules_source_provider">Провайдер</string>
+    <string name="rule_action_enable">Включить</string>
+    <string name="rule_action_disable">Отключить</string>
+    <string name="rule_action_restore">Восстановить</string>
+
+    <!-- Объявления и поддержка -->
+    <string name="announcement_settings">Объявления и поддержка</string>
+    <string name="announcement_settings_tips">Показывает баннер на главном экране и кнопку «Поддержка» в About. Полезно для операторов, распространяющих сборку.</string>
+    <string name="announcement_category_support">Поддержка</string>
+    <string name="announcement_category_announcement">Объявление</string>
+    <string name="support_url">URL поддержки</string>
+    <string name="support_url_placeholder">https://t.me/your_support_bot</string>
+    <string name="announcement_text">Объявление</string>
+    <string name="announcement_text_placeholder">Короткое сообщение для главного экрана</string>
+    <string name="announcement_url">URL объявления</string>
+    <string name="announcement_url_placeholder">Необязательная ссылка с подробностями</string>
+    <string name="not_set">Не задано</string>
+    <string name="dismiss">Скрыть</string>
+    <string name="about_support">Связаться с поддержкой</string>
+    <string name="sub_announcement_traffic_left">Трафика осталось:</string>
+    <string name="sub_announcement_days_left">Дней осталось:</string>
+    <string name="sub_announcement_expires">Истекает:</string>
+    <string name="sub_announcement_never">Никогда</string>
+    <string name="sub_announcement_unlimited">∞</string>
+    <string name="sub_announcement_if_unavailable">В случае недоступности нажмите</string>
+    <string name="sub_announcement_refresh">Обновить подписку</string>
+    <string name="sub_announcement_open_link">Открыть ссылку</string>
+    <string name="sub_announcement_support">Поддержка</string>
+    <string name="ru_bypass_prompt_title">Применить обход для RU-приложений?</string>
+    <string name="ru_bypass_prompt_message">Список исключений по приложениям пуст. Пустить установленные российские приложения (банки, Госуслуги, маркетплейсы, операторы) мимо туннеля напрямую через провайдера? Список позже можно поправить в Роутинг → По приложениям.</string>
+    <string name="ru_bypass_prompt_apply">Применить</string>
+    <string name="ru_bypass_prompt_skip">Пропустить</string>
+    <string name="ru_bypass_prompt_seeded">Добавлено %1$d российских приложений.</string>
+    <string name="expires_on">до %1$s</string>
+    <string name="sub_meta_lock_user">Игнорировать оператора</string>
+    <string name="sub_meta_lock_user_summary">Не давать серверу подписки перезаписывать локальные URL поддержки и объявления.</string>
+    <string name="per_app_mode_all">Все приложения</string>
+    <string name="per_app_mode_allow">Только выбранные</string>
+    <string name="per_app_mode_deny">Кроме выбранных</string>
+    <string name="per_app_counter">%1$d / %2$d</string>
     <string name="connections_title">Соединения</string>
     <string name="connections_intro">Потоки из ядра (VPN включён). Счётчики — за сессию; список обновляется примерно раз в секунду. Подзаголовок: процесс, цепочка (маршрут: селектор / группы / лист; [тег] — proxy-provider при наличии), тип сети. dialer-proxy сюда не попадает — ядро отдаёт только узлы политики, а не отдельный апстрим для дозвона до сервера прокси.</string>
     <string name="connections_chain_label">Цепочка: %1$s</string>
+    <string name="connections_totals_fmt">↑%1$s · ↓%2$s · %3$d потоков</string>
+    <string name="connections_search_hint">Поиск по хосту, процессу, правилу…</string>
+    <string name="connections_empty_state">Подходящих соединений нет — запустите трафик или очистите фильтр.</string>
+    <string name="connections_open_log">Открыть лог ядра</string>
+    <string name="connections_summary_active">Активно</string>
+    <string name="connections_summary_upload">Отдано</string>
+    <string name="connections_summary_download">Получено</string>
+    <string name="connections_summary_memory">Память</string>
+    <string name="connections_filter_all">Все</string>
+    <string name="connections_filter_tcp">TCP</string>
+    <string name="connections_filter_udp">UDP</string>
+    <string name="connections_filter_direct">Direct</string>
+    <string name="connections_filter_proxy">Proxy</string>
+    <string name="connections_filter_reject">Блок</string>
+    <string name="connections_close">Закрыть соединение</string>
+    <string name="connections_close_all">Закрыть все</string>
+    <string name="connections_close_all_confirm">Закрыть все живые соединения?</string>
+    <string name="connections_closed_one">Соединение закрыто</string>
+    <string name="connections_closed_none">Соединение уже закрыто</string>
+    <string name="connections_closed_many">Закрыто соединений: %d</string>
+    <string name="connections_details">Детали</string>
+    <string name="connections_endpoint_fmt">%1$s:%2$s → %3$s:%4$s</string>
+    <string name="connections_rule_fmt">Правило: %1$s %2$s</string>
+    <string name="connections_inbound_fmt">Вход: %1$s</string>
+    <string name="connections_id_fmt">ID: %1$s</string>
     <string name="theme_toggle">Сменить тему (светлая / тёмная)</string>
 
     <string name="copied">Скопировано</string>
@@ -148,6 +241,17 @@
     <string name="routing_via_vpn_service">Автоматически маршрутизировать весь системный трафик через VPN</string>
 
     <string name="vpn_service_options">Настройки VPN</string>
+
+    <!-- ClashFest hardening -->
+    <string name="security_options">Безопасность</string>
+    <string name="proxy_hardening_mode">Защита локального прокси</string>
+    <string name="proxy_hardening_mode_summary">Защищает от уязвимости локальных SOCKS5/HTTP-портов (VLESS-SOCKS5 vulnerability), когда другие приложения на устройстве могут подключиться к 127.0.0.1.</string>
+    <string name="proxy_hardening_strict">Строгий — отключить локальные SOCKS/HTTP-порты (рекомендуется)</string>
+    <string name="proxy_hardening_compat">Совместимый — порты на 127.0.0.1 со случайным паролем сессии</string>
+    <string name="proxy_hardening_off">Выкл — поведение Clash.Meta по умолчанию (не рекомендуется)</string>
+    <string name="seed_default_geo_mirrors">Подставлять GeoIP/GeoSite зеркала</string>
+    <string name="seed_default_geo_mirrors_summary">Если в импортированной подписке нет geox-url, ClashFest подставит зеркала (MetaCubeX/Loyalsoldier). Исправляет ошибку «cant download geoip.dat».</string>
+
     <string name="bypass_private_network">Игнорировать частные сети</string>
     <string name="bypass_private_network_summary">Игнорировать адреса частных сетей</string>
     <string name="dns_hijacking">Перехват DNS</string>
@@ -164,7 +268,14 @@
     <string name="profile_ping_need_url">Для пинга нужен профиль с URL подписки</string>
     <string name="profile_expand_proxies">Группы прокси</string>
     <string name="profile_ping_all">Задержка: все узлы</string>
+    <string name="profile_ping_all_short">Пинг</string>
     <string name="profile_force_update">Обновить подписку по ссылке</string>
+    <string name="profile_active_status">Активна</string>
+    <string name="profile_inactive_status">Готова</string>
+    <string name="profile_use">Использовать</string>
+    <string name="profile_selected_group">Выбранная группа</string>
+    <string name="profile_nodes">Узлы</string>
+    <string name="profile_start_to_test">Запустите VPN, чтобы проверить задержку</string>
     <string name="profile_update_scheduled">Запущено обновление подписки</string>
     <string name="profile_menu_set_active">Сделать активным</string>
     <string name="profile_delete_confirm">Удалить этот профиль? Действие необратимо.</string>
@@ -271,6 +382,16 @@
     <string name="app_language_en">English</string>
     <string name="app_language_ru">Русский</string>
     <string name="app_language_zh">中文</string>
+
+    <string name="home_background">Фон главного экрана</string>
+    <string name="home_background_material_you">Material You</string>
+    <string name="home_background_plain">Чистая поверхность</string>
+    <string name="home_background_preview">ClashFest Preview</string>
+
+    <string name="app_language">Язык приложения</string>
+    <string name="app_language_system">Системный</string>
+    <string name="app_language_english">English</string>
+    <string name="app_language_russian">Русский</string>
 
     <string name="show_traffic">Показывать трафик</string>
     <string name="show_traffic_summary">Автоматически обновлять счётчик трафика в уведомлении</string>
@@ -461,4 +582,27 @@
     <string name="rule_manual_custom_kind">Тип правила Clash</string>
     <string name="rule_manual_content_payload_hint">Значение (домен, IP/CIDR, порт, …)</string>
     <string name="rule_existing_provider_toggle_hint">Чтобы отключить набор правил, откройте «Маршрутизация» (ручные правила) и выключите строку RULE-SET — не отключайте провайдера в этом списке.</string>
+    <string name="theme_settings">Тема</string>
+    <string name="theme_mode">Режим темы</string>
+    <string name="theme_auto">Авто</string>
+    <string name="theme_light">Светлая</string>
+    <string name="theme_dark">Тёмная</string>
+    <string name="theme_color">Цвет темы</string>
+    <string name="theme_dynamic_colors">Material You</string>
+    <string name="theme_true_black">Чисто чёрный режим</string>
+    <string name="theme_true_black_summary">Использует чёрные поверхности в тёмной теме для OLED-экранов.</string>
+    <string name="theme_text_scale">Масштаб текста</string>
+    <string name="theme_text_small">90%</string>
+    <string name="theme_text_default">100%</string>
+    <string name="theme_text_large">110%</string>
+    <string name="theme_text_extra">120%</string>
+    <string name="theme_reset">Сбросить тему</string>
+    <string name="theme_palette_clash">ClashFest</string>
+    <string name="theme_palette_blue">Синяя</string>
+    <string name="theme_palette_violet">Фиолетовая</string>
+    <string name="theme_palette_rose">Розовая</string>
+    <string name="theme_palette_amber">Янтарная</string>
+    <string name="theme_palette_mint">Мятная</string>
+    <string name="theme_palette_graphite">Графитовая</string>
+    <string name="theme_palette_mono">Моно</string>
 </resources>
