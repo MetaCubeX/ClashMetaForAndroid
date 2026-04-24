@@ -1,10 +1,108 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+    <!-- Existing styles for backward compatibility -->
     <style name="ThemeOverlay" />
 
     <style name="ThemeOverlay.ControlColorError">
         <item name="colorControlNormal">@color/color_error</item>
         <item name="android:textColor">@color/color_error</item>
     </style>
+
+    <!-- ========== Material 3 Button Styles ========== -->
+    <style name="AppButton" parent="Widget.Material3.Button" />
+
+    <style name="AppButton.Outlined" parent="Widget.Material3.Button.OutlinedButton" />
+
+    <style name="AppButton.Text" parent="Widget.Material3.Button.TextButton" />
+
+    <style name="AppButton.Tonal" parent="Widget.Material3.Button.TonalButton" />
+
+    <style name="AppButton.Icon" parent="Widget.Material3.Button.IconButton" />
+
+    <!-- ========== Material 3 TextInputLayout Styles ========== -->
+    <style name="AppTextInputLayout" parent="Widget.Material3.TextInputLayout.OutlinedBox" />
+
+    <style name="AppTextInputLayout.Filled" parent="Widget.Material3.TextInputLayout.FilledBox" />
+
+    <!-- ========== Material 3 Card Styles ========== -->
+    <style name="AppCard" parent="Widget.Material3.CardView.Elevated" />
+
+    <style name="AppCard.Outlined" parent="Widget.Material3.CardView.Outlined" />
+
+    <style name="AppCard.Filled" parent="Widget.Material3.CardView.Filled" />
+
+    <style name="AppCard.Surface" parent="Widget.Material3.CardView.Filled" />
+
+    <style name="AppCard.Action" parent="Widget.Material3.CardView.Filled" />
+
+    <style name="AppCard.BottomNav" parent="Widget.Material3.CardView.Filled" />
+
+    <!-- ========== Material 3 Chip Styles ========== -->
+    <style name="AppChip" parent="Widget.Material3.Chip.Assist" />
+
+    <style name="AppChip.Filter" parent="Widget.Material3.Chip.Filter" />
+
+    <style name="AppChip.Input" parent="Widget.Material3.Chip.Input" />
+
+    <style name="AppChip.Suggestion" parent="Widget.Material3.Chip.Suggestion" />
+
+    <!-- ========== Material 3 Dropdown Menu Style ========== -->
+    <style name="AppDropdown" parent="Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu" />
+
+    <!-- ========== Material 3 Dialog Style ========== -->
+    <style name="AppDialog" parent="ThemeOverlay.Material3.MaterialAlertDialog" />
+
+    <!-- ========== Material 3 Switch Style ========== -->
+    <style name="AppSwitch" parent="Widget.MaterialComponents.CompoundButton.Switch" />
+
+    <!-- ========== Material 3 Toolbar Style ========== -->
+    <style name="AppToolbar" parent="Widget.Material3.Toolbar" />
+
+    <!-- ========== Material 3 Progress Indicator Style ========== -->
+    <style name="AppProgressIndicator" parent="Widget.Material3.LinearProgressIndicator" />
+
+    <!-- ========== Material 3 FAB Style ========== -->
+    <style name="AppFAB" parent="Widget.Material3.FloatingActionButton.Primary" />
+
+    <!-- ========== Material 3 TextAppearance Styles ========== -->
+    <!-- Display -->
+    <style name="TextAppearance.App.DisplayLarge" parent="TextAppearance.Material3.DisplayLarge" />
+
+    <style name="TextAppearance.App.DisplayMedium" parent="TextAppearance.Material3.DisplayMedium" />
+
+    <style name="TextAppearance.App.DisplaySmall" parent="TextAppearance.Material3.DisplaySmall" />
+
+    <!-- Headline -->
+    <style name="TextAppearance.App.HeadlineLarge" parent="TextAppearance.Material3.HeadlineLarge" />
+
+    <style name="TextAppearance.App.HeadlineMedium" parent="TextAppearance.Material3.HeadlineMedium" />
+
+    <style name="TextAppearance.App.HeadlineSmall" parent="TextAppearance.Material3.HeadlineSmall" />
+
+    <!-- Title -->
+    <style name="TextAppearance.App.TitleLarge" parent="TextAppearance.Material3.TitleLarge" />
+
+    <style name="TextAppearance.App.TitleMedium" parent="TextAppearance.Material3.TitleMedium" />
+
+    <style name="TextAppearance.App.TitleSmall" parent="TextAppearance.Material3.TitleSmall" />
+
+    <!-- Body -->
+    <style name="TextAppearance.App.BodyLarge" parent="TextAppearance.Material3.BodyLarge" />
+
+    <style name="TextAppearance.App.BodyMedium" parent="TextAppearance.Material3.BodyMedium" />
+
+    <style name="TextAppearance.App.BodySmall" parent="TextAppearance.Material3.BodySmall" />
+
+    <!-- Label -->
+    <style name="TextAppearance.App.LabelLarge" parent="TextAppearance.Material3.LabelLarge" />
+
+    <style name="TextAppearance.App.LabelMedium" parent="TextAppearance.Material3.LabelMedium" />
+
+    <style name="TextAppearance.App.LabelSmall" parent="TextAppearance.Material3.LabelSmall" />
+
+    <style name="TextAppearance.App.BottomNavigation" parent="TextAppearance.Material3.LabelMedium">
+        <item name="android:textSize">10sp</item>
+    </style>
+
 </resources>

@@ -1,0 +1,353 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Material 3 Dark Theme Overrides -->
+    
+    <style name="AppFullScreenDialogLightBase" parent="Theme.Material3.Dark.Dialog">
+        <item name="android:windowIsFloating">false</item>
+        <item name="android:windowFullscreen">false</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:backgroundDimEnabled">false</item>
+        <item name="paddingRightSystemWindowInsets">false</item>
+        <item name="paddingBottomSystemWindowInsets">false</item>
+        <item name="paddingLeftSystemWindowInsets">false</item>
+
+        <item name="colorPrimary">@color/md3_dark_primary</item>
+        <item name="colorOnPrimary">@color/md3_dark_onPrimary</item>
+        <item name="colorPrimaryContainer">@color/md3_dark_primaryContainer</item>
+        <item name="colorOnPrimaryContainer">@color/md3_dark_onPrimaryContainer</item>
+        
+        <item name="colorSecondary">@color/md3_dark_secondary</item>
+        <item name="colorOnSecondary">@color/md3_dark_onSecondary</item>
+        <item name="colorSecondaryContainer">@color/md3_dark_secondaryContainer</item>
+        <item name="colorOnSecondaryContainer">@color/md3_dark_onSecondaryContainer</item>
+        
+        <item name="colorTertiary">@color/md3_dark_tertiary</item>
+        <item name="colorOnTertiary">@color/md3_dark_onTertiary</item>
+        <item name="colorTertiaryContainer">@color/md3_dark_tertiaryContainer</item>
+        <item name="colorOnTertiaryContainer">@color/md3_dark_onTertiaryContainer</item>
+        
+        <item name="colorError">@color/md3_dark_error</item>
+        <item name="colorOnError">@color/md3_dark_onError</item>
+        <item name="colorErrorContainer">@color/md3_dark_errorContainer</item>
+        <item name="colorOnErrorContainer">@color/md3_dark_onErrorContainer</item>
+        
+        <item name="colorBackground">@color/md3_dark_background</item>
+        <item name="colorOnBackground">@color/md3_dark_onBackground</item>
+        
+        <item name="colorSurface">@color/md3_dark_surface</item>
+        <item name="colorOnSurface">@color/md3_dark_onSurface</item>
+        <item name="colorSurfaceVariant">@color/md3_dark_surfaceVariant</item>
+        <item name="colorOnSurfaceVariant">@color/md3_dark_onSurfaceVariant</item>
+        
+        <item name="colorOutline">@color/md3_dark_outline</item>
+        <item name="colorOutlineVariant">@color/md3_dark_outlineVariant</item>
+
+        <item name="colorControlNormal">@color/md3_dark_onSurface</item>
+        <item name="colorControlDisabled">@color/color_dark_control_disabled</item>
+        <item name="colorControlActivated">@color/md3_dark_primary</item>
+        <item name="android:textColor">@color/md3_dark_onSurface</item>
+        <item name="android:windowBackground">@color/md3_dark_background</item>
+    </style>
+
+    <style name="AppFullScreenDialogDarkBase" parent="Theme.Material3.Dark.Dialog">
+        <item name="android:windowIsFloating">false</item>
+        <item name="android:windowFullscreen">false</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:backgroundDimEnabled">false</item>
+        <item name="paddingRightSystemWindowInsets">false</item>
+        <item name="paddingBottomSystemWindowInsets">false</item>
+        <item name="paddingLeftSystemWindowInsets">false</item>
+
+        <item name="colorPrimary">@color/md3_dark_primary</item>
+        <item name="colorOnPrimary">@color/md3_dark_onPrimary</item>
+        <item name="colorPrimaryContainer">@color/md3_dark_primaryContainer</item>
+        <item name="colorOnPrimaryContainer">@color/md3_dark_onPrimaryContainer</item>
+        
+        <item name="colorSecondary">@color/md3_dark_secondary</item>
+        <item name="colorOnSecondary">@color/md3_dark_onSecondary</item>
+        <item name="colorSecondaryContainer">@color/md3_dark_secondaryContainer</item>
+        <item name="colorOnSecondaryContainer">@color/md3_dark_onSecondaryContainer</item>
+        
+        <item name="colorTertiary">@color/md3_dark_tertiary</item>
+        <item name="colorOnTertiary">@color/md3_dark_onTertiary</item>
+        <item name="colorTertiaryContainer">@color/md3_dark_tertiaryContainer</item>
+        <item name="colorOnTertiaryContainer">@color/md3_dark_onTertiaryContainer</item>
+        
+        <item name="colorError">@color/md3_dark_error</item>
+        <item name="colorOnError">@color/md3_dark_onError</item>
+        <item name="colorErrorContainer">@color/md3_dark_errorContainer</item>
+        <item name="colorOnErrorContainer">@color/md3_dark_onErrorContainer</item>
+        
+        <item name="colorBackground">@color/md3_dark_background</item>
+        <item name="colorOnBackground">@color/md3_dark_onBackground</item>
+        
+        <item name="colorSurface">@color/md3_dark_surface</item>
+        <item name="colorOnSurface">@color/md3_dark_onSurface</item>
+        <item name="colorSurfaceVariant">@color/md3_dark_surfaceVariant</item>
+        <item name="colorOnSurfaceVariant">@color/md3_dark_onSurfaceVariant</item>
+        
+        <item name="colorOutline">@color/md3_dark_outline</item>
+        <item name="colorOutlineVariant">@color/md3_dark_outlineVariant</item>
+
+        <item name="colorControlNormal">@color/md3_dark_onSurface</item>
+        <item name="colorControlDisabled">@color/color_dark_control_disabled</item>
+        <item name="colorControlActivated">@color/md3_dark_primary</item>
+        <item name="colorClashStopped">@color/tech_card</item>
+        <item name="android:textColor">@color/md3_dark_onSurface</item>
+        <item name="android:windowBackground">@color/md3_dark_background</item>
+    </style>
+
+    <style name="AppBottomSheetDialogLightBase" parent="Theme.Material3.Dark.BottomSheetDialog">
+        <item name="android:windowIsFloating">false</item>
+        <item name="paddingRightSystemWindowInsets">false</item>
+        <item name="paddingBottomSystemWindowInsets">false</item>
+        <item name="paddingLeftSystemWindowInsets">false</item>
+
+        <item name="colorPrimary">@color/md3_dark_primary</item>
+        <item name="colorOnPrimary">@color/md3_dark_onPrimary</item>
+        <item name="colorPrimaryContainer">@color/md3_dark_primaryContainer</item>
+        <item name="colorOnPrimaryContainer">@color/md3_dark_onPrimaryContainer</item>
+        
+        <item name="colorSecondary">@color/md3_dark_secondary</item>
+        <item name="colorOnSecondary">@color/md3_dark_onSecondary</item>
+        <item name="colorSecondaryContainer">@color/md3_dark_secondaryContainer</item>
+        <item name="colorOnSecondaryContainer">@color/md3_dark_onSecondaryContainer</item>
+        
+        <item name="colorTertiary">@color/md3_dark_tertiary</item>
+        <item name="colorOnTertiary">@color/md3_dark_onTertiary</item>
+        <item name="colorTertiaryContainer">@color/md3_dark_tertiaryContainer</item>
+        <item name="colorOnTertiaryContainer">@color/md3_dark_onTertiaryContainer</item>
+        
+        <item name="colorError">@color/md3_dark_error</item>
+        <item name="colorOnError">@color/md3_dark_onError</item>
+        <item name="colorErrorContainer">@color/md3_dark_errorContainer</item>
+        <item name="colorOnErrorContainer">@color/md3_dark_onErrorContainer</item>
+        
+        <item name="colorBackground">@color/md3_dark_background</item>
+        <item name="colorOnBackground">@color/md3_dark_onBackground</item>
+        
+        <item name="colorSurface">@color/md3_dark_surface</item>
+        <item name="colorOnSurface">@color/md3_dark_onSurface</item>
+        <item name="colorSurfaceVariant">@color/md3_dark_surfaceVariant</item>
+        <item name="colorOnSurfaceVariant">@color/md3_dark_onSurfaceVariant</item>
+        
+        <item name="colorOutline">@color/md3_dark_outline</item>
+        <item name="colorOutlineVariant">@color/md3_dark_outlineVariant</item>
+
+        <item name="colorControlNormal">@color/md3_dark_onSurface</item>
+        <item name="colorControlDisabled">@color/color_dark_control_disabled</item>
+        <item name="colorControlActivated">@color/md3_dark_primary</item>
+        <item name="colorClashStopped">@color/tech_card</item>
+        <item name="android:textColor">@color/md3_dark_onSurface</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+
+        <item name="bottomSheetStyle">@style/AppBottomSheetStyle</item>
+    </style>
+
+    <style name="AppBottomSheetDialogDarkBase" parent="Theme.Material3.Dark.BottomSheetDialog">
+        <item name="android:windowIsFloating">false</item>
+        <item name="paddingRightSystemWindowInsets">false</item>
+        <item name="paddingBottomSystemWindowInsets">false</item>
+        <item name="paddingLeftSystemWindowInsets">false</item>
+
+        <item name="colorPrimary">@color/md3_dark_primary</item>
+        <item name="colorOnPrimary">@color/md3_dark_onPrimary</item>
+        <item name="colorPrimaryContainer">@color/md3_dark_primaryContainer</item>
+        <item name="colorOnPrimaryContainer">@color/md3_dark_onPrimaryContainer</item>
+        
+        <item name="colorSecondary">@color/md3_dark_secondary</item>
+        <item name="colorOnSecondary">@color/md3_dark_onSecondary</item>
+        <item name="colorSecondaryContainer">@color/md3_dark_secondaryContainer</item>
+        <item name="colorOnSecondaryContainer">@color/md3_dark_onSecondaryContainer</item>
+        
+        <item name="colorTertiary">@color/md3_dark_tertiary</item>
+        <item name="colorOnTertiary">@color/md3_dark_onTertiary</item>
+        <item name="colorTertiaryContainer">@color/md3_dark_tertiaryContainer</item>
+        <item name="colorOnTertiaryContainer">@color/md3_dark_onTertiaryContainer</item>
+        
+        <item name="colorError">@color/md3_dark_error</item>
+        <item name="colorOnError">@color/md3_dark_onError</item>
+        <item name="colorErrorContainer">@color/md3_dark_errorContainer</item>
+        <item name="colorOnErrorContainer">@color/md3_dark_onErrorContainer</item>
+        
+        <item name="colorBackground">@color/md3_dark_background</item>
+        <item name="colorOnBackground">@color/md3_dark_onBackground</item>
+        
+        <item name="colorSurface">@color/md3_dark_surface</item>
+        <item name="colorOnSurface">@color/md3_dark_onSurface</item>
+        <item name="colorSurfaceVariant">@color/md3_dark_surfaceVariant</item>
+        <item name="colorOnSurfaceVariant">@color/md3_dark_onSurfaceVariant</item>
+        
+        <item name="colorOutline">@color/md3_dark_outline</item>
+        <item name="colorOutlineVariant">@color/md3_dark_outlineVariant</item>
+
+        <item name="colorControlNormal">@color/md3_dark_onSurface</item>
+        <item name="colorControlDisabled">@color/color_dark_control_disabled</item>
+        <item name="colorControlActivated">@color/md3_dark_primary</item>
+        <item name="colorClashStopped">@color/tech_card</item>
+        <item name="android:textColor">@color/md3_dark_onSurface</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+
+        <item name="bottomSheetStyle">@style/AppBottomSheetStyle</item>
+    </style>
+
+    <style name="AppThemeLightBase" parent="Theme.Material3.Dark.NoActionBar">
+        <item name="android:windowBackground">@color/md3_dark_background</item>
+        <item name="android:ambientShadowAlpha">0.12</item>
+        <item name="android:spotShadowAlpha">0.14</item>
+
+        <!-- Custom ClashFest Attributes -->
+        <item name="mainDashboardBackground">@drawable/bg_main_gradient</item>
+        <item name="colorMainDashboardText">@color/md3_dark_onSurface</item>
+        <item name="colorMainModeChipLabel">@color/md3_dark_onSurface</item>
+        <item name="colorMainCardGlass">#D91A2030</item>
+        <item name="colorMainBottomNavGlass">#D91A2030</item>
+        <item name="colorMainGlassStroke">#55FFFFFF</item>
+
+        <item name="profileCardBackground">@drawable/bg_profile_card_gradient</item>
+        <item name="profileProxyBlockBackground">@drawable/bg_proxy_block</item>
+        <item name="colorOnSurface">@color/md3_dark_onSurface</item>
+        <item name="colorOnSurfaceVariant">@color/md3_dark_onSurfaceVariant</item>
+
+        <!-- Material 3 Color Scheme -->
+        <item name="colorPrimary">@color/md3_dark_primary</item>
+        <item name="colorOnPrimary">@color/md3_dark_onPrimary</item>
+        <item name="colorPrimaryContainer">@color/md3_dark_primaryContainer</item>
+        <item name="colorOnPrimaryContainer">@color/md3_dark_onPrimaryContainer</item>
+        
+        <item name="colorSecondary">@color/md3_dark_secondary</item>
+        <item name="colorOnSecondary">@color/md3_dark_onSecondary</item>
+        <item name="colorSecondaryContainer">@color/md3_dark_secondaryContainer</item>
+        <item name="colorOnSecondaryContainer">@color/md3_dark_onSecondaryContainer</item>
+        
+        <item name="colorTertiary">@color/md3_dark_tertiary</item>
+        <item name="colorOnTertiary">@color/md3_dark_onTertiary</item>
+        <item name="colorTertiaryContainer">@color/md3_dark_tertiaryContainer</item>
+        <item name="colorOnTertiaryContainer">@color/md3_dark_onTertiaryContainer</item>
+        
+        <item name="colorError">@color/md3_dark_error</item>
+        <item name="colorOnError">@color/md3_dark_onError</item>
+        <item name="colorErrorContainer">@color/md3_dark_errorContainer</item>
+        <item name="colorOnErrorContainer">@color/md3_dark_onErrorContainer</item>
+        
+        <item name="colorBackground">@color/md3_dark_background</item>
+        <item name="colorOnBackground">@color/md3_dark_onBackground</item>
+        
+        <item name="colorSurface">@color/md3_dark_surface</item>
+        <item name="colorOnSurface">@color/md3_dark_onSurface</item>
+        <item name="colorSurfaceVariant">@color/md3_dark_surfaceVariant</item>
+        <item name="colorOnSurfaceVariant">@color/md3_dark_onSurfaceVariant</item>
+        
+        <item name="colorOutline">@color/md3_dark_outline</item>
+        <item name="colorOutlineVariant">@color/md3_dark_outlineVariant</item>
+
+        <item name="colorSurfaceContainerLowest">@color/md3_dark_surfaceContainerLowest</item>
+        <item name="colorSurfaceContainerLow">@color/md3_dark_surfaceContainerLow</item>
+        <item name="colorSurfaceContainer">@color/md3_dark_surfaceContainer</item>
+        <item name="colorSurfaceContainerHigh">@color/md3_dark_surfaceContainerHigh</item>
+        <item name="colorSurfaceContainerHighest">@color/md3_dark_surfaceContainerHighest</item>
+
+        <item name="colorControlNormal">@color/md3_dark_onSurface</item>
+        <item name="colorControlDisabled">@color/color_dark_control_disabled</item>
+        <item name="colorControlActivated">@color/md3_dark_primary</item>
+        <item name="colorClashStopped">@color/tech_card</item>
+        <item name="colorLogo">@color/md3_dark_onSurface</item>
+        <item name="android:textColor">@color/md3_dark_onSurface</item>
+
+        <!-- Material 3 Shape Attributes -->
+        <item name="shapeAppearanceSmallComponent">@style/ShapeAppearance.App.SmallComponent</item>
+        <item name="shapeAppearanceMediumComponent">@style/ShapeAppearance.App.MediumComponent</item>
+        <item name="shapeAppearanceLargeComponent">@style/ShapeAppearance.App.LargeComponent</item>
+
+        <item name="bottomSheetDialogTheme">@style/AppBottomSheetDialogDark</item>
+        <item name="fullScreenDialogTheme">@style/AppFullScreenDialogDark</item>
+    </style>
+
+    <style name="AppThemeDarkBase" parent="Theme.Material3.Dark.NoActionBar">
+        <item name="android:windowBackground">@color/md3_dark_background</item>
+        <item name="android:ambientShadowAlpha">0.12</item>
+        <item name="android:spotShadowAlpha">0.14</item>
+
+        <!-- Custom ClashFest Attributes -->
+        <item name="mainDashboardBackground">@drawable/bg_main_gradient</item>
+        <item name="colorMainDashboardText">@color/md3_dark_onSurface</item>
+        <item name="colorMainModeChipLabel">@color/md3_dark_onSurface</item>
+        <item name="colorMainCardGlass">#D91A2030</item>
+        <item name="colorMainBottomNavGlass">#D91A2030</item>
+        <item name="colorMainGlassStroke">#55FFFFFF</item>
+
+        <item name="profileCardBackground">@drawable/bg_profile_card_gradient</item>
+        <item name="profileProxyBlockBackground">@drawable/bg_proxy_block</item>
+        <item name="colorOnSurface">@color/md3_dark_onSurface</item>
+        <item name="colorOnSurfaceVariant">@color/md3_dark_onSurfaceVariant</item>
+
+        <!-- Material 3 Color Scheme -->
+        <item name="colorPrimary">@color/md3_dark_primary</item>
+        <item name="colorOnPrimary">@color/md3_dark_onPrimary</item>
+        <item name="colorPrimaryContainer">@color/md3_dark_primaryContainer</item>
+        <item name="colorOnPrimaryContainer">@color/md3_dark_onPrimaryContainer</item>
+        
+        <item name="colorSecondary">@color/md3_dark_secondary</item>
+        <item name="colorOnSecondary">@color/md3_dark_onSecondary</item>
+        <item name="colorSecondaryContainer">@color/md3_dark_secondaryContainer</item>
+        <item name="colorOnSecondaryContainer">@color/md3_dark_onSecondaryContainer</item>
+        
+        <item name="colorTertiary">@color/md3_dark_tertiary</item>
+        <item name="colorOnTertiary">@color/md3_dark_onTertiary</item>
+        <item name="colorTertiaryContainer">@color/md3_dark_tertiaryContainer</item>
+        <item name="colorOnTertiaryContainer">@color/md3_dark_onTertiaryContainer</item>
+        
+        <item name="colorError">@color/md3_dark_error</item>
+        <item name="colorOnError">@color/md3_dark_onError</item>
+        <item name="colorErrorContainer">@color/md3_dark_errorContainer</item>
+        <item name="colorOnErrorContainer">@color/md3_dark_onErrorContainer</item>
+        
+        <item name="colorBackground">@color/md3_dark_background</item>
+        <item name="colorOnBackground">@color/md3_dark_onBackground</item>
+        
+        <item name="colorSurface">@color/md3_dark_surface</item>
+        <item name="colorOnSurface">@color/md3_dark_onSurface</item>
+        <item name="colorSurfaceVariant">@color/md3_dark_surfaceVariant</item>
+        <item name="colorOnSurfaceVariant">@color/md3_dark_onSurfaceVariant</item>
+        
+        <item name="colorOutline">@color/md3_dark_outline</item>
+        <item name="colorOutlineVariant">@color/md3_dark_outlineVariant</item>
+
+        <item name="colorSurfaceContainerLowest">@color/md3_dark_surfaceContainerLowest</item>
+        <item name="colorSurfaceContainerLow">@color/md3_dark_surfaceContainerLow</item>
+        <item name="colorSurfaceContainer">@color/md3_dark_surfaceContainer</item>
+        <item name="colorSurfaceContainerHigh">@color/md3_dark_surfaceContainerHigh</item>
+        <item name="colorSurfaceContainerHighest">@color/md3_dark_surfaceContainerHighest</item>
+
+        <item name="colorControlNormal">@color/md3_dark_onSurface</item>
+        <item name="colorControlDisabled">@color/color_dark_control_disabled</item>
+        <item name="colorControlActivated">@color/md3_dark_primary</item>
+        <item name="colorClashStopped">@color/tech_card</item>
+        <item name="colorLogo">@color/md3_dark_onSurface</item>
+        <item name="android:textColor">@color/md3_dark_onSurface</item>
+
+        <!-- Material 3 Shape Attributes -->
+        <item name="shapeAppearanceSmallComponent">@style/ShapeAppearance.App.SmallComponent</item>
+        <item name="shapeAppearanceMediumComponent">@style/ShapeAppearance.App.MediumComponent</item>
+        <item name="shapeAppearanceLargeComponent">@style/ShapeAppearance.App.LargeComponent</item>
+
+        <item name="bottomSheetDialogTheme">@style/AppBottomSheetDialogDark</item>
+        <item name="fullScreenDialogTheme">@style/AppFullScreenDialogDark</item>
+    </style>
+
+    <!-- Material 3 Shape Styles -->
+    <style name="ShapeAppearance.App.SmallComponent" parent="ShapeAppearance.Material3.SmallComponent">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">8dp</item>
+    </style>
+
+    <style name="ShapeAppearance.App.MediumComponent" parent="ShapeAppearance.Material3.MediumComponent">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">12dp</item>
+    </style>
+
+    <style name="ShapeAppearance.App.LargeComponent" parent="ShapeAppearance.Material3.LargeComponent">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">16dp</item>
+    </style>
+</resources>

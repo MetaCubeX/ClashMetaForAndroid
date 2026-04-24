@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="AppBottomSheetStyle" parent="Widget.Design.BottomSheet.Modal">
+    <style name="AppBottomSheetStyle" parent="Widget.Material3.BottomSheet.Modal">
         <item name="android:background">@drawable/bg_bottom_sheet</item>
     </style>
 
-    <style name="AppFullScreenDialogLightBase" parent="Theme.MaterialComponents.Light.Dialog">
+    <style name="AppFullScreenDialogLightBase" parent="Theme.Material3.Light.Dialog">
         <item name="android:windowIsFloating">false</item>
         <item name="android:windowFullscreen">false</item>
         <item name="android:windowNoTitle">true</item>
@@ -27,7 +27,7 @@
         <item name="android:windowBackground">@color/color_light_background</item>
     </style>
 
-    <style name="AppFullScreenDialogDarkBase" parent="Theme.MaterialComponents.Dialog">
+    <style name="AppFullScreenDialogDarkBase" parent="Theme.Material3.Dark.Dialog">
         <item name="android:windowIsFloating">false</item>
         <item name="android:windowFullscreen">false</item>
         <item name="android:windowNoTitle">true</item>
@@ -60,7 +60,7 @@
         <item name="android:navigationBarColor">@android:color/transparent</item>
     </style>
 
-    <style name="AppBottomSheetDialogLightBase" parent="Theme.MaterialComponents.Light.BottomSheetDialog">
+    <style name="AppBottomSheetDialogLightBase" parent="Theme.Material3.Light.BottomSheetDialog">
         <item name="android:windowIsFloating">false</item>
         <item name="paddingRightSystemWindowInsets">false</item>
         <item name="paddingBottomSystemWindowInsets">false</item>
@@ -81,7 +81,7 @@
         <item name="bottomSheetStyle">@style/AppBottomSheetStyle</item>
     </style>
 
-    <style name="AppBottomSheetDialogDarkBase" parent="Theme.MaterialComponents.BottomSheetDialog">
+    <style name="AppBottomSheetDialogDarkBase" parent="Theme.Material3.Dark.BottomSheetDialog">
         <item name="android:windowIsFloating">false</item>
         <item name="paddingRightSystemWindowInsets">false</item>
         <item name="paddingBottomSystemWindowInsets">false</item>
@@ -115,15 +115,17 @@
         <item name="android:navigationBarColor">@android:color/transparent</item>
     </style>
 
-    <style name="AppThemeLightBase" parent="Theme.MaterialComponents.Light.NoActionBar">
+    <style name="AppThemeLightBase" parent="Theme.Material3.Light.NoActionBar">
         <item name="android:windowBackground">@color/color_light_background</item>
         <item name="android:ambientShadowAlpha">0.08</item>
         <item name="android:spotShadowAlpha">0.08</item>
 
+        <!-- Custom ClashFest Attributes -->
         <item name="mainDashboardBackground">@drawable/bg_main_gradient_light</item>
         <item name="colorMainDashboardText">@color/color_light_text_primary</item>
         <item name="colorMainModeChipLabel">@color/color_light_text_primary</item>
         <item name="colorMainCardGlass">#CCE3EAF3</item>
+        <item name="colorMainBottomNavGlass">#F2EEF2F7</item>
         <item name="colorMainGlassStroke">#265B7390</item>
 
         <item name="colorSurface">@color/color_light_surface</item>
@@ -146,19 +148,80 @@
         <item name="colorLogo">?attr/colorControlActivated</item>
         <item name="android:textColor">?attr/colorControlNormal</item>
 
+        <!-- Material 3 Color Scheme -->
+        <item name="colorPrimary">@color/md3_light_primary</item>
+        <item name="colorOnPrimary">@color/md3_light_onPrimary</item>
+        <item name="colorPrimaryContainer">@color/md3_light_primaryContainer</item>
+        <item name="colorOnPrimaryContainer">@color/md3_light_onPrimaryContainer</item>
+        
+        <item name="colorSecondary">@color/md3_light_secondary</item>
+        <item name="colorOnSecondary">@color/md3_light_onSecondary</item>
+        <item name="colorSecondaryContainer">@color/md3_light_secondaryContainer</item>
+        <item name="colorOnSecondaryContainer">@color/md3_light_onSecondaryContainer</item>
+        
+        <item name="colorTertiary">@color/md3_light_tertiary</item>
+        <item name="colorOnTertiary">@color/md3_light_onTertiary</item>
+        <item name="colorTertiaryContainer">@color/md3_light_tertiaryContainer</item>
+        <item name="colorOnTertiaryContainer">@color/md3_light_onTertiaryContainer</item>
+        
+        <item name="colorError">@color/md3_light_error</item>
+        <item name="colorOnError">@color/md3_light_onError</item>
+        <item name="colorErrorContainer">@color/md3_light_errorContainer</item>
+        <item name="colorOnErrorContainer">@color/md3_light_onErrorContainer</item>
+        
+        <item name="colorBackground">@color/md3_light_background</item>
+        <item name="colorOnBackground">@color/md3_light_onBackground</item>
+        
+        <item name="colorSurface">@color/md3_light_surface</item>
+        <item name="colorOnSurface">@color/md3_light_onSurface</item>
+        <item name="colorSurfaceVariant">@color/md3_light_surfaceVariant</item>
+        <item name="colorOnSurfaceVariant">@color/md3_light_onSurfaceVariant</item>
+        
+        <item name="colorOutline">@color/md3_light_outline</item>
+        <item name="colorOutlineVariant">@color/md3_light_outlineVariant</item>
+
+        <item name="colorSurfaceContainerLowest">@color/md3_light_surfaceContainerLowest</item>
+        <item name="colorSurfaceContainerLow">@color/md3_light_surfaceContainerLow</item>
+        <item name="colorSurfaceContainer">@color/md3_light_surfaceContainer</item>
+        <item name="colorSurfaceContainerHigh">@color/md3_light_surfaceContainerHigh</item>
+        <item name="colorSurfaceContainerHighest">@color/md3_light_surfaceContainerHighest</item>
+
+        <!-- Material 3 Shape Attributes -->
+        <item name="shapeAppearanceSmallComponent">@style/ShapeAppearance.App.SmallComponent</item>
+        <item name="shapeAppearanceMediumComponent">@style/ShapeAppearance.App.MediumComponent</item>
+        <item name="shapeAppearanceLargeComponent">@style/ShapeAppearance.App.LargeComponent</item>
+
         <item name="bottomSheetDialogTheme">@style/AppBottomSheetDialogLight</item>
         <item name="fullScreenDialogTheme">@style/AppFullScreenDialogLight</item>
     </style>
 
-    <style name="AppThemeDarkBase" parent="Theme.MaterialComponents.NoActionBar">
+    <!-- Material 3 Shape Styles -->
+    <style name="ShapeAppearance.App.SmallComponent" parent="ShapeAppearance.Material3.SmallComponent">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">8dp</item>
+    </style>
+
+    <style name="ShapeAppearance.App.MediumComponent" parent="ShapeAppearance.Material3.MediumComponent">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">12dp</item>
+    </style>
+
+    <style name="ShapeAppearance.App.LargeComponent" parent="ShapeAppearance.Material3.LargeComponent">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">16dp</item>
+    </style>
+
+    <style name="AppThemeDarkBase" parent="Theme.Material3.Dark.NoActionBar">
         <item name="android:windowBackground">@color/tech_bg</item>
         <item name="android:ambientShadowAlpha">0.12</item>
         <item name="android:spotShadowAlpha">0.14</item>
 
+        <!-- Custom ClashFest Attributes -->
         <item name="mainDashboardBackground">@drawable/bg_main_gradient</item>
         <item name="colorMainDashboardText">@color/tech_text_primary</item>
         <item name="colorMainModeChipLabel">@color/tech_mode_chip_label</item>
         <item name="colorMainCardGlass">@color/main_card_glass</item>
+        <item name="colorMainBottomNavGlass">#D91A2030</item>
         <item name="colorMainGlassStroke">#55FFFFFF</item>
 
         <item name="profileCardBackground">@drawable/bg_profile_card_gradient</item>
@@ -180,6 +243,49 @@
         <item name="colorLogo">@color/tech_text_primary</item>
         <item name="android:textColor">@color/tech_text_primary</item>
 
+        <!-- Material 3 Color Scheme -->
+        <item name="colorPrimary">@color/md3_dark_primary</item>
+        <item name="colorOnPrimary">@color/md3_dark_onPrimary</item>
+        <item name="colorPrimaryContainer">@color/md3_dark_primaryContainer</item>
+        <item name="colorOnPrimaryContainer">@color/md3_dark_onPrimaryContainer</item>
+        
+        <item name="colorSecondary">@color/md3_dark_secondary</item>
+        <item name="colorOnSecondary">@color/md3_dark_onSecondary</item>
+        <item name="colorSecondaryContainer">@color/md3_dark_secondaryContainer</item>
+        <item name="colorOnSecondaryContainer">@color/md3_dark_onSecondaryContainer</item>
+        
+        <item name="colorTertiary">@color/md3_dark_tertiary</item>
+        <item name="colorOnTertiary">@color/md3_dark_onTertiary</item>
+        <item name="colorTertiaryContainer">@color/md3_dark_tertiaryContainer</item>
+        <item name="colorOnTertiaryContainer">@color/md3_dark_onTertiaryContainer</item>
+        
+        <item name="colorError">@color/md3_dark_error</item>
+        <item name="colorOnError">@color/md3_dark_onError</item>
+        <item name="colorErrorContainer">@color/md3_dark_errorContainer</item>
+        <item name="colorOnErrorContainer">@color/md3_dark_onErrorContainer</item>
+        
+        <item name="colorBackground">@color/md3_dark_background</item>
+        <item name="colorOnBackground">@color/md3_dark_onBackground</item>
+        
+        <item name="colorSurface">@color/md3_dark_surface</item>
+        <item name="colorOnSurface">@color/md3_dark_onSurface</item>
+        <item name="colorSurfaceVariant">@color/md3_dark_surfaceVariant</item>
+        <item name="colorOnSurfaceVariant">@color/md3_dark_onSurfaceVariant</item>
+        
+        <item name="colorOutline">@color/md3_dark_outline</item>
+        <item name="colorOutlineVariant">@color/md3_dark_outlineVariant</item>
+
+        <item name="colorSurfaceContainerLowest">@color/md3_dark_surfaceContainerLowest</item>
+        <item name="colorSurfaceContainerLow">@color/md3_dark_surfaceContainerLow</item>
+        <item name="colorSurfaceContainer">@color/md3_dark_surfaceContainer</item>
+        <item name="colorSurfaceContainerHigh">@color/md3_dark_surfaceContainerHigh</item>
+        <item name="colorSurfaceContainerHighest">@color/md3_dark_surfaceContainerHighest</item>
+
+        <!-- Material 3 Shape Attributes -->
+        <item name="shapeAppearanceSmallComponent">@style/ShapeAppearance.App.SmallComponent</item>
+        <item name="shapeAppearanceMediumComponent">@style/ShapeAppearance.App.MediumComponent</item>
+        <item name="shapeAppearanceLargeComponent">@style/ShapeAppearance.App.LargeComponent</item>
+
         <item name="bottomSheetDialogTheme">@style/AppBottomSheetDialogDark</item>
         <item name="fullScreenDialogTheme">@style/AppFullScreenDialogDark</item>
     </style>
@@ -192,5 +298,195 @@
     <style name="AppThemeDark" parent="AppThemeDarkBase">
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
+    </style>
+
+    <style name="ThemeOverlay_ClashFest_PaletteBlue_Light">
+        <item name="colorPrimary">#2563EB</item>
+        <item name="colorOnPrimary">#FFFFFF</item>
+        <item name="colorPrimaryContainer">#D9E2FF</item>
+        <item name="colorOnPrimaryContainer">#001A41</item>
+        <item name="colorSecondary">#5B6180</item>
+        <item name="colorSecondaryContainer">#E0E4FF</item>
+        <item name="colorTertiary">#2F6878</item>
+        <item name="colorTertiaryContainer">#BEEAF8</item>
+        <item name="colorSurfaceContainerLow">#F0F4FF</item>
+        <item name="colorSurfaceContainer">#EAF0FF</item>
+        <item name="colorSurfaceContainerHigh">#E1E8FA</item>
+    </style>
+
+    <style name="ThemeOverlay_ClashFest_PaletteBlue_Dark">
+        <item name="colorPrimary">#AFC6FF</item>
+        <item name="colorOnPrimary">#002D6B</item>
+        <item name="colorPrimaryContainer">#0E479A</item>
+        <item name="colorOnPrimaryContainer">#D9E2FF</item>
+        <item name="colorSecondary">#C4C8E8</item>
+        <item name="colorSecondaryContainer">#444A68</item>
+        <item name="colorTertiary">#9AD0E1</item>
+        <item name="colorTertiaryContainer">#144D5C</item>
+    </style>
+
+    <style name="ThemeOverlay_ClashFest_PaletteViolet_Light">
+        <item name="colorPrimary">#7C3AED</item>
+        <item name="colorOnPrimary">#FFFFFF</item>
+        <item name="colorPrimaryContainer">#EADDFF</item>
+        <item name="colorOnPrimaryContainer">#260058</item>
+        <item name="colorSecondary">#68548A</item>
+        <item name="colorSecondaryContainer">#ECDFFF</item>
+        <item name="colorTertiary">#85536D</item>
+        <item name="colorTertiaryContainer">#FFD8E8</item>
+        <item name="colorSurfaceContainerLow">#F8F1FF</item>
+        <item name="colorSurfaceContainer">#F0E9FA</item>
+        <item name="colorSurfaceContainerHigh">#E9E1F3</item>
+    </style>
+
+    <style name="ThemeOverlay_ClashFest_PaletteViolet_Dark">
+        <item name="colorPrimary">#D0BCFF</item>
+        <item name="colorOnPrimary">#381E72</item>
+        <item name="colorPrimaryContainer">#4F378B</item>
+        <item name="colorOnPrimaryContainer">#EADDFF</item>
+        <item name="colorSecondary">#D0C1E9</item>
+        <item name="colorSecondaryContainer">#504260</item>
+        <item name="colorTertiary">#F2B7CF</item>
+        <item name="colorTertiaryContainer">#633B4F</item>
+    </style>
+
+    <style name="ThemeOverlay_ClashFest_PaletteRose_Light">
+        <item name="colorPrimary">#C0265A</item>
+        <item name="colorOnPrimary">#FFFFFF</item>
+        <item name="colorPrimaryContainer">#FFD9E2</item>
+        <item name="colorOnPrimaryContainer">#3F0018</item>
+        <item name="colorSecondary">#76565F</item>
+        <item name="colorSecondaryContainer">#FFD9E2</item>
+        <item name="colorTertiary">#7D5735</item>
+        <item name="colorTertiaryContainer">#FFDCC2</item>
+        <item name="colorSurfaceContainerLow">#FFF0F4</item>
+        <item name="colorSurfaceContainer">#F9E9ED</item>
+        <item name="colorSurfaceContainerHigh">#F2E1E6</item>
+    </style>
+
+    <style name="ThemeOverlay_ClashFest_PaletteRose_Dark">
+        <item name="colorPrimary">#FFB1C8</item>
+        <item name="colorOnPrimary">#66002A</item>
+        <item name="colorPrimaryContainer">#94003E</item>
+        <item name="colorOnPrimaryContainer">#FFD9E2</item>
+        <item name="colorSecondary">#E5BDC7</item>
+        <item name="colorSecondaryContainer">#5C3F48</item>
+        <item name="colorTertiary">#F0BD91</item>
+        <item name="colorTertiaryContainer">#60411F</item>
+    </style>
+
+    <style name="ThemeOverlay_ClashFest_PaletteAmber_Light">
+        <item name="colorPrimary">#8A5A00</item>
+        <item name="colorOnPrimary">#FFFFFF</item>
+        <item name="colorPrimaryContainer">#FFDFA3</item>
+        <item name="colorOnPrimaryContainer">#2B1700</item>
+        <item name="colorSecondary">#705B36</item>
+        <item name="colorSecondaryContainer">#FCDFAF</item>
+        <item name="colorTertiary">#52643B</item>
+        <item name="colorTertiaryContainer">#D5EABB</item>
+        <item name="colorSurfaceContainerLow">#FBF2DF</item>
+        <item name="colorSurfaceContainer">#F2E9D6</item>
+        <item name="colorSurfaceContainerHigh">#EAE1CF</item>
+    </style>
+
+    <style name="ThemeOverlay_ClashFest_PaletteAmber_Dark">
+        <item name="colorPrimary">#FFBC42</item>
+        <item name="colorOnPrimary">#482A00</item>
+        <item name="colorPrimaryContainer">#684000</item>
+        <item name="colorOnPrimaryContainer">#FFDFA3</item>
+        <item name="colorSecondary">#DFC393</item>
+        <item name="colorSecondaryContainer">#574420</item>
+        <item name="colorTertiary">#B9CE9F</item>
+        <item name="colorTertiaryContainer">#3B4B26</item>
+    </style>
+
+    <style name="ThemeOverlay_ClashFest_PaletteMint_Light">
+        <item name="colorPrimary">#00856F</item>
+        <item name="colorOnPrimary">#FFFFFF</item>
+        <item name="colorPrimaryContainer">#A8F2DF</item>
+        <item name="colorOnPrimaryContainer">#002019</item>
+        <item name="colorSecondary">#4B635A</item>
+        <item name="colorSecondaryContainer">#CDE9DC</item>
+        <item name="colorTertiary">#3E6373</item>
+        <item name="colorTertiaryContainer">#C2E8FA</item>
+        <item name="colorSurfaceContainerLow">#EDF8F4</item>
+        <item name="colorSurfaceContainer">#E5F1ED</item>
+        <item name="colorSurfaceContainerHigh">#DDE9E5</item>
+    </style>
+
+    <style name="ThemeOverlay_ClashFest_PaletteMint_Dark">
+        <item name="colorPrimary">#70DCC4</item>
+        <item name="colorOnPrimary">#00382E</item>
+        <item name="colorPrimaryContainer">#005345</item>
+        <item name="colorOnPrimaryContainer">#A8F2DF</item>
+        <item name="colorSecondary">#B2CCC0</item>
+        <item name="colorSecondaryContainer">#344C43</item>
+        <item name="colorTertiary">#A6CDDE</item>
+        <item name="colorTertiaryContainer">#254B5A</item>
+    </style>
+
+    <style name="ThemeOverlay_ClashFest_PaletteGraphite_Light">
+        <item name="colorPrimary">#54616F</item>
+        <item name="colorOnPrimary">#FFFFFF</item>
+        <item name="colorPrimaryContainer">#D8E5F5</item>
+        <item name="colorOnPrimaryContainer">#111C27</item>
+        <item name="colorSecondary">#59606A</item>
+        <item name="colorSecondaryContainer">#DDE3ED</item>
+        <item name="colorTertiary">#705C73</item>
+        <item name="colorTertiaryContainer">#FAD8FC</item>
+        <item name="colorSurfaceContainerLow">#F0F3F7</item>
+        <item name="colorSurfaceContainer">#EAEEF2</item>
+        <item name="colorSurfaceContainerHigh">#E3E8ED</item>
+    </style>
+
+    <style name="ThemeOverlay_ClashFest_PaletteGraphite_Dark">
+        <item name="colorPrimary">#BCC8D6</item>
+        <item name="colorOnPrimary">#26323E</item>
+        <item name="colorPrimaryContainer">#3D4855</item>
+        <item name="colorOnPrimaryContainer">#D8E5F5</item>
+        <item name="colorSecondary">#C2C7D1</item>
+        <item name="colorSecondaryContainer">#41474F</item>
+        <item name="colorTertiary">#DDBCDC</item>
+        <item name="colorTertiaryContainer">#57435A</item>
+    </style>
+
+    <style name="ThemeOverlay_ClashFest_PaletteMono_Light">
+        <item name="colorPrimary">#5F5E62</item>
+        <item name="colorOnPrimary">#FFFFFF</item>
+        <item name="colorPrimaryContainer">#E6E1E7</item>
+        <item name="colorOnPrimaryContainer">#1C1B1F</item>
+        <item name="colorSecondary">#625B66</item>
+        <item name="colorSecondaryContainer">#E8DEF8</item>
+        <item name="colorTertiary">#7D5260</item>
+        <item name="colorTertiaryContainer">#FFD8E4</item>
+        <item name="colorSurfaceContainerLow">#F4EFF4</item>
+        <item name="colorSurfaceContainer">#EEE8EE</item>
+        <item name="colorSurfaceContainerHigh">#E8E2E8</item>
+    </style>
+
+    <style name="ThemeOverlay_ClashFest_PaletteMono_Dark">
+        <item name="colorPrimary">#C9C5CB</item>
+        <item name="colorOnPrimary">#312F35</item>
+        <item name="colorPrimaryContainer">#48464C</item>
+        <item name="colorOnPrimaryContainer">#E6E1E7</item>
+        <item name="colorSecondary">#CBC2CF</item>
+        <item name="colorSecondaryContainer">#4A4450</item>
+        <item name="colorTertiary">#EFB8C8</item>
+        <item name="colorTertiaryContainer">#633B48</item>
+    </style>
+
+    <style name="ThemeOverlay_ClashFest_TrueBlack">
+        <item name="android:windowBackground">@color/theme_true_black_bg</item>
+        <item name="colorBackground">@color/theme_true_black_bg</item>
+        <item name="colorSurface">@color/theme_true_black_surface</item>
+        <item name="colorSurfaceContainerLowest">@color/theme_true_black_bg</item>
+        <item name="colorSurfaceContainerLow">@color/theme_true_black_surface</item>
+        <item name="colorSurfaceContainer">@color/theme_true_black_surface</item>
+        <item name="colorSurfaceContainerHigh">@color/theme_true_black_surface_high</item>
+        <item name="colorSurfaceContainerHighest">#181818</item>
+        <item name="mainDashboardBackground">@color/theme_true_black_bg</item>
+        <item name="profileCardBackground">@color/theme_true_black_surface</item>
+        <item name="profileProxyBlockBackground">@color/theme_true_black_surface</item>
+        <item name="android:navigationBarColor">@color/theme_true_black_bg</item>
     </style>
 </resources>

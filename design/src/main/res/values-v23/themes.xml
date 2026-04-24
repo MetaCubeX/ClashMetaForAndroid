@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Material 3 API 23+ Theme Overrides -->
+    
     <style name="AppFullScreenDialogLight" parent="AppFullScreenDialogLightBase">
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@color/color_system_ui_overlay</item>
