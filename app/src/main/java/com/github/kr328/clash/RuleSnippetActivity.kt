@@ -442,4 +442,3 @@ class RuleSnippetActivity : BaseActivity<RuleSnippetDesign>() {
     private fun selected(spinner: Spinner): String =
         spinner.selectedItem?.toString()?.trim().orEmpty()
 }
-

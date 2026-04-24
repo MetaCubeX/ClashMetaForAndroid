@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Material 3 Dark Theme Overrides -->
-    
+
     <style name="AppFullScreenDialogLightBase" parent="Theme.Material3.Dark.Dialog">
         <item name="android:windowIsFloating">false</item>
         <item name="android:windowFullscreen">false</item>
@@ -15,30 +15,30 @@
         <item name="colorOnPrimary">@color/md3_dark_onPrimary</item>
         <item name="colorPrimaryContainer">@color/md3_dark_primaryContainer</item>
         <item name="colorOnPrimaryContainer">@color/md3_dark_onPrimaryContainer</item>
-        
+
         <item name="colorSecondary">@color/md3_dark_secondary</item>
         <item name="colorOnSecondary">@color/md3_dark_onSecondary</item>
         <item name="colorSecondaryContainer">@color/md3_dark_secondaryContainer</item>
         <item name="colorOnSecondaryContainer">@color/md3_dark_onSecondaryContainer</item>
-        
+
         <item name="colorTertiary">@color/md3_dark_tertiary</item>
         <item name="colorOnTertiary">@color/md3_dark_onTertiary</item>
         <item name="colorTertiaryContainer">@color/md3_dark_tertiaryContainer</item>
         <item name="colorOnTertiaryContainer">@color/md3_dark_onTertiaryContainer</item>
-        
+
         <item name="colorError">@color/md3_dark_error</item>
         <item name="colorOnError">@color/md3_dark_onError</item>
         <item name="colorErrorContainer">@color/md3_dark_errorContainer</item>
         <item name="colorOnErrorContainer">@color/md3_dark_onErrorContainer</item>
-        
+
         <item name="colorBackground">@color/md3_dark_background</item>
         <item name="colorOnBackground">@color/md3_dark_onBackground</item>
-        
+
         <item name="colorSurface">@color/md3_dark_surface</item>
         <item name="colorOnSurface">@color/md3_dark_onSurface</item>
         <item name="colorSurfaceVariant">@color/md3_dark_surfaceVariant</item>
         <item name="colorOnSurfaceVariant">@color/md3_dark_onSurfaceVariant</item>
-        
+
         <item name="colorOutline">@color/md3_dark_outline</item>
         <item name="colorOutlineVariant">@color/md3_dark_outlineVariant</item>
 
@@ -62,30 +62,30 @@
         <item name="colorOnPrimary">@color/md3_dark_onPrimary</item>
         <item name="colorPrimaryContainer">@color/md3_dark_primaryContainer</item>
         <item name="colorOnPrimaryContainer">@color/md3_dark_onPrimaryContainer</item>
-        
+
         <item name="colorSecondary">@color/md3_dark_secondary</item>
         <item name="colorOnSecondary">@color/md3_dark_onSecondary</item>
         <item name="colorSecondaryContainer">@color/md3_dark_secondaryContainer</item>
         <item name="colorOnSecondaryContainer">@color/md3_dark_onSecondaryContainer</item>
-        
+
         <item name="colorTertiary">@color/md3_dark_tertiary</item>
         <item name="colorOnTertiary">@color/md3_dark_onTertiary</item>
         <item name="colorTertiaryContainer">@color/md3_dark_tertiaryContainer</item>
         <item name="colorOnTertiaryContainer">@color/md3_dark_onTertiaryContainer</item>
-        
+
         <item name="colorError">@color/md3_dark_error</item>
         <item name="colorOnError">@color/md3_dark_onError</item>
         <item name="colorErrorContainer">@color/md3_dark_errorContainer</item>
         <item name="colorOnErrorContainer">@color/md3_dark_onErrorContainer</item>
-        
+
         <item name="colorBackground">@color/md3_dark_background</item>
         <item name="colorOnBackground">@color/md3_dark_onBackground</item>
-        
+
         <item name="colorSurface">@color/md3_dark_surface</item>
         <item name="colorOnSurface">@color/md3_dark_onSurface</item>
         <item name="colorSurfaceVariant">@color/md3_dark_surfaceVariant</item>
         <item name="colorOnSurfaceVariant">@color/md3_dark_onSurfaceVariant</item>
-        
+
         <item name="colorOutline">@color/md3_dark_outline</item>
         <item name="colorOutlineVariant">@color/md3_dark_outlineVariant</item>
 
@@ -107,30 +107,30 @@
         <item name="colorOnPrimary">@color/md3_dark_onPrimary</item>
         <item name="colorPrimaryContainer">@color/md3_dark_primaryContainer</item>
         <item name="colorOnPrimaryContainer">@color/md3_dark_onPrimaryContainer</item>
-        
+
         <item name="colorSecondary">@color/md3_dark_secondary</item>
         <item name="colorOnSecondary">@color/md3_dark_onSecondary</item>
         <item name="colorSecondaryContainer">@color/md3_dark_secondaryContainer</item>
         <item name="colorOnSecondaryContainer">@color/md3_dark_onSecondaryContainer</item>
-        
+
         <item name="colorTertiary">@color/md3_dark_tertiary</item>
         <item name="colorOnTertiary">@color/md3_dark_onTertiary</item>
         <item name="colorTertiaryContainer">@color/md3_dark_tertiaryContainer</item>
         <item name="colorOnTertiaryContainer">@color/md3_dark_onTertiaryContainer</item>
-        
+
         <item name="colorError">@color/md3_dark_error</item>
         <item name="colorOnError">@color/md3_dark_onError</item>
         <item name="colorErrorContainer">@color/md3_dark_errorContainer</item>
         <item name="colorOnErrorContainer">@color/md3_dark_onErrorContainer</item>
-        
+
         <item name="colorBackground">@color/md3_dark_background</item>
         <item name="colorOnBackground">@color/md3_dark_onBackground</item>
-        
+
         <item name="colorSurface">@color/md3_dark_surface</item>
         <item name="colorOnSurface">@color/md3_dark_onSurface</item>
         <item name="colorSurfaceVariant">@color/md3_dark_surfaceVariant</item>
         <item name="colorOnSurfaceVariant">@color/md3_dark_onSurfaceVariant</item>
-        
+
         <item name="colorOutline">@color/md3_dark_outline</item>
         <item name="colorOutlineVariant">@color/md3_dark_outlineVariant</item>
 
@@ -154,30 +154,30 @@
         <item name="colorOnPrimary">@color/md3_dark_onPrimary</item>
         <item name="colorPrimaryContainer">@color/md3_dark_primaryContainer</item>
         <item name="colorOnPrimaryContainer">@color/md3_dark_onPrimaryContainer</item>
-        
+
         <item name="colorSecondary">@color/md3_dark_secondary</item>
         <item name="colorOnSecondary">@color/md3_dark_onSecondary</item>
         <item name="colorSecondaryContainer">@color/md3_dark_secondaryContainer</item>
         <item name="colorOnSecondaryContainer">@color/md3_dark_onSecondaryContainer</item>
-        
+
         <item name="colorTertiary">@color/md3_dark_tertiary</item>
         <item name="colorOnTertiary">@color/md3_dark_onTertiary</item>
         <item name="colorTertiaryContainer">@color/md3_dark_tertiaryContainer</item>
         <item name="colorOnTertiaryContainer">@color/md3_dark_onTertiaryContainer</item>
-        
+
         <item name="colorError">@color/md3_dark_error</item>
         <item name="colorOnError">@color/md3_dark_onError</item>
         <item name="colorErrorContainer">@color/md3_dark_errorContainer</item>
         <item name="colorOnErrorContainer">@color/md3_dark_onErrorContainer</item>
-        
+
         <item name="colorBackground">@color/md3_dark_background</item>
         <item name="colorOnBackground">@color/md3_dark_onBackground</item>
-        
+
         <item name="colorSurface">@color/md3_dark_surface</item>
         <item name="colorOnSurface">@color/md3_dark_onSurface</item>
         <item name="colorSurfaceVariant">@color/md3_dark_surfaceVariant</item>
         <item name="colorOnSurfaceVariant">@color/md3_dark_onSurfaceVariant</item>
-        
+
         <item name="colorOutline">@color/md3_dark_outline</item>
         <item name="colorOutlineVariant">@color/md3_dark_outlineVariant</item>
 
@@ -214,30 +214,30 @@
         <item name="colorOnPrimary">@color/md3_dark_onPrimary</item>
         <item name="colorPrimaryContainer">@color/md3_dark_primaryContainer</item>
         <item name="colorOnPrimaryContainer">@color/md3_dark_onPrimaryContainer</item>
-        
+
         <item name="colorSecondary">@color/md3_dark_secondary</item>
         <item name="colorOnSecondary">@color/md3_dark_onSecondary</item>
         <item name="colorSecondaryContainer">@color/md3_dark_secondaryContainer</item>
         <item name="colorOnSecondaryContainer">@color/md3_dark_onSecondaryContainer</item>
-        
+
         <item name="colorTertiary">@color/md3_dark_tertiary</item>
         <item name="colorOnTertiary">@color/md3_dark_onTertiary</item>
         <item name="colorTertiaryContainer">@color/md3_dark_tertiaryContainer</item>
         <item name="colorOnTertiaryContainer">@color/md3_dark_onTertiaryContainer</item>
-        
+
         <item name="colorError">@color/md3_dark_error</item>
         <item name="colorOnError">@color/md3_dark_onError</item>
         <item name="colorErrorContainer">@color/md3_dark_errorContainer</item>
         <item name="colorOnErrorContainer">@color/md3_dark_onErrorContainer</item>
-        
+
         <item name="colorBackground">@color/md3_dark_background</item>
         <item name="colorOnBackground">@color/md3_dark_onBackground</item>
-        
+
         <item name="colorSurface">@color/md3_dark_surface</item>
         <item name="colorOnSurface">@color/md3_dark_onSurface</item>
         <item name="colorSurfaceVariant">@color/md3_dark_surfaceVariant</item>
         <item name="colorOnSurfaceVariant">@color/md3_dark_onSurfaceVariant</item>
-        
+
         <item name="colorOutline">@color/md3_dark_outline</item>
         <item name="colorOutlineVariant">@color/md3_dark_outlineVariant</item>
 
@@ -286,30 +286,30 @@
         <item name="colorOnPrimary">@color/md3_dark_onPrimary</item>
         <item name="colorPrimaryContainer">@color/md3_dark_primaryContainer</item>
         <item name="colorOnPrimaryContainer">@color/md3_dark_onPrimaryContainer</item>
-        
+
         <item name="colorSecondary">@color/md3_dark_secondary</item>
         <item name="colorOnSecondary">@color/md3_dark_onSecondary</item>
         <item name="colorSecondaryContainer">@color/md3_dark_secondaryContainer</item>
         <item name="colorOnSecondaryContainer">@color/md3_dark_onSecondaryContainer</item>
-        
+
         <item name="colorTertiary">@color/md3_dark_tertiary</item>
         <item name="colorOnTertiary">@color/md3_dark_onTertiary</item>
         <item name="colorTertiaryContainer">@color/md3_dark_tertiaryContainer</item>
         <item name="colorOnTertiaryContainer">@color/md3_dark_onTertiaryContainer</item>
-        
+
         <item name="colorError">@color/md3_dark_error</item>
         <item name="colorOnError">@color/md3_dark_onError</item>
         <item name="colorErrorContainer">@color/md3_dark_errorContainer</item>
         <item name="colorOnErrorContainer">@color/md3_dark_onErrorContainer</item>
-        
+
         <item name="colorBackground">@color/md3_dark_background</item>
         <item name="colorOnBackground">@color/md3_dark_onBackground</item>
-        
+
         <item name="colorSurface">@color/md3_dark_surface</item>
         <item name="colorOnSurface">@color/md3_dark_onSurface</item>
         <item name="colorSurfaceVariant">@color/md3_dark_surfaceVariant</item>
         <item name="colorOnSurfaceVariant">@color/md3_dark_onSurfaceVariant</item>
-        
+
         <item name="colorOutline">@color/md3_dark_outline</item>
         <item name="colorOutlineVariant">@color/md3_dark_outlineVariant</item>
 

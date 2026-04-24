@@ -1,43 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Material 3 Dark Color Scheme for ClashFest -->
-    
+
     <!-- Primary Colors -->
     <color name="md3_dark_primary">#00E676</color>
     <color name="md3_dark_onPrimary">#00390E</color>
     <color name="md3_dark_primaryContainer">#00531A</color>
     <color name="md3_dark_onPrimaryContainer">#9AFF92</color>
-    
+
     <!-- Secondary Colors -->
     <color name="md3_dark_secondary">#8B5CF6</color>
     <color name="md3_dark_onSecondary">#FFFFFF</color>
     <color name="md3_dark_secondaryContainer">#6D3FD7</color>
     <color name="md3_dark_onSecondaryContainer">#E6DDFF</color>
-    
+
     <!-- Tertiary Colors -->
     <color name="md3_dark_tertiary">#5A9BB3</color>
     <color name="md3_dark_onTertiary">#001F29</color>
     <color name="md3_dark_tertiaryContainer">#1E4858</color>
     <color name="md3_dark_onTertiaryContainer">#C1E8FA</color>
-    
+
     <!-- Error Colors -->
     <color name="md3_dark_error">#FFB4AB</color>
     <color name="md3_dark_onError">#690005</color>
     <color name="md3_dark_errorContainer">#93000A</color>
     <color name="md3_dark_onErrorContainer">#FFDAD6</color>
-    
+
     <!-- Background Colors -->
     <color name="md3_dark_background">#0B0F14</color>
     <color name="md3_dark_onBackground">#E6EDF3</color>
-    
+
     <!-- Surface Colors -->
     <color name="md3_dark_surface">#121821</color>
     <color name="md3_dark_onSurface">#E6EDF3</color>
-    
+
     <!-- Surface Variant Colors -->
     <color name="md3_dark_surfaceVariant">#1A2330</color>
     <color name="md3_dark_onSurfaceVariant">#9BA3AF</color>
-    
+
     <!-- Outline Colors -->
     <color name="md3_dark_outline">#5C6978</color>
     <color name="md3_dark_outlineVariant">#3E4754</color>

@@ -734,4 +734,3 @@
             app:tint="?attr/colorOnPrimaryContainer" />
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 </layout>
-
