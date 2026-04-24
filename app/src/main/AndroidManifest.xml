@@ -173,6 +173,11 @@
             android:exported="false"
             android:label="@string/geo_data_source" />
         <activity
+            android:name=".ThemeSettingsActivity"
+            android:configChanges="uiMode"
+            android:exported="false"
+            android:label="@string/theme_settings" />
+        <activity
             android:name=".OverrideSettingsActivity"
             android:configChanges="uiMode"
             android:exported="false"

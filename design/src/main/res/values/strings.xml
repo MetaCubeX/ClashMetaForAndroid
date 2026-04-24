@@ -512,11 +512,6 @@ Presets only change <b>where</b> files are downloaded from (CDN / host). It is s
     <string name="home_background_plain">Plain surface</string>
     <string name="home_background_preview">ClashFest Preview</string>
 
-    <string name="app_language">App language</string>
-    <string name="app_language_system">System default</string>
-    <string name="app_language_english">English</string>
-    <string name="app_language_russian">Русский</string>
-
     <string name="show_traffic">Show Traffic</string>
     <string name="show_traffic_summary">Auto refresh traffic in notification</string>
 

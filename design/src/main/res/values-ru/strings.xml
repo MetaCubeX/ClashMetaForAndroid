@@ -388,11 +388,6 @@
     <string name="home_background_plain">Чистая поверхность</string>
     <string name="home_background_preview">ClashFest Preview</string>
 
-    <string name="app_language">Язык приложения</string>
-    <string name="app_language_system">Системный</string>
-    <string name="app_language_english">English</string>
-    <string name="app_language_russian">Русский</string>
-
     <string name="show_traffic">Показывать трафик</string>
     <string name="show_traffic_summary">Автоматически обновлять счётчик трафика в уведомлении</string>
 
