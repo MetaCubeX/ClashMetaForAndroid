@@ -12,6 +12,7 @@ import com.github.kr328.clash.design.model.AppInfo
 import com.github.kr328.clash.design.util.toAppInfo
 import com.github.kr328.clash.service.model.AccessControlMode
 import com.github.kr328.clash.service.store.ServiceStore
+import com.github.kr328.clash.util.RussianBypassDefaults
 import com.github.kr328.clash.util.startClashService
 import com.github.kr328.clash.util.stopClashService
 import kotlinx.coroutines.Dispatchers
@@ -51,6 +52,7 @@ class AccessControlActivity : BaseActivity<AccessControlDesign>() {
 
         setContentDesign(design)
 
+        design.setMode(service.accessControlMode)
         design.requests.send(AccessControlDesign.Request.ReloadApps)
 
         while (isActive) {
@@ -62,6 +64,26 @@ class AccessControlActivity : BaseActivity<AccessControlDesign>() {
                     when (it) {
                         AccessControlDesign.Request.ReloadApps -> {
                             design.patchApps(loadApps(selected))
+                        }
+
+                        AccessControlDesign.Request.ChangeMode -> {
+                            design.pendingMode?.let { mode ->
+                                withContext(Dispatchers.IO) {
+                                    if (service.accessControlMode != mode) {
+                                        service.accessControlMode = mode
+                                    }
+                                    if (mode == com.github.kr328.clash.service.model.AccessControlMode.DenySelected &&
+                                        !service.russianBypassSeeded
+                                    ) {
+                                        val seed = RussianBypassDefaults.installed(packageManager)
+                                        if (seed.isNotEmpty()) {
+                                            selected.addAll(seed)
+                                        }
+                                        service.russianBypassSeeded = true
+                                    }
+                                }
+                                design.patchApps(loadApps(selected))
+                            }
                         }
 
                         AccessControlDesign.Request.SelectAll -> {

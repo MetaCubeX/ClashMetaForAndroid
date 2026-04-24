@@ -70,7 +70,7 @@ class RuleSnippetDesign(context: Context) : Design<RuleSnippetDesign.Request>(co
         row.addView(
             TextView(context).apply {
                 text = title
-                setTextAppearance(com.google.android.material.R.style.TextAppearance_MaterialComponents_Subtitle1)
+                setTextAppearance(R.style.TextAppearance_App_TitleSmall)
                 try {
                     setTextColor(MaterialColors.getColor(this, com.google.android.material.R.attr.colorPrimary))
                 } catch (_: IllegalArgumentException) {
@@ -82,7 +82,7 @@ class RuleSnippetDesign(context: Context) : Design<RuleSnippetDesign.Request>(co
             row.addView(
                 TextView(context).apply {
                     text = subtitle
-                    setTextAppearance(com.google.android.material.R.style.TextAppearance_MaterialComponents_Body2)
+                    setTextAppearance(R.style.TextAppearance_App_BodySmall)
                     try {
                         setTextColor(MaterialColors.getColor(this, com.google.android.material.R.attr.colorOnSurfaceVariant))
                     } catch (_: IllegalArgumentException) {

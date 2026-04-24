@@ -31,12 +31,12 @@
                     android:id="@+id/tv_rules_intro"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/rule_manager_intro"
-                    android:textAppearance="@style/TextAppearance.MaterialComponents.Body2" />
+                android:text="@string/rule_manager_intro"
+                android:textAppearance="@style/TextAppearance.Material3.BodyMedium" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btn_open_create_sheet"
-                    style="@style/Widget.MaterialComponents.Button"
+                    style="@style/Widget.Material3.Button"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
@@ -44,7 +44,7 @@
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btn_open_manual_rules"
-                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
@@ -55,16 +55,15 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
                     android:text="@string/rule_existing_providers"
-                    android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1"
+                    android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
                     android:textColor="?attr/colorPrimary" />
 
                 <TextView
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:alpha="0.75"
-                    android:text="@string/rule_existing_provider_toggle_hint"
-                    android:textAppearance="@style/TextAppearance.MaterialComponents.Body2" />
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="@string/rule_existing_provider_toggle_hint"
+                android:textAppearance="@style/TextAppearance.Material3.BodyMedium" />
 
                 <LinearLayout
                     android:id="@+id/provider_items_container"

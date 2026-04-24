@@ -2,9 +2,8 @@ package com.github.kr328.clash.design
 
 import android.content.Context
 import android.view.View
-import android.widget.AdapterView
 import android.widget.ArrayAdapter
-import android.widget.Spinner
+import android.widget.AutoCompleteTextView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -42,13 +41,13 @@ class ProxyChainDesign(
 
     private val toolbar: MaterialToolbar = rootView.findViewById(R.id.toolbar)
     private val diskChainsDetail: TextView = rootView.findViewById(R.id.disk_chains_detail)
-    private val diskChainSpinner: Spinner = rootView.findViewById(R.id.disk_chain_spinner)
+    private val diskChainSpinner: AutoCompleteTextView = rootView.findViewById(R.id.disk_chain_spinner)
     private val runtimeOfflineNotice: TextView = rootView.findViewById(R.id.runtime_offline_notice)
     private val runtimeProxySection: View = rootView.findViewById(R.id.runtime_proxy_section)
-    val outboundGroupSpinner: Spinner = rootView.findViewById(R.id.outbound_group_spinner)
-    val outboundProxySpinner: Spinner = rootView.findViewById(R.id.outbound_proxy_spinner)
-    val dialerGroupSpinner: Spinner = rootView.findViewById(R.id.dialer_group_spinner)
-    val dialerProxySpinner: Spinner = rootView.findViewById(R.id.dialer_proxy_spinner)
+    val outboundGroupSpinner: AutoCompleteTextView = rootView.findViewById(R.id.outbound_group_spinner)
+    val outboundProxySpinner: AutoCompleteTextView = rootView.findViewById(R.id.outbound_proxy_spinner)
+    val dialerGroupSpinner: AutoCompleteTextView = rootView.findViewById(R.id.dialer_group_spinner)
+    val dialerProxySpinner: AutoCompleteTextView = rootView.findViewById(R.id.dialer_proxy_spinner)
     private val chainStatusCard: MaterialCardView = rootView.findViewById(R.id.chain_status_card)
     private val chainStatusText: TextView = rootView.findViewById(R.id.chain_status_text)
     private val btnConnect: MaterialButton = rootView.findViewById(R.id.btn_connect)
@@ -98,8 +97,8 @@ class ProxyChainDesign(
         val ctx = rootView.context
         if (diskRows.isEmpty()) {
             diskChainsDetail.text = ctx.getString(R.string.proxy_chain_saved_empty)
-            diskChainSpinner.adapter =
-                ArrayAdapter(ctx, android.R.layout.simple_spinner_dropdown_item, emptyList<String>())
+            diskChainSpinner.setAdapter(
+                ArrayAdapter(ctx, android.R.layout.simple_dropdown_item_1line, emptyList<String>()))
             diskChainSpinner.isEnabled = false
             rootView.findViewById<MaterialButton>(R.id.btn_clear_selected_disk_chain).isEnabled = false
             rootView.findViewById<MaterialButton>(R.id.btn_clear_all_disk_chains).isEnabled = false
@@ -110,8 +109,8 @@ class ProxyChainDesign(
         }
         diskChainsDetail.text = detail
         val labels = diskRows.map { r -> "${r.targetYamlName} → ${r.dialer}" }
-        diskChainSpinner.adapter =
-            ArrayAdapter(ctx, android.R.layout.simple_spinner_dropdown_item, labels)
+        diskChainSpinner.setAdapter(
+            ArrayAdapter(ctx, android.R.layout.simple_dropdown_item_1line, labels))
         diskChainSpinner.isEnabled = true
         rootView.findViewById<MaterialButton>(R.id.btn_clear_selected_disk_chain).isEnabled = true
         rootView.findViewById<MaterialButton>(R.id.btn_clear_all_disk_chains).isEnabled = true
@@ -119,7 +118,7 @@ class ProxyChainDesign(
 
     fun selectedDiskChainTarget(): String? {
         if (diskRows.isEmpty()) return null
-        val ix = diskChainSpinner.selectedItemPosition
+        val ix = (diskChainSpinner.adapter as ArrayAdapter<String>).getPosition(diskChainSpinner.text.toString())
         if (ix < 0 || ix >= diskRows.size) return null
         return diskRows[ix].targetYamlName
     }
@@ -139,31 +138,22 @@ class ProxyChainDesign(
         runtimeOfflineNotice.visibility = View.GONE
         runtimeProxySection.visibility = View.VISIBLE
 
-        val gAdapter = ArrayAdapter(ctx, android.R.layout.simple_spinner_dropdown_item, groups)
-        outboundGroupSpinner.adapter = gAdapter
-        dialerGroupSpinner.adapter =
-            ArrayAdapter(ctx, android.R.layout.simple_spinner_dropdown_item, groups)
+        outboundGroupSpinner.setAdapter(ArrayAdapter(ctx, android.R.layout.simple_dropdown_item_1line, groups))
+        dialerGroupSpinner.setAdapter(
+            ArrayAdapter(ctx, android.R.layout.simple_dropdown_item_1line, groups))
 
-        fun fillProxies(sp: Spinner, group: String) {
+        fun fillProxies(sp: AutoCompleteTextView, group: String) {
             val names = proxiesByGroup[group].orEmpty()
-            sp.adapter = ArrayAdapter(ctx, android.R.layout.simple_spinner_dropdown_item, names)
+            sp.setAdapter(ArrayAdapter(ctx, android.R.layout.simple_dropdown_item_1line, names))
         }
 
-        outboundGroupSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                val name = groups.getOrNull(position) ?: return
-                fillProxies(outboundProxySpinner, name)
-            }
-
-            override fun onNothingSelected(parent: AdapterView<*>?) = Unit
+        outboundGroupSpinner.setOnItemClickListener { _, _, position, _ ->
+            val name = groups.getOrNull(position) ?: return@setOnItemClickListener
+            fillProxies(outboundProxySpinner, name)
         }
-        dialerGroupSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                val name = groups.getOrNull(position) ?: return
-                fillProxies(dialerProxySpinner, name)
-            }
-
-            override fun onNothingSelected(parent: AdapterView<*>?) = Unit
+        dialerGroupSpinner.setOnItemClickListener { _, _, position, _ ->
+            val name = groups.getOrNull(position) ?: return@setOnItemClickListener
+            fillProxies(dialerProxySpinner, name)
         }
 
         if (groups.isNotEmpty()) {
@@ -174,23 +164,17 @@ class ProxyChainDesign(
 
     fun selectedOutboundGroupName(): String? {
         if (runtimeGroups.isEmpty()) return null
-        val ix = outboundGroupSpinner.selectedItemPosition
-        if (ix < 0 || ix >= runtimeGroups.size) return null
-        return runtimeGroups[ix]
+        return outboundGroupSpinner.text?.toString()?.takeIf { it in runtimeGroups }
     }
 
     fun selectedOutboundProxyName(): String? {
         val adapter = outboundProxySpinner.adapter ?: return null
-        val ix = outboundProxySpinner.selectedItemPosition
-        if (ix < 0 || ix >= adapter.count) return null
-        return adapter.getItem(ix)?.toString()
+        return outboundProxySpinner.text?.toString()?.takeIf { (adapter as ArrayAdapter<String>).getPosition(it) >= 0 }
     }
 
     fun selectedDialerProxyName(): String? {
         val adapter = dialerProxySpinner.adapter ?: return null
-        val ix = dialerProxySpinner.selectedItemPosition
-        if (ix < 0 || ix >= adapter.count) return null
-        return adapter.getItem(ix)?.toString()
+        return dialerProxySpinner.text?.toString()?.takeIf { (adapter as ArrayAdapter<String>).getPosition(it) >= 0 }
     }
 
     enum class ChainStatusKind {

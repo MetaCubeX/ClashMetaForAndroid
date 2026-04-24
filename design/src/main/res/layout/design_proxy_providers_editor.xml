@@ -19,14 +19,13 @@
         android:paddingHorizontal="@dimen/main_padding_horizontal"
         android:paddingBottom="8dp"
         android:text="@string/proxy_providers_editor_hint"
-        android:textAppearance="@style/TextAppearance.MaterialComponents.Body2" />
+        android:textAppearance="@style/TextAppearance.Material3.BodyMedium" />
 
     <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="@dimen/main_padding_horizontal"
         android:layout_marginBottom="12dp"
-        app:cardBackgroundColor="?attr/colorSurface"
         app:cardCornerRadius="12dp"
         app:cardElevation="1dp"
         app:strokeWidth="0dp">
@@ -41,7 +40,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/proxy_providers_merge_section_title"
-                android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle2"
+                android:textAppearance="@style/TextAppearance.Material3.TitleSmall"
                 android:textColor="?attr/colorOnSurface" />
 
             <TextView
@@ -49,15 +48,21 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:text="@string/proxy_providers_merge_section_summary"
-                android:textAppearance="@style/TextAppearance.MaterialComponents.Body2"
+                android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
                 android:textColor="?attr/colorOnSurfaceVariant" />
 
-            <Spinner
-                android:id="@+id/spinner_subscriptions"
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:minHeight="48dp" />
+                android:layout_marginTop="10dp">
+
+                <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                    android:id="@+id/spinner_subscriptions"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="none" />
+            </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_add_selected"
@@ -90,6 +95,7 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_add"
+                style="@style/Widget.Material3.Button"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="6dp"
@@ -106,11 +112,12 @@
                 android:text="@string/proxy_providers_update_all" />
         </LinearLayout>
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn_save"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="@string/proxy_providers_save" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_save"
+                style="@style/Widget.Material3.Button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/proxy_providers_save" />
     </LinearLayout>
 </LinearLayout>

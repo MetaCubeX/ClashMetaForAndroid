@@ -1,56 +1,73 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    style="@style/AppCard.Filled"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="horizontal"
-    android:paddingVertical="8dp"
-    android:paddingHorizontal="4dp">
-
-    <TextView
-        android:id="@+id/rule_index"
-        android:layout_width="36dp"
-        android:layout_height="wrap_content"
-        android:alpha="0.7"
-        android:textAppearance="@style/TextAppearance.MaterialComponents.Caption"
-        tools:text="1" />
+    android:layout_marginBottom="10dp"
+    app:cardBackgroundColor="?attr/colorSurfaceContainer"
+    app:cardCornerRadius="18dp"
+    app:cardElevation="0dp"
+    app:strokeWidth="0dp">
 
     <LinearLayout
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:orientation="vertical">
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:padding="14dp">
 
         <TextView
-            android:id="@+id/rule_line"
-            android:layout_width="match_parent"
+            android:id="@+id/rule_index"
+            android:layout_width="40dp"
             android:layout_height="wrap_content"
-            android:fontFamily="monospace"
-            android:textIsSelectable="true"
-            android:textSize="12sp"
-            android:textAppearance="@style/TextAppearance.MaterialComponents.Body2"
-            tools:text="RULE-SET,MyRules,PROXY" />
+            android:textAppearance="@style/TextAppearance.App.LabelMedium"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            tools:text="1" />
 
-        <TextView
-            android:id="@+id/rule_meta"
-            android:layout_width="match_parent"
+        <LinearLayout
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:alpha="0.75"
-            android:textAppearance="@style/TextAppearance.MaterialComponents.Caption"
-            tools:text="MANUAL" />
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/rule_line"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="monospace"
+                android:textAppearance="@style/TextAppearance.App.BodyMedium"
+                android:textColor="?attr/colorOnSurface"
+                android:textIsSelectable="true"
+                tools:text="RULE-SET,MyRules,PROXY" />
+
+            <TextView
+                android:id="@+id/rule_meta"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:textAppearance="@style/TextAppearance.App.BodySmall"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                tools:text="Manual · Provider" />
+        </LinearLayout>
+
+        <com.google.android.material.switchmaterial.SwitchMaterial
+            android:id="@+id/rule_enabled_switch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:checked="true" />
+
+        <ImageButton
+            android:id="@+id/rule_more"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:layout_marginStart="2dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/rule_snippet_overflow_cd"
+            android:padding="10dp"
+            android:src="@drawable/ic_baseline_more_vert"
+            app:tint="?attr/colorOnSurfaceVariant" />
     </LinearLayout>
-
-    <com.google.android.material.switchmaterial.SwitchMaterial
-        android:id="@+id/rule_enabled_switch"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:checked="true" />
-
-    <ImageButton
-        android:id="@+id/rule_more"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:background="?attr/selectableItemBackgroundBorderless"
-        android:contentDescription="@string/rule_snippet_overflow_cd"
-        android:src="@drawable/ic_baseline_more_vert" />
-</LinearLayout>
+</com.google.android.material.card.MaterialCardView>
