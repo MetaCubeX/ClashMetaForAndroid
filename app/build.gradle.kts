@@ -42,6 +42,14 @@ task("downloadGeoFiles") {
             "https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@release/geoip.metadb",
             "https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geoip.metadb",
         ),
+        "geoip.dat" to listOf(
+            "https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@release/geoip.dat",
+            "https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geoip.dat",
+        ),
+        "Country.mmdb" to listOf(
+            "https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@release/country.mmdb",
+            "https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/country.mmdb",
+        ),
         "geosite.dat" to listOf(
             "https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@release/geosite.dat",
             "https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geosite.dat",
