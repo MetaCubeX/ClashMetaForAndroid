@@ -1,9 +1,8 @@
 package com.github.kr328.clash.design
 
 import android.content.Context
-import android.text.Editable
-import android.text.TextWatcher
 import android.view.View
+import androidx.core.widget.addTextChangedListener
 import com.github.kr328.clash.core.model.ConnectionTracker
 import com.github.kr328.clash.core.model.ConnectionsSnapshot
 import com.github.kr328.clash.design.adapter.ConnectionsAdapter
@@ -12,26 +11,37 @@ import com.github.kr328.clash.design.util.applyFrom
 import com.github.kr328.clash.design.util.layoutInflater
 import com.github.kr328.clash.design.util.root
 import com.github.kr328.clash.design.util.toBytesString
-import com.github.kr328.clash.design.R
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class ConnectionsDesign(context: Context) : Design<ConnectionsDesign.Request>(context) {
-    enum class Request {
-        OpenLogcat,
+    enum class FilterMode {
+        ALL,
+        TCP,
+        UDP,
+        DIRECT,
+        PROXY,
+        REJECT,
+    }
+
+    sealed class Request {
+        object OpenLogcat : Request()
+        data class CloseConnection(val id: String) : Request()
+        object CloseAllConnections : Request()
     }
 
     private val binding = DesignConnectionsBinding
         .inflate(context.layoutInflater, context.root, false)
 
-    private val adapter = ConnectionsAdapter()
+    private val adapter = ConnectionsAdapter { connection ->
+        if (connection.id.isNotBlank()) {
+            requests.trySend(Request.CloseConnection(connection.id))
+        }
+    }
     private var lastSnapshot: ConnectionsSnapshot = ConnectionsSnapshot()
-    private var lastRenderedSignature: String = ""
     private var searchQuery: String = ""
-    private var searchJob: Job? = null
+    private var filterMode: FilterMode = FilterMode.ALL
 
     override val root: View
         get() = binding.root
@@ -43,52 +53,72 @@ class ConnectionsDesign(context: Context) : Design<ConnectionsDesign.Request>(co
         binding.btnConnectionsOpenLog.setOnClickListener {
             requests.trySend(Request.OpenLogcat)
         }
-        binding.connectionsSearch.addTextChangedListener(
-            object : TextWatcher {
-                override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
-                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) = Unit
-                override fun afterTextChanged(s: Editable?) {
-                    searchQuery = s?.toString().orEmpty()
-                    searchJob?.cancel()
-                    searchJob = launch {
-                        delay(250)
-                        // Unconfined scope resumes after delay off the main thread; UI updates must run on Main.
-                        withContext(Dispatchers.Main) {
-                            applyFilteredList()
-                        }
-                    }
+        binding.btnConnectionsCloseAll.setOnClickListener {
+            MaterialAlertDialogBuilder(context)
+                .setMessage(R.string.connections_close_all_confirm)
+                .setNegativeButton(android.R.string.cancel, null)
+                .setPositiveButton(R.string.connections_close_all) { _, _ ->
+                    requests.trySend(Request.CloseAllConnections)
                 }
-            },
-        )
+                .show()
+        }
+        binding.connectionsSearch.addTextChangedListener {
+            searchQuery = it?.toString().orEmpty()
+            applyFilteredList()
+        }
+        binding.connectionsFilterChips.setOnCheckedChangeListener { _, checkedId ->
+            filterMode = when (checkedId) {
+                R.id.filter_tcp -> FilterMode.TCP
+                R.id.filter_udp -> FilterMode.UDP
+                R.id.filter_direct -> FilterMode.DIRECT
+                R.id.filter_proxy -> FilterMode.PROXY
+                R.id.filter_reject -> FilterMode.REJECT
+                else -> FilterMode.ALL
+            }
+            applyFilteredList()
+        }
     }
 
     suspend fun patchSnapshot(snap: ConnectionsSnapshot) {
         withContext(Dispatchers.Main) {
-            val signature = "${snap.uploadTotal}:${snap.downloadTotal}:${snap.connections.size}:${searchQuery}"
-            if (signature == lastRenderedSignature) return@withContext
-            lastRenderedSignature = signature
             lastSnapshot = snap
-            binding.connectionsTotals.text = context.getString(
-                R.string.connections_totals_fmt,
-                snap.uploadTotal.toBytesString(),
-                snap.downloadTotal.toBytesString(),
-                snap.connections.size,
-            )
+            binding.connectionsActiveValue.text = snap.connections.size.toString()
+            binding.connectionsUploadValue.text = snap.uploadTotal.toBytesString()
+            binding.connectionsDownloadValue.text = snap.downloadTotal.toBytesString()
+            binding.connectionsMemoryValue.text = snap.memory.toBytesString()
+            binding.btnConnectionsCloseAll.isEnabled = snap.connections.isNotEmpty()
             applyFilteredList()
         }
     }
 
     private fun applyFilteredList() {
         val q = searchQuery.trim().lowercase()
-        val list = if (q.isEmpty()) {
-            lastSnapshot.connections
-        } else {
-            lastSnapshot.connections.filter { matchesQuery(it, q) }
+        val list = lastSnapshot.connections.filter { connection ->
+            matchesFilter(connection) && (q.isEmpty() || matchesQuery(connection, q))
         }
         adapter.submit(list)
         val empty = list.isEmpty()
         binding.connectionsEmptyHint.visibility = if (empty) View.VISIBLE else View.GONE
         binding.connectionsList.visibility = if (empty) View.GONE else View.VISIBLE
+    }
+
+    private fun matchesFilter(c: ConnectionTracker): Boolean {
+        val network = c.metadata?.network?.lowercase().orEmpty()
+        val rule = c.rule.lowercase()
+        val chain = c.chains.joinToString(" ").lowercase()
+        val providerChain = c.providerChains.joinToString(" ").lowercase()
+        val direct = rule == "direct" || c.chains.any { it.equals("direct", ignoreCase = true) }
+        val rejected = rule.contains("reject") ||
+            chain.contains("reject") ||
+            providerChain.contains("reject")
+        return when (filterMode) {
+            FilterMode.ALL -> true
+            FilterMode.TCP -> network == "tcp"
+            FilterMode.UDP -> network == "udp"
+            FilterMode.DIRECT -> direct
+            FilterMode.PROXY -> !direct && !rejected && (c.chains.isNotEmpty() || c.providerChains.isNotEmpty())
+            FilterMode.REJECT -> rejected
+        }
     }
 
     private fun matchesQuery(c: ConnectionTracker, q: String): Boolean {
@@ -101,11 +131,13 @@ class ConnectionsDesign(context: Context) : Design<ConnectionsDesign.Request>(co
         return sequenceOf(
             m.host,
             m.process,
+            m.processPath,
             m.network,
             m.sniffHost,
             m.destinationIP,
             m.sourceIP,
             m.inboundName,
+            m.remoteDestination,
         ).any { it.lowercase().contains(q) }
     }
 

@@ -5,6 +5,8 @@ import androidx.core.content.getSystemService
 import com.github.kr328.clash.common.util.intent
 import com.github.kr328.clash.core.model.ConnectionsSnapshot
 import com.github.kr328.clash.design.ConnectionsDesign
+import com.github.kr328.clash.design.R
+import com.github.kr328.clash.design.ui.ToastDuration
 import com.github.kr328.clash.util.withClash
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -60,6 +62,16 @@ class ConnectionsActivity : BaseActivity<ConnectionsDesign>() {
             }
         }
 
+        suspend fun reloadSnapshot() {
+            val raw = withClash { queryConnectionsSnapshot() }
+            val snap = withContext(Dispatchers.Default) {
+                runCatching {
+                    json.decodeFromString(ConnectionsSnapshot.serializer(), raw)
+                }.getOrElse { ConnectionsSnapshot() }
+            }
+            design.patchSnapshot(snap)
+        }
+
         try {
             while (isActive) {
                 select<Unit> {
@@ -67,6 +79,22 @@ class ConnectionsActivity : BaseActivity<ConnectionsDesign>() {
                         when (it) {
                             ConnectionsDesign.Request.OpenLogcat ->
                                 startActivity(LogcatActivity::class.intent)
+                            is ConnectionsDesign.Request.CloseConnection -> launch {
+                                val closed = withClash { closeConnection(it.id) }
+                                design.showToast(
+                                    if (closed) R.string.connections_closed_one else R.string.connections_closed_none,
+                                    ToastDuration.Short,
+                                )
+                                reloadSnapshot()
+                            }
+                            ConnectionsDesign.Request.CloseAllConnections -> launch {
+                                val closed = withClash { closeAllConnections() }
+                                design.showToast(
+                                    getString(R.string.connections_closed_many, closed),
+                                    ToastDuration.Short,
+                                )
+                                reloadSnapshot()
+                            }
                         }
                     }
                 }

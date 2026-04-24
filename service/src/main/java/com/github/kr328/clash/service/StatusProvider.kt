@@ -10,10 +10,16 @@ import com.github.kr328.clash.common.Global
 class StatusProvider : ContentProvider() {
     override fun call(method: String, arg: String?, extras: Bundle?): Bundle? {
         return when (method) {
+            METHOD_STATUS_SNAPSHOT -> {
+                Bundle().apply {
+                    putBoolean(EXTRA_SERVICE_RUNNING, serviceRunning)
+                    putString(EXTRA_CURRENT_PROFILE, currentProfile)
+                }
+            }
             METHOD_CURRENT_PROFILE -> {
                 return if (serviceRunning)
                     Bundle().apply {
-                        putString("name", currentProfile)
+                        putString(EXTRA_CURRENT_PROFILE, currentProfile)
                     }
                 else
                     null
@@ -59,12 +65,18 @@ class StatusProvider : ContentProvider() {
 
     companion object {
         const val METHOD_CURRENT_PROFILE = "currentProfile"
+        const val METHOD_STATUS_SNAPSHOT = "statusSnapshot"
+        const val EXTRA_SERVICE_RUNNING = "serviceRunning"
+        const val EXTRA_CURRENT_PROFILE = "name"
 
         private const val CLASH_SERVICE_RUNNING_FILE = "service_running.lock"
 
         var serviceRunning: Boolean = false
             set(value) {
                 field = value
+                if (!value) {
+                    currentProfile = null
+                }
 
                 shouldStartClashOnBoot = value
             }
