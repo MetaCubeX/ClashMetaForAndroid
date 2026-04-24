@@ -1,21 +1,23 @@
 package com.github.kr328.clash.design.adapter
 
-import android.animation.ObjectAnimator
+import android.content.Context
 import android.view.View
 import android.view.ViewGroup
-import android.widget.AdapterView
-import android.widget.ArrayAdapter
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.github.kr328.clash.core.model.Proxy
 import com.github.kr328.clash.core.model.ProxyGroup
 import com.github.kr328.clash.core.model.TunnelState
 import com.github.kr328.clash.design.R
+import com.github.kr328.clash.design.util.FlagParser
 import com.github.kr328.clash.design.util.toBytesString
 import com.github.kr328.clash.design.databinding.AdapterProfileBinding
 import com.github.kr328.clash.design.model.ProfilePageState
 import com.github.kr328.clash.design.util.layoutInflater
 import com.github.kr328.clash.service.model.Profile
+import com.google.android.material.chip.Chip
+import com.google.android.material.color.MaterialColors
 import java.util.UUID
 
 class ProfileAdapter(
@@ -27,10 +29,11 @@ class ProfileAdapter(
     private val onForceUpdate: (Profile) -> Unit = {},
     private val onProxyYamlDetail: (profile: Profile, groupName: String, proxyName: String) -> Unit =
         { _, _, _ -> },
+    private val onVisibleGroupChanged: (Profile, String) -> Unit = { _, _ -> },
+    private val expandOnProfileClick: Boolean = false,
 ) : RecyclerView.Adapter<ProfileAdapter.Holder>() {
     class Holder(val binding: AdapterProfileBinding) : RecyclerView.ViewHolder(binding.root) {
-        var ignoreSpinner: Boolean = false
-        var activePulse: ObjectAnimator? = null
+        var ignoreGroupChip: Boolean = false
     }
 
     var profiles: List<Profile> = emptyList()
@@ -47,8 +50,44 @@ class ProfileAdapter(
     private var offlinePreviewByProfile: Map<UUID, Map<String, List<String>>> = emptyMap()
     private var offlineSelectionsByProfile: Map<UUID, Map<String, String>> = emptyMap()
     private val selectedGroupIndex = mutableMapOf<UUID, Int>()
+    private val lastReportedVisibleGroup = mutableMapOf<UUID, String>()
+    private val pendingProxySelections = mutableMapOf<String, String>()
     /** Per-node ms when core is off: key `uuid|proxyName`. */
     private val standalonePingDelays: MutableMap<String, Int> = mutableMapOf()
+
+    /** Operator-pushed announcement, rendered inline on the active profile card. */
+    private var announcementText: String? = null
+    private var announcementUrl: String? = null
+    private var announcementSupportUrl: String? = null
+    private var announcementOnOpenUrl: ((String) -> Unit)? = null
+    private var announcementOnSupport: (() -> Unit)? = null
+
+    fun setActiveAnnouncement(
+        text: String?,
+        url: String?,
+        supportUrl: String?,
+        onOpenUrl: ((String) -> Unit)?,
+        onSupport: (() -> Unit)?,
+    ) {
+        val raw = text?.takeIf { it.isNotBlank() }
+        val decoded = raw?.let {
+            com.github.kr328.clash.common.util.MaybeBase64.decode(it).takeIf { d -> d.isNotBlank() }
+        }
+        val changed =
+            decoded != announcementText ||
+                url != announcementUrl ||
+                supportUrl != announcementSupportUrl
+        announcementText = decoded
+        announcementUrl = url?.takeIf { it.isNotBlank() }
+        announcementSupportUrl = supportUrl?.takeIf { it.isNotBlank() }
+        announcementOnOpenUrl = onOpenUrl
+        announcementOnSupport = onSupport
+        if (changed) {
+            val active = activeProfileUuid ?: return
+            val i = profiles.indexOfFirst { it.uuid == active }
+            if (i >= 0) notifyItemChanged(i)
+        }
+    }
 
     fun updateElapsed() {
         notifyDataSetChanged()
@@ -61,10 +100,9 @@ class ProfileAdapter(
     }
 
     override fun onViewRecycled(holder: Holder) {
-        holder.activePulse?.cancel()
-        holder.activePulse = null
-        holder.binding.activeStrip.alpha = 1f
+        holder.binding.activeStatusChip.alpha = 1f
         holder.binding.pingProgress.visibility = View.GONE
+        holder.binding.pingGroupProgress.visibility = View.GONE
         super.onViewRecycled(holder)
     }
 
@@ -85,6 +123,15 @@ class ProfileAdapter(
         ) {
             return
         }
+        val runtimeChanged =
+            names != proxyGroupNames ||
+                running != clashRunning ||
+                activeProfileUuid != this.activeProfileUuid
+        if (runtimeChanged) {
+            lastReportedVisibleGroup.clear()
+            proxyDetails = emptyMap()
+            pendingProxySelections.clear()
+        }
         proxyGroupNames = names
         this.offlinePreviewByProfile = offlinePreviewByProfile
         this.offlineSelectionsByProfile = offlineSelectionsByProfile
@@ -96,9 +143,43 @@ class ProfileAdapter(
     }
 
     fun setProxyDetails(details: Map<String, ProxyGroup>) {
-        if (details == proxyDetails) return
-        proxyDetails = details
-        notifyDataSetChanged()
+        if (details.isEmpty()) return
+        val merged = proxyDetails.toMutableMap().apply {
+            putAll(details)
+        }
+        val active = activeProfileUuid
+        val hasPendingForDetails = active != null &&
+            details.keys.any { group -> proxySelectionKey(active, group) in pendingProxySelections }
+        if (merged == proxyDetails && !hasPendingForDetails) return
+        proxyDetails = merged
+        active?.let { uuid ->
+            for (group in details.keys) {
+                pendingProxySelections.remove(proxySelectionKey(uuid, group))
+            }
+        }
+        active ?: return
+        val i = profiles.indexOfFirst { it.uuid == active }
+        if (i >= 0) {
+            notifyItemChanged(i)
+        }
+    }
+
+    fun clearProxyDetails() {
+        if (proxyDetails.isEmpty()) return
+        proxyDetails = emptyMap()
+        activeProfileUuid?.let { uuid ->
+            val i = profiles.indexOfFirst { it.uuid == uuid }
+            if (i >= 0) notifyItemChanged(i)
+        } ?: notifyDataSetChanged()
+    }
+
+    fun setPendingProxySelection(uuid: UUID, groupName: String, proxyName: String) {
+        if (groupName.isBlank() || proxyName.isBlank()) return
+        val key = proxySelectionKey(uuid, groupName)
+        if (pendingProxySelections[key] == proxyName) return
+        pendingProxySelections[key] = proxyName
+        val i = profiles.indexOfFirst { it.uuid == uuid }
+        if (i >= 0) notifyItemChanged(i)
     }
 
     fun clearStandalonePingDelays(uuid: UUID) {
@@ -110,8 +191,6 @@ class ProfileAdapter(
     }
 
     fun setStandalonePingResults(uuid: UUID, results: Map<String, Int>) {
-        val prefix = "${uuid}|"
-        standalonePingDelays.keys.removeAll { it.startsWith(prefix) }
         for ((name, ms) in results) {
             standalonePingDelays["${uuid}|$name"] = ms
         }
@@ -150,8 +229,8 @@ class ProfileAdapter(
     }
 
     private fun proxyGroupForRow(profile: Profile, groupName: String): ProxyGroup? {
-        if (useEngineFor(profile) && proxyDetails.isNotEmpty()) {
-            return proxyDetails[groupName]
+        if (useEngineFor(profile)) {
+            proxyDetails[groupName]?.let { return it.withPendingSelection(profile.uuid, groupName) }
         }
         val offline = offlinePreviewByProfile[profile.uuid] ?: return null
         val names = offline[groupName] ?: return null
@@ -162,25 +241,54 @@ class ProfileAdapter(
                 Proxy(n, n, "", Proxy.Type.Unknown, -1)
             },
             now,
-        )
+        ).withPendingSelection(profile.uuid, groupName)
+    }
+
+    private fun proxySelectionKey(uuid: UUID, groupName: String): String =
+        "${uuid}|${groupName}"
+
+    private fun ProxyGroup.withPendingSelection(uuid: UUID, groupName: String): ProxyGroup {
+        val pending = pendingProxySelections[proxySelectionKey(uuid, groupName)] ?: return this
+        if (pending == now || proxies.none { it.name == pending }) return this
+        return copy(now = pending)
     }
 
     private fun applyActiveVisuals(holder: Holder, profile: Profile) {
-        holder.activePulse?.cancel()
-        holder.activePulse = null
-        val strip = holder.binding.activeStrip
+        val chip = holder.binding.activeStatusChip
+        val context = chip.context
         holder.binding.profileCard.strokeWidth = 0
         if (profile.active) {
-            strip.alpha = 1f
-            holder.activePulse =
-                ObjectAnimator.ofFloat(strip, View.ALPHA, 0.38f, 1f).apply {
-                    duration = 1000L
-                    repeatCount = ObjectAnimator.INFINITE
-                    repeatMode = ObjectAnimator.REVERSE
-                    start()
-                }
+            chip.text = context.getString(R.string.profile_active_status)
+            chip.setBackgroundResource(R.drawable.bg_m3_status_chip)
+            chip.setTextColor(MaterialColors.getColor(chip, com.google.android.material.R.attr.colorOnPrimaryContainer))
         } else {
-            strip.alpha = 1f
+            chip.text = context.getString(R.string.profile_inactive_status)
+            chip.setBackgroundResource(R.drawable.bg_m3_status_chip_neutral)
+            chip.setTextColor(MaterialColors.getColor(chip, com.google.android.material.R.attr.colorOnSurfaceVariant))
+        }
+    }
+
+    private fun bindAnnouncement(holder: Holder, profile: Profile) {
+        val view = holder.binding.announcementInline
+        val text = announcementText
+        val showHere = !text.isNullOrBlank() &&
+            profile.imported &&
+            profile.uuid == activeProfileUuid
+        if (!showHere) {
+            view.visibility = View.GONE
+            view.setOnClickListener(null)
+            return
+        }
+        view.visibility = View.VISIBLE
+        view.text = text
+        val openTarget = announcementUrl ?: announcementSupportUrl
+        if (openTarget != null) {
+            view.setOnClickListener {
+                announcementOnOpenUrl?.invoke(openTarget)
+                    ?: announcementOnSupport?.invoke()
+            }
+        } else {
+            view.setOnClickListener(null)
         }
     }
 
@@ -221,39 +329,57 @@ class ProfileAdapter(
 
         binding.profile = current
         binding.setClicked {
-            onClicked(current)
+            if (expandOnProfileClick && current.imported) {
+                onExpandToggle(current)
+            } else {
+                onClicked(current)
+            }
         }
         binding.menuView.setOnClickListener { v ->
             onMenuClicked(current, v)
         }
+        val hasSupport = !announcementSupportUrl.isNullOrBlank() && current.imported && current.uuid == activeProfileUuid
+        binding.supportSlot.visibility = if (hasSupport) View.VISIBLE else View.GONE
+        binding.supportView.setOnClickListener {
+            announcementSupportUrl?.let { url ->
+                announcementOnOpenUrl?.invoke(url) ?: announcementOnSupport?.invoke()
+            }
+        }
+        binding.activateButton.text = context.getString(R.string.profile_use)
+        binding.activateButton.visibility = if (current.active) View.GONE else View.VISIBLE
+        binding.activateButton.isEnabled = true
+        binding.activateButton.setOnClickListener {
+            if (!current.active) onClicked(current)
+        }
 
         applyActiveVisuals(holder, current)
         bindUsageAndProgress(holder, current)
+        bindAnnouncement(holder, current)
 
         val groupNames = effectiveGroupsForProfile(current)
         val expanded = current.uuid in expandedUuids && current.imported
 
         val showChevron = current.imported
-        // Keep three fixed slots for imported profiles so expand/collapse does not move the chevron.
         val reserveActionStrip = showChevron
         binding.forceUpdateSlot.visibility = if (reserveActionStrip) View.VISIBLE else View.GONE
-        binding.pingSlot.visibility = if (reserveActionStrip) View.VISIBLE else View.GONE
-        binding.chevronSlot.visibility = if (reserveActionStrip) View.VISIBLE else View.GONE
+        binding.pingSlot.visibility = View.GONE
+        binding.chevronSlot.visibility = View.GONE
         binding.chevronView.rotation = if (expanded) 180f else 0f
 
         val showPing = expanded && current.imported
+        binding.pingGroupSlot.visibility = if (showPing) View.VISIBLE else View.GONE
         val pinging = states.pingingUuid == current.uuid && showPing
         if (pinging) {
-            binding.pingProgress.visibility = View.VISIBLE
-            binding.pingAllView.visibility = View.INVISIBLE
+            binding.pingGroupProgress.visibility = View.VISIBLE
+            binding.pingGroupView.visibility = View.INVISIBLE
         } else {
-            binding.pingProgress.visibility = View.GONE
-            binding.pingAllView.visibility = if (showPing) View.VISIBLE else View.INVISIBLE
+            binding.pingGroupProgress.visibility = View.GONE
+            binding.pingGroupView.visibility = if (showPing) View.VISIBLE else View.INVISIBLE
         }
-        binding.pingAllView.isClickable = false
-        binding.pingAllView.isFocusable = false
-        binding.pingSlot.isClickable = reserveActionStrip
-        binding.pingSlot.setOnClickListener {
+        binding.pingGroupView.isClickable = false
+        binding.pingGroupView.isFocusable = false
+        binding.pingGroupSlot.isClickable = showPing
+        binding.pingGroupSlot.setOnClickListener {
             if (!showPing) return@setOnClickListener
             val ix = selectedGroupIndex[current.uuid] ?: 0
             val groupName = groupNames.getOrNull(ix) ?: return@setOnClickListener
@@ -261,7 +387,7 @@ class ProfileAdapter(
             onPingAll(current, groupName, pg.proxies.map { it.name })
         }
 
-        val showForceUpdate = expanded && current.type != Profile.Type.File
+        val showForceUpdate = current.imported && current.type != Profile.Type.File
         binding.forceUpdateView.visibility = if (showForceUpdate) View.VISIBLE else View.INVISIBLE
         binding.forceUpdateView.isClickable = false
         binding.forceUpdateView.isFocusable = false
@@ -270,12 +396,10 @@ class ProfileAdapter(
             if (showForceUpdate) onForceUpdate(current)
         }
 
-        binding.chevronView.visibility = View.VISIBLE
+        binding.chevronView.visibility = View.GONE
         if (showChevron) {
-            binding.chevronView.isClickable = true
-            binding.chevronView.setOnClickListener {
-                onExpandToggle(current)
-            }
+            binding.chevronView.isClickable = false
+            binding.chevronView.setOnClickListener(null)
         } else {
             binding.chevronView.setOnClickListener(null)
             binding.chevronView.isClickable = false
@@ -288,48 +412,78 @@ class ProfileAdapter(
         }
 
         if (groupNames.isEmpty()) {
-            binding.proxyGroupSpinner.visibility = View.GONE
-            binding.proxyGroupSpinner.onItemSelectedListener = null
+            binding.proxyGroupChips.visibility = View.GONE
+            binding.proxyGroupTypeLabel.visibility = View.GONE
             binding.proxyNodesList.removeAllViews()
             return
         }
-        binding.proxyGroupSpinner.visibility = View.VISIBLE
-
-        val spinAdapter = ArrayAdapter(
-            context,
-            android.R.layout.simple_spinner_dropdown_item,
-            groupNames,
-        )
-        binding.proxyGroupSpinner.adapter = spinAdapter
+        binding.proxyGroupChips.visibility = View.VISIBLE
 
         val preferred = lastGroupHint?.takeIf { groupNames.contains(it) }
         var idx = selectedGroupIndex[current.uuid]
             ?: preferred?.let { groupNames.indexOf(it).takeIf { i -> i >= 0 } }
             ?: 0
         if (idx >= groupNames.size) idx = 0
+        selectedGroupIndex[current.uuid] = idx
 
-        holder.ignoreSpinner = true
-        binding.proxyGroupSpinner.setSelection(idx)
-        fillProxyRows(holder, current, groupNames, idx)
-        binding.proxyGroupSpinner.post {
-            holder.ignoreSpinner = false
+        val groupType = proxyGroupForRow(current, groupNames.getOrNull(idx) ?: "")?.type
+        if (groupType != null && groupType.group) {
+            binding.proxyGroupTypeLabel.visibility = View.VISIBLE
+            binding.proxyGroupTypeLabel.text = groupType.name
+        } else {
+            binding.proxyGroupTypeLabel.visibility = View.GONE
         }
 
-        binding.proxyGroupSpinner.onItemSelectedListener =
-            object : AdapterView.OnItemSelectedListener {
-                override fun onItemSelected(
-                    parent: AdapterView<*>?,
-                    view: View?,
-                    pos: Int,
-                    id: Long,
-                ) {
-                    if (holder.ignoreSpinner) return
-                    selectedGroupIndex[current.uuid] = pos
-                    fillProxyRows(holder, current, groupNames, pos)
-                }
+        holder.ignoreGroupChip = true
+        renderGroupChips(holder, current, groupNames, idx)
+        fillProxyRows(holder, current, groupNames, idx)
+        reportVisibleGroup(current, groupNames[idx])
+        binding.proxyGroupChips.post {
+            holder.ignoreGroupChip = false
+        }
+    }
 
-                override fun onNothingSelected(parent: AdapterView<*>?) = Unit
+    private fun renderGroupChips(
+        holder: Holder,
+        profile: Profile,
+        groupNames: List<String>,
+        selectedIndex: Int,
+    ) {
+        val binding = holder.binding
+        val context = binding.root.context
+        binding.proxyGroupChips.removeAllViews()
+        groupNames.forEachIndexed { index, groupName ->
+            val chip = Chip(context).apply {
+                text = displayGroupName(groupName)
+                isCheckable = true
+                isChecked = index == selectedIndex
+                setEnsureMinTouchTargetSize(false)
+                minHeight = context.dp(30)
+                maxWidth = context.dp(200)
+                chipMinHeight = context.dp(30).toFloat()
+                chipStartPadding = context.dp(9).toFloat()
+                chipEndPadding = context.dp(9).toFloat()
+                textStartPadding = 0f
+                textEndPadding = 0f
+                isSingleLine = true
+                ellipsize = android.text.TextUtils.TruncateAt.END
+                setTextAppearance(R.style.TextAppearance_App_LabelMedium)
+                setOnClickListener {
+                    if (holder.ignoreGroupChip) return@setOnClickListener
+                    selectedGroupIndex[profile.uuid] = index
+                    fillProxyRows(holder, profile, groupNames, index)
+                    reportVisibleGroup(profile, groupName, force = true)
+                }
             }
+            binding.proxyGroupChips.addView(chip)
+        }
+    }
+
+    private fun reportVisibleGroup(profile: Profile, groupName: String, force: Boolean = false) {
+        if (!useEngineFor(profile)) return
+        if (!force && lastReportedVisibleGroup[profile.uuid] == groupName) return
+        lastReportedVisibleGroup[profile.uuid] = groupName
+        onVisibleGroupChanged(profile, groupName)
     }
 
     private fun fillProxyRows(
@@ -359,17 +513,54 @@ class ProfileAdapter(
 
         for (p in pg.proxies) {
             val row = inflater.inflate(R.layout.adapter_home_proxy_node, list, false)
-            row.findViewById<TextView>(R.id.proxy_title).text = p.title.ifBlank { p.name }
-            row.findViewById<TextView>(R.id.proxy_subtitle).text =
-                p.subtitle.ifBlank { p.type.name }
+
+            val title = p.title.ifBlank { p.name }
+            val flag = FlagParser.parse(title)
+            row.findViewById<TextView>(R.id.proxy_title).text = flag?.let {
+                title.removePrefix(it.emoji)
+                    .trimStart(' ', '|', '-', '_', '.', ':')
+                    .ifBlank { title }
+            } ?: title
+            val flagCard = row.findViewById<View>(R.id.proxy_flag_card)
+            val flagText = row.findViewById<TextView>(R.id.proxy_flag)
+            if (flag != null) {
+                flagCard.visibility = View.VISIBLE
+                flagText.text = flag.emoji
+            } else {
+                flagCard.visibility = View.GONE
+            }
+
+            val typeBadge = row.findViewById<TextView>(R.id.proxy_type_badge)
+            val typeName = p.type.name
+            val showBadge = typeName != "Unknown" && !p.type.group
+            if (showBadge) {
+                typeBadge.visibility = View.VISIBLE
+                typeBadge.text = typeName
+            } else {
+                typeBadge.visibility = View.GONE
+            }
+
+            val subtitle = p.subtitle
+                .takeIf { it.isNotBlank() && !it.equals(typeName, ignoreCase = true) }
+            row.findViewById<TextView>(R.id.proxy_subtitle).apply {
+                visibility = if (subtitle == null) View.GONE else View.VISIBLE
+                text = subtitle.orEmpty()
+            }
+
             val key = "${profile.uuid}|${p.name}"
             val standalone = standalonePingDelays[key]
+            val nested = nestedGroupDelay(profile.uuid, p.name)
             val delayMs = when {
                 p.delay >= 0 -> p.delay
+                nested >= 0 -> nested
                 standalone != null -> standalone
                 else -> p.delay
             }
-            row.findViewById<TextView>(R.id.proxy_delay).text = formatDelay(delayMs)
+
+            val delayView = row.findViewById<TextView>(R.id.proxy_delay)
+            delayView.text = formatDelay(delayMs)
+            applyDelayStyle(delayView, delayMs, context)
+
             val selected = p.name.isNotEmpty() && p.name == pg.now
             row.findViewById<View>(R.id.selected_bar).visibility =
                 if (selected) View.VISIBLE else View.INVISIBLE
@@ -391,6 +582,64 @@ class ProfileAdapter(
         }
     }
 
+    private fun nestedGroupDelay(uuid: UUID, proxyName: String): Int {
+        val seen = linkedSetOf<String>()
+
+        fun resolve(groupName: String): Int {
+            if (!seen.add(groupName)) return -1
+
+            proxyDetails[groupName]?.let { group ->
+                val selectedDelay = group.proxies
+                    .firstOrNull { it.name == group.now && it.delay >= 0 }
+                    ?.delay
+                if (selectedDelay != null) return selectedDelay
+
+                return group.proxies.asSequence()
+                    .map { proxy ->
+                        when {
+                            proxy.delay >= 0 -> proxy.delay
+                            proxy.name in proxyDetails -> resolve(proxy.name)
+                            else -> standalonePingDelays["$uuid|${proxy.name}"] ?: -1
+                        }
+                    }
+                    .filter { it >= 0 }
+                    .minOrNull() ?: -1
+            }
+
+            val offline = offlinePreviewByProfile[uuid]?.get(groupName) ?: return -1
+            return offline.asSequence()
+                .map { name ->
+                    val direct = standalonePingDelays["$uuid|$name"]
+                    direct ?: resolve(name)
+                }
+                .filter { it >= 0 }
+                .minOrNull() ?: -1
+        }
+
+        return resolve(proxyName)
+    }
+
+    private fun applyDelayStyle(view: TextView, delayMs: Int, context: android.content.Context) {
+        when {
+            delayMs in 0..200 -> {
+                view.setTextColor(ContextCompat.getColor(context, R.color.delay_good))
+                view.setBackgroundResource(R.drawable.bg_delay_good)
+            }
+            delayMs in 201..500 -> {
+                view.setTextColor(ContextCompat.getColor(context, R.color.delay_medium))
+                view.setBackgroundResource(R.drawable.bg_delay_medium)
+            }
+            delayMs in 501..Short.MAX_VALUE -> {
+                view.setTextColor(ContextCompat.getColor(context, R.color.delay_bad))
+                view.setBackgroundResource(R.drawable.bg_delay_bad)
+            }
+            else -> {
+                view.setTextColor(ContextCompat.getColor(context, R.color.delay_timeout))
+                view.setBackgroundResource(R.drawable.bg_delay_timeout)
+            }
+        }
+    }
+
     private fun formatUsageLine(p: Profile): String {
         val used = (p.download + p.upload).toBytesString()
         return if (p.total < 2) {
@@ -406,5 +655,11 @@ class ProfileAdapter(
             else -> "—"
         }
 
+    private fun displayGroupName(groupName: String): String =
+        groupName.trim().replace(Regex("\\s+"), " ")
+
     override fun getItemCount(): Int = profiles.size
 }
+
+private fun Context.dp(value: Int): Int =
+    (value * resources.displayMetrics.density).toInt()

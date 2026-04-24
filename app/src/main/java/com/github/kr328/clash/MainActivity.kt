@@ -20,7 +20,6 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.widget.PopupMenu
 import com.github.kr328.clash.design.dialog.AppBottomSheetDialog
-import androidx.appcompat.app.AlertDialog
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.result.contract.ActivityResultContracts.RequestPermission
 import androidx.core.content.ContextCompat
@@ -33,12 +32,15 @@ import com.github.kr328.clash.common.util.setUUID
 import com.github.kr328.clash.common.util.ticker
 import com.github.kr328.clash.core.Clash
 import com.github.kr328.clash.core.bridge.*
+import com.github.kr328.clash.core.model.ProxyGroup
 import com.github.kr328.clash.core.model.TunnelState
 import com.github.kr328.clash.design.MainDesign
 import com.github.kr328.clash.design.R
 import com.github.kr328.clash.design.model.DarkMode
 import com.github.kr328.clash.design.ui.ToastDuration
 import com.github.kr328.clash.design.util.showExceptionToast
+import com.github.kr328.clash.remote.Remote
+import com.github.kr328.clash.remote.StatusClient
 import com.github.kr328.clash.service.model.Profile
 import com.github.kr328.clash.util.showProfileQuickEditSheet
 import com.github.kr328.clash.util.startClashService
@@ -52,11 +54,14 @@ import io.github.g00fy2.quickie.QRResult.QRMissingPermission
 import io.github.g00fy2.quickie.QRResult.QRSuccess
 import io.github.g00fy2.quickie.QRResult.QRUserCanceled
 import io.github.g00fy2.quickie.ScanQRCode
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.select
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import java.net.URL
@@ -70,6 +75,12 @@ class MainActivity : BaseActivity<MainDesign>() {
         val htmlUrl: String,
         val apkUrl: String?,
         val apkName: String?,
+    )
+
+    private data class HomeRuntimeSnapshot(
+        val running: Boolean,
+        val activeProfileUuid: UUID?,
+        val proxyNames: List<String>,
     )
 
     private val scanLauncher = registerForActivityResult(ScanQRCode(), ::onScanResult)
@@ -94,13 +105,47 @@ class MainActivity : BaseActivity<MainDesign>() {
         }
     }
 
+    private fun normalizeTunnelMode(mode: TunnelState.Mode): TunnelState.Mode =
+        if (mode == TunnelState.Mode.Direct) TunnelState.Mode.Rule else mode
+
     private fun parseTunnelMode(name: String): TunnelState.Mode? =
         when (name) {
             TunnelState.Mode.Rule.name -> TunnelState.Mode.Rule
             TunnelState.Mode.Global.name -> TunnelState.Mode.Global
-            TunnelState.Mode.Direct.name -> TunnelState.Mode.Direct
+            TunnelState.Mode.Direct.name -> TunnelState.Mode.Rule
             else -> null
         }
+
+    private suspend fun MainDesign.patchTunnelMode(mode: TunnelState.Mode, scheduleRefresh: () -> Unit) {
+        try {
+            val normalized = normalizeTunnelMode(mode)
+            uiStore.tunnelModePreference = normalized.name
+            setMode(normalized)
+
+            val running = withContext(Dispatchers.IO) { resolveStatusSnapshot().serviceRunning }
+            if (running) {
+                val error = runCatching {
+                    withClash {
+                        val o = queryOverride(Clash.OverrideSlot.Session)
+                        o.mode = normalized
+                        patchOverride(Clash.OverrideSlot.Session, o)
+                    }
+                }.exceptionOrNull()
+
+                if (error != null && error !is CancellationException) {
+                    showExceptionToast(error as? Exception ?: Exception(error))
+                }
+            }
+        } catch (e: Exception) {
+            if (e !is CancellationException) showExceptionToast(e)
+        } finally {
+            scheduleRefresh()
+        }
+    }
+
+    private fun resolveStatusSnapshot(): StatusClient.StatusSnapshot =
+        runCatching { StatusClient(this).statusSnapshot() }
+            .getOrDefault(StatusClient.StatusSnapshot(clashRunning, null))
 
     /** Wait until the core has proxy groups (profile loaded), up to ~7s. */
     private suspend fun waitForProxyEngineReady() {
@@ -160,10 +205,58 @@ class MainActivity : BaseActivity<MainDesign>() {
 
         setContentDesign(design)
         design.fetch()
+        refreshAnnouncement(design)
 
         val tickerInteractive = ticker(TimeUnit.SECONDS.toMillis(1))
         val tickerIdle = ticker(TimeUnit.SECONDS.toMillis(3))
         val profileTicker = ticker(TimeUnit.MINUTES.toMillis(1))
+        val refreshRequests = kotlinx.coroutines.channels.Channel<Unit>(kotlinx.coroutines.channels.Channel.CONFLATED)
+        val proxyDetailRequests =
+            kotlinx.coroutines.channels.Channel<Pair<Profile, String>>(kotlinx.coroutines.channels.Channel.CONFLATED)
+        var announcementRefreshPending = false
+        var proxyDetailJob: Job? = null
+
+        fun scheduleDashboardRefresh(includeAnnouncement: Boolean = false) {
+            if (includeAnnouncement) {
+                announcementRefreshPending = true
+            }
+            refreshRequests.trySend(Unit)
+        }
+
+        fun scheduleProxyDetailsRefresh(profile: Profile, group: String) {
+            if (group.isNotBlank()) {
+                proxyDetailRequests.trySend(profile to group)
+            }
+        }
+
+        launch {
+            while (isActive) {
+                refreshRequests.receive()
+
+                do {
+                    val refreshAnnouncementNow = announcementRefreshPending
+                    announcementRefreshPending = false
+
+                    try {
+                        val runtime = design.fetch()
+                        if (!runtime.running ||
+                            runtime.activeProfileUuid == null ||
+                            runtime.proxyNames.isEmpty()
+                        ) {
+                            proxyDetailJob?.cancel()
+                            proxyDetailJob = null
+                        }
+                        if (refreshAnnouncementNow) {
+                            refreshAnnouncement(design)
+                        }
+                    } catch (e: CancellationException) {
+                        throw e
+                    } catch (e: Exception) {
+                        design.showExceptionToast(e)
+                    }
+                } while (refreshRequests.tryReceive().isSuccess)
+            }
+        }
 
         while (isActive) {
             select<Unit> {
@@ -174,7 +267,12 @@ class MainActivity : BaseActivity<MainDesign>() {
                         Event.ClashStop,
                         Event.ClashStart,
                         Event.ProfileLoaded,
-                        Event.ProfileChanged -> design.fetch()
+                        Event.ProfileChanged -> {
+                            // Coalesce expensive dashboard refreshes so a burst of
+                            // service/profile broadcasts does not pile up parallel
+                            // proxy-group queries and stall follow-up taps.
+                            scheduleDashboardRefresh(includeAnnouncement = it == Event.ActivityStart)
+                        }
 
                         else -> Unit
                     }
@@ -184,14 +282,22 @@ class MainActivity : BaseActivity<MainDesign>() {
                     when (it) {
                         MainDesign.Request.ToggleStatus -> {
                             launch {
-                                if (clashRunning) {
+                                val runningNow = withContext(Dispatchers.IO) {
+                                    resolveStatusSnapshot().serviceRunning
+                                }
+                                Remote.broadcasts.clashRunning = runningNow
+                                if (runningNow) {
                                     stopClashService()
                                 } else {
+                                    if (!maybePromptRuBypass()) {
+                                        // User cancelled the prompt — do not start VPN.
+                                        return@launch
+                                    }
                                     design.setTunnelStarting(true)
                                     try {
                                         design.startClash()
                                     } finally {
-                                        design.fetch()
+                                        scheduleDashboardRefresh()
                                     }
                                 }
                             }
@@ -200,17 +306,17 @@ class MainActivity : BaseActivity<MainDesign>() {
                         MainDesign.Request.OpenNewProfile ->
                             showHomeImportSheet(design)
 
-                        MainDesign.Request.OpenProxyGroups ->
-                            startActivity(ProxyActivity::class.intent)
-
                         MainDesign.Request.OpenConnections ->
                             startActivity(ConnectionsActivity::class.intent)
 
-                        MainDesign.Request.OpenRules ->
-                            startActivity(RuleSnippetActivity::class.intent)
+                        MainDesign.Request.OpenLogs ->
+                            startActivity(LogsActivity::class.intent)
 
-                        MainDesign.Request.OpenEffectiveRules ->
-                            startActivity(EffectiveRulesActivity::class.intent)
+                        MainDesign.Request.OpenRouting ->
+                            startActivity(RoutingHubActivity::class.intent)
+
+                        MainDesign.Request.OpenProfiles ->
+                            startActivity(ProfilesActivity::class.intent)
 
                         MainDesign.Request.OpenSettings ->
                             startActivity(SettingsActivity::class.intent)
@@ -240,35 +346,14 @@ class MainActivity : BaseActivity<MainDesign>() {
                         MainDesign.Request.OpenImportQr ->
                             scanLauncher.launch(null)
 
-                        MainDesign.Request.PatchModeDirect -> {
-                            uiStore.tunnelModePreference = TunnelState.Mode.Direct.name
-                            withClash {
-                                val o = queryOverride(Clash.OverrideSlot.Session)
-                                o.mode = TunnelState.Mode.Direct
-                                patchOverride(Clash.OverrideSlot.Session, o)
-                            }
-                            design.fetch()
-                        }
+                        MainDesign.Request.PatchModeDirect ->
+                            launch { design.patchTunnelMode(TunnelState.Mode.Rule) { scheduleDashboardRefresh() } }
 
-                        MainDesign.Request.PatchModeGlobal -> {
-                            uiStore.tunnelModePreference = TunnelState.Mode.Global.name
-                            withClash {
-                                val o = queryOverride(Clash.OverrideSlot.Session)
-                                o.mode = TunnelState.Mode.Global
-                                patchOverride(Clash.OverrideSlot.Session, o)
-                            }
-                            design.fetch()
-                        }
+                        MainDesign.Request.PatchModeGlobal ->
+                            launch { design.patchTunnelMode(TunnelState.Mode.Global) { scheduleDashboardRefresh() } }
 
-                        MainDesign.Request.PatchModeRule -> {
-                            uiStore.tunnelModePreference = TunnelState.Mode.Rule.name
-                            withClash {
-                                val o = queryOverride(Clash.OverrideSlot.Session)
-                                o.mode = TunnelState.Mode.Rule
-                                patchOverride(Clash.OverrideSlot.Session, o)
-                            }
-                            design.fetch()
-                        }
+                        MainDesign.Request.PatchModeRule ->
+                            launch { design.patchTunnelMode(TunnelState.Mode.Rule) { scheduleDashboardRefresh() } }
 
                         MainDesign.Request.CycleTheme -> {
                             uiStore.darkMode = when (uiStore.darkMode) {
@@ -282,32 +367,39 @@ class MainActivity : BaseActivity<MainDesign>() {
 
                 design.patchHomeProxyRequests.onReceive { (profile, group, name) ->
                     launch {
-                        if (!clashRunning) {
+                        val runningNow = withContext(Dispatchers.IO) {
+                            resolveStatusSnapshot().serviceRunning
+                        }
+                        Remote.broadcasts.clashRunning = runningNow
+                        if (!runningNow) {
                             if (isProxyProviderKeyName(name)) {
-                                design.fetch()
+                                scheduleDashboardRefresh()
                                 return@launch
                             }
+                            design.markProxySelectionPending(profile, group, name)
                             withProfile {
                                 rememberProxySelection(profile.uuid, group, name)
                             }
                             uiStore.proxyLastGroup = group
-                            design.fetch()
+                            scheduleDashboardRefresh()
                             return@launch
                         }
+                        design.markProxySelectionPending(profile, group, name)
                         withClash {
                             patchSelector(group, name)
                         }
                         uiStore.proxyLastGroup = group
-                        design.fetch()
+                        scheduleProxyDetailsRefresh(profile, group)
                     }
                 }
 
-                design.profilePingAllRequests.onReceive { (profile, _, nodeNames) ->
+                design.profilePingAllRequests.onReceive { (profile, group, nodeNames) ->
                     launch {
                         try {
                             design.setPingingProfile(profile.uuid)
                             val engineReady = runCatching {
-                                clashRunning && withClash { queryProxyGroupNames(false).isNotEmpty() }
+                                resolveStatusSnapshot().serviceRunning &&
+                                    withClash { queryProxyGroupNames(false).isNotEmpty() }
                             }.getOrDefault(false)
                             if (engineReady) {
                                 val activeUuid = withProfile { queryActive()?.uuid }
@@ -315,22 +407,41 @@ class MainActivity : BaseActivity<MainDesign>() {
                                     withProfile { setActive(profile) }
                                 }
                                 waitForProxyEngineReady()
-                                design.clearStandalonePingForProfile(profile.uuid)
-                                withClash { healthCheckAll() }
-                                delay(1200L)
-                                design.fetch()
-                            } else {
-                                val results = LinkedHashMap<String, Int>()
-                                for (name in nodeNames) {
-                                    if (StandalonePing.isBuiltinProxyName(name)) continue
-                                    val yaml = withProfile { readProxyEntryYaml(profile.uuid, name) }
-                                        ?: continue
-                                    val hp = StandalonePing.parseServerPortFromProxyYaml(yaml) ?: continue
-                                    val ms = StandalonePing.tcpConnectMs(hp.first, hp.second)
-                                        .getOrNull()?.toInt() ?: continue
-                                    results[name] = ms
+                                val groupsToRefresh = collectRuntimeGroupTree(group)
+                                    .ifEmpty { linkedSetOf(group).filter { it.isNotBlank() }.toSet() }
+                                val jobs = groupsToRefresh.map { groupName ->
+                                    launch {
+                                        runCatching {
+                                            withClash { healthCheck(groupName) }
+                                        }
+                                    }
                                 }
-                                design.patchStandalonePingResults(profile.uuid, results)
+                                while (isActive && jobs.any { !it.isCompleted }) {
+                                    delay(350L)
+                                    val partial = refreshRuntimeGroupDetails(groupsToRefresh)
+                                    if (partial.isNotEmpty()) {
+                                        design.patchProxyDetails(partial)
+                                    }
+                                }
+                                jobs.forEach { it.join() }
+                                val refreshed = refreshRuntimeGroupDetails(groupsToRefresh)
+                                if (refreshed.isNotEmpty()) {
+                                    design.patchProxyDetails(refreshed)
+                                }
+                                scheduleDashboardRefresh()
+                            } else {
+                                val offlineGroups = withProfile { readProxyGroupsPreview(profile.uuid) }
+                                val pingTargets = collectOfflineLeafProxyNames(group, nodeNames, offlineGroups)
+                                val jobs = pingTargets.map { name -> launch(Dispatchers.IO) {
+                                    if (StandalonePing.isBuiltinProxyName(name)) return@launch
+                                    val yaml = withProfile { readProxyEntryYaml(profile.uuid, name) }
+                                        ?: return@launch
+                                    val hp = StandalonePing.parseServerPortFromProxyYaml(yaml) ?: return@launch
+                                    val ms = StandalonePing.tcpConnectMs(hp.first, hp.second)
+                                        .getOrNull()?.toInt() ?: return@launch
+                                    design.patchStandalonePingResults(profile.uuid, mapOf(name to ms))
+                                } }
+                                jobs.forEach { it.join() }
                             }
                         } catch (e: Exception) {
                             design.showExceptionToast(e)
@@ -343,8 +454,15 @@ class MainActivity : BaseActivity<MainDesign>() {
                 design.profileForceUpdateRequests.onReceive { profile ->
                     launch {
                         withProfile { update(profile.uuid) }
+                        // Also re-pull operator headers (announcement, support, userinfo) right away,
+                        // so the inline announcement text updates with the same tap.
+                        launch(Dispatchers.IO) {
+                            uiStore.subscriptionMetadataLastFetch = 0L
+                            runCatching { syncSubscriptionMetadata() }
+                            withContext(Dispatchers.Main) { refreshAnnouncement(design) }
+                        }
                         design.showToast(R.string.profile_update_scheduled, ToastDuration.Long)
-                        design.fetch()
+                        scheduleDashboardRefresh()
                     }
                 }
 
@@ -356,20 +474,38 @@ class MainActivity : BaseActivity<MainDesign>() {
                 }
 
                 design.profileExpandChanged.onReceive {
-                    launch {
-                        design.fetch()
+                    scheduleDashboardRefresh()
+                }
+
+                design.profileVisibleGroupChanged.onReceive { (profile, group) ->
+                    uiStore.proxyLastGroup = group
+                    scheduleProxyDetailsRefresh(profile, group)
+                }
+
+                proxyDetailRequests.onReceive { (profile, group) ->
+                    proxyDetailJob?.cancel()
+                    proxyDetailJob = launch {
+                        try {
+                            design.fetchVisibleProxyGroup(profile, group)
+                        } catch (e: CancellationException) {
+                            throw e
+                        } catch (_: Exception) {
+                            // Runtime detail queries can race profile reload/startup; the next UI event retries.
+                        }
                     }
                 }
 
                 design.profileActivateRequests.onReceive { profile ->
-                    withProfile {
-                        if (profile.imported) {
-                            setActive(profile)
-                        } else {
-                            design.requestSave(profile)
+                    launch {
+                        withProfile {
+                            if (profile.imported) {
+                                setActive(profile)
+                            } else {
+                                design.requestSave(profile)
+                            }
                         }
+                        scheduleDashboardRefresh()
                     }
-                    design.fetch()
                 }
 
                 design.profileMenuRequests.onReceive { (profile, anchor) ->
@@ -386,7 +522,7 @@ class MainActivity : BaseActivity<MainDesign>() {
                     val interactive = getSystemService<PowerManager>()?.isInteractive ?: true
                     val trafficTicker = if (interactive) tickerInteractive else tickerIdle
                     trafficTicker.onReceive {
-                        design.fetchTraffic()
+                        launch { design.fetchTraffic() }
                     }
                 }
 
@@ -545,7 +681,7 @@ class MainActivity : BaseActivity<MainDesign>() {
                 typeface = Typeface.MONOSPACE
             }
             scroll.addView(tv)
-            AlertDialog.Builder(this@MainActivity)
+            MaterialAlertDialogBuilder(this@MainActivity)
                 .setTitle(title)
                 .setView(scroll)
                 .setPositiveButton(android.R.string.ok, null)
@@ -553,14 +689,34 @@ class MainActivity : BaseActivity<MainDesign>() {
         }
     }
 
-    private suspend fun MainDesign.fetch() {
-        setClashRunning(clashRunning)
+    private suspend fun MainDesign.fetch(): HomeRuntimeSnapshot {
+        val status = withContext(Dispatchers.IO) { resolveStatusSnapshot() }
+        val running = status.serviceRunning
+        Remote.broadcasts.clashRunning = running
+        setClashRunning(running)
 
-        var state = withClash {
-            queryTunnelState()
+        var state = if (running) {
+            runCatching {
+                withClash { queryTunnelState() }
+            }.getOrElse {
+                TunnelState(parseTunnelMode(uiStore.tunnelModePreference) ?: TunnelState.Mode.Rule)
+            }
+        } else {
+            TunnelState(parseTunnelMode(uiStore.tunnelModePreference) ?: TunnelState.Mode.Rule)
+        }
+        val rawMode = state.mode
+        state = TunnelState(normalizeTunnelMode(state.mode))
+        if (running && rawMode != state.mode) {
+            runCatching {
+                withClash {
+                    val o = queryOverride(Clash.OverrideSlot.Session)
+                    o.mode = state.mode
+                    patchOverride(Clash.OverrideSlot.Session, o)
+                }
+            }
         }
 
-        if (clashRunning) {
+        if (running) {
             val pref = uiStore.tunnelModePreference
             if (pref.isNotEmpty()) {
                 val desired = parseTunnelMode(pref)
@@ -571,27 +727,28 @@ class MainActivity : BaseActivity<MainDesign>() {
                         patchOverride(Clash.OverrideSlot.Session, o)
                     }
                     state = withClash { queryTunnelState() }
+                    state = TunnelState(normalizeTunnelMode(state.mode))
                 }
             } else {
-                uiStore.tunnelModePreference = state.mode.name
+                uiStore.tunnelModePreference = normalizeTunnelMode(state.mode).name
             }
         }
 
         setMode(state.mode)
 
-        setProfileName(withProfile { queryActive()?.name })
-        patchProfiles(withProfile { queryAll() })
+        val active = withProfile { queryActive() }
+        val profiles = withProfile { queryAll() }
+        setProfileName(active?.name ?: status.currentProfile)
+        patchProfiles(profiles)
 
-        val proxyNames = if (clashRunning) {
-            try {
+        val proxyNames = if (running) {
+            runCatching {
                 withClash { queryProxyGroupNames(uiStore.proxyExcludeNotSelectable) }
-            } catch (_: Exception) {
-                emptyList()
-            }
+            }.getOrDefault(emptyList())
         } else {
             emptyList()
         }
-        val activeUuid = withProfile { queryActive()?.uuid }
+        val activeUuid = active?.uuid
         val expandedSet = getExpandedProfileUuids()
         val offlinePreviewByProfile = expandedSet.associateWith { uuid ->
             withProfile { readProxyGroupsPreview(uuid) }
@@ -599,28 +756,45 @@ class MainActivity : BaseActivity<MainDesign>() {
         val offlineSelectionsByProfile = expandedSet.associateWith { uuid ->
             withProfile { queryProxySelections(uuid) }
         }
-        val detailMap = if (
-            clashRunning &&
-            activeUuid != null &&
-            proxyNames.isNotEmpty()
-        ) {
-            proxyNames.associateWith { name ->
-                withClash { queryProxyGroup(name, uiStore.proxySort) }
-            }
-        } else {
-            emptyMap()
-        }
+
         patchProxyGroups(
             proxyNames,
-            clashRunning,
+            running,
             state.mode,
             uiStore.proxyLastGroup,
             offlinePreviewByProfile,
             activeUuid,
             offlineSelectionsByProfile,
         )
-        patchProxyDetails(detailMap)
+        if (!running || activeUuid == null || proxyNames.isEmpty()) {
+            clearProxyDetails()
+        }
         syncThemeToggleIcon(uiStore.darkMode)
+
+        return HomeRuntimeSnapshot(
+            running = running,
+            activeProfileUuid = activeUuid,
+            proxyNames = proxyNames,
+        )
+    }
+
+    private suspend fun MainDesign.fetchVisibleProxyGroup(profile: Profile, group: String) {
+        val status = withContext(Dispatchers.IO) { resolveStatusSnapshot() }
+        Remote.broadcasts.clashRunning = status.serviceRunning
+        if (!status.serviceRunning || group.isBlank()) {
+            clearProxyDetails()
+            return
+        }
+
+        val activeUuid = withProfile { queryActive()?.uuid }
+        if (activeUuid != profile.uuid || !profile.imported) {
+            return
+        }
+
+        val detail = withClash { queryProxyGroup(group, uiStore.proxySort) }
+        if (withProfile { queryActive()?.uuid } == profile.uuid) {
+            patchProxyDetails(mapOf(group to detail))
+        }
     }
 
     private suspend fun MainDesign.fetchTraffic() {
@@ -885,6 +1059,7 @@ class MainActivity : BaseActivity<MainDesign>() {
 
     override fun onResume() {
         super.onResume()
+        events.trySend(Event.ActivityStart)
         val pending = updatePrefs.getLong("pending_download_id", -1L)
         if (pending > 0L) {
             pendingApkDownloadId = pending
@@ -903,4 +1078,209 @@ class MainActivity : BaseActivity<MainDesign>() {
     /** Proxy-provider YAML keys (sub1, sub2, …) are not leaf proxy names; never persist as selection. */
     private fun isProxyProviderKeyName(name: String): Boolean =
         name.matches(Regex("^sub\\d+$", RegexOption.IGNORE_CASE))
+
+    private suspend fun collectRuntimeGroupTree(rootGroup: String): Set<String> {
+        if (rootGroup.isBlank()) return emptySet()
+        val knownGroups = runCatching { withClash { queryProxyGroupNames(false).toSet() } }
+            .getOrDefault(emptySet())
+        val seen = linkedSetOf<String>()
+
+        suspend fun visit(groupName: String) {
+            if (groupName.isBlank() || groupName in seen) return
+            val group = runCatching {
+                withClash { queryProxyGroup(groupName, uiStore.proxySort) }
+            }.getOrNull() ?: return
+            seen += groupName
+            for (proxy in group.proxies) {
+                if (proxy.type.group || proxy.name in knownGroups) {
+                    visit(proxy.name)
+                }
+            }
+        }
+
+        visit(rootGroup)
+        return seen
+    }
+
+    private suspend fun refreshRuntimeGroupDetails(groups: Set<String>): Map<String, ProxyGroup> {
+        if (groups.isEmpty()) return emptyMap()
+        val refreshed = LinkedHashMap<String, ProxyGroup>()
+        for (group in groups) {
+            val detail = runCatching {
+                withClash { queryProxyGroup(group, uiStore.proxySort) }
+            }.getOrNull() ?: continue
+            refreshed[group] = detail
+        }
+        return refreshed
+    }
+
+    private fun collectOfflineLeafProxyNames(
+        rootGroup: String,
+        directNames: List<String>,
+        groups: Map<String, List<String>>,
+    ): List<String> {
+        val leaves = linkedSetOf<String>()
+        val seenGroups = linkedSetOf<String>()
+
+        fun visitName(name: String) {
+            if (name.isBlank()) return
+            val nested = groups[name]
+            if (nested == null) {
+                leaves += name
+                return
+            }
+            if (!seenGroups.add(name)) return
+            nested.forEach(::visitName)
+        }
+
+        if (rootGroup.isNotBlank() && rootGroup in groups) {
+            visitName(rootGroup)
+        } else {
+            directNames.forEach(::visitName)
+        }
+        return leaves.toList()
+    }
+
+    /**
+     * Reads announcement settings from [uiStore] and forwards them to the design.
+     * Resets the dismissed-flag automatically when the announcement text changes.
+     */
+    private suspend fun refreshAnnouncement(design: com.github.kr328.clash.design.MainDesign) {
+        // Try to refresh operator-pushed metadata in the background; don't block the UI.
+        launch(Dispatchers.IO) { runCatching { syncSubscriptionMetadata() } }
+
+        val text = uiStore.announcement
+        val url = uiStore.announcementUrl
+        val supportUrl = uiStore.supportUrl
+        val hash = text.hashCode().toString()
+        if (uiStore.announcementSeenHash != hash) {
+            uiStore.announcementSeenHash = hash
+            uiStore.announcementDismissed = false
+        }
+        val textVisible = text.isNotBlank() && !uiStore.announcementDismissed
+        val usage = com.github.kr328.clash.common.util.SubscriptionUsage.parse(
+            uiStore.subscriptionUserinfo.takeIf { it.isNotBlank() }
+        )
+
+        design.setAnnouncement(
+            text = if (textVisible) text else null,
+            url = url.takeIf { it.isNotBlank() },
+            usage = usage,
+            supportUrl = supportUrl.takeIf { it.isNotBlank() },
+            onOpenUrl = { openExternalUrl(it) },
+            onDismiss = { uiStore.announcementDismissed = true },
+            onRefresh = {
+                // Force cooldown bypass by resetting timestamp, then re-fetch.
+                launch(Dispatchers.IO) {
+                    uiStore.subscriptionMetadataLastFetch = 0L
+                    runCatching { syncSubscriptionMetadata() }
+                    withContext(Dispatchers.Main) { refreshAnnouncement(design) }
+                }
+            },
+            onSupport = {
+                supportUrl.takeIf { it.isNotBlank() }?.let { openExternalUrl(it) }
+            },
+        )
+    }
+
+    /**
+     * Before starting the tunnel, offer to seed the per-app access list with the
+     * default Russian bypass pack (banks, \u0413\u043e\u0441\u0443\u0441\u043b\u0443\u0433\u0438, carriers, marketplaces)
+     * whenever the list is currently empty. Re-offers on every Start tap until the
+     * user explicitly applies the pack.
+     *
+     * Returns `true` if the caller should proceed to start, `false` if the user
+     * cancelled the dialog (back/tap-outside).
+     */
+    private suspend fun maybePromptRuBypass(): Boolean {
+        val service = com.github.kr328.clash.service.store.ServiceStore(this)
+        val packages = withContext(Dispatchers.IO) { service.accessControlPackages }
+        if (packages.isNotEmpty()) return true
+
+        return suspendCancellableCoroutine<Boolean> { cont ->
+            val dialog = MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.ru_bypass_prompt_title)
+                .setMessage(R.string.ru_bypass_prompt_message)
+                .setPositiveButton(R.string.ru_bypass_prompt_apply) { d, _ ->
+                    d.dismiss()
+                    launch {
+                        val count = withContext(Dispatchers.IO) {
+                            val seed = com.github.kr328.clash.util.RussianBypassDefaults
+                                .installed(packageManager)
+                            if (seed.isNotEmpty()) {
+                                service.accessControlPackages = seed
+                                service.accessControlMode =
+                                    com.github.kr328.clash.service.model.AccessControlMode.DenySelected
+                                service.russianBypassSeeded = true
+                            }
+                            seed.size
+                        }
+                        if (count > 0) {
+                            Toast.makeText(
+                                this@MainActivity,
+                                getString(R.string.ru_bypass_prompt_seeded, count),
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                        if (cont.isActive) cont.resumeWith(Result.success(true))
+                    }
+                }
+                .setNegativeButton(R.string.ru_bypass_prompt_skip) { d, _ ->
+                    d.dismiss()
+                    if (cont.isActive) cont.resumeWith(Result.success(true))
+                }
+                .setOnCancelListener {
+                    if (cont.isActive) cont.resumeWith(Result.success(false))
+                }
+                .show()
+            cont.invokeOnCancellation { runCatching { dialog.dismiss() } }
+        }
+    }
+
+    /**
+     * Periodically pulls panel-style headers (support-url, announce, profile-title,
+     * profile-update-interval, subscription-userinfo, …) from the *active* URL profile.
+     * Throttled to once per ~6 hours; user-edited fields stay user-edited.
+     */
+    private suspend fun syncSubscriptionMetadata() {
+        val active = runCatching { withProfile { queryActive() } }.getOrNull() ?: return
+        if (active.type != Profile.Type.Url) return
+        val url = active.source.takeIf { it.isNotBlank() } ?: return
+
+        val now = System.currentTimeMillis() / 1000L
+        val cooldown = 6L * 3600L
+        if (now - uiStore.subscriptionMetadataLastFetch < cooldown) return
+
+        val meta = com.github.kr328.clash.common.util.SubscriptionMetadataFetcher.fetch(this, url)
+        if (meta.isEmpty()) {
+            // still mark the attempt to avoid hammering the server every screen-on
+            uiStore.subscriptionMetadataLastFetch = now
+            return
+        }
+        uiStore.subscriptionMetadataLastFetch = now
+
+        // Always-mirrored fields (cache only):
+        meta.subscriptionUserinfo?.let { uiStore.subscriptionUserinfo = it }
+        meta.profileWebPageUrl?.let { uiStore.profileWebPageUrl = it }
+        meta.profileUpdateIntervalHours?.let { uiStore.profileUpdateIntervalHours = it }
+
+        // User-overridable fields — skip if user opted out of operator overrides.
+        if (!uiStore.subscriptionMetadataLockUser) {
+            meta.supportUrl?.let { uiStore.supportUrl = it }
+            meta.announcement?.let { uiStore.announcement = it }
+            meta.announcementUrl?.let { uiStore.announcementUrl = it }
+        }
+    }
+
+    private fun openExternalUrl(url: String) {
+        val target = url.trim().let {
+            if (it.startsWith("t.me/", ignoreCase = true)) "https://$it" else it
+        }
+        runCatching {
+            startActivity(
+                Intent(Intent.ACTION_VIEW, Uri.parse(target))
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            )
+        }
+    }
 }

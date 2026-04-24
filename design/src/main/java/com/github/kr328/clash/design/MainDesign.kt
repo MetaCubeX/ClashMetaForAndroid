@@ -17,11 +17,14 @@ import com.github.kr328.clash.design.databinding.DesignAboutBinding
 import com.github.kr328.clash.design.databinding.DesignMainBinding
 import com.github.kr328.clash.design.dialog.AppBottomSheetDialog
 import com.github.kr328.clash.design.model.DarkMode
+import com.github.kr328.clash.design.model.HomeBackgroundStyle
+import com.github.kr328.clash.design.store.UiStore
 import com.github.kr328.clash.design.ui.ToastDuration
 import com.github.kr328.clash.design.util.applyLinearAdapter
 import com.github.kr328.clash.design.util.layoutInflater
 import com.github.kr328.clash.design.util.patchDataSet
 import com.github.kr328.clash.design.util.resolveThemedColor
+import com.github.kr328.clash.design.util.resolveThemedResourceId
 import com.github.kr328.clash.design.util.root
 import com.github.kr328.clash.design.R
 import com.github.kr328.clash.service.model.Profile
@@ -35,7 +38,6 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
     enum class Request {
         ToggleStatus,
         OpenNewProfile,
-        OpenRules,
         OpenSettings,
         OpenAbout,
         PatchModeDirect,
@@ -44,27 +46,31 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         OpenImportClipboard,
         OpenImportQr,
         CycleTheme,
-        OpenEffectiveRules,
+        OpenLogs,
         OpenConnections,
-        /** Full-screen proxy group list; proxy chain is in the Proxy screen overflow menu. */
-        OpenProxyGroups,
+        /** Hub screen combining YAML rules, routing rules and per-app routing. */
+        OpenRouting,
+        /** Subscriptions / profiles list. */
+        OpenProfiles,
     }
 
     val profileActivateRequests = Channel<Profile>(Channel.UNLIMITED)
     val profileMenuRequests = Channel<Pair<Profile, View>>(Channel.UNLIMITED)
     val profileEditRequests = Channel<Profile>(Channel.UNLIMITED)
-    val patchHomeProxyRequests = Channel<Triple<Profile, String, String>>(Channel.UNLIMITED)
+    val patchHomeProxyRequests = Channel<Triple<Profile, String, String>>(Channel.CONFLATED)
     val profilePingAllRequests = Channel<Triple<Profile, String, List<String>>>(Channel.UNLIMITED)
     val profileForceUpdateRequests = Channel<Profile>(Channel.UNLIMITED)
     val profileProxyYamlRequests = Channel<Triple<Profile, String, String>>(Channel.UNLIMITED)
     /** Fires when user expands/collapses any profile panel so the host can reload proxy previews. */
     val profileExpandChanged = Channel<Unit>(Channel.CONFLATED)
+    val profileVisibleGroupChanged = Channel<Pair<Profile, String>>(Channel.CONFLATED)
 
     private val binding = DesignMainBinding
         .inflate(context.layoutInflater, context.root, false)
 
     private var clashRunningState: Boolean = false
     private var tunnelStartingState: Boolean = false
+    private val uiStore = UiStore(context)
     private val expandedProfileUuids: LinkedHashSet<UUID> = linkedSetOf()
     private var mainPowerConnectRevealAnim: ValueAnimator? = null
     private var lastPowerVisualMode: Int = -1 // 0=off, 1=starting, 2=running
@@ -81,12 +87,49 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         { profile, group, proxyNames -> profilePingAllRequests.trySend(Triple(profile, group, proxyNames)) },
         { profile -> profileForceUpdateRequests.trySend(profile) },
         { profile, group, proxy -> profileProxyYamlRequests.trySend(Triple(profile, group, proxy)) },
+        { profile, group -> profileVisibleGroupChanged.trySend(profile to group) },
+        expandOnProfileClick = true,
     )
 
     override val root: View
         get() = binding.root
 
     fun getExpandedProfileUuids(): Set<UUID> = expandedProfileUuids.toSet()
+
+    /**
+     * Pushes operator-pushed subscription metadata into the per-profile UI.
+     *
+     * The legacy global "Koala-style" announcement card is now always hidden — operators'
+     * announcement text is rendered inline on the active profile card instead, so it stays
+     * tied to the subscription it belongs to.
+     */
+    suspend fun setAnnouncement(
+        text: String?,
+        url: String?,
+        usage: com.github.kr328.clash.common.util.SubscriptionUsage? = null,
+        supportUrl: String? = null,
+        onOpenUrl: ((String) -> Unit)? = null,
+        onDismiss: (() -> Unit)? = null,
+        onRefresh: (() -> Unit)? = null,
+        onSupport: (() -> Unit)? = null,
+    ) {
+        withContext(Dispatchers.Main) {
+            // Hide the legacy global card unconditionally.
+            binding.mainAnnouncementCard.visibility = android.view.View.GONE
+
+            profileAdapter.setActiveAnnouncement(
+                text = text,
+                url = url,
+                supportUrl = supportUrl,
+                onOpenUrl = onOpenUrl,
+                onSupport = onSupport,
+            )
+            // Mark unused parameters as intentionally consumed.
+            usage?.let { /* kept for API stability; per-profile usage is rendered from Profile fields */ }
+            onDismiss?.let { /* dismiss has no place in the inline UI */ }
+            onRefresh?.let { /* refresh is handled via the existing per-profile force-update icon */ }
+        }
+    }
 
     suspend fun setProfileName(name: String?) {
         withContext(Dispatchers.Main) {
@@ -228,16 +271,19 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
 
     suspend fun setMode(mode: TunnelState.Mode) {
         withContext(Dispatchers.Main) {
-            binding.mode = when (mode) {
-                TunnelState.Mode.Direct -> context.getString(R.string.direct_mode)
+            val normalized = normalizeMode(mode)
+            binding.mode = when (normalized) {
                 TunnelState.Mode.Global -> context.getString(R.string.global_mode)
-                TunnelState.Mode.Rule -> context.getString(R.string.rule_mode)
                 else -> context.getString(R.string.rule_mode)
             }
 
-            binding.isRuleMode = mode == TunnelState.Mode.Rule
-            binding.isGlobalMode = mode == TunnelState.Mode.Global
-            binding.isDirectMode = mode == TunnelState.Mode.Direct
+            val checkedId = when (normalized) {
+                TunnelState.Mode.Global -> R.id.btn_mode_global
+                else -> R.id.btn_mode_rule
+            }
+            if (binding.modeToggleGroup.checkedButtonId != checkedId) {
+                binding.modeToggleGroup.check(checkedId)
+            }
         }
     }
 
@@ -249,11 +295,14 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         val mode = when (pref) {
             TunnelState.Mode.Rule.name -> TunnelState.Mode.Rule
             TunnelState.Mode.Global.name -> TunnelState.Mode.Global
-            TunnelState.Mode.Direct.name -> TunnelState.Mode.Direct
+            TunnelState.Mode.Direct.name -> TunnelState.Mode.Rule
             else -> return
         }
         setMode(mode)
     }
+
+    private fun normalizeMode(mode: TunnelState.Mode): TunnelState.Mode =
+        if (mode == TunnelState.Mode.Direct) TunnelState.Mode.Rule else mode
 
     suspend fun syncThemeToggleIcon(mode: DarkMode) {
         withContext(Dispatchers.Main) {
@@ -307,6 +356,18 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         }
     }
 
+    suspend fun clearProxyDetails() {
+        withContext(Dispatchers.Main) {
+            profileAdapter.clearProxyDetails()
+        }
+    }
+
+    suspend fun markProxySelectionPending(profile: Profile, group: String, proxy: String) {
+        withContext(Dispatchers.Main) {
+            profileAdapter.setPendingProxySelection(profile.uuid, group, proxy)
+        }
+    }
+
     suspend fun clearStandalonePingForProfile(uuid: UUID) {
         withContext(Dispatchers.Main) {
             profileAdapter.clearStandalonePingDelays(uuid)
@@ -323,10 +384,17 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         if (!profile.imported) {
             return
         }
-        if (!expandedProfileUuids.add(profile.uuid)) {
+        val expanded = expandedProfileUuids.add(profile.uuid)
+        if (!expanded) {
             expandedProfileUuids.remove(profile.uuid)
         }
         profileAdapter.setExpandedUuids(expandedProfileUuids.toSet())
+        if (expanded && clashRunningState && profile.active) {
+            binding.profileList.postDelayed({
+                val distance = (binding.profileList.height * 0.36f).toInt().coerceAtLeast(120)
+                binding.profileList.smoothScrollBy(0, distance)
+            }, 120L)
+        }
         profileExpandChanged.trySend(Unit)
     }
 
@@ -399,11 +467,7 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         binding.self = this
         binding.tunnelStarting = false
         binding.hasProfiles = false
-
-        binding.modeActiveColor =
-            context.resolveThemedColor(com.google.android.material.R.attr.colorPrimary)
-        binding.modeInactiveColor =
-            context.resolveThemedColor(R.attr.colorClashStopped)
+        applyHomeBackgroundStyle()
 
         binding.profileList.also {
             it.applyLinearAdapter(context, profileAdapter)
@@ -415,6 +479,9 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         }
 
         val card = binding.mainPowerCard
+        card.setOnClickListener {
+            requests.trySend(Request.ToggleStatus)
+        }
         card.setOnTouchListener { v, event ->
             when (event.actionMasked) {
                 MotionEvent.ACTION_DOWN -> {
@@ -432,6 +499,35 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
 
         binding.tunnelStarting = false
         applyPowerVisuals()
+
+        binding.btnModeRule.setOnClickListener {
+            requests.trySend(Request.PatchModeRule)
+        }
+        binding.btnModeGlobal.setOnClickListener {
+            requests.trySend(Request.PatchModeGlobal)
+        }
+        binding.mainAddProfileFab.setOnClickListener {
+            requests.trySend(Request.ToggleStatus)
+        }
+
+        binding.mainNavProfiles.setOnClickListener { requests.trySend(Request.OpenProfiles) }
+        binding.mainNavLogs.setOnClickListener { requests.trySend(Request.OpenLogs) }
+        binding.mainNavRouting.setOnClickListener { requests.trySend(Request.OpenRouting) }
+        binding.mainNavConnections.setOnClickListener { requests.trySend(Request.OpenConnections) }
+    }
+
+    private fun applyHomeBackgroundStyle() {
+        when (uiStore.homeBackgroundStyle) {
+            HomeBackgroundStyle.MaterialYou -> binding.root.setBackgroundColor(
+                context.resolveThemedColor(com.google.android.material.R.attr.colorSurface),
+            )
+            HomeBackgroundStyle.Plain -> binding.root.setBackgroundColor(
+                context.resolveThemedColor(android.R.attr.colorBackground),
+            )
+            HomeBackgroundStyle.Preview -> binding.root.setBackgroundResource(
+                context.resolveThemedResourceId(R.attr.mainDashboardBackground),
+            )
+        }
     }
 
     fun request(request: Request) {
