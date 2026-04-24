@@ -9,6 +9,7 @@ import com.github.kr328.clash.service.model.AccessControlMode
 import com.github.kr328.clash.service.model.GeoDataSourcePreset
 import com.github.kr328.clash.service.model.ProxyHardeningMode
 import com.github.kr328.clash.service.model.GeoDataSourcePreset
+import com.github.kr328.clash.service.model.ProxyHardeningMode
 import java.util.*
 
 class ServiceStore(context: Context) {
@@ -132,6 +133,32 @@ class ServiceStore(context: Context) {
     var geoDataCustomAsn: String by store.string(
         key = "geo_data_custom_asn",
         defaultValue = ""
+    )
+
+    /**
+     * Hardening level applied at runtime against SOCKS5/HTTP/Mixed listener
+     * leaks and direct access to the TUN interface from other apps. See
+     * [ProxyHardeningMode]. Default is [ProxyHardeningMode.Strict] on Android
+     * 10+ and [ProxyHardeningMode.Compat] otherwise.
+     */
+    var proxyHardeningMode: ProxyHardeningMode by store.enum(
+        key = "proxy_hardening_mode",
+        defaultValue = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
+            ProxyHardeningMode.Strict
+        else
+            ProxyHardeningMode.Compat,
+        values = ProxyHardeningMode.values()
+    )
+
+    /**
+     * When true, ClashFest seeds default mirrors for `geox-url` if the
+     * imported profile does not specify them. Prevents the
+     * `cant download geoip.dat` failure on subscriptions that rely on
+     * GEOIP/GEOSITE rules without bundling a download URL.
+     */
+    var seedDefaultGeoMirrors by store.boolean(
+        key = "seed_default_geo_mirrors",
+        defaultValue = true
     )
 
     companion object {

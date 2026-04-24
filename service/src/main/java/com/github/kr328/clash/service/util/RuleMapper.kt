@@ -9,6 +9,8 @@ import java.util.UUID
 
 object RuleMapper {
     private val yaml = Yaml()
+    private val DEFAULT_GEOIP_URL = GeoMirrors.primaryGeoIpDat()
+    private val DEFAULT_GEOSITE_URL = GeoMirrors.primaryGeoSiteDat()
 
     fun parseStateFromConfig(configText: String): RuleState {
         val root = YamlFormatting.parseRootMap(configText) ?: return RuleState()
