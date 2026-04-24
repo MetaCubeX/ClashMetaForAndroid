@@ -48,11 +48,11 @@ class AccessControlActivity : BaseActivity<AccessControlDesign>() {
             }
         }
 
-        val design = AccessControlDesign(this, uiStore, selected, currentMode)
+        val design = AccessControlDesign(this, uiStore, selected)
 
         setContentDesign(design)
 
-        design.setMode(service.accessControlMode)
+        design.setMode(currentMode)
         design.requests.send(AccessControlDesign.Request.ReloadApps)
 
         while (isActive) {
@@ -72,7 +72,7 @@ class AccessControlActivity : BaseActivity<AccessControlDesign>() {
                                     if (service.accessControlMode != mode) {
                                         service.accessControlMode = mode
                                     }
-                                    if (mode == com.github.kr328.clash.service.model.AccessControlMode.DenySelected &&
+                                    if (mode == AccessControlMode.DenySelected &&
                                         !service.russianBypassSeeded
                                     ) {
                                         val seed = RussianBypassDefaults.installed(packageManager)
@@ -82,6 +82,8 @@ class AccessControlActivity : BaseActivity<AccessControlDesign>() {
                                         service.russianBypassSeeded = true
                                     }
                                 }
+                                currentMode = mode
+                                design.setMode(currentMode)
                                 design.patchApps(loadApps(selected))
                             }
                         }
@@ -138,11 +140,6 @@ class AccessControlActivity : BaseActivity<AccessControlDesign>() {
                             )
 
                             clipboard?.setPrimaryClip(data)
-                        }
-
-                        AccessControlDesign.Request.ChangeMode -> {
-                            currentMode = design.pendingMode ?: currentMode
-                            design.setMode(currentMode)
                         }
                     }
                 }

@@ -435,7 +435,6 @@ class RuleSnippetActivity : BaseActivity<RuleSnippetDesign>() {
             design.showToast(DesignR.string.rule_preset_geosite_soft_check_note, ToastDuration.Short)
         }
     }
-
     private fun selected(spinner: AutoCompleteTextView): String =
         spinner.text?.toString()?.trim().orEmpty()
 
