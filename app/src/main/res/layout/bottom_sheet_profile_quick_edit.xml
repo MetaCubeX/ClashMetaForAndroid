@@ -10,14 +10,15 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/profile_quick_edit_title"
-        android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1"
+        android:textAppearance="@style/TextAppearance.App.TitleMedium"
         android:textStyle="bold" />
 
     <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
-        android:hint="@string/profile_name">
+        android:hint="@string/profile_name"
+        style="@style/AppTextInputLayout">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/input_profile_name"
@@ -30,7 +31,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
-        android:hint="@string/profile_url">
+        android:hint="@string/profile_url"
+        style="@style/AppTextInputLayout">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/input_profile_source"
@@ -43,7 +45,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
-        android:hint="@string/auto_update_minutes">
+        android:hint="@string/auto_update_minutes"
+        style="@style/AppTextInputLayout">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/input_profile_interval"
@@ -54,7 +57,7 @@
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btn_save_profile"
-        style="@style/Widget.MaterialComponents.Button"
+        style="@style/AppButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="14dp"
@@ -62,7 +65,7 @@
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btn_open_advanced_profile"
-        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+        style="@style/AppButton.Outlined"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"

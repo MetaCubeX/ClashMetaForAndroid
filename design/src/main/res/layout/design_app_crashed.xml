@@ -24,9 +24,11 @@
                 android:id="@+id/logs_view"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:fontFamily="monospace"
                 android:lineSpacingMultiplier="1.5"
                 android:paddingHorizontal="@dimen/logcat_padding_horizontal"
                 android:paddingVertical="@dimen/logcat_padding_vertical"
+                android:textAppearance="@style/TextAppearance.Material3.BodySmall"
                 android:textIsSelectable="true" />
         </com.github.kr328.clash.design.view.ObservableScrollView>
 

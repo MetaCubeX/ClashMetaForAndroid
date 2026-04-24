@@ -40,7 +40,6 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="12dp"
-                    app:cardBackgroundColor="?attr/colorSurface"
                     app:cardCornerRadius="16dp"
                     app:cardElevation="2dp"
                     app:strokeWidth="0dp">
@@ -56,7 +55,7 @@
                             android:layout_height="wrap_content"
                             android:paddingBottom="8dp"
                             android:text="@string/properties_section_about"
-                            android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle2"
+                            android:textAppearance="@style/TextAppearance.Material3.TitleSmall"
                             android:textColor="?attr/colorOnSurface" />
 
                         <LinearLayout
@@ -76,7 +75,7 @@
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
-                                android:textAppearance="@style/TextAppearance.MaterialComponents.Body2"
+                                android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
                                 android:textColor="?attr/colorOnSurfaceVariant"
                                 tools:text="@string/tips_properties" />
                         </LinearLayout>
@@ -87,7 +86,6 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="12dp"
-                    app:cardBackgroundColor="?attr/colorSurface"
                     app:cardCornerRadius="16dp"
                     app:cardElevation="2dp"
                     app:strokeWidth="0dp">
@@ -105,12 +103,12 @@
                             android:paddingHorizontal="14dp"
                             android:paddingBottom="4dp"
                             android:text="@string/properties_section_subscription"
-                            android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle2"
+                            android:textAppearance="@style/TextAppearance.Material3.TitleSmall"
                             android:textColor="?attr/colorOnSurface" />
 
                         <com.google.android.material.textfield.TextInputLayout
                             android:id="@+id/layout_name"
-                            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginHorizontal="14dp"
@@ -126,7 +124,7 @@
 
                         <com.google.android.material.textfield.TextInputLayout
                             android:id="@+id/layout_url"
-                            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginHorizontal="14dp"
@@ -142,7 +140,7 @@
 
                         <com.google.android.material.textfield.TextInputLayout
                             android:id="@+id/layout_interval"
-                            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginHorizontal="14dp"
@@ -163,7 +161,6 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="12dp"
-                    app:cardBackgroundColor="?attr/colorSurface"
                     app:cardCornerRadius="16dp"
                     app:cardElevation="2dp"
                     app:strokeWidth="0dp">
@@ -181,7 +178,7 @@
                             android:paddingHorizontal="14dp"
                             android:paddingBottom="4dp"
                             android:text="@string/properties_section_configuration"
-                            android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle2"
+                            android:textAppearance="@style/TextAppearance.Material3.TitleSmall"
                             android:textColor="?attr/colorOnSurface" />
 
                         <com.github.kr328.clash.design.view.ActionLabel

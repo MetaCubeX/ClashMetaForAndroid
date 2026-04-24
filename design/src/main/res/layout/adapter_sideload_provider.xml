@@ -42,7 +42,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@{appInfo.label}"
-                android:textAppearance="@style/TextAppearance.MaterialComponents.Body1" />
+                android:textAppearance="@style/TextAppearance.App.BodyLarge" />
 
             <TextView
                 android:id="@+id/package_name_view"
@@ -50,7 +50,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/item_text_margin"
                 android:text="@{appInfo.packageName}"
-                android:textAppearance="@style/TextAppearance.MaterialComponents.Body2"
+                android:textAppearance="@style/TextAppearance.App.BodyMedium"
                 android:visibility="@{appInfo.packageName.length() == 0 ? View.GONE : View.VISIBLE}" />
         </LinearLayout>
 

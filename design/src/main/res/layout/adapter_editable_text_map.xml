@@ -13,7 +13,7 @@
             android:layout_height="wrap_content"
             android:layout_alignParentStart="true"
             android:layout_toStartOf="@id/delete_view"
-            android:textAppearance="@style/TextAppearance.MaterialComponents.Body1" />
+            android:textAppearance="@style/TextAppearance.App.BodyLarge" />
 
         <TextView
             android:id="@+id/value_view"
@@ -22,7 +22,7 @@
             android:layout_below="@id/key_view"
             android:layout_alignParentStart="true"
             android:layout_toStartOf="@id/delete_view"
-            android:textAppearance="@style/TextAppearance.MaterialComponents.Body2" />
+            android:textAppearance="@style/TextAppearance.App.BodyMedium" />
 
         <ImageView
             android:id="@+id/delete_view"

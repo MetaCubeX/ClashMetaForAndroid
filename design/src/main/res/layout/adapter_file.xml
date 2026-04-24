@@ -53,14 +53,14 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@{file.name}"
-                android:textAppearance="@style/TextAppearance.MaterialComponents.Body1" />
+                android:textAppearance="@style/TextAppearance.App.BodyLarge" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/item_text_margin"
                 android:text="@{file.directory ? null : I18nKt.toBytesString(file.size)}"
-                android:textAppearance="@style/TextAppearance.MaterialComponents.Body2"
+                android:textAppearance="@style/TextAppearance.App.BodyMedium"
                 android:visibility="@{file.directory ? View.GONE : View.VISIBLE}" />
         </LinearLayout>
 
@@ -72,7 +72,7 @@
             android:layout_marginEnd="@dimen/item_midden_margin"
             android:layout_toStartOf="@id/menu_view"
             android:text="@{file.directory ? null : IntervalKt.elapsedIntervalString(currentTime.value - file.lastModified, context)}"
-            android:textAppearance="@style/TextAppearance.MaterialComponents.Tooltip"
+            android:textAppearance="@style/TextAppearance.App.BodySmall"
             android:visibility="@{file.directory ? View.GONE : View.VISIBLE}" />
 
         <View
