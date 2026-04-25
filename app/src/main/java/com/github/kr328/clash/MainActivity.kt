@@ -313,9 +313,6 @@ class MainActivity : BaseActivity<MainDesign>() {
                         MainDesign.Request.OpenNewProfile ->
                             showHomeImportSheet(design)
 
-                        MainDesign.Request.OpenProxyGroups -> {
-                            // ProxyActivity removed in M3 shell; home/dashboard handles groups in later commits.
-                        }
                         MainDesign.Request.OpenConnections ->
                             startActivity(ConnectionsActivity::class.intent)
 
