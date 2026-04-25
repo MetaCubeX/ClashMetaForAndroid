@@ -67,7 +67,7 @@
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/mode_all_button"
-                        style="?attr/materialButtonOutlinedStyle"
+                        style="@style/AppButton.Outlined"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
@@ -76,7 +76,7 @@
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/mode_allow_button"
-                        style="?attr/materialButtonOutlinedStyle"
+                        style="@style/AppButton.Outlined"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
@@ -85,7 +85,7 @@
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/mode_deny_button"
-                        style="?attr/materialButtonOutlinedStyle"
+                        style="@style/AppButton.Outlined"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
@@ -94,6 +94,7 @@
                 </com.google.android.material.button.MaterialButtonToggleGroup>
 
                 <com.google.android.material.textfield.TextInputLayout
+                    style="@style/AppTextInputLayout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginHorizontal="@dimen/item_tailing_margin"
@@ -121,7 +122,7 @@
 
                     <com.google.android.material.chip.Chip
                         android:id="@+id/filter_all_chip"
-                        style="@style/Widget.MaterialComponents.Chip.Choice"
+                        style="@style/AppChip.Filter"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:checked="true"
@@ -129,28 +130,28 @@
 
                     <com.google.android.material.chip.Chip
                         android:id="@+id/filter_ru_chip"
-                        style="@style/Widget.MaterialComponents.Chip.Choice"
+                        style="@style/AppChip.Filter"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/app_routing_filter_ru" />
 
                     <com.google.android.material.chip.Chip
                         android:id="@+id/filter_cn_chip"
-                        style="@style/Widget.MaterialComponents.Chip.Choice"
+                        style="@style/AppChip.Filter"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/app_routing_filter_cn" />
 
                     <com.google.android.material.chip.Chip
                         android:id="@+id/filter_com_chip"
-                        style="@style/Widget.MaterialComponents.Chip.Choice"
+                        style="@style/AppChip.Filter"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/app_routing_filter_com" />
 
                     <com.google.android.material.chip.Chip
                         android:id="@+id/filter_other_chip"
-                        style="@style/Widget.MaterialComponents.Chip.Choice"
+                        style="@style/AppChip.Filter"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/app_routing_filter_other" />
@@ -162,7 +163,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginHorizontal="@dimen/item_tailing_margin"
                     android:layout_marginTop="@dimen/item_text_margin"
-                    android:textAppearance="@style/TextAppearance.MaterialComponents.Body2" />
+                    android:textAppearance="@style/TextAppearance.App.BodySmall" />
             </LinearLayout>
         </com.github.kr328.clash.design.view.ActivityBarLayout>
     </androidx.coordinatorlayout.widget.CoordinatorLayout>

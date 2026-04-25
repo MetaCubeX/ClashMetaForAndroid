@@ -10,7 +10,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:minHeight="?attr/actionBarSize"
-        app:navigationIcon="@drawable/ic_baseline_arrow_back"
         app:title="@string/proxy_providers_editor_title" />
 
     <TextView
@@ -52,7 +51,7 @@
                 android:textColor="?attr/colorOnSurfaceVariant" />
 
             <com.google.android.material.textfield.TextInputLayout
-                style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                style="@style/AppDropdown"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp">
@@ -66,7 +65,7 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_add_selected"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                style="@style/AppButton.Outlined"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
@@ -95,7 +94,7 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_add"
-                style="@style/Widget.Material3.Button"
+                style="@style/AppButton"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="6dp"
@@ -104,7 +103,7 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_update_all"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                style="@style/AppButton.Outlined"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="6dp"
@@ -114,7 +113,7 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_save"
-                style="@style/Widget.Material3.Button"
+                style="@style/AppButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"

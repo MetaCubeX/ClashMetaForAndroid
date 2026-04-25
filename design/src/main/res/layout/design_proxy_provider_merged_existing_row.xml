@@ -12,12 +12,12 @@
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:fontFamily="monospace"
-        android:textAppearance="@style/TextAppearance.MaterialComponents.Body1"
+        android:textAppearance="@style/TextAppearance.App.BodyMedium"
         android:textColor="?attr/colorOnSurface" />
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btn_remove"
-        style="@style/Widget.MaterialComponents.Button.TextButton"
+        style="@style/AppButton.Text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/proxy_providers_merged_remove" />

@@ -31,7 +31,7 @@
                     android:id="@+id/title_view"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textAppearance="@style/TextAppearance.MaterialComponents.Caption" />
+                    android:textAppearance="@style/TextAppearance.App.BodySmall" />
 
                 <TextView
                     android:id="@+id/text_view"
@@ -41,7 +41,7 @@
                     android:layout_marginEnd="@dimen/item_tailing_component_size"
                     android:ellipsize="start"
                     android:singleLine="true"
-                    android:textAppearance="@style/TextAppearance.MaterialComponents.Body1" />
+                    android:textAppearance="@style/TextAppearance.App.BodyLarge" />
 
                 <View
                     android:layout_width="match_parent"

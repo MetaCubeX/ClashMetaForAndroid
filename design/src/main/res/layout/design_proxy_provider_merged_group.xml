@@ -10,7 +10,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:minHeight="?attr/actionBarSize"
-        app:navigationIcon="@drawable/ic_baseline_arrow_back"
         app:title="@string/proxy_providers_merged_screen_title" />
 
     <androidx.core.widget.NestedScrollView
@@ -31,7 +30,7 @@
                 android:layout_height="wrap_content"
                 android:paddingTop="8dp"
                 android:text="@string/proxy_providers_merged_screen_body"
-                android:textAppearance="@style/TextAppearance.MaterialComponents.Body2"
+                android:textAppearance="@style/TextAppearance.App.BodySmall"
                 android:textColor="?attr/colorOnSurfaceVariant" />
 
             <TextView
@@ -39,7 +38,7 @@
                 android:layout_height="wrap_content"
                 android:paddingTop="16dp"
                 android:text="@string/proxy_providers_keys_title"
-                android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle2"
+                android:textAppearance="@style/TextAppearance.App.TitleSmall"
                 android:textColor="?attr/colorOnSurface" />
 
             <TextView
@@ -48,7 +47,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:fontFamily="monospace"
-                android:textAppearance="@style/TextAppearance.MaterialComponents.Body2"
+                android:textAppearance="@style/TextAppearance.App.BodySmall"
                 android:textColor="?attr/colorOnSurface" />
 
             <TextView
@@ -57,7 +56,7 @@
                 android:layout_height="wrap_content"
                 android:paddingTop="20dp"
                 android:text="@string/proxy_providers_merged_existing_title"
-                android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle2"
+                android:textAppearance="@style/TextAppearance.App.TitleSmall"
                 android:textColor="?attr/colorOnSurface" />
 
             <TextView
@@ -66,7 +65,7 @@
                 android:layout_height="wrap_content"
                 android:paddingTop="8dp"
                 android:text="@string/proxy_providers_merged_existing_empty"
-                android:textAppearance="@style/TextAppearance.MaterialComponents.Body2"
+                android:textAppearance="@style/TextAppearance.App.BodySmall"
                 android:textColor="?attr/colorOnSurfaceVariant"
                 android:visibility="gone" />
 
@@ -79,6 +78,7 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_add_merged_select"
+                style="@style/AppButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
