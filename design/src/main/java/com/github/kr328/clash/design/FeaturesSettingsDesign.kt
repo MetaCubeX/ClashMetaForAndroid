@@ -20,7 +20,6 @@ class FeaturesSettingsDesign(
     enum class Request {
         StartMetaFeatures,
         StartNetwork,
-        StartAppRouting,
         StartGeoDataSource,
     }
 
@@ -65,16 +64,6 @@ class FeaturesSettingsDesign(
             ) {
                 clicked {
                     requests.trySend(Request.StartNetwork)
-                }
-            }
-
-            clickable(
-                icon = R.drawable.ic_baseline_route,
-                title = R.string.access_control_packages,
-                summary = R.string.access_control_packages_summary,
-            ) {
-                clicked {
-                    requests.trySend(Request.StartAppRouting)
                 }
             }
 

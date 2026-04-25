@@ -35,8 +35,6 @@ class FeaturesSettingsActivity : BaseActivity<FeaturesSettingsDesign>() {
                             startActivity(MetaFeatureSettingsActivity::class.intent)
                         FeaturesSettingsDesign.Request.StartNetwork ->
                             startActivity(NetworkSettingsActivity::class.intent)
-                        FeaturesSettingsDesign.Request.StartAppRouting ->
-                            startActivity(AccessControlActivity::class.intent)
                         FeaturesSettingsDesign.Request.StartGeoDataSource ->
                             startActivity(GeoDataSourceSettingsActivity::class.intent)
                     }
