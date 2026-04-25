@@ -1,8 +1,8 @@
 package com.github.kr328.clash
 
 import android.view.View
-import android.widget.AdapterView
 import android.widget.ArrayAdapter
+import android.widget.AutoCompleteTextView
 import android.widget.LinearLayout
 import android.widget.Spinner
 import android.widget.TextView
@@ -75,7 +75,7 @@ class RuleSnippetActivity : BaseActivity<RuleSnippetDesign>() {
         dialog.setContentView(view)
 
         val title = view.findViewById<TextView>(R.id.tv_sheet_title)
-        val typeSpinner = view.findViewById<Spinner>(R.id.spinner_create_type)
+        val typeSpinner = view.findViewById<AutoCompleteTextView>(R.id.spinner_create_type)
         val presetGroup = view.findViewById<LinearLayout>(R.id.group_preset)
         val providerGroup = view.findViewById<LinearLayout>(R.id.group_provider)
         val manualGroup = view.findViewById<LinearLayout>(R.id.group_manual)
@@ -87,12 +87,12 @@ class RuleSnippetActivity : BaseActivity<RuleSnippetDesign>() {
             getString(DesignR.string.rule_create_online),
             getString(DesignR.string.rule_create_manual),
         )
-        typeSpinner.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, typeOptions)
+        typeSpinner.setAdapter(ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, typeOptions))
 
-        val presetSpinner = view.findViewById<Spinner>(R.id.spinner_preset)
-        presetSpinner.adapter = ArrayAdapter(
+        val presetSpinner = view.findViewById<AutoCompleteTextView>(R.id.spinner_preset)
+        presetSpinner.setAdapter(ArrayAdapter(
             this,
-            android.R.layout.simple_spinner_dropdown_item,
+            android.R.layout.simple_dropdown_item_1line,
             listOf(
                 getString(DesignR.string.rule_quick_openai),
                 getString(DesignR.string.rule_quick_telegram),
@@ -107,14 +107,14 @@ class RuleSnippetActivity : BaseActivity<RuleSnippetDesign>() {
                 getString(DesignR.string.rule_quick_whatsapp),
                 getString(DesignR.string.rule_quick_messengers),
             )
-        )
+        ))
         val insertModes = listOf(
             getString(DesignR.string.rule_insert_append),
             getString(DesignR.string.rule_insert_prepend),
             getString(DesignR.string.rule_insert_top),
         )
-        view.findViewById<Spinner>(R.id.spinner_manual_insert_mode).adapter =
-            ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, insertModes)
+        view.findViewById<AutoCompleteTextView>(R.id.spinner_manual_insert_mode).setAdapter(
+            ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, insertModes))
 
         val policyOptions = buildList {
             add("DIRECT")
@@ -125,38 +125,48 @@ class RuleSnippetActivity : BaseActivity<RuleSnippetDesign>() {
         }
         val validPolicy = preferredPolicy(policyOptions)
         val presetPolicyOptions = listOf(getString(DesignR.string.rule_policy_auto)) + policyOptions
-        view.findViewById<Spinner>(R.id.spinner_preset_policy).apply {
-            adapter = ArrayAdapter(this@RuleSnippetActivity, android.R.layout.simple_spinner_dropdown_item, presetPolicyOptions)
-            setSelection(0, false)
+        view.findViewById<AutoCompleteTextView>(R.id.spinner_preset_policy).apply {
+            setAdapter(ArrayAdapter(this@RuleSnippetActivity, android.R.layout.simple_dropdown_item_1line, presetPolicyOptions))
+            setText(adapter.getItem(0).toString(), false)
+            listSelection = 0
         }
-        view.findViewById<Spinner>(R.id.spinner_provider_policy).apply {
-            adapter = ArrayAdapter(this@RuleSnippetActivity, android.R.layout.simple_spinner_dropdown_item, policyOptions)
-            setSelection(policyOptions.indexOf(validPolicy).coerceAtLeast(0), false)
+        view.findViewById<AutoCompleteTextView>(R.id.spinner_provider_policy).apply {
+            setAdapter(ArrayAdapter(this@RuleSnippetActivity, android.R.layout.simple_dropdown_item_1line, policyOptions))
+            val pos = policyOptions.indexOf(validPolicy).coerceAtLeast(0)
+            setText(adapter.getItem(pos).toString(), false)
+            listSelection = pos
         }
-        view.findViewById<Spinner>(R.id.spinner_manual_policy).apply {
-            adapter = ArrayAdapter(this@RuleSnippetActivity, android.R.layout.simple_spinner_dropdown_item, policyOptions)
-            setSelection(policyOptions.indexOf(validPolicy).coerceAtLeast(0), false)
+        view.findViewById<AutoCompleteTextView>(R.id.spinner_manual_policy).apply {
+            setAdapter(ArrayAdapter(this@RuleSnippetActivity, android.R.layout.simple_dropdown_item_1line, policyOptions))
+            val pos = policyOptions.indexOf(validPolicy).coerceAtLeast(0)
+            setText(adapter.getItem(pos).toString(), false)
+            listSelection = pos
         }
-        view.findViewById<Spinner>(R.id.spinner_provider_behavior).adapter =
-            ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, listOf("classical", "domain", "ipcidr"))
+        view.findViewById<AutoCompleteTextView>(R.id.spinner_provider_behavior).setAdapter(
+            ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, listOf("classical", "domain", "ipcidr")))
         val manualTypeOptions = listOf("GEOSITE", "GEOIP", "Custom")
-        view.findViewById<Spinner>(R.id.spinner_manual_type).adapter =
-            ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, manualTypeOptions)
+        view.findViewById<AutoCompleteTextView>(R.id.spinner_manual_type).setAdapter(
+            ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, manualTypeOptions))
         val customKindOptions = resources.getStringArray(DesignR.array.clash_manual_rule_types).toList()
-        view.findViewById<Spinner>(R.id.spinner_manual_custom_kind).adapter =
-            ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, customKindOptions)
+        view.findViewById<AutoCompleteTextView>(R.id.spinner_manual_custom_kind).setAdapter(
+            ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, customKindOptions))
 
         title.text = getString(DesignR.string.rule_add_new)
 
-        fun insertModeFromSpinner(s: Spinner): String = when (s.selectedItemPosition) {
-            1 -> "prepend"
-            2 -> "index:0"
-            else -> "append"
+        fun insertModeFromSpinner(s: AutoCompleteTextView): String {
+            val pos = (s.adapter as ArrayAdapter<String>).getPosition(s.text.toString())
+            return when (pos) {
+                1 -> "prepend"
+                2 -> "index:0"
+                else -> "append"
+            }
         }
 
-        fun selected(spinner: Spinner) = spinner.selectedItem?.toString()?.trim().orEmpty()
+        fun selected(spinner: AutoCompleteTextView) = spinner.text.toString().trim().orEmpty()
+
         fun buildPreview() {
-            when (typeSpinner.selectedItemPosition) {
+            val typePos = (typeSpinner.adapter as ArrayAdapter<String>).getPosition(typeSpinner.text.toString())
+            when (typePos) {
                 0 -> {
                     val chosen = selected(view.findViewById(R.id.spinner_preset_policy))
                     val policy = if (chosen == getString(DesignR.string.rule_policy_auto)) {
@@ -164,7 +174,8 @@ class RuleSnippetActivity : BaseActivity<RuleSnippetDesign>() {
                     } else {
                         chosen.ifBlank { preferredPolicy(policyOptions) }
                     }
-                    val lines = presetLines(presetSpinner.selectedItemPosition, policy)
+                    val presetPos = (presetSpinner.adapter as ArrayAdapter<String>).getPosition(presetSpinner.text.toString())
+                    val lines = presetLines(presetPos, policy)
                     preview.text = lines.joinToString("\n") { "- $it" }
                 }
                 1 -> {
@@ -211,7 +222,7 @@ class RuleSnippetActivity : BaseActivity<RuleSnippetDesign>() {
             val customRow = type == "Custom"
             view.findViewById<TextView>(R.id.tv_manual_custom_kind).visibility =
                 if (customRow) View.VISIBLE else View.GONE
-            view.findViewById<Spinner>(R.id.spinner_manual_custom_kind).visibility =
+            view.findViewById<AutoCompleteTextView>(R.id.spinner_manual_custom_kind).visibility =
                 if (customRow) View.VISIBLE else View.GONE
             when (type) {
                 "Custom" -> {
@@ -228,38 +239,41 @@ class RuleSnippetActivity : BaseActivity<RuleSnippetDesign>() {
         }
 
         fun syncGroups() {
-            presetGroup.visibility = if (typeSpinner.selectedItemPosition == 0) View.VISIBLE else View.GONE
-            providerGroup.visibility = if (typeSpinner.selectedItemPosition == 1) View.VISIBLE else View.GONE
-            manualGroup.visibility = if (typeSpinner.selectedItemPosition == 2) View.VISIBLE else View.GONE
+            val typePos = (typeSpinner.adapter as ArrayAdapter<String>).getPosition(typeSpinner.text.toString())
+            presetGroup.visibility = if (typePos == 0) View.VISIBLE else View.GONE
+            providerGroup.visibility = if (typePos == 1) View.VISIBLE else View.GONE
+            manualGroup.visibility = if (typePos == 2) View.VISIBLE else View.GONE
             syncManualHintsAndCustomRow()
             buildPreview()
         }
-        typeSpinner.onItemSelectedListener = SimpleItemSelectedListener { syncGroups() }
-        presetSpinner.onItemSelectedListener = SimpleItemSelectedListener { buildPreview() }
-        view.findViewById<Spinner>(R.id.spinner_preset_policy).onItemSelectedListener = SimpleItemSelectedListener { buildPreview() }
-        view.findViewById<Spinner>(R.id.spinner_provider_behavior).onItemSelectedListener = SimpleItemSelectedListener { buildPreview() }
-        view.findViewById<Spinner>(R.id.spinner_provider_policy).onItemSelectedListener = SimpleItemSelectedListener { buildPreview() }
-        view.findViewById<Spinner>(R.id.spinner_manual_policy).onItemSelectedListener = SimpleItemSelectedListener { buildPreview() }
-        view.findViewById<Spinner>(R.id.spinner_manual_type).onItemSelectedListener =
-            SimpleItemSelectedListener { syncGroups() }
-        view.findViewById<Spinner>(R.id.spinner_manual_custom_kind).onItemSelectedListener =
-            SimpleItemSelectedListener {
-                syncManualHintsAndCustomRow()
-                buildPreview()
-            }
+        typeSpinner.setOnItemClickListener { _, _, _, _ -> syncGroups() }
+        presetSpinner.setOnItemClickListener { _, _, _, _ -> buildPreview() }
+        view.findViewById<AutoCompleteTextView>(R.id.spinner_preset_policy).setOnItemClickListener { _, _, _, _ -> buildPreview() }
+        view.findViewById<AutoCompleteTextView>(R.id.spinner_provider_behavior).setOnItemClickListener { _, _, _, _ -> buildPreview() }
+        view.findViewById<AutoCompleteTextView>(R.id.spinner_provider_policy).setOnItemClickListener { _, _, _, _ -> buildPreview() }
+        view.findViewById<AutoCompleteTextView>(R.id.spinner_manual_policy).setOnItemClickListener { _, _, _, _ -> buildPreview() }
+        view.findViewById<AutoCompleteTextView>(R.id.spinner_manual_type).setOnItemClickListener { _, _, _, _ ->
+            syncGroups()
+        }
+        view.findViewById<AutoCompleteTextView>(R.id.spinner_manual_custom_kind).setOnItemClickListener { _, _, _, _ ->
+            syncManualHintsAndCustomRow()
+            buildPreview()
+        }
 
         applyButton.setOnClickListener {
             launch {
-                val ok = when (typeSpinner.selectedItemPosition) {
+                val typePos = (typeSpinner.adapter as ArrayAdapter<String>).getPosition(typeSpinner.text.toString())
+                val ok = when (typePos) {
                     0 -> {
-                        val chosen = view.findViewById<Spinner>(R.id.spinner_preset_policy).selectedItem?.toString()?.trim().orEmpty()
+                        val chosen = selected(view.findViewById(R.id.spinner_preset_policy))
                         val policy = if (chosen == getString(DesignR.string.rule_policy_auto)) {
                             preferredPolicy(policyOptions)
                         } else {
                             chosen.ifBlank { preferredPolicy(policyOptions) }
                         }
-                        runPresetSoftChecks(design, presetSpinner.selectedItemPosition)
-                        val rules = presetLines(presetSpinner.selectedItemPosition, policy)
+                        val presetPos = (presetSpinner.adapter as ArrayAdapter<String>).getPosition(presetSpinner.text.toString())
+                        runPresetSoftChecks(design, presetPos)
+                        val rules = presetLines(presetPos, policy)
                         withProfile {
                             addRules(uuid, rules, addMode = true, insertMode = "append")
                         }
@@ -301,8 +315,8 @@ class RuleSnippetActivity : BaseActivity<RuleSnippetDesign>() {
         val name = view.findViewById<TextInputEditText>(R.id.input_provider_name).text?.toString()?.trim().orEmpty()
         val url = view.findViewById<TextInputEditText>(R.id.input_provider_url).text?.toString()?.trim().orEmpty()
         if (name.isBlank() || url.isBlank()) return false
-        val behavior = view.findViewById<Spinner>(R.id.spinner_provider_behavior).selectedItem?.toString()?.trim().orEmpty().ifBlank { "classical" }
-        val policy = view.findViewById<Spinner>(R.id.spinner_provider_policy).selectedItem?.toString()?.trim().orEmpty().ifBlank { "DIRECT" }
+        val behavior = selected(view.findViewById<AutoCompleteTextView>(R.id.spinner_provider_behavior)).ifBlank { "classical" }
+        val policy = selected(view.findViewById<AutoCompleteTextView>(R.id.spinner_provider_policy)).ifBlank { "DIRECT" }
         val enabled = view.findViewById<SwitchMaterial>(R.id.switch_provider_enabled).isChecked
         val provider = RuleProviderItem(
             id = editingProvider?.id ?: UUID.randomUUID().toString(),
@@ -347,9 +361,9 @@ class RuleSnippetActivity : BaseActivity<RuleSnippetDesign>() {
     }
 
     private fun manualLineFromSheet(view: View): String? {
-        val type = view.findViewById<Spinner>(R.id.spinner_manual_type).selectedItem?.toString()?.trim().orEmpty()
+        val type = selected(view.findViewById<AutoCompleteTextView>(R.id.spinner_manual_type))
         val value = view.findViewById<TextInputEditText>(R.id.input_manual_value).text?.toString()?.trim().orEmpty()
-        val policy = view.findViewById<Spinner>(R.id.spinner_manual_policy).selectedItem?.toString()?.trim().orEmpty().ifBlank { "DIRECT" }
+        val policy = selected(view.findViewById<AutoCompleteTextView>(R.id.spinner_manual_policy)).ifBlank { "DIRECT" }
         return when (type) {
             "GEOSITE", "GEOIP" -> if (value.isBlank()) null else "$type,$value,$policy"
             "Custom" -> {
@@ -421,11 +435,9 @@ class RuleSnippetActivity : BaseActivity<RuleSnippetDesign>() {
             design.showToast(DesignR.string.rule_preset_geosite_soft_check_note, ToastDuration.Short)
         }
     }
-}
+    private fun selected(spinner: AutoCompleteTextView): String =
+        spinner.text?.toString()?.trim().orEmpty()
 
-private class SimpleItemSelectedListener(
-    private val onChange: () -> Unit,
-) : AdapterView.OnItemSelectedListener {
-    override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) = onChange()
-    override fun onNothingSelected(parent: AdapterView<*>?) = Unit
+    private fun selected(spinner: Spinner): String =
+        spinner.selectedItem?.toString()?.trim().orEmpty()
 }

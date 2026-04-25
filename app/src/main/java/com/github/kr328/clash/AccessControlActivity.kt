@@ -12,6 +12,7 @@ import com.github.kr328.clash.design.model.AppInfo
 import com.github.kr328.clash.design.util.toAppInfo
 import com.github.kr328.clash.service.model.AccessControlMode
 import com.github.kr328.clash.service.store.ServiceStore
+import com.github.kr328.clash.util.RussianBypassDefaults
 import com.github.kr328.clash.util.startClashService
 import com.github.kr328.clash.util.stopClashService
 import kotlinx.coroutines.Dispatchers
@@ -47,10 +48,11 @@ class AccessControlActivity : BaseActivity<AccessControlDesign>() {
             }
         }
 
-        val design = AccessControlDesign(this, uiStore, selected, currentMode)
+        val design = AccessControlDesign(this, uiStore, selected)
 
         setContentDesign(design)
 
+        design.setMode(currentMode)
         design.requests.send(AccessControlDesign.Request.ReloadApps)
 
         while (isActive) {
@@ -62,6 +64,28 @@ class AccessControlActivity : BaseActivity<AccessControlDesign>() {
                     when (it) {
                         AccessControlDesign.Request.ReloadApps -> {
                             design.patchApps(loadApps(selected))
+                        }
+
+                        AccessControlDesign.Request.ChangeMode -> {
+                            design.pendingMode?.let { mode ->
+                                withContext(Dispatchers.IO) {
+                                    if (service.accessControlMode != mode) {
+                                        service.accessControlMode = mode
+                                    }
+                                    if (mode == AccessControlMode.DenySelected &&
+                                        !service.russianBypassSeeded
+                                    ) {
+                                        val seed = RussianBypassDefaults.installed(packageManager)
+                                        if (seed.isNotEmpty()) {
+                                            selected.addAll(seed)
+                                        }
+                                        service.russianBypassSeeded = true
+                                    }
+                                }
+                                currentMode = mode
+                                design.setMode(currentMode)
+                                design.patchApps(loadApps(selected))
+                            }
                         }
 
                         AccessControlDesign.Request.SelectAll -> {
@@ -116,11 +140,6 @@ class AccessControlActivity : BaseActivity<AccessControlDesign>() {
                             )
 
                             clipboard?.setPrimaryClip(data)
-                        }
-
-                        AccessControlDesign.Request.ChangeMode -> {
-                            currentMode = design.pendingMode ?: currentMode
-                            design.setMode(currentMode)
                         }
                     }
                 }

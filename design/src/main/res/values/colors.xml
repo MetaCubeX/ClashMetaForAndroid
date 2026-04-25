@@ -38,5 +38,8 @@
     <color name="main_card_glass">#4D1A2330</color>
     <!-- Readable on both tech_primary (active) and tech_card (inactive) mode chips -->
     <color name="tech_mode_chip_label">#E6EDF3</color>
+    <color name="theme_true_black_bg">#000000</color>
+    <color name="theme_true_black_surface">#050505</color>
+    <color name="theme_true_black_surface_high">#101010</color>
 
 </resources>

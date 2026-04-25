@@ -9,7 +9,7 @@ import com.github.kr328.clash.service.data.SelectionDao
 import com.github.kr328.clash.service.remote.IClashManager
 import com.github.kr328.clash.service.remote.ILogObserver
 import com.github.kr328.clash.service.store.ServiceStore
-import com.github.kr328.clash.service.util.RuntimeSocksAuth
+import com.github.kr328.clash.service.util.ProxyHardener
 import com.github.kr328.clash.service.util.sendOverrideChanged
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.ReceiveChannel
@@ -45,6 +45,14 @@ class ClashManager(private val context: Context) : IClashManager,
 
     override fun queryConnectionsSnapshot(): String {
         return Clash.queryConnectionsSnapshot()
+    }
+
+    override fun closeConnection(id: String): Boolean {
+        return Clash.closeConnection(id)
+    }
+
+    override fun closeAllConnections(): Int {
+        return Clash.closeAllConnections()
     }
 
     override fun queryOverride(slot: Clash.OverrideSlot): ConfigurationOverride {
@@ -85,7 +93,11 @@ class ClashManager(private val context: Context) : IClashManager,
 
     override fun patchOverride(slot: Clash.OverrideSlot, configuration: ConfigurationOverride) {
         if (slot == Clash.OverrideSlot.Session) {
-            RuntimeSocksAuth.applyTo(configuration)
+            ProxyHardener.applyTo(
+                configuration = configuration,
+                mode = store.proxyHardeningMode,
+                seedGeoMirrors = store.seedDefaultGeoMirrors,
+            )
         }
         Clash.patchOverride(slot, configuration)
 

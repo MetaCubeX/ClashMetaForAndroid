@@ -12,11 +12,11 @@ import com.github.kr328.clash.common.Global
 import com.github.kr328.clash.common.compat.currentProcessName
 import com.github.kr328.clash.common.constants.Intents
 import com.github.kr328.clash.common.log.Log
-import com.github.kr328.clash.remote.Remote
-import com.github.kr328.clash.design.model.AppLanguage
 import com.github.kr328.clash.design.store.UiStore
+import com.github.kr328.clash.remote.Remote
 import com.github.kr328.clash.service.store.ServiceStore
 import com.github.kr328.clash.service.util.sendServiceRecreated
+import com.github.kr328.clash.util.AppUpdateChecker
 import com.github.kr328.clash.util.clashDir
 import java.io.File
 import java.io.FileOutputStream
@@ -40,21 +40,22 @@ class MainApplication : Application() {
         Log.d("Process $processName started")
 
         if (processName == packageName) {
-            applyStoredAppLocales()
+            applyAppLanguage()
             ServiceStore.runMigrations(this)
             Remote.launch()
             setupShortcuts()
+            AppUpdateChecker.schedulePeriodic(this)
         } else {
             sendServiceRecreated()
         }
     }
 
-    private fun applyStoredAppLocales() {
-        val locales = when (UiStore(this).appLanguage) {
-            AppLanguage.System -> LocaleListCompat.getEmptyLocaleList()
-            AppLanguage.English -> LocaleListCompat.forLanguageTags("en")
-            AppLanguage.Russian -> LocaleListCompat.forLanguageTags("ru")
-            AppLanguage.Chinese -> LocaleListCompat.forLanguageTags("zh")
+    private fun applyAppLanguage() {
+        val tag = runCatching { UiStore(this).appLanguage.tag }.getOrDefault("")
+        val locales = if (tag.isEmpty()) {
+            LocaleListCompat.getEmptyLocaleList()
+        } else {
+            LocaleListCompat.forLanguageTags(tag)
         }
         AppCompatDelegate.setApplicationLocales(locales)
     }
@@ -109,7 +110,9 @@ class MainApplication : Application() {
 
         val updateDate = packageManager.getPackageInfo(packageName, 0).lastUpdateTime
         ensureAssetFresh("geoip.metadb", "geoip.metadb", updateDate)
+        ensureAssetFresh("geoip.dat", "geoip.dat", updateDate)
         ensureAssetFresh("geosite.dat", "geosite.dat", updateDate)
+        ensureAssetFresh("Country.mmdb", "Country.mmdb", updateDate)
         ensureAssetFresh("ASN.mmdb", "ASN.mmdb", updateDate)
     }
 
@@ -119,8 +122,12 @@ class MainApplication : Application() {
             target.delete()
         }
         if (!target.exists()) {
-            FileOutputStream(target).use {
-                assets.open(assetName).copyTo(it)
+            try {
+                FileOutputStream(target).use {
+                    assets.open(assetName).copyTo(it)
+                }
+            } catch (e: Exception) {
+                Log.w("Asset $assetName not bundled, skipping ($e)")
             }
         }
     }

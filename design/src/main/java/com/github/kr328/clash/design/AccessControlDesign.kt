@@ -2,6 +2,7 @@ package com.github.kr328.clash.design
 
 import android.content.Context
 import android.view.View
+import androidx.core.view.updatePadding
 import androidx.core.widget.addTextChangedListener
 import com.github.kr328.clash.design.adapter.AppAdapter
 import com.github.kr328.clash.design.component.AccessControlMenu
@@ -16,7 +17,6 @@ class AccessControlDesign(
     context: Context,
     uiStore: UiStore,
     private val selected: MutableSet<String>,
-    mode: AccessControlMode,
 ) : Design<AccessControlDesign.Request>(context) {
     private enum class NamespaceFilter {
         All,
@@ -39,6 +39,10 @@ class AccessControlDesign(
     var pendingMode: AccessControlMode? = null
         private set
 
+    /** Latest live filter text from the inline search box. */
+    var inlineFilter: String = ""
+        private set
+
     private val binding = DesignAccessControlBinding
         .inflate(context.layoutInflater, context.root, false)
 
@@ -47,33 +51,77 @@ class AccessControlDesign(
     private val menu: AccessControlMenu by lazy {
         AccessControlMenu(context, binding.menuView, uiStore, requests)
     }
-    private var allApps: List<AppInfo> = emptyList()
-    private var namespaceFilter: NamespaceFilter = NamespaceFilter.All
 
     val apps: List<AppInfo>
         get() = adapter.apps
+
+    /** All apps currently loaded by the host (pre-filter). Used for accurate counters. */
+    private var allApps: List<AppInfo> = emptyList()
+
+    private var namespaceFilter: NamespaceFilter = NamespaceFilter.All
 
     override val root: View
         get() = binding.root
 
     suspend fun patchApps(apps: List<AppInfo>) {
         allApps = apps
-        applyFilter(binding.searchInput.text?.toString().orEmpty())
-        updateCounter()
+        val filtered = applyFilterLocked(apps, inlineFilter)
+        adapter.swapDataSet(adapter::apps, filtered, false)
+        refreshCounter()
     }
 
     suspend fun rebindAll() {
         withContext(Dispatchers.Main) {
             adapter.rebindAll()
-            updateCounter()
+            refreshCounter()
         }
     }
 
     fun setMode(mode: AccessControlMode) {
-        when (mode) {
-            AccessControlMode.AcceptAll -> binding.modeGroup.check(binding.modeAllButton.id)
-            AccessControlMode.AcceptSelected -> binding.modeGroup.check(binding.modeAllowButton.id)
-            AccessControlMode.DenySelected -> binding.modeGroup.check(binding.modeDenyButton.id)
+        applyModeButtonsState(mode)
+    }
+
+    private fun refreshCounter() {
+        val total = allApps.size
+        val sel = allApps.count { it.packageName in selected }
+        binding.counterView.text = context.getString(R.string.app_routing_counter, sel, total)
+    }
+
+    private fun matchesNamespace(app: AppInfo): Boolean = when (namespaceFilter) {
+        NamespaceFilter.All -> true
+        NamespaceFilter.Ru -> app.packageName.startsWith("ru.")
+        NamespaceFilter.Cn -> app.packageName.startsWith("cn.")
+        NamespaceFilter.Com -> app.packageName.startsWith("com.")
+        NamespaceFilter.Other ->
+            !app.packageName.startsWith("ru.") &&
+                !app.packageName.startsWith("cn.") &&
+                !app.packageName.startsWith("com.")
+    }
+
+    private fun applyFilterLocked(source: List<AppInfo>, keyword: String): List<AppInfo> =
+        source.filter { app ->
+            matchesNamespace(app) &&
+                (keyword.isBlank() ||
+                    app.label.contains(keyword, ignoreCase = true) ||
+                    app.packageName.contains(keyword, ignoreCase = true))
+        }
+
+    private fun launchApplyFilteredList() {
+        val filtered = applyFilterLocked(allApps, inlineFilter)
+        launch {
+            adapter.patchDataSet(adapter::apps, filtered, false, AppInfo::packageName)
+            refreshCounter()
+        }
+    }
+
+    private fun applyModeButtonsState(mode: AccessControlMode) {
+        val id = when (mode) {
+            AccessControlMode.AcceptAll -> R.id.mode_all_button
+            AccessControlMode.AcceptSelected -> R.id.mode_allow_button
+            AccessControlMode.DenySelected -> R.id.mode_deny_button
+        }
+        if (binding.modeGroup.checkedButtonId != id) {
+            binding.modeGroup.check(id)
         }
     }
 
@@ -86,38 +134,6 @@ class AccessControlDesign(
         requests.trySend(Request.ChangeMode)
     }
 
-    private fun updateCounter() {
-        val total = allApps.size
-        val selectedCount = allApps.count { it.packageName in selected }
-        binding.counterView.text = context.getString(
-            R.string.app_routing_counter,
-            selectedCount,
-            total
-        )
-    }
-
-    private suspend fun applyFilter(keyword: String) {
-        val filtered = withContext(Dispatchers.Default) {
-            allApps.filter { app ->
-                val keywordMatched = keyword.isBlank() ||
-                    app.label.contains(keyword, ignoreCase = true) ||
-                    app.packageName.contains(keyword, ignoreCase = true)
-                val namespaceMatched = when (namespaceFilter) {
-                    NamespaceFilter.All -> true
-                    NamespaceFilter.Ru -> app.packageName.startsWith("ru.")
-                    NamespaceFilter.Cn -> app.packageName.startsWith("cn.")
-                    NamespaceFilter.Com -> app.packageName.startsWith("com.")
-                    NamespaceFilter.Other ->
-                        !app.packageName.startsWith("ru.") &&
-                            !app.packageName.startsWith("cn.") &&
-                            !app.packageName.startsWith("com.")
-                }
-                keywordMatched && namespaceMatched
-            }
-        }
-        adapter.swapDataSet(adapter::apps, filtered, false)
-    }
-
     init {
         binding.self = this
 
@@ -127,11 +143,15 @@ class AccessControlDesign(
             it.bindAppBarElevation(binding.activityBarLayout)
             it.applyLinearAdapter(context, adapter)
         }
-        binding.activityBarLayout.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
+
+        // Расширенный bar (toolbar + поиск + переключатель режима) выше дефолтного
+        // toolbar_height из common_recycler_list, поэтому верхние карточки списка
+        // оказываются под баром. Подгоняем верхний padding RecyclerView под реальную
+        // высоту бара после каждой раскладки.
+        binding.activityBarLayout.addOnLayoutChangeListener { v, _, _, _, _, _, _, _, _ ->
             val recycler = binding.mainList.recyclerList
-            val top = surface.insets.top + binding.activityBarLayout.height
-            if (recycler.paddingTop != top) {
-                recycler.setPadding(recycler.paddingLeft, top, recycler.paddingRight, recycler.paddingBottom)
+            if (recycler.paddingTop != v.height) {
+                recycler.updatePadding(top = v.height)
             }
         }
 
@@ -140,11 +160,10 @@ class AccessControlDesign(
         }
 
         binding.searchInput.addTextChangedListener {
-            launch {
-                applyFilter(it?.toString().orEmpty())
-                updateCounter()
-            }
+            inlineFilter = it?.toString()?.trim().orEmpty()
+            launchApplyFilteredList()
         }
+
         binding.namespaceFilterGroup.setOnCheckedStateChangeListener { _, checkedIds ->
             namespaceFilter = when (checkedIds.firstOrNull()) {
                 binding.filterRuChip.id -> NamespaceFilter.Ru
@@ -153,13 +172,20 @@ class AccessControlDesign(
                 binding.filterOtherChip.id -> NamespaceFilter.Other
                 else -> NamespaceFilter.All
             }
-            launch {
-                applyFilter(binding.searchInput.text?.toString().orEmpty())
-                updateCounter()
-            }
+            launchApplyFilteredList()
         }
 
-        setMode(mode)
-        updateCounter()
+        binding.modeGroup.addOnButtonCheckedListener { _, checkedId, isChecked ->
+            if (!isChecked) return@addOnButtonCheckedListener
+            val mode = when (checkedId) {
+                R.id.mode_all_button -> AccessControlMode.AcceptAll
+                R.id.mode_allow_button -> AccessControlMode.AcceptSelected
+                R.id.mode_deny_button -> AccessControlMode.DenySelected
+                else -> return@addOnButtonCheckedListener
+            }
+            if (pendingMode == mode) return@addOnButtonCheckedListener
+            pendingMode = mode
+            requests.trySend(Request.ChangeMode)
+        }
     }
 }

@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Compact-height tuning for foldables/split-window/small effective height -->
-    <dimen name="toolbar_height">52dp</dimen>
-    <dimen name="main_padding_horizontal">22dp</dimen>
-    <dimen name="main_power_button_size">124dp</dimen>
-    <dimen name="main_power_glow_size">160dp</dimen>
-    <dimen name="main_power_button_radius">62dp</dimen>
+    <!-- Keep the main screen dense on modern tall phones. -->
+    <dimen name="toolbar_height">42dp</dimen>
+    <dimen name="main_padding_horizontal">12dp</dimen>
+    <dimen name="main_power_button_size">152dp</dimen>
+    <dimen name="main_power_glow_size">196dp</dimen>
+    <dimen name="main_power_button_radius">76dp</dimen>
+    <dimen name="main_power_icon_padding">0dp</dimen>
     <dimen name="main_power_section_padding_top">6dp</dimen>
     <dimen name="main_power_section_padding_bottom">4dp</dimen>
     <dimen name="main_profile_label_padding_bottom">4dp</dimen>

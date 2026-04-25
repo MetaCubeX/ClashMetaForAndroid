@@ -1,7 +1,7 @@
 package com.github.kr328.clash.common.log
 
 object Log {
-    private const val TAG = "ClashMetaForAndroid"
+    private const val TAG = "ClashFest"
     private val debugLoggingEnabled: Boolean by lazy {
         runCatching {
             val clazz = Class.forName("com.github.kr328.clash.common.BuildConfig")

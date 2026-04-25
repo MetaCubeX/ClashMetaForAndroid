@@ -1,11 +1,14 @@
 package com.github.kr328.clash.remote
 
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 
 class Resource<T> {
     private interface Callback<T> {
         fun accept(value: T)
+        fun cancel()
     }
 
     private val pending: MutableSet<Callback<T>> = mutableSetOf()
@@ -17,6 +20,10 @@ class Resource<T> {
             val callback = object : Callback<T> {
                 override fun accept(value: T) {
                     ctx.resume(value)
+                }
+
+                override fun cancel() {
+                    ctx.resumeWithException(CancellationException("Resource reset"))
                 }
             }
 
@@ -55,9 +62,13 @@ class Resource<T> {
             pending.forEach {
                 it.accept(value)
             }
-
-            pending.clear()
+        } else {
+            pending.forEach {
+                it.cancel()
+            }
         }
+
+        pending.clear()
     }
 
     @Synchronized

@@ -18,6 +18,8 @@ class FeaturesSettingsDesign(
     configuration: ConfigurationOverride,
 ) : Design<FeaturesSettingsDesign.Request>(context) {
     enum class Request {
+        StartNetwork,
+        StartAppRouting,
         StartGeoDataSource,
     }
 
@@ -47,6 +49,26 @@ class FeaturesSettingsDesign(
             tips(R.string.features_intro)
 
             clickable(
+                icon = R.drawable.ic_baseline_vpn_lock,
+                title = R.string.network,
+            ) {
+                clicked {
+                    requests.trySend(Request.StartNetwork)
+                }
+            }
+
+            clickable(
+                icon = R.drawable.ic_baseline_route,
+                title = R.string.access_control_packages,
+                summary = R.string.access_control_packages_summary,
+            ) {
+                clicked {
+                    requests.trySend(Request.StartAppRouting)
+                }
+            }
+
+            clickable(
+                icon = R.drawable.ic_baseline_language,
                 title = R.string.geo_data_source,
                 summary = R.string.geo_data_source_summary,
             ) {

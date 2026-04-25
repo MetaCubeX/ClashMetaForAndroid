@@ -64,10 +64,9 @@
                 app:subtext="@string/tap_to_start"
                 app:text="@string/clash_logcat" />
 
-            <View
+            <com.google.android.material.divider.MaterialDivider
                 android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="?attr/colorControlHighlight" />
+                android:layout_height="wrap_content" />
 
             <TextView
                 android:layout_width="match_parent"
@@ -76,7 +75,7 @@
                 android:paddingStart="@{@dimen/item_header_component_size + @dimen/item_header_margin * 2}"
                 android:paddingEnd="@dimen/item_tailing_margin"
                 android:text="@string/history"
-                android:textColor="?attr/colorControlActivated" />
+                android:textColor="?attr/colorPrimary" />
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/recycler_list"

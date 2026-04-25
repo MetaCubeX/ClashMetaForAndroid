@@ -6,7 +6,6 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import com.github.kr328.clash.design.databinding.DesignRuleSnippetBinding
 import com.github.kr328.clash.design.R
-import com.github.kr328.clash.design.util.applyFrom
 import com.github.kr328.clash.design.util.layoutInflater
 import com.github.kr328.clash.design.util.root
 import com.github.kr328.clash.service.model.RuleProviderItem
@@ -27,7 +26,6 @@ class RuleSnippetDesign(context: Context) : Design<RuleSnippetDesign.Request>(co
 
     init {
         binding.self = this
-        binding.activityBarLayout.applyFrom(context)
         binding.btnOpenCreateSheet.setOnClickListener { requests.trySend(Request.OpenCreateSheet) }
         binding.btnOpenManualRules.setOnClickListener { requests.trySend(Request.OpenManualRules) }
     }
@@ -70,7 +68,7 @@ class RuleSnippetDesign(context: Context) : Design<RuleSnippetDesign.Request>(co
         row.addView(
             TextView(context).apply {
                 text = title
-                setTextAppearance(com.google.android.material.R.style.TextAppearance_MaterialComponents_Subtitle1)
+                setTextAppearance(R.style.TextAppearance_App_TitleSmall)
                 try {
                     setTextColor(MaterialColors.getColor(this, com.google.android.material.R.attr.colorPrimary))
                 } catch (_: IllegalArgumentException) {
@@ -82,7 +80,7 @@ class RuleSnippetDesign(context: Context) : Design<RuleSnippetDesign.Request>(co
             row.addView(
                 TextView(context).apply {
                     text = subtitle
-                    setTextAppearance(com.google.android.material.R.style.TextAppearance_MaterialComponents_Body2)
+                    setTextAppearance(R.style.TextAppearance_App_BodySmall)
                     try {
                         setTextColor(MaterialColors.getColor(this, com.google.android.material.R.attr.colorOnSurfaceVariant))
                     } catch (_: IllegalArgumentException) {

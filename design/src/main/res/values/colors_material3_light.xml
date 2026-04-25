@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Material 3 Light Color Scheme for ClashFest -->
+
+    <!-- Primary Colors -->
+    <color name="md3_light_primary">#2FA36B</color>
+    <color name="md3_light_onPrimary">#FFFFFF</color>
+    <color name="md3_light_primaryContainer">#B6F6D3</color>
+    <color name="md3_light_onPrimaryContainer">#00210E</color>
+
+    <!-- Secondary Colors -->
+    <color name="md3_light_secondary">#4E6357</color>
+    <color name="md3_light_onSecondary">#FFFFFF</color>
+    <color name="md3_light_secondaryContainer">#D0E8D9</color>
+    <color name="md3_light_onSecondaryContainer">#0B1F15</color>
+
+    <!-- Tertiary Colors -->
+    <color name="md3_light_tertiary">#3D6373</color>
+    <color name="md3_light_onTertiary">#FFFFFF</color>
+    <color name="md3_light_tertiaryContainer">#C1E8FA</color>
+    <color name="md3_light_onTertiaryContainer">#001F29</color>
+
+    <!-- Error Colors -->
+    <color name="md3_light_error">#BA1A1A</color>
+    <color name="md3_light_onError">#FFFFFF</color>
+    <color name="md3_light_errorContainer">#FFDAD6</color>
+    <color name="md3_light_onErrorContainer">#410002</color>
+
+    <!-- Background Colors -->
+    <color name="md3_light_background">#F4F7FB</color>
+    <color name="md3_light_onBackground">#1D2733</color>
+
+    <!-- Surface Colors -->
+    <color name="md3_light_surface">#F8FAFD</color>
+    <color name="md3_light_onSurface">#1D2733</color>
+
+    <!-- Surface Variant Colors -->
+    <color name="md3_light_surfaceVariant">#DBE5DE</color>
+    <color name="md3_light_onSurfaceVariant">#404944</color>
+
+    <!-- Outline Colors -->
+    <color name="md3_light_outline">#707974</color>
+    <color name="md3_light_outlineVariant">#C0C9C3</color>
+
+    <!-- Surface Container Colors -->
+    <color name="md3_light_surfaceContainerLowest">#FFFFFF</color>
+    <color name="md3_light_surfaceContainerLow">#F0F4F8</color>
+    <color name="md3_light_surfaceContainer">#EAEFF4</color>
+    <color name="md3_light_surfaceContainerHigh">#E4E9EF</color>
+    <color name="md3_light_surfaceContainerHighest">#DEE3E9</color>
+
+    <!-- Inverse Colors -->
+    <color name="md3_light_inverseSurface">#2D363F</color>
+    <color name="md3_light_inverseOnSurface">#EFF1F5</color>
+    <color name="md3_light_inversePrimary">#6CDF9B</color>
+
+    <!-- Proxy Delay Colors -->
+    <color name="delay_good">#2E7D32</color>
+    <color name="delay_good_bg">#C8E6C9</color>
+    <color name="delay_medium">#E65100</color>
+    <color name="delay_medium_bg">#FFE0B2</color>
+    <color name="delay_bad">#C62828</color>
+    <color name="delay_bad_bg">#FFCDD2</color>
+    <color name="delay_timeout">#757575</color>
+    <color name="delay_timeout_bg">#E0E0E0</color>
+
+    <!-- Proxy Type Badge Colors -->
+    <color name="proxy_type_badge_bg">#1A2FA36B</color>
+    <color name="proxy_type_badge_text">#1B5E20</color>
+
+    <!-- Flag Square Background -->
+    <color name="flag_square_bg">#E8EEF5</color>
+</resources>

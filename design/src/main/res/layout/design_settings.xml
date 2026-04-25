@@ -38,23 +38,9 @@
                 <com.github.kr328.clash.design.view.ActionLabel
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:onClick="@{() -> self.request(Request.StartNetwork)}"
-                    app:icon="@drawable/ic_baseline_dns"
-                    app:text="@string/network" />
-
-                <com.github.kr328.clash.design.view.ActionLabel
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:onClick="@{() -> self.request(Request.StartAppRouting)}"
-                    app:icon="@drawable/ic_baseline_stack"
-                    app:text="@string/access_control_packages" />
-
-                <com.github.kr328.clash.design.view.ActionLabel
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:onClick="@{() -> self.request(Request.StartFeatures)}"
-                    app:icon="@drawable/ic_baseline_flash_on"
-                    app:text="@string/features" />
+                    android:onClick="@{() -> self.request(Request.StartTheme)}"
+                    app:icon="@drawable/ic_baseline_brightness_4"
+                    app:text="@string/theme_settings" />
 
                 <com.github.kr328.clash.design.view.ActionLabel
                     android:layout_width="match_parent"
@@ -62,6 +48,27 @@
                     android:onClick="@{() -> self.request(Request.StartAdvanced)}"
                     app:icon="@drawable/ic_baseline_extension"
                     app:text="@string/advanced_settings" />
+
+                <com.github.kr328.clash.design.view.ActionLabel
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:onClick="@{() -> self.request(Request.StartAnnouncement)}"
+                    app:icon="@drawable/ic_baseline_campaign"
+                    app:text="@string/announcement_settings" />
+
+                <com.github.kr328.clash.design.view.ActionLabel
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:onClick="@{() -> self.request(Request.StartLogs)}"
+                    app:icon="@drawable/ic_baseline_article"
+                    app:text="@string/logs" />
+
+                <com.github.kr328.clash.design.view.ActionLabel
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:onClick="@{() -> self.request(Request.StartAbout)}"
+                    app:icon="@drawable/ic_baseline_info"
+                    app:text="@string/about" />
 
             </LinearLayout>
         </com.github.kr328.clash.design.view.ObservableScrollView>

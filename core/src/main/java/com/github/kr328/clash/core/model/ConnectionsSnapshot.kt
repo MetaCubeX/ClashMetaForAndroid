@@ -16,6 +16,7 @@ data class ConnectionTracker(
     val id: String = "",
     val upload: Long = 0,
     val download: Long = 0,
+    val start: String = "",
     val rule: String = "",
     val rulePayload: String = "",
     val chains: List<String> = emptyList(),
@@ -35,4 +36,10 @@ data class ConnectionMetadata(
     @SerialName("destinationPort") val destinationPort: String = "",
     @SerialName("inboundName") val inboundName: String = "",
     @SerialName("sniffHost") val sniffHost: String = "",
+    @SerialName("remoteDestination") val remoteDestination: String = "",
+    @SerialName("processPath") val processPath: String = "",
+    @SerialName("sourceGeoIP") val sourceGeoIP: String = "",
+    @SerialName("destinationGeoIP") val destinationGeoIP: String = "",
+    @SerialName("sourceIPASN") val sourceIPASN: String = "",
+    @SerialName("destinationIPASN") val destinationIPASN: String = "",
 )

@@ -182,6 +182,14 @@ object Clash {
         return Bridge.nativeQueryConnectionsSnapshot()
     }
 
+    fun closeConnection(id: String): Boolean {
+        return Bridge.nativeCloseConnection(id)
+    }
+
+    fun closeAllConnections(): Int {
+        return Bridge.nativeCloseAllConnections()
+    }
+
     fun updateProvider(type: Provider.Type, name: String): CompletableDeferred<Unit> {
         return CompletableDeferred<Unit>().apply {
             Bridge.nativeUpdateProvider(this, type.toString(), name)

@@ -93,8 +93,8 @@ class DynamicNotificationModule(service: Service) : Module<Unit>(service) {
             addAction(Intents.ACTION_PROFILE_LOADED)
         }
 
-        val tickerInteractive = ticker(TimeUnit.SECONDS.toMillis(5))
-        val tickerIdle = ticker(TimeUnit.SECONDS.toMillis(20))
+        val tickerInteractive = ticker(TimeUnit.SECONDS.toMillis(10))
+        val tickerIdle = ticker(TimeUnit.SECONDS.toMillis(60))
 
         while (true) {
             select<Unit> {

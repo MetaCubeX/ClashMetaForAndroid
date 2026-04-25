@@ -58,7 +58,26 @@ dependencies {
 
 afterEvaluate {
     tasks.withType(GolangBuildTask::class.java).forEach {
-        it.inputs.dir(golangSource)
+        val task = it
+        task.inputs.dir(golangSource)
+        task.doFirst {
+            val command = task.commandLine.map { argument: Any -> argument.toString() }.toMutableList()
+            val tagsIndex = command.indexOf("-tags")
+            if (tagsIndex >= 0 && tagsIndex + 1 < command.size) {
+                val tags = command[tagsIndex + 1]
+                    .split(",")
+                    .filter { tag: String -> tag != "debug" }
+
+                if (tags.isEmpty()) {
+                    command.removeAt(tagsIndex + 1)
+                    command.removeAt(tagsIndex)
+                } else {
+                    command[tagsIndex + 1] = tags.joinToString(",")
+                }
+
+                task.commandLine(command)
+            }
+        }
     }
 }
 

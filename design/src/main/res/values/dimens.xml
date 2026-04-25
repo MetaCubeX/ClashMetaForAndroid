@@ -12,11 +12,11 @@
     <dimen name="surface_landscape_min_width">500dp</dimen>
 
     <!--  Toolbar  -->
-    <dimen name="main_toolbar_padding_horizontal">16dp</dimen>
-    <dimen name="toolbar_height">56dp</dimen>
+    <dimen name="main_toolbar_padding_horizontal">10dp</dimen>
+    <dimen name="toolbar_height">42dp</dimen>
     <dimen name="toolbar_elevation">5dp</dimen>
     <dimen name="toolbar_image_action_padding">5dp</dimen>
-    <dimen name="toolbar_theme_button_size">44dp</dimen>
+    <dimen name="toolbar_theme_button_size">38dp</dimen>
     <dimen name="stroke_hairline">0dp</dimen>
     <dimen name="stroke_neon">2dp</dimen>
 
@@ -32,9 +32,9 @@
     <!-- Large Item -->
     <dimen name="large_item_padding_vertical">15dp</dimen>
     <dimen name="large_item_header_component_size">30dp</dimen>
-    <dimen name="large_item_header_margin_horizontal">20dp</dimen>
+    <dimen name="large_item_header_margin_horizontal">10dp</dimen>
     <!-- @dimen/large_item_header_component_size + @dimen/large_item_header_margin_horizontal x2 -->
-    <dimen name="large_item_header_layout_size">70dp</dimen>
+    <dimen name="large_item_header_layout_size">40dp</dimen>
     <dimen name="large_item_tailing_margin_horizontal">20dp</dimen>
     <dimen name="large_item_text_margin">5dp</dimen>
 
@@ -61,25 +61,45 @@
     <dimen name="preference_fullscreen_button_padding">20dp</dimen>
 
     <!-- Profile list / proxy block -->
-    <dimen name="profile_item_spacing">10dp</dimen>
-    <dimen name="profile_proxy_block_spacing">10dp</dimen>
+    <dimen name="profile_item_spacing">6dp</dimen>
+    <dimen name="profile_proxy_block_spacing">6dp</dimen>
     <dimen name="profile_header_strip_height">52dp</dimen>
-    <dimen name="proxy_row_spacing">7dp</dimen>
+    <dimen name="proxy_row_spacing">5dp</dimen>
+    <dimen name="proxy_flag_size">28dp</dimen>
+    <dimen name="proxy_flag_text_size">16sp</dimen>
+    <dimen name="proxy_flag_corner_radius">6dp</dimen>
+    <dimen name="proxy_type_badge_height">20dp</dimen>
+    <dimen name="proxy_type_badge_corner_radius">6dp</dimen>
+    <dimen name="proxy_type_badge_padding_horizontal">6dp</dimen>
+    <dimen name="proxy_type_badge_text_size">10sp</dimen>
+    <dimen name="proxy_delay_badge_padding_horizontal">8dp</dimen>
+    <dimen name="proxy_delay_badge_padding_vertical">3dp</dimen>
+    <dimen name="proxy_delay_badge_corner_radius">8dp</dimen>
 
     <!-- Main Design -->
     <dimen name="main_card_margin_vertical">5dp</dimen>
     <dimen name="main_label_margin_vertical">2dp</dimen>
-    <dimen name="main_padding_horizontal">30dp</dimen>
+    <dimen name="main_padding_horizontal">12dp</dimen>
+    <dimen name="main_bottom_nav_horizontal_margin">12dp</dimen>
+    <dimen name="main_bottom_nav_top_margin">8dp</dimen>
+    <dimen name="main_bottom_nav_bottom_margin">12dp</dimen>
+    <dimen name="main_bottom_nav_corner_radius">28dp</dimen>
+    <dimen name="main_bottom_nav_elevation">8dp</dimen>
     <dimen name="main_logo_size">50dp</dimen>
     <dimen name="main_top_banner_height">90dp</dimen>
     <dimen name="profile_action_slot">40dp</dimen>
     <dimen name="main_power_button_size">152dp</dimen>
     <dimen name="main_power_glow_size">196dp</dimen>
     <dimen name="main_power_button_radius">76dp</dimen>
+    <dimen name="theme_palette_check_inset">18dp</dimen>
+    <dimen name="theme_palette_check_stroke">3dp</dimen>
+    <dimen name="theme_screen_top_extra">12dp</dimen>
+    <dimen name="theme_screen_bottom_extra">24dp</dimen>
+    <dimen name="main_power_icon_padding">0dp</dimen>
     <dimen name="main_power_section_padding_top">12dp</dimen>
     <dimen name="main_power_section_padding_bottom">8dp</dimen>
-    <dimen name="main_profile_label_padding_bottom">8dp</dimen>
-    <dimen name="main_mode_row_margin_bottom">8dp</dimen>
+    <dimen name="main_profile_label_padding_bottom">4dp</dimen>
+    <dimen name="main_mode_row_margin_bottom">4dp</dimen>
     <dimen name="main_mode_chip_padding_horizontal">8dp</dimen>
     <dimen name="main_mode_chip_padding_vertical">12dp</dimen>
     <dimen name="main_mode_chip_emoji_size">28sp</dimen>

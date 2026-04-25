@@ -1,49 +1,67 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:paddingBottom="20dp"
-    android:paddingTop="8dp">
+    app:cardBackgroundColor="?attr/colorSurfaceContainerHigh"
+    app:cardCornerRadius="22dp"
+    app:cardElevation="0dp"
+    app:strokeColor="?attr/colorOutlineVariant"
+    app:strokeWidth="1dp">
 
-    <TextView
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingHorizontal="24dp"
-        android:paddingBottom="12dp"
-        android:text="@string/home_import_sheet_title"
-        android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1" />
+        android:orientation="vertical"
+        android:paddingTop="8dp"
+        android:paddingBottom="10dp">
 
-    <TextView
-        android:id="@+id/opt_clipboard"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="?attr/selectableItemBackground"
-        android:gravity="center_vertical"
-        android:minHeight="52dp"
-        android:paddingHorizontal="24dp"
-        android:text="@string/home_import_clipboard_row"
-        android:textAppearance="@style/TextAppearance.MaterialComponents.Body1" />
+        <View
+            android:layout_width="34dp"
+            android:layout_height="4dp"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="10dp"
+            android:background="@drawable/bg_m3_status_chip_neutral" />
 
-    <TextView
-        android:id="@+id/opt_url"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="?attr/selectableItemBackground"
-        android:gravity="center_vertical"
-        android:minHeight="52dp"
-        android:paddingHorizontal="24dp"
-        android:text="@string/home_import_url_row"
-        android:textAppearance="@style/TextAppearance.MaterialComponents.Body1" />
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingHorizontal="20dp"
+            android:paddingBottom="10dp"
+            android:text="@string/home_import_sheet_title"
+            android:textAppearance="@style/TextAppearance.Material3.TitleMedium" />
 
-    <TextView
-        android:id="@+id/opt_qr"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="?attr/selectableItemBackground"
-        android:gravity="center_vertical"
-        android:minHeight="52dp"
-        android:paddingHorizontal="24dp"
-        android:text="@string/home_import_qr_row"
-        android:textAppearance="@style/TextAppearance.MaterialComponents.Body1" />
-</LinearLayout>
+        <TextView
+            android:id="@+id/opt_clipboard"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="?attr/selectableItemBackground"
+            android:gravity="center_vertical"
+            android:minHeight="52dp"
+            android:paddingHorizontal="20dp"
+            android:text="@string/home_import_clipboard_row"
+            android:textAppearance="@style/TextAppearance.Material3.BodyLarge" />
+
+        <TextView
+            android:id="@+id/opt_url"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="?attr/selectableItemBackground"
+            android:gravity="center_vertical"
+            android:minHeight="52dp"
+            android:paddingHorizontal="20dp"
+            android:text="@string/home_import_url_row"
+            android:textAppearance="@style/TextAppearance.Material3.BodyLarge" />
+
+        <TextView
+            android:id="@+id/opt_qr"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="?attr/selectableItemBackground"
+            android:gravity="center_vertical"
+            android:minHeight="52dp"
+            android:paddingHorizontal="20dp"
+            android:text="@string/home_import_qr_row"
+            android:textAppearance="@style/TextAppearance.Material3.BodyLarge" />
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

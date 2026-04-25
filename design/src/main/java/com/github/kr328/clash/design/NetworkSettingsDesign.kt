@@ -11,6 +11,7 @@ import com.github.kr328.clash.design.util.applyFrom
 import com.github.kr328.clash.design.util.bindAppBarElevation
 import com.github.kr328.clash.design.util.layoutInflater
 import com.github.kr328.clash.design.util.root
+import com.github.kr328.clash.service.model.ProxyHardeningMode
 import com.github.kr328.clash.service.store.ServiceStore
 import kotlinx.coroutines.launch
 
@@ -52,6 +53,25 @@ class NetworkSettingsDesign(
                     }
                 }
             }
+
+            category(R.string.security_options)
+
+            selectableList(
+                value = srvStore::proxyHardeningMode,
+                values = ProxyHardeningMode.values(),
+                valuesText = arrayOf(
+                    R.string.proxy_hardening_strict,
+                    R.string.proxy_hardening_compat,
+                    R.string.proxy_hardening_off,
+                ),
+                title = R.string.proxy_hardening_mode,
+            )
+
+            switch(
+                value = srvStore::seedDefaultGeoMirrors,
+                title = R.string.seed_default_geo_mirrors,
+                summary = R.string.seed_default_geo_mirrors_summary,
+            )
 
             category(R.string.vpn_service_options)
 

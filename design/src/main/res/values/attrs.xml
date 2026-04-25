@@ -2,6 +2,9 @@
 <resources>
     <attr name="fullScreenDialogTheme" format="reference" />
 
+    <attr name="colorBackground" format="color" />
+    <attr name="colorOnBackground" format="color" />
+
     <attr name="colorClashStopped" format="color" />
     <attr name="colorControlDisabled" format="color" />
     <attr name="colorLogo" format="color" />
@@ -11,6 +14,7 @@
     <attr name="colorMainDashboardText" format="color" />
     <attr name="colorMainModeChipLabel" format="color" />
     <attr name="colorMainCardGlass" format="color" />
+    <attr name="colorMainBottomNavGlass" format="color" />
     <attr name="colorMainGlassStroke" format="color" />
     <!-- Profile list row + expanded proxy panel (home) -->
     <attr name="profileCardBackground" format="reference" />

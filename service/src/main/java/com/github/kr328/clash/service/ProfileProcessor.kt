@@ -11,6 +11,7 @@ import com.github.kr328.clash.service.data.PendingDao
 import com.github.kr328.clash.service.model.Profile
 import com.github.kr328.clash.service.remote.IFetchObserver
 import com.github.kr328.clash.service.store.ServiceStore
+import com.github.kr328.clash.service.util.GeoUrlSanitizer
 import com.github.kr328.clash.service.util.SubscriptionUpdateMerge
 import com.github.kr328.clash.service.util.importedDir
 import com.github.kr328.clash.service.util.pendingDir
@@ -65,6 +66,8 @@ object ProfileProcessor {
                     }
                 }.await()
 
+                GeoUrlSanitizer.sanitizeProfile(context.processingDir)
+
                 withContext(NonCancellable) {
                     profileLock.withLock {
                         if (PendingDao().queryByUUID(snapshot.uuid) != snapshot) return@withLock
@@ -84,7 +87,7 @@ object ProfileProcessor {
                                 val versionName = context.packageManager.getPackageInfo(context.packageName, 0).versionName
                                 val request = Request.Builder()
                                     .url(snapshot.source)
-                                    .header("User-Agent", "ClashMetaForAndroid/$versionName")
+                                    .header("User-Agent", "ClashFest/$versionName")
                                     .build()
 
                                 client.newCall(request).execute().use { response ->
@@ -212,6 +215,8 @@ object ProfileProcessor {
                     configFile.writeText(merged)
                     Log.d("Subscription merge preserved local overlays: rules/rule-providers/proxy-providers reapplied for ${snapshot.uuid}")
                 }
+
+                GeoUrlSanitizer.sanitizeProfile(context.processingDir)
 
                 withContext(NonCancellable) {
                     profileLock.withLock {

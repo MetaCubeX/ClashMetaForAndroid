@@ -1,6 +1,8 @@
 package com.github.kr328.clash
 
 import android.content.pm.PackageManager
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.os.LocaleListCompat
 import com.github.kr328.clash.common.constants.Components
 import com.github.kr328.clash.common.util.componentName
 import com.github.kr328.clash.design.AppSettingsDesign
@@ -32,7 +34,16 @@ class AppSettingsActivity : BaseActivity<AppSettingsDesign>(), Behavior {
                         else -> Unit
                     }
                 }
-                design.requests.onReceive {
+                design.requests.onReceive { request ->
+                    if (request == AppSettingsDesign.Request.ApplyLanguage) {
+                        val tag = uiStore.appLanguage.tag
+                        val locales = if (tag.isEmpty()) {
+                            LocaleListCompat.getEmptyLocaleList()
+                        } else {
+                            LocaleListCompat.forLanguageTags(tag)
+                        }
+                        AppCompatDelegate.setApplicationLocales(locales)
+                    }
                     ApplicationObserver.createdActivities.forEach {
                         it.recreate()
                     }

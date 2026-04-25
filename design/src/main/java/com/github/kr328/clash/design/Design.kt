@@ -39,7 +39,7 @@ abstract class Design<R>(val context: Context) :
                 ToastDuration.Indefinite -> Snackbar.LENGTH_INDEFINITE
             }
             Snackbar.make(root, message, len).apply {
-                root.findViewById<View>(R.id.main_bottom_bar)?.let { anchorView = it }
+                root.findViewById<View>(R.id.main_bottom_nav_card)?.let { anchorView = it }
                 configure()
             }.show()
         }

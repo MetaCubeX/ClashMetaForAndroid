@@ -3,9 +3,11 @@ package com.github.kr328.clash.service.store
 import android.content.Context
 import com.github.kr328.clash.common.store.Store
 import com.github.kr328.clash.common.store.asStoreProvider
+import android.os.Build
 import com.github.kr328.clash.service.PreferenceProvider
 import com.github.kr328.clash.service.model.AccessControlMode
 import com.github.kr328.clash.service.model.GeoDataSourcePreset
+import com.github.kr328.clash.service.model.ProxyHardeningMode
 import java.util.*
 
 class ServiceStore(context: Context) {
@@ -37,6 +39,17 @@ class ServiceStore(context: Context) {
         defaultValue = emptySet()
     )
 
+    /**
+     * `true` after we have seeded [accessControlPackages] with the default
+     * Russian bypass list (банки/госуслуги/связь/маркетплейсы) on first switch
+     * to [AccessControlMode.DenySelected]. Prevents repeatedly clobbering the
+     * user's manual edits.
+     */
+    var russianBypassSeeded by store.boolean(
+        key = "russian_bypass_seeded",
+        defaultValue = false
+    )
+
     var dnsHijacking by store.boolean(
         key = "dns_hijacking",
         defaultValue = true
@@ -65,6 +78,32 @@ class ServiceStore(context: Context) {
 
     var dynamicNotification by store.boolean(
         key = "dynamic_notification",
+        defaultValue = true
+    )
+
+    /**
+     * Hardening level applied at runtime against SOCKS5/HTTP/Mixed listener
+     * leaks and direct access to the TUN interface from other apps. See
+     * [ProxyHardeningMode]. Default is [ProxyHardeningMode.Strict] on Android
+     * 10+ and [ProxyHardeningMode.Compat] otherwise.
+     */
+    var proxyHardeningMode: ProxyHardeningMode by store.enum(
+        key = "proxy_hardening_mode",
+        defaultValue = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
+            ProxyHardeningMode.Strict
+        else
+            ProxyHardeningMode.Compat,
+        values = ProxyHardeningMode.values()
+    )
+
+    /**
+     * When true, ClashFest seeds default mirrors for `geox-url` if the
+     * imported profile does not specify them. Prevents the
+     * `cant download geoip.dat` failure on subscriptions that rely on
+     * GEOIP/GEOSITE rules without bundling a download URL.
+     */
+    var seedDefaultGeoMirrors by store.boolean(
+        key = "seed_default_geo_mirrors",
         defaultValue = true
     )
 

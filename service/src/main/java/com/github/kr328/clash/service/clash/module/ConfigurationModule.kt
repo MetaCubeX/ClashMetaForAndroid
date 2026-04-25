@@ -8,8 +8,9 @@ import com.github.kr328.clash.service.StatusProvider
 import com.github.kr328.clash.service.data.ImportedDao
 import com.github.kr328.clash.service.data.SelectionDao
 import com.github.kr328.clash.service.store.ServiceStore
+import com.github.kr328.clash.service.util.GeoUrlSanitizer
 import com.github.kr328.clash.service.util.ProxyDialerYamlEdit
-import com.github.kr328.clash.service.util.RuntimeSocksAuth
+import com.github.kr328.clash.service.util.ProxyHardener
 import com.github.kr328.clash.service.util.importedDir
 import com.github.kr328.clash.service.util.sendProfileLoaded
 import kotlinx.coroutines.channels.Channel
@@ -79,7 +80,12 @@ class ConfigurationModule(service: Service) : Module<ConfigurationModule.LoadExc
                     }
 
                     val sessionOverride = Clash.queryOverride(Clash.OverrideSlot.Session)
-                    if (RuntimeSocksAuth.applyTo(sessionOverride)) {
+                    val hardened = ProxyHardener.applyTo(
+                        configuration = sessionOverride,
+                        mode = store.proxyHardeningMode,
+                        seedGeoMirrors = store.seedDefaultGeoMirrors,
+                    )
+                    if (hardened) {
                         Clash.patchOverride(Clash.OverrideSlot.Session, sessionOverride)
                     }
 
@@ -98,6 +104,7 @@ class ConfigurationModule(service: Service) : Module<ConfigurationModule.LoadExc
                 }
 
                 try {
+                    GeoUrlSanitizer.sanitizeProfile(profileDir)
                     Clash.load(profileDir).await()
                     applyPostLoad()
                 } catch (e: Exception) {

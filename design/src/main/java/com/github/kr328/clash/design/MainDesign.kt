@@ -5,6 +5,8 @@ import android.animation.AnimatorListenerAdapter
 import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
 import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import android.view.MotionEvent
 import android.view.View
 import android.view.animation.AccelerateDecelerateInterpolator
@@ -17,14 +19,18 @@ import com.github.kr328.clash.design.databinding.DesignAboutBinding
 import com.github.kr328.clash.design.databinding.DesignMainBinding
 import com.github.kr328.clash.design.dialog.AppBottomSheetDialog
 import com.github.kr328.clash.design.model.DarkMode
+import com.github.kr328.clash.design.model.HomeBackgroundStyle
+import com.github.kr328.clash.design.store.UiStore
 import com.github.kr328.clash.design.ui.ToastDuration
 import com.github.kr328.clash.design.util.applyLinearAdapter
 import com.github.kr328.clash.design.util.layoutInflater
 import com.github.kr328.clash.design.util.patchDataSet
 import com.github.kr328.clash.design.util.resolveThemedColor
+import com.github.kr328.clash.design.util.resolveThemedResourceId
 import com.github.kr328.clash.design.util.root
 import com.github.kr328.clash.design.R
 import com.github.kr328.clash.service.model.Profile
+import android.widget.FrameLayout
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.withContext
@@ -35,7 +41,6 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
     enum class Request {
         ToggleStatus,
         OpenNewProfile,
-        OpenRules,
         OpenSettings,
         OpenAbout,
         PatchModeDirect,
@@ -44,29 +49,34 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         OpenImportClipboard,
         OpenImportQr,
         CycleTheme,
-        OpenEffectiveRules,
+        OpenLogs,
         OpenConnections,
-        /** Full-screen proxy group list; proxy chain is in the Proxy screen overflow menu. */
-        OpenProxyGroups,
+        /** Hub screen combining YAML rules, routing rules and per-app routing. */
+        OpenRouting,
+        /** Subscriptions / profiles list. */
+        OpenProfiles,
     }
 
     val profileActivateRequests = Channel<Profile>(Channel.UNLIMITED)
     val profileMenuRequests = Channel<Pair<Profile, View>>(Channel.UNLIMITED)
     val profileEditRequests = Channel<Profile>(Channel.UNLIMITED)
-    val patchHomeProxyRequests = Channel<Triple<Profile, String, String>>(Channel.UNLIMITED)
+    val patchHomeProxyRequests = Channel<Triple<Profile, String, String>>(Channel.CONFLATED)
     val profilePingAllRequests = Channel<Triple<Profile, String, List<String>>>(Channel.UNLIMITED)
     val profileForceUpdateRequests = Channel<Profile>(Channel.UNLIMITED)
     val profileProxyYamlRequests = Channel<Triple<Profile, String, String>>(Channel.UNLIMITED)
     /** Fires when user expands/collapses any profile panel so the host can reload proxy previews. */
     val profileExpandChanged = Channel<Unit>(Channel.CONFLATED)
+    val profileVisibleGroupChanged = Channel<Pair<Profile, String>>(Channel.CONFLATED)
 
     private val binding = DesignMainBinding
         .inflate(context.layoutInflater, context.root, false)
 
     private var clashRunningState: Boolean = false
     private var tunnelStartingState: Boolean = false
+    private val uiStore = UiStore(context)
     private val expandedProfileUuids: LinkedHashSet<UUID> = linkedSetOf()
     private var mainPowerConnectRevealAnim: ValueAnimator? = null
+    private var currentModeSegment: TunnelState.Mode = TunnelState.Mode.Rule
     private var lastPowerVisualMode: Int = -1 // 0=off, 1=starting, 2=running
     private val mainPowerOffIconResId: Int by lazy { resolveRuntimeDrawable("proxy_off") }
     private val mainPowerOnIconResId: Int by lazy { resolveRuntimeDrawable("proxy_on") }
@@ -81,12 +91,49 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         { profile, group, proxyNames -> profilePingAllRequests.trySend(Triple(profile, group, proxyNames)) },
         { profile -> profileForceUpdateRequests.trySend(profile) },
         { profile, group, proxy -> profileProxyYamlRequests.trySend(Triple(profile, group, proxy)) },
+        { profile, group -> profileVisibleGroupChanged.trySend(profile to group) },
+        expandOnProfileClick = true,
     )
 
     override val root: View
         get() = binding.root
 
     fun getExpandedProfileUuids(): Set<UUID> = expandedProfileUuids.toSet()
+
+    /**
+     * Pushes operator-pushed subscription metadata into the per-profile UI.
+     *
+     * The legacy global "Koala-style" announcement card is now always hidden — operators'
+     * announcement text is rendered inline on the active profile card instead, so it stays
+     * tied to the subscription it belongs to.
+     */
+    suspend fun setAnnouncement(
+        text: String?,
+        url: String?,
+        usage: com.github.kr328.clash.common.util.SubscriptionUsage? = null,
+        supportUrl: String? = null,
+        onOpenUrl: ((String) -> Unit)? = null,
+        onDismiss: (() -> Unit)? = null,
+        onRefresh: (() -> Unit)? = null,
+        onSupport: (() -> Unit)? = null,
+    ) {
+        withContext(Dispatchers.Main) {
+            // Hide the legacy global card unconditionally.
+            binding.mainAnnouncementCard.visibility = android.view.View.GONE
+
+            profileAdapter.setActiveAnnouncement(
+                text = text,
+                url = url,
+                supportUrl = supportUrl,
+                onOpenUrl = onOpenUrl,
+                onSupport = onSupport,
+            )
+            // Mark unused parameters as intentionally consumed.
+            usage?.let { /* kept for API stability; per-profile usage is rendered from Profile fields */ }
+            onDismiss?.let { /* dismiss has no place in the inline UI */ }
+            onRefresh?.let { /* refresh is handled via the existing per-profile force-update icon */ }
+        }
+    }
 
     suspend fun setProfileName(name: String?) {
         withContext(Dispatchers.Main) {
@@ -228,16 +275,13 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
 
     suspend fun setMode(mode: TunnelState.Mode) {
         withContext(Dispatchers.Main) {
-            binding.mode = when (mode) {
-                TunnelState.Mode.Direct -> context.getString(R.string.direct_mode)
+            val normalized = normalizeMode(mode)
+            currentModeSegment = normalized
+            binding.mode = when (normalized) {
                 TunnelState.Mode.Global -> context.getString(R.string.global_mode)
-                TunnelState.Mode.Rule -> context.getString(R.string.rule_mode)
                 else -> context.getString(R.string.rule_mode)
             }
-
-            binding.isRuleMode = mode == TunnelState.Mode.Rule
-            binding.isGlobalMode = mode == TunnelState.Mode.Global
-            binding.isDirectMode = mode == TunnelState.Mode.Direct
+            updateModeSegment(normalized, animate = true)
         }
     }
 
@@ -249,10 +293,43 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         val mode = when (pref) {
             TunnelState.Mode.Rule.name -> TunnelState.Mode.Rule
             TunnelState.Mode.Global.name -> TunnelState.Mode.Global
-            TunnelState.Mode.Direct.name -> TunnelState.Mode.Direct
+            TunnelState.Mode.Direct.name -> TunnelState.Mode.Rule
             else -> return
         }
         setMode(mode)
+    }
+
+    private fun normalizeMode(mode: TunnelState.Mode): TunnelState.Mode =
+        if (mode == TunnelState.Mode.Direct) TunnelState.Mode.Rule else mode
+
+    private fun updateModeSegment(mode: TunnelState.Mode, animate: Boolean) {
+        val container = binding.modeSegmentContainer
+        val thumb = binding.modeSegmentThumb
+        if (container.width == 0) {
+            container.post { updateModeSegment(mode, animate = false) }
+            return
+        }
+
+        val inset = container.paddingStart + container.paddingEnd
+        val slotWidth = ((container.width - inset) / 2).coerceAtLeast(1)
+
+        val lp = (thumb.layoutParams as FrameLayout.LayoutParams).apply {
+            width = slotWidth
+        }
+        thumb.layoutParams = lp
+
+        val targetX = if (mode == TunnelState.Mode.Global) slotWidth.toFloat() else 0f
+        thumb.animate().cancel()
+        thumb.animate()
+            .translationX(targetX)
+            .setDuration(if (animate) 160L else 0L)
+            .start()
+
+        val selectedColor = context.resolveThemedColor(com.google.android.material.R.attr.colorOnSecondaryContainer)
+        val normalColor = context.resolveThemedColor(com.google.android.material.R.attr.colorOnSurfaceVariant)
+        val isRule = mode != TunnelState.Mode.Global
+        binding.modeLabelRule.setTextColor(if (isRule) selectedColor else normalColor)
+        binding.modeLabelGlobal.setTextColor(if (isRule) normalColor else selectedColor)
     }
 
     suspend fun syncThemeToggleIcon(mode: DarkMode) {
@@ -307,6 +384,18 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         }
     }
 
+    suspend fun clearProxyDetails() {
+        withContext(Dispatchers.Main) {
+            profileAdapter.clearProxyDetails()
+        }
+    }
+
+    suspend fun markProxySelectionPending(profile: Profile, group: String, proxy: String) {
+        withContext(Dispatchers.Main) {
+            profileAdapter.setPendingProxySelection(profile.uuid, group, proxy)
+        }
+    }
+
     suspend fun clearStandalonePingForProfile(uuid: UUID) {
         withContext(Dispatchers.Main) {
             profileAdapter.clearStandalonePingDelays(uuid)
@@ -323,10 +412,17 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         if (!profile.imported) {
             return
         }
-        if (!expandedProfileUuids.add(profile.uuid)) {
+        val expanded = expandedProfileUuids.add(profile.uuid)
+        if (!expanded) {
             expandedProfileUuids.remove(profile.uuid)
         }
         profileAdapter.setExpandedUuids(expandedProfileUuids.toSet())
+        if (expanded && clashRunningState && profile.active) {
+            binding.profileList.postDelayed({
+                val distance = (binding.profileList.height * 0.36f).toInt().coerceAtLeast(120)
+                binding.profileList.smoothScrollBy(0, distance)
+            }, 120L)
+        }
         profileExpandChanged.trySend(Unit)
     }
 
@@ -358,8 +454,21 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
             val dialog = AppBottomSheetDialog(context, fitContentHeight = true)
             dialog.setContentView(binding.root)
 
+            binding.aboutGithubIcon.apply {
+                visibility = View.VISIBLE
+                setOnClickListener {
+                    runCatching {
+                        val url = context.getString(R.string.clashfest_repo_url)
+                        context.startActivity(
+                            Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+                        )
+                    }
+                }
+            }
+
             if (onCheckUpdates != null) {
-                binding.aboutCheckUpdatesButton.apply {
+                binding.aboutSupportButton.apply {
                     visibility = View.VISIBLE
                     var statusText: String? = null
 
@@ -399,11 +508,7 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         binding.self = this
         binding.tunnelStarting = false
         binding.hasProfiles = false
-
-        binding.modeActiveColor =
-            context.resolveThemedColor(com.google.android.material.R.attr.colorPrimary)
-        binding.modeInactiveColor =
-            context.resolveThemedColor(R.attr.colorClashStopped)
+        applyHomeBackgroundStyle()
 
         binding.profileList.also {
             it.applyLinearAdapter(context, profileAdapter)
@@ -415,6 +520,9 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         }
 
         val card = binding.mainPowerCard
+        card.setOnClickListener {
+            requests.trySend(Request.ToggleStatus)
+        }
         card.setOnTouchListener { v, event ->
             when (event.actionMasked) {
                 MotionEvent.ACTION_DOWN -> {
@@ -432,6 +540,62 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
 
         binding.tunnelStarting = false
         applyPowerVisuals()
+
+        binding.modeLabelRule.setOnClickListener {
+            requests.trySend(Request.PatchModeRule)
+        }
+        binding.modeLabelGlobal.setOnClickListener {
+            requests.trySend(Request.PatchModeGlobal)
+        }
+        binding.modeSegmentContainer.post {
+            updateModeSegment(currentModeSegment, animate = false)
+        }
+
+        binding.mainNavProfiles.setOnClickListener { requests.trySend(Request.OpenProfiles) }
+        binding.mainNavLogs.setOnClickListener { requests.trySend(Request.OpenSettings) }
+        binding.mainNavRouting.setOnClickListener { requests.trySend(Request.OpenRouting) }
+        binding.mainNavConnections.setOnClickListener { requests.trySend(Request.OpenConnections) }
+
+        val alignFab: () -> Unit = {
+            binding.root.post { alignAddProfileFabToProfiles() }
+        }
+        binding.mainBottomNavCard.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> alignFab() }
+        binding.mainNavProfiles.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> alignFab() }
+        binding.mainAddProfileFab.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> alignFab() }
+        alignFab()
+    }
+
+    private fun alignAddProfileFabToProfiles() {
+        val fab = binding.mainAddProfileFab
+        val profiles = binding.mainNavProfiles
+        if (fab.width == 0 || profiles.width == 0) return
+
+        val fabLocation = IntArray(2)
+        val profilesLocation = IntArray(2)
+        fab.getLocationOnScreen(fabLocation)
+        profiles.getLocationOnScreen(profilesLocation)
+
+        val fabCenterX = fabLocation[0] + fab.width / 2f
+        val profilesCenterX = profilesLocation[0] + profiles.width / 2f
+        val deltaX = profilesCenterX - fabCenterX
+
+        if (kotlin.math.abs(deltaX) > 0.5f) {
+            fab.translationX += deltaX
+        }
+    }
+
+    private fun applyHomeBackgroundStyle() {
+        when (uiStore.homeBackgroundStyle) {
+            HomeBackgroundStyle.MaterialYou -> binding.root.setBackgroundColor(
+                context.resolveThemedColor(com.google.android.material.R.attr.colorSurface),
+            )
+            HomeBackgroundStyle.Plain -> binding.root.setBackgroundColor(
+                context.resolveThemedColor(android.R.attr.colorBackground),
+            )
+            HomeBackgroundStyle.Preview -> binding.root.setBackgroundResource(
+                context.resolveThemedResourceId(R.attr.mainDashboardBackground),
+            )
+        }
     }
 
     fun request(request: Request) {

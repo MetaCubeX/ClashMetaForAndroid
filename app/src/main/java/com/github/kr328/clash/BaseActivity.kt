@@ -1,6 +1,7 @@
 package com.github.kr328.clash
 
 import android.app.ActivityManager
+import android.content.Context
 import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
@@ -15,6 +16,7 @@ import com.github.kr328.clash.common.compat.isSystemBarsTranslucentCompat
 import com.github.kr328.clash.core.bridge.ClashException
 import com.github.kr328.clash.design.Design
 import com.github.kr328.clash.design.model.DarkMode
+import com.github.kr328.clash.design.model.ThemePalette
 import com.github.kr328.clash.design.store.UiStore
 import com.github.kr328.clash.design.ui.DayNight
 import com.github.kr328.clash.design.util.resolveThemedBoolean
@@ -24,6 +26,7 @@ import com.github.kr328.clash.remote.Broadcasts
 import com.github.kr328.clash.remote.Remote
 import com.github.kr328.clash.util.ActivityResultLifecycle
 import com.github.kr328.clash.util.ApplicationObserver
+import com.google.android.material.color.DynamicColors
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import java.util.*
@@ -57,6 +60,19 @@ abstract class BaseActivity<D : Design<*>> : AppCompatActivity(),
     private var dayNight: DayNight = DayNight.Day
 
     protected abstract suspend fun main()
+
+    override fun attachBaseContext(newBase: Context) {
+        val store = runCatching { UiStore(newBase) }.getOrNull()
+        val scale = store?.themeTextScale?.factor ?: 1.0f
+        if (scale == 1.0f) {
+            super.attachBaseContext(newBase)
+        } else {
+            val config = Configuration(newBase.resources.configuration).apply {
+                fontScale *= scale
+            }
+            super.attachBaseContext(newBase.createConfigurationContext(config))
+        }
+    }
 
     fun defer(operation: suspend () -> Unit) {
         this.defer = operation
@@ -202,6 +218,15 @@ abstract class BaseActivity<D : Design<*>> : AppCompatActivity(),
             DayNight.Night -> theme.applyStyle(R.style.AppThemeDark, true)
             DayNight.Day -> theme.applyStyle(R.style.AppThemeLight, true)
         }
+        paletteOverlay(uiStore.themePalette, dayNight)?.let {
+            theme.applyStyle(it, true)
+        }
+        if (uiStore.dynamicColors) {
+            DynamicColors.applyToActivityIfAvailable(this)
+        }
+        if (dayNight == DayNight.Night && uiStore.trueBlack) {
+            theme.applyStyle(R.style.ThemeOverlay_ClashFest_TrueBlack, true)
+        }
 
         window.isAllowForceDarkCompat = false
         window.isSystemBarsTranslucentCompat = true
@@ -218,6 +243,20 @@ abstract class BaseActivity<D : Design<*>> : AppCompatActivity(),
         }
 
         this.dayNight = dayNight
+    }
+
+    private fun paletteOverlay(palette: ThemePalette, dayNight: DayNight): Int? {
+        val night = dayNight == DayNight.Night
+        return when (palette) {
+            ThemePalette.Clash -> null
+            ThemePalette.Blue -> if (night) R.style.ThemeOverlay_ClashFest_PaletteBlue_Dark else R.style.ThemeOverlay_ClashFest_PaletteBlue_Light
+            ThemePalette.Violet -> if (night) R.style.ThemeOverlay_ClashFest_PaletteViolet_Dark else R.style.ThemeOverlay_ClashFest_PaletteViolet_Light
+            ThemePalette.Rose -> if (night) R.style.ThemeOverlay_ClashFest_PaletteRose_Dark else R.style.ThemeOverlay_ClashFest_PaletteRose_Light
+            ThemePalette.Amber -> if (night) R.style.ThemeOverlay_ClashFest_PaletteAmber_Dark else R.style.ThemeOverlay_ClashFest_PaletteAmber_Light
+            ThemePalette.Mint -> if (night) R.style.ThemeOverlay_ClashFest_PaletteMint_Dark else R.style.ThemeOverlay_ClashFest_PaletteMint_Light
+            ThemePalette.Graphite -> if (night) R.style.ThemeOverlay_ClashFest_PaletteGraphite_Dark else R.style.ThemeOverlay_ClashFest_PaletteGraphite_Light
+            ThemePalette.Mono -> if (night) R.style.ThemeOverlay_ClashFest_PaletteMono_Dark else R.style.ThemeOverlay_ClashFest_PaletteMono_Light
+        }
     }
 
     enum class Event {

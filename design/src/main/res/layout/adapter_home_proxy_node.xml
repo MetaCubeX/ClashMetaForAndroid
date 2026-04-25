@@ -1,35 +1,58 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    style="@style/AppCard.Filled"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="@dimen/proxy_row_spacing"
-    android:background="@drawable/bg_b"
-    android:gravity="center_vertical"
-    android:minHeight="48dp"
-    android:orientation="horizontal"
-    android:paddingVertical="8dp"
-    android:paddingStart="8dp"
-    android:paddingEnd="8dp">
+    app:cardBackgroundColor="?attr/colorSurfaceContainer"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="0dp"
+    app:strokeWidth="0dp">
 
     <LinearLayout
         android:id="@+id/proxy_row_main_hit"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
         android:background="?attr/selectableItemBackground"
         android:clickable="true"
         android:focusable="true"
         android:gravity="center_vertical"
-        android:orientation="horizontal">
+        android:minHeight="42dp"
+        android:orientation="horizontal"
+        android:paddingVertical="5dp"
+        android:paddingStart="0dp"
+        android:paddingEnd="8dp">
 
         <View
             android:id="@+id/selected_bar"
             android:layout_width="3dp"
             android:layout_height="match_parent"
-            android:layout_marginEnd="6dp"
-            android:background="?attr/colorPrimary"
+            android:layout_marginEnd="8dp"
+            android:background="@drawable/bg_m3_node_selected"
             android:visibility="invisible" />
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/proxy_flag_card"
+            style="@style/AppCard.Filled"
+            android:layout_width="26dp"
+            android:layout_height="26dp"
+            android:layout_marginEnd="8dp"
+            android:visibility="gone"
+            app:cardBackgroundColor="?attr/colorSurfaceContainerHigh"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="0dp"
+            app:strokeWidth="0dp">
+
+            <TextView
+                android:id="@+id/proxy_flag"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:textSize="14sp"
+                tools:text="US" />
+        </com.google.android.material.card.MaterialCardView>
 
         <LinearLayout
             android:layout_width="0dp"
@@ -37,39 +60,73 @@
             android:layout_weight="1"
             android:orientation="vertical">
 
-            <TextView
-                android:id="@+id/proxy_title"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:ellipsize="end"
-                android:maxLines="2"
-                android:textAppearance="@style/TextAppearance.MaterialComponents.Body2"
-                android:textColor="?attr/colorOnSurface"
-                tools:text="🦖 Node [VLESS]" />
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/proxy_title"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:textAppearance="@style/TextAppearance.App.BodySmall"
+                    android:textColor="?attr/colorOnSurface"
+                    android:textStyle="bold"
+                    tools:text="US Node 01" />
+            </LinearLayout>
 
             <TextView
                 android:id="@+id/proxy_subtitle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:alpha="0.88"
+                android:layout_marginTop="2dp"
                 android:ellipsize="end"
                 android:maxLines="1"
-                android:textAppearance="@style/TextAppearance.MaterialComponents.Caption"
+                android:textAppearance="@style/TextAppearance.App.LabelSmall"
                 android:textColor="?attr/colorOnSurfaceVariant"
-                tools:text="VLESS" />
+                tools:text="vless://server:443" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_marginStart="8dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/proxy_type_badge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="6dp"
+                android:background="@drawable/bg_m3_status_chip_neutral"
+                android:gravity="center"
+                android:minWidth="0dp"
+                android:paddingHorizontal="6dp"
+                android:paddingVertical="2dp"
+                android:textAppearance="@style/TextAppearance.App.LabelSmall"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:visibility="gone"
+                tools:text="VLESS"
+                tools:visibility="visible" />
+
+            <TextView
+                android:id="@+id/proxy_delay"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_m3_delay_chip"
+                android:gravity="center"
+                android:minWidth="42dp"
+                android:paddingHorizontal="7dp"
+                android:paddingVertical="3dp"
+                android:textAppearance="@style/TextAppearance.App.LabelSmall"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                tools:text="334ms" />
         </LinearLayout>
     </LinearLayout>
-
-    <TextView
-        android:id="@+id/proxy_delay"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_vertical"
-        android:layout_marginStart="4dp"
-        android:alpha="0.9"
-        android:gravity="end"
-        android:minWidth="44dp"
-        android:textAppearance="@style/TextAppearance.MaterialComponents.Caption"
-        android:textColor="?attr/colorOnSurfaceVariant"
-        tools:text="334ms" />
-</LinearLayout>
+</com.google.android.material.card.MaterialCardView>

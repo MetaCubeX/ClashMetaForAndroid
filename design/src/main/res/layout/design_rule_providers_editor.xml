@@ -20,22 +20,29 @@
             android:paddingHorizontal="@dimen/main_padding_horizontal"
             android:paddingBottom="8dp"
             android:text="@string/rule_providers_editor_hint"
-            android:textAppearance="@style/TextAppearance.MaterialComponents.Body2" />
+            android:textAppearance="@style/TextAppearance.Material3.BodyMedium" />
 
-        <EditText
-            android:id="@+id/yaml_input"
+        <com.google.android.material.textfield.TextInputLayout
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
-            android:fontFamily="monospace"
-            android:gravity="top|start"
-            android:hint="rule-providers:"
-            android:inputType="textMultiLine|textNoSuggestions"
-            android:padding="@dimen/main_padding_horizontal"
-            android:textSize="12sp" />
+            android:paddingHorizontal="@dimen/main_padding_horizontal">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/yaml_input"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:fontFamily="monospace"
+                android:gravity="top|start"
+                android:hint="rule-providers:"
+                android:inputType="textMultiLine|textNoSuggestions"
+                android:textSize="12sp" />
+        </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_save"
+            style="@style/Widget.Material3.Button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="@dimen/main_padding_horizontal"

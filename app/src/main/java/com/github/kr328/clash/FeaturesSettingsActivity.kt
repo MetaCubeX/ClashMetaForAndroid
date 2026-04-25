@@ -31,6 +31,10 @@ class FeaturesSettingsActivity : BaseActivity<FeaturesSettingsDesign>() {
                 }
                 design.requests.onReceive {
                     when (it) {
+                        FeaturesSettingsDesign.Request.StartNetwork ->
+                            startActivity(NetworkSettingsActivity::class.intent)
+                        FeaturesSettingsDesign.Request.StartAppRouting ->
+                            startActivity(AccessControlActivity::class.intent)
                         FeaturesSettingsDesign.Request.StartGeoDataSource ->
                             startActivity(GeoDataSourceSettingsActivity::class.intent)
                     }

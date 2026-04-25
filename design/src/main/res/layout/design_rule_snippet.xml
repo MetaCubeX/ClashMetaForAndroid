@@ -16,7 +16,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:clipToPadding="false"
-            android:paddingTop="@{(float) self.surface.insets.top + @dimen/toolbar_height}"
+            android:paddingTop="@{self.surface.insets.top}"
             android:paddingBottom="@{self.surface.insets.bottom}">
 
             <LinearLayout
@@ -28,15 +28,24 @@
                 android:paddingBottom="24dp">
 
                 <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/nav_routing"
+                    android:textAppearance="@style/TextAppearance.App.HeadlineSmall"
+                    android:textColor="?attr/colorOnSurface"
+                    android:textStyle="bold" />
+
+                <TextView
                     android:id="@+id/tv_rules_intro"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
                     android:text="@string/rule_manager_intro"
-                    android:textAppearance="@style/TextAppearance.MaterialComponents.Body2" />
+                    android:textAppearance="@style/TextAppearance.Material3.BodyMedium" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btn_open_create_sheet"
-                    style="@style/Widget.MaterialComponents.Button"
+                    style="@style/Widget.Material3.Button"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
@@ -44,7 +53,7 @@
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btn_open_manual_rules"
-                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
@@ -55,16 +64,15 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
                     android:text="@string/rule_existing_providers"
-                    android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1"
+                    android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
                     android:textColor="?attr/colorPrimary" />
 
                 <TextView
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:alpha="0.75"
-                    android:text="@string/rule_existing_provider_toggle_hint"
-                    android:textAppearance="@style/TextAppearance.MaterialComponents.Body2" />
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="@string/rule_existing_provider_toggle_hint"
+                android:textAppearance="@style/TextAppearance.Material3.BodyMedium" />
 
                 <LinearLayout
                     android:id="@+id/provider_items_container"
@@ -74,13 +82,5 @@
             </LinearLayout>
         </androidx.core.widget.NestedScrollView>
 
-        <com.github.kr328.clash.design.view.ActivityBarLayout
-            android:id="@+id/activity_bar_layout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingTop="@{self.surface.insets.top}"
-            android:paddingEnd="@dimen/item_tailing_margin">
-            <include layout="@layout/common_activity_bar" />
-        </com.github.kr328.clash.design.view.ActivityBarLayout>
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 </layout>

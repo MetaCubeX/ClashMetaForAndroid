@@ -3,7 +3,7 @@ package com.github.kr328.clash.design
 import android.content.Context
 import android.view.View
 import android.widget.ArrayAdapter
-import android.widget.Spinner
+import android.widget.AutoCompleteTextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -34,7 +34,7 @@ class ProxyProvidersEditorDesign(
     )
 
     private val toolbar: MaterialToolbar = rootView.findViewById(R.id.toolbar)
-    private val spinnerSubscriptions: Spinner = rootView.findViewById(R.id.spinner_subscriptions)
+    private val spinnerSubscriptions: AutoCompleteTextView = rootView.findViewById(R.id.spinner_subscriptions)
     private val btnAddSelected: MaterialButton = rootView.findViewById(R.id.btn_add_selected)
 
     private var subscriptionPicks: List<SubscriptionPick> = emptyList()
@@ -80,7 +80,7 @@ class ProxyProvidersEditorDesign(
             requests.trySend(Request.UpdateAllProviders)
         }
         btnAddSelected.setOnClickListener {
-            val pos = spinnerSubscriptions.selectedItemPosition
+            val pos = (spinnerSubscriptions.adapter as ArrayAdapter<String>).getPosition(spinnerSubscriptions.text.toString())
             if (pos !in subscriptionPicks.indices) return@setOnClickListener
             val pick = subscriptionPicks[pos]
             adapter.addRow(
@@ -97,13 +97,13 @@ class ProxyProvidersEditorDesign(
     fun setSubscriptionPicks(picks: List<SubscriptionPick>) {
         subscriptionPicks = picks
         val labels = picks.map { it.label }
-        val ad = ArrayAdapter(
-            context,
-            android.R.layout.simple_spinner_item,
-            labels,
+        spinnerSubscriptions.setAdapter(
+            ArrayAdapter(
+                context,
+                android.R.layout.simple_dropdown_item_1line,
+                labels,
+            )
         )
-        ad.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        spinnerSubscriptions.adapter = ad
         val has = picks.isNotEmpty()
         spinnerSubscriptions.isEnabled = has
         btnAddSelected.isEnabled = has
