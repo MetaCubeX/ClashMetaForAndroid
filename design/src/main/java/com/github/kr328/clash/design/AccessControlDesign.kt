@@ -2,18 +2,16 @@ package com.github.kr328.clash.design
 
 import android.content.Context
 import android.view.View
+import androidx.core.view.updatePadding
 import androidx.core.widget.addTextChangedListener
 import com.github.kr328.clash.design.adapter.AppAdapter
 import com.github.kr328.clash.design.component.AccessControlMenu
 import com.github.kr328.clash.design.databinding.DesignAccessControlBinding
-import com.github.kr328.clash.design.databinding.DialogSearchBinding
-import com.github.kr328.clash.design.dialog.FullScreenDialog
 import com.github.kr328.clash.design.model.AppInfo
 import com.github.kr328.clash.design.store.UiStore
 import com.github.kr328.clash.design.util.*
 import com.github.kr328.clash.service.model.AccessControlMode
 import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.Channel
 
 class AccessControlDesign(
     context: Context,
@@ -86,7 +84,7 @@ class AccessControlDesign(
     private fun refreshCounter() {
         val total = allApps.size
         val sel = allApps.count { it.packageName in selected }
-        binding.accessCounter.text = context.getString(R.string.per_app_counter, sel, total)
+        binding.counterView.text = context.getString(R.string.app_routing_counter, sel, total)
     }
 
     private fun matchesNamespace(app: AppInfo): Boolean = when (namespaceFilter) {
@@ -118,13 +116,22 @@ class AccessControlDesign(
 
     private fun applyModeButtonsState(mode: AccessControlMode) {
         val id = when (mode) {
-            AccessControlMode.AcceptAll -> R.id.access_mode_all
-            AccessControlMode.AcceptSelected -> R.id.access_mode_allow
-            AccessControlMode.DenySelected -> R.id.access_mode_deny
+            AccessControlMode.AcceptAll -> R.id.mode_all_button
+            AccessControlMode.AcceptSelected -> R.id.mode_allow_button
+            AccessControlMode.DenySelected -> R.id.mode_deny_button
         }
-        if (binding.accessModeGroup.checkedButtonId != id) {
-            binding.accessModeGroup.check(id)
+        if (binding.modeGroup.checkedButtonId != id) {
+            binding.modeGroup.check(id)
         }
+    }
+
+    fun requestModeAcceptAll() = requestModeChange(AccessControlMode.AcceptAll)
+    fun requestModeAcceptSelected() = requestModeChange(AccessControlMode.AcceptSelected)
+    fun requestModeDenySelected() = requestModeChange(AccessControlMode.DenySelected)
+
+    private fun requestModeChange(mode: AccessControlMode) {
+        pendingMode = mode
+        requests.trySend(Request.ChangeMode)
     }
 
     init {
@@ -152,19 +159,7 @@ class AccessControlDesign(
             menu.show()
         }
 
-        binding.searchView.setOnClickListener {
-            launch {
-                try {
-                    requestSearch()
-                } finally {
-                    withContext(NonCancellable) {
-                        rebindAll()
-                    }
-                }
-            }
-        }
-
-        binding.inlineSearchInput.addTextChangedListener {
+        binding.searchInput.addTextChangedListener {
             inlineFilter = it?.toString()?.trim().orEmpty()
             launchApplyFilteredList()
         }
@@ -180,69 +175,17 @@ class AccessControlDesign(
             launchApplyFilteredList()
         }
 
-        binding.accessModeGroup.addOnButtonCheckedListener { _, checkedId, isChecked ->
+        binding.modeGroup.addOnButtonCheckedListener { _, checkedId, isChecked ->
             if (!isChecked) return@addOnButtonCheckedListener
             val mode = when (checkedId) {
-                R.id.access_mode_all -> AccessControlMode.AcceptAll
-                R.id.access_mode_allow -> AccessControlMode.AcceptSelected
-                R.id.access_mode_deny -> AccessControlMode.DenySelected
+                R.id.mode_all_button -> AccessControlMode.AcceptAll
+                R.id.mode_allow_button -> AccessControlMode.AcceptSelected
+                R.id.mode_deny_button -> AccessControlMode.DenySelected
                 else -> return@addOnButtonCheckedListener
             }
             if (pendingMode == mode) return@addOnButtonCheckedListener
             pendingMode = mode
             requests.trySend(Request.ChangeMode)
-        }
-    }
-
-    private suspend fun requestSearch() {
-        coroutineScope {
-            val binding = DialogSearchBinding
-                .inflate(context.layoutInflater, context.root, false)
-            val adapter = AppAdapter(context, selected)
-            val dialog = FullScreenDialog(context)
-            val filter = Channel<Unit>(Channel.CONFLATED)
-
-            dialog.setContentView(binding.root)
-
-            binding.surface = dialog.surface
-            binding.mainList.applyLinearAdapter(context, adapter)
-            binding.keywordView.addTextChangedListener {
-                filter.trySend(Unit)
-            }
-            binding.closeView.setOnClickListener {
-                dialog.dismiss()
-            }
-
-            dialog.setOnDismissListener {
-                cancel()
-            }
-
-            dialog.setOnShowListener {
-                binding.keywordView.requestTextInput()
-            }
-
-            dialog.show()
-
-            while (isActive) {
-                filter.receive()
-
-                val keyword = binding.keywordView.text?.toString() ?: ""
-
-                val apps: List<AppInfo> = if (keyword.isEmpty()) {
-                    emptyList()
-                } else {
-                    withContext(Dispatchers.Default) {
-                        allApps.filter {
-                            it.label.contains(keyword, ignoreCase = true) ||
-                                    it.packageName.contains(keyword, ignoreCase = true)
-                        }
-                    }
-                }
-
-                adapter.patchDataSet(adapter::apps, apps, false, AppInfo::packageName)
-
-                delay(200)
-            }
         }
     }
 }
