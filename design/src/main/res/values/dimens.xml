@@ -88,9 +88,9 @@
     <dimen name="main_logo_size">50dp</dimen>
     <dimen name="main_top_banner_height">90dp</dimen>
     <dimen name="profile_action_slot">40dp</dimen>
-    <dimen name="main_power_button_size">64dp</dimen>
-    <dimen name="main_power_glow_size">80dp</dimen>
-    <dimen name="main_power_button_radius">32dp</dimen>
+    <dimen name="main_power_button_size">152dp</dimen>
+    <dimen name="main_power_glow_size">196dp</dimen>
+    <dimen name="main_power_button_radius">76dp</dimen>
     <dimen name="theme_palette_check_inset">18dp</dimen>
     <dimen name="theme_palette_check_stroke">3dp</dimen>
     <dimen name="theme_screen_top_extra">12dp</dimen>

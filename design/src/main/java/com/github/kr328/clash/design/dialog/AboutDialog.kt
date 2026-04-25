@@ -33,7 +33,20 @@ suspend fun showAboutDialog(
         val dialog = AppBottomSheetDialog(context, fitContentHeight = true)
         dialog.setContentView(binding.root)
 
-        if (!supportUrl.isNullOrBlank()) {
+        binding.aboutGithubIcon.apply {
+            visibility = View.VISIBLE
+            setOnClickListener {
+                runCatching {
+                    val url = context.getString(R.string.clashfest_repo_url)
+                    context.startActivity(
+                        Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    )
+                }
+            }
+        }
+
+        if (!supportUrl.isNullOrBlank() && onCheckUpdates == null) {
             binding.aboutSupportButton.apply {
                 visibility = View.VISIBLE
                 setOnClickListener {

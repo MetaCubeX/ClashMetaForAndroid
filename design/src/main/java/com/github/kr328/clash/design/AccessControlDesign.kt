@@ -20,6 +20,14 @@ class AccessControlDesign(
     uiStore: UiStore,
     private val selected: MutableSet<String>,
 ) : Design<AccessControlDesign.Request>(context) {
+    private enum class NamespaceFilter {
+        All,
+        Ru,
+        Cn,
+        Com,
+        Other,
+    }
+
     enum class Request {
         ReloadApps,
         SelectAll,
@@ -52,6 +60,8 @@ class AccessControlDesign(
     /** All apps currently loaded by the host (pre-filter). Used for accurate counters. */
     private var allApps: List<AppInfo> = emptyList()
 
+    private var namespaceFilter: NamespaceFilter = NamespaceFilter.All
+
     override val root: View
         get() = binding.root
 
@@ -79,11 +89,30 @@ class AccessControlDesign(
         binding.accessCounter.text = context.getString(R.string.per_app_counter, sel, total)
     }
 
-    private fun applyFilterLocked(source: List<AppInfo>, keyword: String): List<AppInfo> {
-        if (keyword.isBlank()) return source
-        return source.filter {
-            it.label.contains(keyword, ignoreCase = true) ||
-                it.packageName.contains(keyword, ignoreCase = true)
+    private fun matchesNamespace(app: AppInfo): Boolean = when (namespaceFilter) {
+        NamespaceFilter.All -> true
+        NamespaceFilter.Ru -> app.packageName.startsWith("ru.")
+        NamespaceFilter.Cn -> app.packageName.startsWith("cn.")
+        NamespaceFilter.Com -> app.packageName.startsWith("com.")
+        NamespaceFilter.Other ->
+            !app.packageName.startsWith("ru.") &&
+                !app.packageName.startsWith("cn.") &&
+                !app.packageName.startsWith("com.")
+    }
+
+    private fun applyFilterLocked(source: List<AppInfo>, keyword: String): List<AppInfo> =
+        source.filter { app ->
+            matchesNamespace(app) &&
+                (keyword.isBlank() ||
+                    app.label.contains(keyword, ignoreCase = true) ||
+                    app.packageName.contains(keyword, ignoreCase = true))
+        }
+
+    private fun launchApplyFilteredList() {
+        val filtered = applyFilterLocked(allApps, inlineFilter)
+        launch {
+            adapter.patchDataSet(adapter::apps, filtered, false, AppInfo::packageName)
+            refreshCounter()
         }
     }
 
@@ -137,11 +166,18 @@ class AccessControlDesign(
 
         binding.inlineSearchInput.addTextChangedListener {
             inlineFilter = it?.toString()?.trim().orEmpty()
-            val filtered = applyFilterLocked(allApps, inlineFilter)
-            launch {
-                adapter.patchDataSet(adapter::apps, filtered, false, AppInfo::packageName)
-                refreshCounter()
+            launchApplyFilteredList()
+        }
+
+        binding.namespaceFilterGroup.setOnCheckedStateChangeListener { _, checkedIds ->
+            namespaceFilter = when (checkedIds.firstOrNull()) {
+                binding.filterRuChip.id -> NamespaceFilter.Ru
+                binding.filterCnChip.id -> NamespaceFilter.Cn
+                binding.filterComChip.id -> NamespaceFilter.Com
+                binding.filterOtherChip.id -> NamespaceFilter.Other
+                else -> NamespaceFilter.All
             }
+            launchApplyFilteredList()
         }
 
         binding.accessModeGroup.addOnButtonCheckedListener { _, checkedId, isChecked ->

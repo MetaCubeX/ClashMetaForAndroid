@@ -480,7 +480,13 @@ Presets only change <b>where</b> files are downloaded from (CDN / host). It is s
     <string name="tips_help"><![CDATA[ClashFest for Android is a <strong>freeware</strong> and we do <strong>NOT</strong> provide any service for it]]></string>
 
     <string name="google_play_url" translatable="false">https://play.google.com/store/apps/details?id=com.github.kr328.clash</string>
+    <string name="about_github_repo">ClashFest on GitHub</string>
+    <string name="clashfest_repo_url" translatable="false">https://github.com/Nemu-x/ClashFest</string>
     <string name="about_check_updates">Check updates</string>
+    <string name="update_notification_channel_name">App updates</string>
+    <string name="update_notification_channel_description">Periodic ClashFest update checks</string>
+    <string name="update_notification_title">ClashFest update available</string>
+    <string name="update_notification_text">New version: %1$s</string>
     <string name="about_checking_updates">Checking updates…</string>
     <string name="about_update_available">Update available: %1$s</string>
     <string name="about_update_latest">You already have the latest version</string>
@@ -627,6 +633,10 @@ Presets only change <b>where</b> files are downloaded from (CDN / host). It is s
     <string name="clash_meta_wiki_url" translatable="false">https://wiki.metacubex.one</string>
 
     <string name="meta_features">Expert Features</string>
+    <string name="script_mode">Script mode</string>
+    <string name="sideload_geoip">Sideload GEOIP</string>
+    <string name="sideload_geoip_summary">Use an external GEOIP database file</string>
+    <string name="sniff">Sniff</string>
     <string name="unified_delay">Unified Delay</string>
     <string name="geodata_mode">Geodata Mode</string>
     <string name="tcp_concurrent">TCP Concurrent</string>

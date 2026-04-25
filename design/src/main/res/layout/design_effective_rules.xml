@@ -20,7 +20,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical"
-            android:paddingTop="@{(float) self.surface.insets.top + @dimen/toolbar_height}"
+            android:paddingTop="@{self.surface.insets.top}"
             android:paddingBottom="@{self.surface.insets.bottom}">
 
             <LinearLayout
@@ -31,10 +31,19 @@
                 android:paddingTop="10dp"
                 android:paddingBottom="10dp">
 
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/nav_routing"
+                    android:textAppearance="@style/TextAppearance.App.HeadlineSmall"
+                    android:textColor="?attr/colorOnSurface"
+                    android:textStyle="bold" />
+
                 <com.google.android.material.card.MaterialCardView
                     style="@style/AppCard.Filled"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
                     app:cardBackgroundColor="?attr/colorSurfaceContainer"
                     app:cardCornerRadius="24dp"
                     app:cardElevation="0dp"
@@ -158,15 +167,5 @@
                 android:paddingBottom="16dp" />
         </LinearLayout>
 
-        <com.github.kr328.clash.design.view.ActivityBarLayout
-            android:id="@+id/activity_bar_layout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingTop="@{self.surface.insets.top}"
-            android:paddingStart="@dimen/item_tailing_margin"
-            android:paddingEnd="@dimen/item_tailing_margin">
-
-            <include layout="@layout/common_activity_bar" />
-        </com.github.kr328.clash.design.view.ActivityBarLayout>
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 </layout>

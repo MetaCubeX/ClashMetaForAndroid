@@ -11,7 +11,6 @@ import androidx.core.widget.addTextChangedListener
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.github.kr328.clash.design.databinding.DesignEffectiveRulesBinding
-import com.github.kr328.clash.design.util.applyFrom
 import com.github.kr328.clash.design.util.diffWith
 import com.github.kr328.clash.design.util.layoutInflater
 import com.github.kr328.clash.design.util.root
@@ -60,7 +59,6 @@ class EffectiveRulesDesign(context: Context) : Design<EffectiveRulesDesign.Reque
 
     init {
         binding.self = this
-        binding.activityBarLayout.applyFrom(context)
         binding.ruleList.layoutManager = LinearLayoutManager(context)
         binding.ruleList.adapter = adapter
         binding.btnOpenLogcat.setOnClickListener {

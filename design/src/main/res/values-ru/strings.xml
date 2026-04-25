@@ -99,6 +99,10 @@
     <string name="not_set">Не задано</string>
     <string name="dismiss">Скрыть</string>
     <string name="about_support">Связаться с поддержкой</string>
+    <string name="update_notification_channel_name">Обновления приложения</string>
+    <string name="update_notification_channel_description">Периодическая проверка обновлений ClashFest</string>
+    <string name="update_notification_title">Доступно обновление ClashFest</string>
+    <string name="update_notification_text">Новая версия: %1$s</string>
     <string name="sub_announcement_traffic_left">Трафика осталось:</string>
     <string name="sub_announcement_days_left">Дней осталось:</string>
     <string name="sub_announcement_expires">Истекает:</string>

@@ -57,6 +57,17 @@
                         android:text="@string/about_powered_by"
                         android:textAppearance="@style/TextAppearance.Material3.BodyMedium" />
                 </LinearLayout>
+
+                <ImageButton
+                    android:id="@+id/about_github_icon"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:background="@drawable/bg_m3_status_chip_neutral"
+                    android:contentDescription="@string/about_github_repo"
+                    android:padding="6dp"
+                    android:src="@drawable/ic_github_logo"
+                    android:visibility="gone"
+                    app:tint="?attr/colorOnSurface" />
             </LinearLayout>
 
             <com.google.android.material.divider.MaterialDivider
@@ -107,7 +118,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:text="@string/about_support"
+                android:text="@string/about_check_updates"
                 android:visibility="gone" />
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>

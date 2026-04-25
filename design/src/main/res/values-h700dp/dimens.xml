@@ -3,9 +3,9 @@
     <!-- Keep the main screen dense on modern tall phones. -->
     <dimen name="toolbar_height">42dp</dimen>
     <dimen name="main_padding_horizontal">12dp</dimen>
-    <dimen name="main_power_button_size">64dp</dimen>
-    <dimen name="main_power_glow_size">80dp</dimen>
-    <dimen name="main_power_button_radius">32dp</dimen>
+    <dimen name="main_power_button_size">152dp</dimen>
+    <dimen name="main_power_glow_size">196dp</dimen>
+    <dimen name="main_power_button_radius">76dp</dimen>
     <dimen name="main_power_icon_padding">0dp</dimen>
     <dimen name="main_power_section_padding_top">6dp</dimen>
     <dimen name="main_power_section_padding_bottom">4dp</dimen>

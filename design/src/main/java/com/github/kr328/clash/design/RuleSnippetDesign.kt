@@ -6,7 +6,6 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import com.github.kr328.clash.design.databinding.DesignRuleSnippetBinding
 import com.github.kr328.clash.design.R
-import com.github.kr328.clash.design.util.applyFrom
 import com.github.kr328.clash.design.util.layoutInflater
 import com.github.kr328.clash.design.util.root
 import com.github.kr328.clash.service.model.RuleProviderItem
@@ -27,7 +26,6 @@ class RuleSnippetDesign(context: Context) : Design<RuleSnippetDesign.Request>(co
 
     init {
         binding.self = this
-        binding.activityBarLayout.applyFrom(context)
         binding.btnOpenCreateSheet.setOnClickListener { requests.trySend(Request.OpenCreateSheet) }
         binding.btnOpenManualRules.setOnClickListener { requests.trySend(Request.OpenManualRules) }
     }

@@ -12,6 +12,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
+import android.os.SystemClock
 import android.provider.Settings
 import android.os.PowerManager
 import android.view.View
@@ -207,16 +208,22 @@ class MainActivity : BaseActivity<MainDesign>() {
         design.fetch()
         refreshAnnouncement(design)
 
-        val tickerInteractive = ticker(TimeUnit.SECONDS.toMillis(1))
-        val tickerIdle = ticker(TimeUnit.SECONDS.toMillis(3))
-        val profileTicker = ticker(TimeUnit.MINUTES.toMillis(1))
+        val tickerInteractive = ticker(TimeUnit.SECONDS.toMillis(2))
+        val tickerIdle = ticker(TimeUnit.SECONDS.toMillis(8))
+        val profileTicker = ticker(TimeUnit.MINUTES.toMillis(2))
         val refreshRequests = kotlinx.coroutines.channels.Channel<Unit>(kotlinx.coroutines.channels.Channel.CONFLATED)
         val proxyDetailRequests =
             kotlinx.coroutines.channels.Channel<Pair<Profile, String>>(kotlinx.coroutines.channels.Channel.CONFLATED)
         var announcementRefreshPending = false
         var proxyDetailJob: Job? = null
+        var lastDashboardRefreshRequestAt = 0L
 
         fun scheduleDashboardRefresh(includeAnnouncement: Boolean = false) {
+            val now = SystemClock.elapsedRealtime()
+            if (!includeAnnouncement && now - lastDashboardRefreshRequestAt < 1200L) {
+                return
+            }
+            lastDashboardRefreshRequestAt = now
             if (includeAnnouncement) {
                 announcementRefreshPending = true
             }

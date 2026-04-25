@@ -3,6 +3,7 @@ package com.github.kr328.clash
 import android.os.PowerManager
 import androidx.core.content.getSystemService
 import com.github.kr328.clash.common.util.intent
+import com.github.kr328.clash.common.log.Log
 import com.github.kr328.clash.core.model.ConnectionsSnapshot
 import com.github.kr328.clash.design.ConnectionsDesign
 import com.github.kr328.clash.design.R
@@ -29,36 +30,42 @@ class ConnectionsActivity : BaseActivity<ConnectionsDesign>() {
         val refresh = launch {
             var lastRevision: Long = Long.MIN_VALUE
             var lastRawSnapshot: String? = null
+            val activeDelayMs = 2500L
+            val idleDelayMs = 7000L
             while (isActive) {
                 if (!activityStarted) {
-                    delay(1200)
+                    delay(idleDelayMs)
                     continue
                 }
                 val interactive = getSystemService<PowerManager>()?.isInteractive ?: true
                 try {
-                    val revision = withClash {
-                        queryTrafficTotal()
-                    }
-                    if (revision == lastRevision) {
-                        delay(if (interactive) 1200 else 2200)
+                    // Refresh when traffic totals *or* the connections snapshot JSON changes.
+                    // Basing updates only on queryTrafficTotal() misses new flows while byte counters stay flat.
+                    val revision = withClash { queryTrafficTotal() }
+                    val raw = withClash { queryConnectionsSnapshot() }
+                    if (revision == lastRevision && raw == lastRawSnapshot) {
+                        delay(if (interactive) activeDelayMs else idleDelayMs)
                         continue
                     }
                     lastRevision = revision
-                    val raw = withClash { queryConnectionsSnapshot() }
-                    if (raw == lastRawSnapshot) {
-                        delay(if (interactive) 1200 else 2200)
-                        continue
-                    }
                     lastRawSnapshot = raw
                     val snap = withContext(Dispatchers.Default) {
                         runCatching {
                             json.decodeFromString(ConnectionsSnapshot.serializer(), raw)
-                        }.getOrElse { ConnectionsSnapshot() }
+                        }.getOrNull()
                     }
-                    design.patchSnapshot(snap)
+                    if (snap != null) {
+                        if (snap.connections.isEmpty() && raw.length > 64) {
+                            Log.w("Connections snapshot parsed but empty list; raw size=${raw.length}")
+                        }
+                        design.patchSnapshot(snap)
+                    } else {
+                        Log.w("Connections snapshot decode failed; raw size=${raw.length}; keeping previous UI snapshot")
+                    }
                 } catch (_: Exception) {
+                    Log.w("Connections refresh query failed")
                 }
-                delay(if (interactive) 1200 else 2200)
+                delay(if (interactive) activeDelayMs else idleDelayMs)
             }
         }
 
@@ -67,9 +74,13 @@ class ConnectionsActivity : BaseActivity<ConnectionsDesign>() {
             val snap = withContext(Dispatchers.Default) {
                 runCatching {
                     json.decodeFromString(ConnectionsSnapshot.serializer(), raw)
-                }.getOrElse { ConnectionsSnapshot() }
+                }.getOrNull()
             }
-            design.patchSnapshot(snap)
+            if (snap != null) {
+                design.patchSnapshot(snap)
+            } else {
+                Log.w("Connections reload decode failed; raw size=${raw.length}; keeping previous UI snapshot")
+            }
         }
 
         try {

@@ -29,19 +29,10 @@
                 android:paddingTop="@{(float) surface.insets.top + @dimen/toolbar_height + @dimen/theme_screen_top_extra}"
                 android:paddingBottom="@{(float) surface.insets.bottom + @dimen/theme_screen_bottom_extra}">
 
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/theme_mode"
-                    android:textAppearance="@style/TextAppearance.App.TitleMedium"
-                    android:textColor="?attr/colorOnSurface"
-                    android:textStyle="bold" />
-
                 <com.google.android.material.button.MaterialButtonToggleGroup
                     android:id="@+id/theme_mode_group"
                     android:layout_width="match_parent"
                     android:layout_height="52dp"
-                    android:layout_marginTop="14dp"
                     app:selectionRequired="true"
                     app:singleSelection="true">
 

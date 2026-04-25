@@ -45,27 +45,6 @@
                 <com.github.kr328.clash.design.view.ActionLabel
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:onClick="@{() -> self.request(Request.StartNetwork)}"
-                    app:icon="@drawable/ic_baseline_dns"
-                    app:text="@string/network" />
-
-                <com.github.kr328.clash.design.view.ActionLabel
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:onClick="@{() -> self.request(Request.StartAppRouting)}"
-                    app:icon="@drawable/ic_baseline_stack"
-                    app:text="@string/access_control_packages" />
-
-                <com.github.kr328.clash.design.view.ActionLabel
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:onClick="@{() -> self.request(Request.StartFeatures)}"
-                    app:icon="@drawable/ic_baseline_flash_on"
-                    app:text="@string/features" />
-
-                <com.github.kr328.clash.design.view.ActionLabel
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
                     android:onClick="@{() -> self.request(Request.StartAdvanced)}"
                     app:icon="@drawable/ic_baseline_extension"
                     app:text="@string/advanced_settings" />

@@ -285,5 +285,9 @@
                 <data android:scheme="android_secret_code" android:host="252746382" />
             </intent-filter>
         </receiver>
+
+        <receiver
+            android:name=".UpdateCheckReceiver"
+            android:exported="false" />
     </application>
 </manifest>

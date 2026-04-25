@@ -7,7 +7,6 @@ import com.github.kr328.clash.core.model.ConnectionTracker
 import com.github.kr328.clash.core.model.ConnectionsSnapshot
 import com.github.kr328.clash.design.adapter.ConnectionsAdapter
 import com.github.kr328.clash.design.databinding.DesignConnectionsBinding
-import com.github.kr328.clash.design.util.applyFrom
 import com.github.kr328.clash.design.util.layoutInflater
 import com.github.kr328.clash.design.util.root
 import com.github.kr328.clash.design.util.toBytesString
@@ -48,7 +47,6 @@ class ConnectionsDesign(context: Context) : Design<ConnectionsDesign.Request>(co
 
     init {
         binding.self = this
-        binding.activityBarLayout.applyFrom(context)
         binding.connectionsList.adapter = adapter
         binding.btnConnectionsOpenLog.setOnClickListener {
             requests.trySend(Request.OpenLogcat)

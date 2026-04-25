@@ -16,6 +16,7 @@ import com.github.kr328.clash.design.store.UiStore
 import com.github.kr328.clash.remote.Remote
 import com.github.kr328.clash.service.store.ServiceStore
 import com.github.kr328.clash.service.util.sendServiceRecreated
+import com.github.kr328.clash.util.AppUpdateChecker
 import com.github.kr328.clash.util.clashDir
 import java.io.File
 import java.io.FileOutputStream
@@ -43,6 +44,7 @@ class MainApplication : Application() {
             ServiceStore.runMigrations(this)
             Remote.launch()
             setupShortcuts()
+            AppUpdateChecker.schedulePeriodic(this)
         } else {
             sendServiceRecreated()
         }

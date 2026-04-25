@@ -5,6 +5,8 @@ import android.animation.AnimatorListenerAdapter
 import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
 import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import android.view.MotionEvent
 import android.view.View
 import android.view.animation.AccelerateDecelerateInterpolator
@@ -28,6 +30,7 @@ import com.github.kr328.clash.design.util.resolveThemedResourceId
 import com.github.kr328.clash.design.util.root
 import com.github.kr328.clash.design.R
 import com.github.kr328.clash.service.model.Profile
+import android.widget.FrameLayout
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.withContext
@@ -73,6 +76,7 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
     private val uiStore = UiStore(context)
     private val expandedProfileUuids: LinkedHashSet<UUID> = linkedSetOf()
     private var mainPowerConnectRevealAnim: ValueAnimator? = null
+    private var currentModeSegment: TunnelState.Mode = TunnelState.Mode.Rule
     private var lastPowerVisualMode: Int = -1 // 0=off, 1=starting, 2=running
     private val mainPowerOffIconResId: Int by lazy { resolveRuntimeDrawable("proxy_off") }
     private val mainPowerOnIconResId: Int by lazy { resolveRuntimeDrawable("proxy_on") }
@@ -272,18 +276,12 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
     suspend fun setMode(mode: TunnelState.Mode) {
         withContext(Dispatchers.Main) {
             val normalized = normalizeMode(mode)
+            currentModeSegment = normalized
             binding.mode = when (normalized) {
                 TunnelState.Mode.Global -> context.getString(R.string.global_mode)
                 else -> context.getString(R.string.rule_mode)
             }
-
-            val checkedId = when (normalized) {
-                TunnelState.Mode.Global -> R.id.btn_mode_global
-                else -> R.id.btn_mode_rule
-            }
-            if (binding.modeToggleGroup.checkedButtonId != checkedId) {
-                binding.modeToggleGroup.check(checkedId)
-            }
+            updateModeSegment(normalized, animate = true)
         }
     }
 
@@ -303,6 +301,36 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
 
     private fun normalizeMode(mode: TunnelState.Mode): TunnelState.Mode =
         if (mode == TunnelState.Mode.Direct) TunnelState.Mode.Rule else mode
+
+    private fun updateModeSegment(mode: TunnelState.Mode, animate: Boolean) {
+        val container = binding.modeSegmentContainer
+        val thumb = binding.modeSegmentThumb
+        if (container.width == 0) {
+            container.post { updateModeSegment(mode, animate = false) }
+            return
+        }
+
+        val inset = container.paddingStart + container.paddingEnd
+        val slotWidth = ((container.width - inset) / 2).coerceAtLeast(1)
+
+        val lp = (thumb.layoutParams as FrameLayout.LayoutParams).apply {
+            width = slotWidth
+        }
+        thumb.layoutParams = lp
+
+        val targetX = if (mode == TunnelState.Mode.Global) slotWidth.toFloat() else 0f
+        thumb.animate().cancel()
+        thumb.animate()
+            .translationX(targetX)
+            .setDuration(if (animate) 160L else 0L)
+            .start()
+
+        val selectedColor = context.resolveThemedColor(com.google.android.material.R.attr.colorOnSecondaryContainer)
+        val normalColor = context.resolveThemedColor(com.google.android.material.R.attr.colorOnSurfaceVariant)
+        val isRule = mode != TunnelState.Mode.Global
+        binding.modeLabelRule.setTextColor(if (isRule) selectedColor else normalColor)
+        binding.modeLabelGlobal.setTextColor(if (isRule) normalColor else selectedColor)
+    }
 
     suspend fun syncThemeToggleIcon(mode: DarkMode) {
         withContext(Dispatchers.Main) {
@@ -426,8 +454,21 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
             val dialog = AppBottomSheetDialog(context, fitContentHeight = true)
             dialog.setContentView(binding.root)
 
+            binding.aboutGithubIcon.apply {
+                visibility = View.VISIBLE
+                setOnClickListener {
+                    runCatching {
+                        val url = context.getString(R.string.clashfest_repo_url)
+                        context.startActivity(
+                            Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+                        )
+                    }
+                }
+            }
+
             if (onCheckUpdates != null) {
-                binding.aboutCheckUpdatesButton.apply {
+                binding.aboutSupportButton.apply {
                     visibility = View.VISIBLE
                     var statusText: String? = null
 
@@ -500,20 +541,47 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         binding.tunnelStarting = false
         applyPowerVisuals()
 
-        binding.btnModeRule.setOnClickListener {
+        binding.modeLabelRule.setOnClickListener {
             requests.trySend(Request.PatchModeRule)
         }
-        binding.btnModeGlobal.setOnClickListener {
+        binding.modeLabelGlobal.setOnClickListener {
             requests.trySend(Request.PatchModeGlobal)
         }
-        binding.mainAddProfileFab.setOnClickListener {
-            requests.trySend(Request.ToggleStatus)
+        binding.modeSegmentContainer.post {
+            updateModeSegment(currentModeSegment, animate = false)
         }
 
         binding.mainNavProfiles.setOnClickListener { requests.trySend(Request.OpenProfiles) }
-        binding.mainNavLogs.setOnClickListener { requests.trySend(Request.OpenLogs) }
+        binding.mainNavLogs.setOnClickListener { requests.trySend(Request.OpenSettings) }
         binding.mainNavRouting.setOnClickListener { requests.trySend(Request.OpenRouting) }
         binding.mainNavConnections.setOnClickListener { requests.trySend(Request.OpenConnections) }
+
+        val alignFab: () -> Unit = {
+            binding.root.post { alignAddProfileFabToProfiles() }
+        }
+        binding.mainBottomNavCard.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> alignFab() }
+        binding.mainNavProfiles.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> alignFab() }
+        binding.mainAddProfileFab.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> alignFab() }
+        alignFab()
+    }
+
+    private fun alignAddProfileFabToProfiles() {
+        val fab = binding.mainAddProfileFab
+        val profiles = binding.mainNavProfiles
+        if (fab.width == 0 || profiles.width == 0) return
+
+        val fabLocation = IntArray(2)
+        val profilesLocation = IntArray(2)
+        fab.getLocationOnScreen(fabLocation)
+        profiles.getLocationOnScreen(profilesLocation)
+
+        val fabCenterX = fabLocation[0] + fab.width / 2f
+        val profilesCenterX = profilesLocation[0] + profiles.width / 2f
+        val deltaX = profilesCenterX - fabCenterX
+
+        if (kotlin.math.abs(deltaX) > 0.5f) {
+            fab.translationX += deltaX
+        }
     }
 
     private fun applyHomeBackgroundStyle() {

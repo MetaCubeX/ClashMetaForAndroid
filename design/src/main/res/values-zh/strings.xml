@@ -332,6 +332,10 @@
     <string name="proxy_chain_not_found">在配置或提供商文件中找不到该节点。</string>
     <string name="about_app_version_label">应用版本</string>
     <string name="about_check_updates">检查更新</string>
+    <string name="update_notification_channel_name">应用更新</string>
+    <string name="update_notification_channel_description">周期检查 ClashFest 更新</string>
+    <string name="update_notification_title">ClashFest 有新版本</string>
+    <string name="update_notification_text">新版本：%1$s</string>
     <string name="about_checking_updates">正在检查…</string>
     <string name="about_core_version_label">核心版本</string>
     <string name="about_download_failed">下载失败</string>

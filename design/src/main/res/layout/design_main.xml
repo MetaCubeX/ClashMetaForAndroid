@@ -44,56 +44,11 @@
             android:paddingTop="@{self.surface.insets.top}"
             android:paddingBottom="@{self.surface.insets.bottom}">
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="@dimen/toolbar_height"
-                android:baselineAligned="false"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:paddingHorizontal="@dimen/main_toolbar_padding_horizontal">
-
-                <ImageButton
-                    android:layout_width="@dimen/large_item_header_layout_size"
-                    android:layout_height="@dimen/large_item_header_layout_size"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="@string/settings"
-                    android:onClick="@{() -> self.request(Request.OpenSettings)}"
-                    android:padding="@dimen/toolbar_image_action_padding"
-                    android:scaleType="centerInside"
-                    android:src="@drawable/ic_baseline_settings"
-                    app:tint="?attr/colorOnSurface" />
-
-                <View
-                    android:layout_width="0dp"
-                    android:layout_height="1dp"
-                    android:layout_weight="1" />
-
-                <TextView
-                    android:id="@+id/btn_theme_toggle"
-                    android:layout_width="@dimen/toolbar_theme_button_size"
-                    android:layout_height="@dimen/toolbar_theme_button_size"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:clickable="true"
-                    android:contentDescription="@string/theme_toggle"
-                    android:focusable="true"
-                    android:gravity="center"
-                    android:onClick="@{() -> self.request(Request.CycleTheme)}"
-                    android:text="@string/main_emoji_moon"
-                    android:textColor="?attr/colorOnSurfaceVariant"
-                    android:textSize="22sp" />
-
-                <ImageButton
-                    android:layout_width="@dimen/large_item_header_layout_size"
-                    android:layout_height="@dimen/large_item_header_layout_size"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="@string/add"
-                    android:onClick="@{() -> self.request(Request.OpenNewProfile)}"
-                    android:padding="@dimen/toolbar_image_action_padding"
-                    android:scaleType="centerInside"
-                    android:src="@drawable/ic_baseline_add"
-                    app:tint="?attr/colorOnSurface" />
-
-            </LinearLayout>
+            <TextView
+                android:id="@+id/btn_theme_toggle"
+                android:layout_width="1dp"
+                android:layout_height="1dp"
+                android:visibility="gone" />
 
             <FrameLayout
                 android:layout_width="match_parent"
@@ -176,76 +131,53 @@
                 android:textColor="?attr/colorOnSurface"
                 android:visibility="gone" />
 
-            <LinearLayout
+            <FrameLayout
+                android:id="@+id/mode_segment_container"
                 android:layout_width="match_parent"
                 android:layout_height="44dp"
                 android:layout_marginHorizontal="@dimen/main_padding_horizontal"
                 android:layout_marginBottom="@dimen/main_mode_row_margin_bottom"
                 android:background="@drawable/bg_m3_segment_container"
-                android:gravity="center"
-                android:orientation="horizontal"
-                android:padding="2dp"
-                android:visibility="visible">
+                android:padding="2dp">
 
-                <com.google.android.material.button.MaterialButtonToggleGroup
-                    android:id="@+id/mode_toggle_group"
+                <View
+                    android:id="@+id/mode_segment_thumb"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/bg_m3_status_chip_neutral" />
+
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    app:selectionRequired="true"
-                    app:singleSelection="true">
+                    android:orientation="horizontal">
 
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btn_mode_rule"
-                        style="@style/Widget.Material3.Button.OutlinedButton"
+                    <TextView
+                        android:id="@+id/mode_label_rule"
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
                         android:layout_weight="1"
-                        android:insetTop="0dp"
-                        android:insetBottom="0dp"
-                        android:minHeight="0dp"
-                        android:minWidth="0dp"
-                        android:onClick="@{() -> self.request(Request.PatchModeRule)}"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?attr/selectableItemBackgroundBorderless"
+                        android:gravity="center"
                         android:paddingHorizontal="10dp"
                         android:text="@string/mode_chip_rule"
-                        android:textAppearance="@style/TextAppearance.App.LabelMedium"
-                        android:textColor="@color/selector_mode_button_text"
-                        app:backgroundTint="@color/selector_mode_button_bg"
-                        app:cornerRadius="18dp"
-                        app:icon="@drawable/ic_mode_rule"
-                        app:iconGravity="textStart"
-                        app:iconPadding="4dp"
-                        app:iconSize="17dp"
-                        app:iconTint="@color/selector_mode_button_text"
-                        app:strokeColor="@color/selector_mode_button_stroke"
-                        app:strokeWidth="1dp" />
+                        android:textAppearance="@style/TextAppearance.App.LabelMedium" />
 
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btn_mode_global"
-                        style="@style/Widget.Material3.Button.OutlinedButton"
+                    <TextView
+                        android:id="@+id/mode_label_global"
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
                         android:layout_weight="1"
-                        android:insetTop="0dp"
-                        android:insetBottom="0dp"
-                        android:minHeight="0dp"
-                        android:minWidth="0dp"
-                        android:onClick="@{() -> self.request(Request.PatchModeGlobal)}"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?attr/selectableItemBackgroundBorderless"
+                        android:gravity="center"
                         android:paddingHorizontal="10dp"
                         android:text="@string/mode_chip_global"
-                        android:textAppearance="@style/TextAppearance.App.LabelMedium"
-                        android:textColor="@color/selector_mode_button_text"
-                        app:backgroundTint="@color/selector_mode_button_bg"
-                        app:cornerRadius="18dp"
-                        app:icon="@drawable/ic_mode_global"
-                        app:iconGravity="textStart"
-                        app:iconPadding="4dp"
-                        app:iconSize="17dp"
-                        app:iconTint="@color/selector_mode_button_text"
-                        app:strokeColor="@color/selector_mode_button_stroke"
-                        app:strokeWidth="1dp" />
-
-                </com.google.android.material.button.MaterialButtonToggleGroup>
-            </LinearLayout>
+                        android:textAppearance="@style/TextAppearance.App.LabelMedium" />
+                </LinearLayout>
+            </FrameLayout>
 
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/main_announcement_card"
@@ -598,43 +530,13 @@
                 android:paddingVertical="3dp">
 
                 <LinearLayout
-                    android:id="@+id/main_nav_profiles"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:clickable="true"
-                    android:contentDescription="@string/nav_subscriptions"
-                    android:focusable="true"
-                    android:gravity="center"
-                    android:orientation="vertical">
-
-                    <ImageView
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:src="@drawable/ic_baseline_subscriptions"
-                        app:tint="?attr/colorOnSurfaceVariant" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:ellipsize="end"
-                        android:gravity="center"
-                        android:maxLines="1"
-                        android:text="@string/nav_subscriptions"
-                        android:textAppearance="@style/TextAppearance.App.BottomNavigation"
-                        android:textColor="?attr/colorOnSurfaceVariant" />
-                </LinearLayout>
-
-                <LinearLayout
                     android:id="@+id/main_nav_logs"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:clickable="true"
-                    android:contentDescription="@string/logs"
+                    android:contentDescription="@string/settings"
                     android:focusable="true"
                     android:gravity="center"
                     android:orientation="vertical">
@@ -642,7 +544,7 @@
                     <ImageView
                         android:layout_width="20dp"
                         android:layout_height="20dp"
-                        android:src="@drawable/ic_outline_article"
+                        android:src="@drawable/ic_baseline_settings"
                         app:tint="?attr/colorOnSurfaceVariant" />
 
                     <TextView
@@ -652,7 +554,37 @@
                         android:ellipsize="end"
                         android:gravity="center"
                         android:maxLines="1"
-                        android:text="@string/logs"
+                        android:text="@string/settings"
+                        android:textAppearance="@style/TextAppearance.App.BottomNavigation"
+                        android:textColor="?attr/colorOnSurfaceVariant" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/main_nav_connections"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:clickable="true"
+                    android:contentDescription="@string/nav_connections"
+                    android:focusable="true"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:src="@drawable/ic_baseline_swap_horiz"
+                        app:tint="?attr/colorOnSurfaceVariant" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:ellipsize="end"
+                        android:gravity="center"
+                        android:maxLines="1"
+                        android:text="@string/nav_connections"
                         android:textAppearance="@style/TextAppearance.App.BottomNavigation"
                         android:textColor="?attr/colorOnSurfaceVariant" />
                 </LinearLayout>
@@ -688,13 +620,13 @@
                 </LinearLayout>
 
                 <LinearLayout
-                    android:id="@+id/main_nav_connections"
+                    android:id="@+id/main_nav_profiles"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:clickable="true"
-                    android:contentDescription="@string/nav_connections"
+                    android:contentDescription="@string/nav_subscriptions"
                     android:focusable="true"
                     android:gravity="center"
                     android:orientation="vertical">
@@ -702,7 +634,7 @@
                     <ImageView
                         android:layout_width="20dp"
                         android:layout_height="20dp"
-                        android:src="@drawable/ic_baseline_swap_horiz"
+                        android:src="@drawable/ic_baseline_subscriptions"
                         app:tint="?attr/colorOnSurfaceVariant" />
 
                     <TextView
@@ -712,26 +644,36 @@
                         android:ellipsize="end"
                         android:gravity="center"
                         android:maxLines="1"
-                        android:text="@string/nav_connections"
+                        android:text="@string/nav_subscriptions"
                         android:textAppearance="@style/TextAppearance.App.BottomNavigation"
                         android:textColor="?attr/colorOnSurfaceVariant" />
                 </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <com.google.android.material.floatingactionbutton.FloatingActionButton
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/main_add_profile_fab"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
+            style="@style/Widget.Material3.Button.IconButton.Filled"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
             android:layout_gravity="bottom|end"
-            android:layout_marginEnd="16dp"
-            android:layout_marginBottom="66dp"
-            android:contentDescription="@{clashRunning ? @string/shortcut_stop_short : @string/shortcut_start_short}"
-            android:onClick="@{() -> self.request(Request.ToggleStatus)}"
-            android:src="@{clashRunning ? @drawable/ic_baseline_stop : @drawable/ic_baseline_vpn_lock}"
+            android:layout_marginEnd="56dp"
+            android:layout_marginBottom="78dp"
+            android:contentDescription="@string/add"
+            android:onClick="@{() -> self.request(Request.OpenNewProfile)}"
+            android:gravity="center"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:insetLeft="0dp"
+            android:insetRight="0dp"
+            android:text="+"
+            android:textAllCaps="false"
+            android:textColor="?attr/colorOnPrimaryContainer"
+            android:fontFamily="sans-serif-light"
+            android:textSize="30sp"
             app:backgroundTint="?attr/colorPrimaryContainer"
-            app:fabCustomSize="48dp"
-            app:tint="?attr/colorOnPrimaryContainer" />
+            app:cornerRadius="30dp"
+            app:icon="@null" />
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 </layout>
 

@@ -64,6 +64,14 @@
 
     <!-- ========== Material 3 FAB Style ========== -->
     <style name="AppFAB" parent="Widget.Material3.FloatingActionButton.Primary" />
+    <style name="AppFAB.Round" parent="Widget.Material3.FloatingActionButton.Primary">
+        <item name="shapeAppearanceOverlay">@style/ShapeAppearanceOverlay.App.FAB.Round</item>
+    </style>
+    <style name="ShapeAppearanceOverlay.App.FAB" parent="ShapeAppearanceOverlay.App.FAB.Round" />
+    <style name="ShapeAppearanceOverlay.App.FAB.Round">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">50%</item>
+    </style>
 
     <!-- ========== Material 3 TextAppearance Styles ========== -->
     <!-- Display -->

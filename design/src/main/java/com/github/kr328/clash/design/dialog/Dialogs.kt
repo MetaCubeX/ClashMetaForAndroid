@@ -53,12 +53,13 @@ class AppBottomSheetDialog(
 
                         val top = context.getPixels(R.dimen.bottom_sheet_background_padding_top)
                         val height = context.getPixels(R.dimen.bottom_sheet_header_height)
+                        val bottomPadding = if (fitContentHeight) 0 else it.bottom
 
                         setPaddingRelative(
                             0,
                             top * 2 + height,
                             0,
-                            it.bottom
+                            bottomPadding
                         )
                     }
                 }
