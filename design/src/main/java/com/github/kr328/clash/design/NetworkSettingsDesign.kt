@@ -3,12 +3,12 @@ package com.github.kr328.clash.design
 import android.content.Context
 import android.os.Build
 import android.view.View
+import android.app.Activity
+import androidx.appcompat.app.AppCompatActivity
 import com.github.kr328.clash.design.databinding.DesignSettingsCommonBinding
 import com.github.kr328.clash.design.preference.*
 import com.github.kr328.clash.design.store.UiStore
 import com.github.kr328.clash.design.ui.ToastDuration
-import com.github.kr328.clash.design.util.applyFrom
-import com.github.kr328.clash.design.util.bindAppBarElevation
 import com.github.kr328.clash.design.util.layoutInflater
 import com.github.kr328.clash.design.util.root
 import com.github.kr328.clash.service.model.ProxyHardeningMode
@@ -33,10 +33,10 @@ class NetworkSettingsDesign(
 
     init {
         binding.surface = surface
-
-        binding.activityBarLayout.applyFrom(context)
-
-        binding.scrollRoot.bindAppBarElevation(binding.activityBarLayout)
+        binding.toolbar.title = (context as? Activity)?.title?.toString().orEmpty()
+        binding.toolbar.setNavigationOnClickListener {
+            (context as? AppCompatActivity)?.onBackPressedDispatcher?.onBackPressed()
+        }
 
         val screen = preferenceScreen(context) {
             val vpnDependencies: MutableList<Preference> = mutableListOf()

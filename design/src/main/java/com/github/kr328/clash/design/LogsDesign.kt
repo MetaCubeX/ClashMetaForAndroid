@@ -2,6 +2,7 @@ package com.github.kr328.clash.design
 
 import android.content.Context
 import android.view.View
+import androidx.appcompat.app.AppCompatActivity
 import com.github.kr328.clash.design.adapter.LogFileAdapter
 import com.github.kr328.clash.design.databinding.DesignLogsBinding
 import com.github.kr328.clash.design.model.LogFile
@@ -50,7 +51,10 @@ class LogsDesign(context: Context) : Design<LogsDesign.Request>(context) {
     init {
         binding.self = this
 
-        binding.activityBarLayout.applyFrom(context)
+        binding.toolbar.title = context.getString(R.string.logs)
+        binding.toolbar.setNavigationOnClickListener {
+            (context as? AppCompatActivity)?.onBackPressedDispatcher?.onBackPressed()
+        }
 
         binding.recyclerList.applyLinearAdapter(context, adapter)
     }

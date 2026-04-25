@@ -59,6 +59,7 @@ class EffectiveRulesDesign(context: Context) : Design<EffectiveRulesDesign.Reque
 
     init {
         binding.self = this
+        binding.toolbar.title = context.getString(R.string.effective_rules_title)
         binding.ruleList.layoutManager = LinearLayoutManager(context)
         binding.ruleList.adapter = adapter
         binding.btnOpenLogcat.setOnClickListener {

@@ -11,6 +11,7 @@
     <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:background="?attr/colorSurface"
         android:paddingStart="@{self.surface.insets.start}"
         android:paddingEnd="@{self.surface.insets.end}">
 
@@ -19,42 +20,27 @@
             android:layout_height="match_parent"
             android:orientation="vertical">
 
-            <com.github.kr328.clash.design.view.ActivityBarLayout
-                android:id="@+id/activity_bar_layout"
+            <com.google.android.material.appbar.MaterialToolbar
+                android:id="@+id/toolbar"
+                style="@style/AppToolbar"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:paddingTop="@{self.surface.insets.top}">
+                android:paddingTop="@{self.surface.insets.top}" />
 
-                <RelativeLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:paddingEnd="@dimen/item_tailing_margin">
-
-                    <include
-                        layout="@layout/common_activity_bar"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_alignParentStart="true"
-                        android:layout_centerVertical="true"
-                        android:layout_toStartOf="@id/delete_view" />
-
-                    <ImageView
-                        android:id="@+id/delete_view"
-                        android:layout_width="@dimen/item_tailing_component_size"
-                        android:layout_height="@dimen/item_tailing_component_size"
-                        android:layout_alignParentEnd="true"
-                        android:layout_centerVertical="true"
-                        android:layout_gravity="end|center_vertical"
-                        android:layout_marginStart="@dimen/item_tailing_margin"
-                        android:background="?attr/selectableItemBackgroundBorderless"
-                        android:clickable="true"
-                        android:contentDescription="@string/delete_all_logs"
-                        android:focusable="true"
-                        android:onClick="@{() -> self.requests.offer(Request.DeleteAll.INSTANCE)}"
-                        android:padding="@dimen/toolbar_image_action_padding"
-                        android:src="@drawable/ic_baseline_clear_all" />
-                </RelativeLayout>
-            </com.github.kr328.clash.design.view.ActivityBarLayout>
+            <ImageView
+                android:id="@+id/delete_view"
+                android:layout_width="@dimen/item_tailing_component_size"
+                android:layout_height="@dimen/item_tailing_component_size"
+                android:layout_gravity="end"
+                android:layout_marginTop="@dimen/toolbar_image_action_padding"
+                android:layout_marginEnd="@dimen/item_tailing_margin"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:clickable="true"
+                android:contentDescription="@string/delete_all_logs"
+                android:focusable="true"
+                android:onClick="@{() -> self.requests.offer(Request.DeleteAll.INSTANCE)}"
+                android:padding="@dimen/toolbar_image_action_padding"
+                android:src="@drawable/ic_baseline_clear_all" />
 
             <com.github.kr328.clash.design.view.ActionLabel
                 android:layout_width="match_parent"

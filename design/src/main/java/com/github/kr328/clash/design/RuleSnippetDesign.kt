@@ -26,6 +26,7 @@ class RuleSnippetDesign(context: Context) : Design<RuleSnippetDesign.Request>(co
 
     init {
         binding.self = this
+        binding.toolbar.title = context.getString(R.string.routing_rules)
         binding.btnOpenCreateSheet.setOnClickListener { requests.trySend(Request.OpenCreateSheet) }
         binding.btnOpenManualRules.setOnClickListener { requests.trySend(Request.OpenManualRules) }
     }

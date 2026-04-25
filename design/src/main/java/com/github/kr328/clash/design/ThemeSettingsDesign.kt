@@ -2,18 +2,19 @@ package com.github.kr328.clash.design
 
 import android.content.Context
 import android.graphics.Color
+import android.os.Handler
+import android.os.Looper
 import android.view.Gravity
 import android.view.View
 import android.widget.FrameLayout
 import android.widget.GridLayout
+import androidx.appcompat.app.AppCompatActivity
 import com.github.kr328.clash.design.databinding.DesignThemeSettingsBinding
 import com.github.kr328.clash.design.model.DarkMode
 import com.github.kr328.clash.design.model.HomeBackgroundStyle
 import com.github.kr328.clash.design.model.ThemePalette
 import com.github.kr328.clash.design.model.ThemeTextScale
 import com.github.kr328.clash.design.store.UiStore
-import com.github.kr328.clash.design.util.applyFrom
-import com.github.kr328.clash.design.util.bindAppBarElevation
 import com.github.kr328.clash.design.util.layoutInflater
 import com.github.kr328.clash.design.util.root
 import com.github.kr328.clash.design.view.ThemePaletteView
@@ -34,11 +35,17 @@ class ThemeSettingsDesign(
         get() = binding.root
 
     private val paletteCards = mutableMapOf<ThemePalette, MaterialCardView>()
+    private val recreateHandler = Handler(Looper.getMainLooper())
+    private val recreateRunnable = Runnable {
+        requests.trySend(Request.ReCreateAllActivities)
+    }
 
     init {
         binding.surface = surface
-        binding.activityBarLayout.applyFrom(context)
-        binding.scrollRoot.bindAppBarElevation(binding.activityBarLayout)
+        binding.toolbar.title = context.getString(R.string.theme_settings)
+        binding.toolbar.setNavigationOnClickListener {
+            (context as? AppCompatActivity)?.onBackPressedDispatcher?.onBackPressed()
+        }
 
         setupThemeMode()
         setupDynamicColors()
@@ -50,7 +57,9 @@ class ThemeSettingsDesign(
     }
 
     private fun recreateAll() {
-        requests.trySend(Request.ReCreateAllActivities)
+        recreateHandler.removeCallbacks(recreateRunnable)
+        // Batch several quick toggles (palette + dynamic + true black) into one recreate.
+        recreateHandler.postDelayed(recreateRunnable, 120L)
     }
 
     private fun dp(value: Int): Int {

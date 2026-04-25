@@ -15,10 +15,19 @@
         android:paddingStart="@{surface.insets.start}"
         android:paddingEnd="@{surface.insets.end}">
 
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar"
+            style="@style/AppToolbar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="@{surface.insets.top}" />
+
         <com.github.kr328.clash.design.view.ObservableScrollView
             android:id="@+id/scroll_root"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:layout_marginTop="@dimen/toolbar_height"
+            android:paddingTop="@{surface.insets.top}"
             android:scrollbars="none">
 
             <LinearLayout
@@ -26,7 +35,7 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:paddingHorizontal="16dp"
-                android:paddingTop="@{(float) surface.insets.top + @dimen/toolbar_height + @dimen/theme_screen_top_extra}"
+                android:paddingTop="@dimen/theme_screen_top_extra"
                 android:paddingBottom="@{(float) surface.insets.bottom + @dimen/theme_screen_bottom_extra}">
 
                 <com.google.android.material.button.MaterialButtonToggleGroup
@@ -261,14 +270,5 @@
             </LinearLayout>
         </com.github.kr328.clash.design.view.ObservableScrollView>
 
-        <com.github.kr328.clash.design.view.ActivityBarLayout
-            android:id="@+id/activity_bar_layout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingTop="@{surface.insets.top}"
-            android:paddingEnd="@dimen/item_tailing_margin">
-
-            <include layout="@layout/common_activity_bar" />
-        </com.github.kr328.clash.design.view.ActivityBarLayout>
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 </layout>

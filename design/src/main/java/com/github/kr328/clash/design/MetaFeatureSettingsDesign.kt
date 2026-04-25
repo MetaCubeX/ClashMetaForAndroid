@@ -2,6 +2,7 @@ package com.github.kr328.clash.design
 
 import android.content.Context
 import android.view.View
+import androidx.appcompat.app.AppCompatActivity
 import com.github.kr328.clash.core.model.ConfigurationOverride
 import com.github.kr328.clash.design.databinding.DesignSettingsMetaFeatureBinding
 import com.github.kr328.clash.design.preference.*
@@ -47,9 +48,10 @@ class MetaFeatureSettingsDesign(
     init {
         binding.self = this
 
-        binding.activityBarLayout.applyFrom(context)
-
-        binding.scrollRoot.bindAppBarElevation(binding.activityBarLayout)
+        binding.toolbar.title = context.getString(R.string.meta_features)
+        binding.toolbar.setNavigationOnClickListener {
+            (context as? AppCompatActivity)?.onBackPressedDispatcher?.onBackPressed()
+        }
 
         val booleanValues: Array<Boolean?> = arrayOf(
             null,
