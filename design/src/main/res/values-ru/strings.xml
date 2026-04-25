@@ -95,6 +95,8 @@
     <string name="announcement_settings_tips">Показывает баннер на главном экране и кнопку «Поддержка» в About. Полезно для операторов, распространяющих сборку.</string>
     <string name="announcement_category_support">Поддержка</string>
     <string name="announcement_category_announcement">Объявление</string>
+    <string name="announcement_card_enabled">Показывать карточку объявлений на главном</string>
+    <string name="announcement_card_enabled_summary">По умолчанию выключено. Включите, чтобы показывать карточку «Объявления и поддержка» над подписками.</string>
     <string name="support_url">URL поддержки</string>
     <string name="support_url_placeholder">https://t.me/your_support_bot</string>
     <string name="announcement_text">Объявление</string>

@@ -1179,34 +1179,35 @@ class MainActivity : BaseActivity<MainDesign>() {
         val text = uiStore.announcement
         val url = uiStore.announcementUrl
         val supportUrl = uiStore.supportUrl
+        val cardEnabled = uiStore.announcementCardEnabled
         val hash = text.hashCode().toString()
         if (uiStore.announcementSeenHash != hash) {
             uiStore.announcementSeenHash = hash
             uiStore.announcementDismissed = false
         }
-        val textVisible = text.isNotBlank() && !uiStore.announcementDismissed
+        val textVisible = cardEnabled && text.isNotBlank() && !uiStore.announcementDismissed
         val usage = com.github.kr328.clash.common.util.SubscriptionUsage.parse(
             uiStore.subscriptionUserinfo.takeIf { it.isNotBlank() }
         )
 
         design.setAnnouncement(
             text = if (textVisible) text else null,
-            url = url.takeIf { it.isNotBlank() },
+            url = url.takeIf { cardEnabled && it.isNotBlank() },
             usage = usage,
-            supportUrl = supportUrl.takeIf { it.isNotBlank() },
+            supportUrl = supportUrl.takeIf { cardEnabled && it.isNotBlank() },
             onOpenUrl = { openExternalUrl(it) },
-            onDismiss = { uiStore.announcementDismissed = true },
-            onRefresh = {
+            onDismiss = if (cardEnabled) ({ uiStore.announcementDismissed = true }) else null,
+            onRefresh = if (cardEnabled) ({
                 // Force cooldown bypass by resetting timestamp, then re-fetch.
                 launch(Dispatchers.IO) {
                     uiStore.subscriptionMetadataLastFetch = 0L
                     runCatching { syncSubscriptionMetadata() }
                     withContext(Dispatchers.Main) { refreshAnnouncement(design) }
                 }
-            },
-            onSupport = {
+            }) else null,
+            onSupport = if (cardEnabled) ({
                 supportUrl.takeIf { it.isNotBlank() }?.let { openExternalUrl(it) }
-            },
+            }) else null,
         )
     }
 

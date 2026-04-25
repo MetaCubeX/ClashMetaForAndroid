@@ -135,6 +135,12 @@ class UiStore(context: Context) {
         defaultValue = "",
     )
 
+    /** Master toggle for showing the announcement card on the main screen. */
+    var announcementCardEnabled: Boolean by store.boolean(
+        key = "announcement_card_enabled",
+        defaultValue = false,
+    )
+
     /** When true, hide the announcement card on the main screen until text changes. */
     var announcementDismissed: Boolean by store.boolean(
         key = "announcement_dismissed",

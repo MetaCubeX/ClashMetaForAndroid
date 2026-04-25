@@ -84,6 +84,8 @@ Presets only change <b>where</b> files are downloaded from (CDN / host). It is s
     <string name="announcement_settings_tips">Show a banner on the main screen and a support button in About. Useful for operators distributing this build.</string>
     <string name="announcement_category_support">Support</string>
     <string name="announcement_category_announcement">Announcement</string>
+    <string name="announcement_card_enabled">Show announcement card on home</string>
+    <string name="announcement_card_enabled_summary">Off by default. Turn on to show the Announcement &amp; Support card above subscriptions.</string>
     <string name="support_url">Support URL</string>
     <string name="support_url_placeholder">https://t.me/your_support_bot</string>
     <string name="announcement_text">Announcement</string>

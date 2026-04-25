@@ -6,6 +6,7 @@ import android.content.Intent
 import android.net.Uri
 import android.view.MotionEvent
 import android.view.View
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.DefaultItemAnimator
 import com.github.kr328.clash.core.model.ProxyGroup
 import com.github.kr328.clash.core.model.TunnelState
@@ -108,8 +109,40 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         onSupport: (() -> Unit)? = null,
     ) {
         withContext(Dispatchers.Main) {
-            // Hide the legacy global card unconditionally.
-            binding.mainAnnouncementCard.visibility = android.view.View.GONE
+            val message = text?.trim().orEmpty()
+            val announcementUrl = url?.takeIf { it.isNotBlank() }
+            val support = supportUrl?.takeIf { it.isNotBlank() }
+            val hasCardContent = message.isNotBlank() || announcementUrl != null || support != null
+
+            binding.mainAnnouncementCard.visibility = if (hasCardContent) View.VISIBLE else View.GONE
+            binding.mainAnnouncementText.visibility = if (message.isNotBlank()) View.VISIBLE else View.GONE
+            binding.mainAnnouncementText.text = message
+
+            binding.mainAnnouncementStatsRow.visibility = View.GONE
+            binding.mainAnnouncementUsageBar.visibility = View.GONE
+            binding.mainAnnouncementUsageText.visibility = View.GONE
+            binding.mainAnnouncementUnavailableRow.visibility = View.GONE
+
+            binding.mainAnnouncementOpenLink.visibility = if (announcementUrl != null) View.VISIBLE else View.GONE
+            binding.mainAnnouncementOpenLink.setOnClickListener {
+                val target = announcementUrl ?: return@setOnClickListener
+                onOpenUrl?.invoke(target)
+            }
+
+            binding.mainAnnouncementSupport.visibility = if (support != null) View.VISIBLE else View.GONE
+            binding.mainAnnouncementSupport.setOnClickListener {
+                val target = support ?: return@setOnClickListener
+                onOpenUrl?.invoke(target) ?: onSupport?.invoke()
+            }
+
+            binding.mainAnnouncementRefresh.visibility = if (onRefresh != null) View.VISIBLE else View.GONE
+            binding.mainAnnouncementRefresh.setOnClickListener { onRefresh?.invoke() }
+
+            binding.mainAnnouncementDismiss.visibility = if (onDismiss != null) View.VISIBLE else View.GONE
+            binding.mainAnnouncementDismiss.setOnClickListener {
+                binding.mainAnnouncementCard.visibility = View.GONE
+                onDismiss?.invoke()
+            }
 
             profileAdapter.setActiveAnnouncement(
                 text = text,
@@ -118,10 +151,8 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
                 onOpenUrl = onOpenUrl,
                 onSupport = onSupport,
             )
-            // Mark unused parameters as intentionally consumed.
+            // Usage is currently rendered by profile cards; keep signature for compatibility.
             usage?.let { /* kept for API stability; per-profile usage is rendered from Profile fields */ }
-            onDismiss?.let { /* dismiss has no place in the inline UI */ }
-            onRefresh?.let { /* refresh is handled via the existing per-profile force-update icon */ }
         }
     }
 
@@ -428,6 +459,7 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
 
         binding.profileList.also {
             it.applyLinearAdapter(context, profileAdapter)
+            (it.layoutManager as? LinearLayoutManager)?.stackFromEnd = true
             it.itemAnimator = DefaultItemAnimator().apply {
                 supportsChangeAnimations = true
                 changeDuration = 280
