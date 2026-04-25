@@ -18,6 +18,7 @@ class FeaturesSettingsDesign(
     configuration: ConfigurationOverride,
 ) : Design<FeaturesSettingsDesign.Request>(context) {
     enum class Request {
+        StartMetaFeatures,
         StartNetwork,
         StartAppRouting,
         StartGeoDataSource,
@@ -47,6 +48,16 @@ class FeaturesSettingsDesign(
 
         val screen = preferenceScreen(context) {
             tips(R.string.features_intro)
+
+            clickable(
+                icon = R.drawable.ic_baseline_extension,
+                title = R.string.meta_features,
+                summary = R.string.advanced_meta_features_summary,
+            ) {
+                clicked {
+                    requests.trySend(Request.StartMetaFeatures)
+                }
+            }
 
             clickable(
                 icon = R.drawable.ic_baseline_vpn_lock,

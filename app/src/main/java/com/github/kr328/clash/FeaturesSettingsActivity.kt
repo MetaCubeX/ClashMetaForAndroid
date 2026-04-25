@@ -31,6 +31,8 @@ class FeaturesSettingsActivity : BaseActivity<FeaturesSettingsDesign>() {
                 }
                 design.requests.onReceive {
                     when (it) {
+                        FeaturesSettingsDesign.Request.StartMetaFeatures ->
+                            startActivity(MetaFeatureSettingsActivity::class.intent)
                         FeaturesSettingsDesign.Request.StartNetwork ->
                             startActivity(NetworkSettingsActivity::class.intent)
                         FeaturesSettingsDesign.Request.StartAppRouting ->
