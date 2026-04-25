@@ -12,73 +12,188 @@
     <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:background="?attr/colorSurface"
         android:paddingStart="@{self.surface.insets.start}"
         android:paddingEnd="@{self.surface.insets.end}">
 
-        <include
-            android:id="@+id/main_list"
-            layout="@layout/common_recycler_list"
-            app:insets="@{self.surface.insets}" />
-
-        <com.github.kr328.clash.design.view.ActivityBarLayout
-            android:id="@+id/activity_bar_layout"
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar"
+            style="@style/AppToolbar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingTop="@{self.surface.insets.top}">
+            android:paddingTop="@{self.surface.insets.top}" />
 
-            <RelativeLayout
+        <com.github.kr328.clash.design.view.AppRecyclerView
+            android:id="@+id/recycler_list"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:paddingHorizontal="4dp"
+            android:paddingTop="@{(float) self.surface.insets.top + @dimen/toolbar_height + @dimen/profiles_header_height}"
+            android:paddingBottom="@{self.surface.insets.bottom}" />
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/profiles_header_card"
+            style="@style/AppCard.Filled"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_marginTop="@dimen/toolbar_height"
+            android:layout_marginEnd="12dp"
+            app:cardBackgroundColor="?attr/colorSurfaceContainer"
+            app:cardCornerRadius="20dp"
+            app:cardElevation="0dp">
+
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:paddingEnd="@dimen/item_tailing_margin">
+                android:orientation="vertical"
+                android:paddingStart="16dp"
+                android:paddingTop="@{self.surface.insets.top}"
+                android:paddingEnd="16dp"
+                android:paddingBottom="12dp">
 
-                <include
-                    layout="@layout/common_activity_bar"
-                    android:layout_width="wrap_content"
+                <TextView
+                    android:id="@+id/header_title"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_alignParentStart="true"
-                    android:layout_centerVertical="true"
-                    android:layout_toStartOf="@id/update_layout" />
+                    android:layout_marginTop="12dp"
+                    android:text="@string/nav_subscriptions"
+                    android:textAppearance="@style/TextAppearance.App.TitleMedium"
+                    android:textColor="?attr/colorOnSurface"
+                    android:textStyle="bold" />
 
-                <FrameLayout
-                    android:id="@+id/update_layout"
-                    android:layout_width="wrap_content"
+                <TextView
+                    android:id="@+id/header_subtitle"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_centerVertical="true"
-                    android:layout_toStartOf="@id/add_view">
+                    android:layout_marginTop="4dp"
+                    android:textAppearance="@style/TextAppearance.App.BodySmall"
+                    android:textColor="?attr/colorOnSurfaceVariant" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/header_count"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_m3_status_chip_neutral"
+                        android:gravity="center"
+                        android:paddingHorizontal="10dp"
+                        android:paddingVertical="6dp"
+                        android:textAppearance="@style/TextAppearance.App.LabelMedium"
+                        android:textColor="?attr/colorOnSurfaceVariant" />
+
+                    <TextView
+                        android:id="@+id/header_active"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:background="@drawable/bg_m3_status_chip_neutral"
+                        android:gravity="center"
+                        android:paddingHorizontal="10dp"
+                        android:paddingVertical="6dp"
+                        android:textAppearance="@style/TextAppearance.App.LabelMedium"
+                        android:textColor="?attr/colorOnSurfaceVariant" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:orientation="horizontal">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/header_add_button"
+                        style="@style/AppButton"
+                        android:layout_width="0dp"
+                        android:layout_height="40dp"
+                        android:layout_weight="1"
+                        android:onClick="@{() -> self.requestCreate()}"
+                        android:text="@string/main_add_subscription" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/header_update_button"
+                        style="@style/AppButton.Outlined"
+                        android:layout_width="0dp"
+                        android:layout_height="40dp"
+                        android:layout_marginStart="8dp"
+                        android:layout_weight="1"
+                        android:onClick="@{() -> self.requestUpdateAll()}"
+                        android:text="@string/update"
+                        android:visibility="gone" />
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <LinearLayout
+            android:id="@+id/empty_state"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="top|center_horizontal"
+            android:orientation="vertical"
+            android:paddingHorizontal="28dp"
+            android:paddingTop="@{(float) self.surface.insets.top + @dimen/toolbar_height}"
+            android:visibility="gone">
+
+            <com.google.android.material.card.MaterialCardView
+                style="@style/AppCard.Filled"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                app:cardBackgroundColor="?attr/colorSurfaceContainer"
+                app:cardCornerRadius="20dp"
+                app:cardElevation="0dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_horizontal"
+                    android:orientation="vertical"
+                    android:padding="20dp">
 
                     <ImageView
-                        android:id="@+id/update_view"
-                        android:layout_width="@dimen/item_tailing_component_size"
-                        android:layout_height="@dimen/item_tailing_component_size"
-                        android:layout_gravity="end|center_vertical"
-                        android:layout_marginStart="@dimen/item_tailing_margin"
-                        android:background="?attr/selectableItemBackgroundBorderless"
-                        android:clickable="true"
-                        android:contentDescription="@string/_new"
-                        android:focusable="true"
-                        android:onClick="@{() -> self.requestUpdateAll()}"
-                        android:padding="@dimen/toolbar_image_action_padding"
-                        android:src="@drawable/ic_baseline_sync"
-                        android:visibility="gone" />
-                </FrameLayout>
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:contentDescription="@string/nav_subscriptions"
+                        android:src="@drawable/ic_baseline_subscriptions"
+                        app:tint="?attr/colorOnSurfaceVariant" />
 
-                <ImageView
-                    android:id="@+id/add_view"
-                    android:layout_width="@dimen/item_tailing_component_size"
-                    android:layout_height="@dimen/item_tailing_component_size"
-                    android:layout_alignParentEnd="true"
-                    android:layout_centerVertical="true"
-                    android:layout_gravity="end|center_vertical"
-                    android:layout_marginStart="@dimen/item_tailing_margin"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:clickable="true"
-                    android:contentDescription="@string/_new"
-                    android:focusable="true"
-                    android:onClick="@{() -> self.requestCreate()}"
-                    android:padding="@dimen/toolbar_image_action_padding"
-                    android:src="@drawable/ic_baseline_add" />
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:gravity="center"
+                        android:text="@string/main_no_profiles_title"
+                        android:textAppearance="@style/TextAppearance.App.TitleMedium"
+                        android:textColor="?attr/colorOnSurface" />
 
-            </RelativeLayout>
-        </com.github.kr328.clash.design.view.ActivityBarLayout>
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:gravity="center"
+                        android:text="@string/main_no_profiles_subtitle"
+                        android:textAppearance="@style/TextAppearance.App.BodyMedium"
+                        android:textColor="?attr/colorOnSurfaceVariant" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/empty_add_button"
+                        style="@style/AppButton"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="14dp"
+                        android:onClick="@{() -> self.requestCreate()}"
+                        android:text="@string/main_add_subscription" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+        </LinearLayout>
+
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 </layout>

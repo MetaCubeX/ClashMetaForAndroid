@@ -68,6 +68,7 @@
     <string name="home_proxy">代理</string>
     <string name="recently">近期</string>
     <string name="route_system_traffic">自动路由系统流量</string>
+    <string name="nav_routing">路由</string>
     <string name="routing_via_vpn_service">通过 VpnService 自动路由所有系统流量</string>
     <string name="rule_mode">规则模式</string>
     <string name="running">运行中</string>
@@ -380,6 +381,11 @@
     <string name="main_add_subscription">添加订阅</string>
     <string name="main_no_profiles_subtitle">添加订阅以开始使用</string>
     <string name="main_no_profiles_title">暂无配置</string>
+    <string name="profiles_header_subtitle_empty">还没有订阅。</string>
+    <string name="profiles_header_subtitle_ready">在这里统一管理订阅、编辑器和来源。</string>
+    <string name="profiles_header_total_fmt">总计：%1$d</string>
+    <string name="profiles_header_active_fmt">已启用：%1$d</string>
+    <string name="profiles_updating">更新中…</string>
     <string name="mode_chip_direct">直连</string>
     <string name="mode_chip_global">全局</string>
     <string name="mode_chip_rule">规则</string>

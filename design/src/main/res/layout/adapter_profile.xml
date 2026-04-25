@@ -17,8 +17,8 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginHorizontal="8dp"
-        android:layout_marginBottom="6dp"
+        android:layout_marginHorizontal="4dp"
+        android:layout_marginBottom="4dp"
         android:orientation="vertical">
 
         <com.google.android.material.card.MaterialCardView

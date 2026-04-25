@@ -1,15 +1,11 @@
 package com.github.kr328.clash.design
 
-import android.animation.Animator
-import android.animation.AnimatorListenerAdapter
-import android.animation.ObjectAnimator
-import android.animation.ValueAnimator
+import android.content.res.ColorStateList
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.view.MotionEvent
 import android.view.View
-import android.view.animation.AccelerateDecelerateInterpolator
 import androidx.recyclerview.widget.DefaultItemAnimator
 import com.github.kr328.clash.core.model.ProxyGroup
 import com.github.kr328.clash.core.model.TunnelState
@@ -34,7 +30,6 @@ import android.widget.FrameLayout
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.withContext
-import kotlin.math.floor
 import java.util.UUID
 
 class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
@@ -75,12 +70,7 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
     private var tunnelStartingState: Boolean = false
     private val uiStore = UiStore(context)
     private val expandedProfileUuids: LinkedHashSet<UUID> = linkedSetOf()
-    private var mainPowerConnectRevealAnim: ValueAnimator? = null
     private var currentModeSegment: TunnelState.Mode = TunnelState.Mode.Rule
-    private var lastPowerVisualMode: Int = -1 // 0=off, 1=starting, 2=running
-    private val mainPowerOffIconResId: Int by lazy { resolveRuntimeDrawable("proxy_off") }
-    private val mainPowerOnIconResId: Int by lazy { resolveRuntimeDrawable("proxy_on") }
-
     private val profileAdapter = ProfileAdapter(
         { profile -> profileActivateRequests.trySend(profile) },
         { profile, anchor -> profileMenuRequests.trySend(profile to anchor) },
@@ -168,103 +158,29 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
     }
 
     private fun applyPowerVisuals() {
+        val button = binding.mainPowerCard
         val running = clashRunningState
         val starting = tunnelStartingState && !running
-        val mode = when {
-            starting -> 1
-            running -> 2
-            else -> 0
+        val (bgAttr, iconAttr, elevationDp) = when {
+            running -> Triple(
+                com.google.android.material.R.attr.colorPrimary,
+                com.google.android.material.R.attr.colorOnPrimary,
+                6f,
+            )
+            starting -> Triple(
+                com.google.android.material.R.attr.colorPrimaryContainer,
+                com.google.android.material.R.attr.colorOnPrimaryContainer,
+                5f,
+            )
+            else -> Triple(
+                com.google.android.material.R.attr.colorSurfaceVariant,
+                com.google.android.material.R.attr.colorOnSurfaceVariant,
+                4f,
+            )
         }
-
-        // Do not restart the same animation/visual on repeated state patches.
-        if (mode == lastPowerVisualMode) return
-        lastPowerVisualMode = mode
-
-        binding.mainPowerGlow.animate().cancel()
-        mainPowerConnectRevealAnim?.cancel()
-        mainPowerConnectRevealAnim = null
-
-        when {
-            running -> {
-                // Keep a short colorization blend (OFF -> ON) even when state flips fast.
-                binding.mainPowerIconBase.setImageResource(mainPowerOffIconResId)
-                binding.mainPowerIconOverlay.setImageResource(mainPowerOnIconResId)
-                binding.mainPowerIconOverlay.visibility = View.VISIBLE
-                binding.mainPowerIconOverlay.alpha = 0f
-                mainPowerConnectRevealAnim = startDiscreteColorize(
-                    durationMs = 360L,
-                    steps = 10
-                ) {
-                        binding.mainPowerIconBase.setImageResource(mainPowerOnIconResId)
-                        binding.mainPowerIconOverlay.visibility = View.GONE
-                        binding.mainPowerIconOverlay.alpha = 0f
-                    }
-
-                // No persistent ring when active.
-                binding.mainPowerGlow.alpha = 0f
-                binding.mainPowerGlow.scaleX = 1f
-                binding.mainPowerGlow.scaleY = 1f
-            }
-            starting -> {
-                // Colorize effect: full-size ON layer fades in over OFF, while center glow simulates ignition.
-                binding.mainPowerIconBase.setImageResource(mainPowerOffIconResId)
-                binding.mainPowerIconOverlay.setImageResource(mainPowerOnIconResId)
-                binding.mainPowerIconOverlay.visibility = View.VISIBLE
-                binding.mainPowerIconOverlay.alpha = 0f
-                mainPowerConnectRevealAnim = startDiscreteColorize(durationMs = 560L, steps = 10)
-
-                // Ignite glow only during connecting transition.
-                binding.mainPowerGlow.alpha = 0f
-                binding.mainPowerGlow.scaleX = 0.24f
-                binding.mainPowerGlow.scaleY = 0.24f
-                binding.mainPowerGlow.animate()
-                    .alpha(0.62f)
-                    .scaleX(1f)
-                    .scaleY(1f)
-                    .setDuration(560L)
-                    .setInterpolator(AccelerateDecelerateInterpolator())
-                    .start()
-            }
-            else -> {
-                binding.mainPowerIconBase.setImageResource(mainPowerOffIconResId)
-                binding.mainPowerIconOverlay.visibility = View.GONE
-                binding.mainPowerIconOverlay.alpha = 0f
-
-                // Fully quiet glow in OFF state.
-                binding.mainPowerGlow.alpha = 0f
-                binding.mainPowerGlow.scaleX = 0.5f
-                binding.mainPowerGlow.scaleY = 0.5f
-            }
-        }
-    }
-
-    private fun resolveRuntimeDrawable(name: String): Int {
-        val runtime = context.resources.getIdentifier(name, "drawable", context.packageName)
-        return if (runtime != 0) runtime else R.drawable.ic_clash
-    }
-
-    private fun startDiscreteColorize(
-        durationMs: Long,
-        steps: Int,
-        onEnd: (() -> Unit)? = null,
-    ): ValueAnimator {
-        val safeSteps = steps.coerceIn(2, 16)
-        return ValueAnimator.ofFloat(0f, 1f).apply {
-            duration = durationMs
-            interpolator = AccelerateDecelerateInterpolator()
-            addUpdateListener { animator ->
-                val raw = animator.animatedValue as Float
-                val stepped = floor(raw * safeSteps) / safeSteps
-                binding.mainPowerIconOverlay.alpha = stepped.coerceIn(0f, 1f)
-            }
-            addListener(object : AnimatorListenerAdapter() {
-                override fun onAnimationEnd(animation: Animator) {
-                    binding.mainPowerIconOverlay.alpha = 1f
-                    onEnd?.invoke()
-                }
-            })
-            start()
-        }
+        button.backgroundTintList = ColorStateList.valueOf(context.resolveThemedColor(bgAttr))
+        button.iconTint = ColorStateList.valueOf(context.resolveThemedColor(iconAttr))
+        button.elevation = elevationDp * context.resources.displayMetrics.density
     }
 
     suspend fun setForwarded(value: Long) {
@@ -527,7 +443,7 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
             when (event.actionMasked) {
                 MotionEvent.ACTION_DOWN -> {
                     v.animate().cancel()
-                    v.animate().scaleX(0.94f).scaleY(0.94f).setDuration(90L).start()
+                    v.animate().scaleX(0.95f).scaleY(0.95f).setDuration(90L).start()
                 }
                 MotionEvent.ACTION_UP,
                 MotionEvent.ACTION_CANCEL,

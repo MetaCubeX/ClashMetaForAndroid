@@ -1,12 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Keep the main screen dense on modern tall phones. -->
+    <!-- Keep the main screen dense on modern tall phones; match default M3 power button size. -->
     <dimen name="toolbar_height">42dp</dimen>
     <dimen name="main_padding_horizontal">12dp</dimen>
-    <dimen name="main_power_button_size">152dp</dimen>
-    <dimen name="main_power_glow_size">196dp</dimen>
-    <dimen name="main_power_button_radius">76dp</dimen>
-    <dimen name="main_power_icon_padding">0dp</dimen>
+    <dimen name="main_power_button_size">192dp</dimen>
+    <dimen name="main_power_icon_size">60dp</dimen>
+    <dimen name="profiles_header_height">162dp</dimen>
     <dimen name="main_power_section_padding_top">6dp</dimen>
     <dimen name="main_power_section_padding_bottom">4dp</dimen>
     <dimen name="main_profile_label_padding_bottom">4dp</dimen>

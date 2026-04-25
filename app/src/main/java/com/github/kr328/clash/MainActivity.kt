@@ -87,6 +87,7 @@ class MainActivity : BaseActivity<MainDesign>() {
     private val scanLauncher = registerForActivityResult(ScanQRCode(), ::onScanResult)
     private var lastForwardedTrafficTotal: Long = Long.MIN_VALUE
     private var isCheckingUpdates: Boolean = false
+    private var isToggleStatusInFlight: Boolean = false
     private var pendingApkDownloadId: Long = -1L
     private var downloadReceiverRegistered: Boolean = false
     private val updatePrefs by lazy { getSharedPreferences("app_update", MODE_PRIVATE) }
@@ -160,7 +161,7 @@ class MainActivity : BaseActivity<MainDesign>() {
     }
 
     private fun showHomeImportSheet(design: MainDesign) {
-        val dialog = AppBottomSheetDialog(this, fitContentHeight = true)
+        val dialog = AppBottomSheetDialog(this, fitContentHeight = false)
         val view = layoutInflater.inflate(R.layout.bottom_sheet_home_import, null)
         dialog.setContentView(view)
         view.findViewById<TextView>(R.id.opt_clipboard).setOnClickListener {
@@ -218,9 +219,9 @@ class MainActivity : BaseActivity<MainDesign>() {
         var proxyDetailJob: Job? = null
         var lastDashboardRefreshRequestAt = 0L
 
-        fun scheduleDashboardRefresh(includeAnnouncement: Boolean = false) {
+        fun scheduleDashboardRefresh(includeAnnouncement: Boolean = false, force: Boolean = false) {
             val now = SystemClock.elapsedRealtime()
-            if (!includeAnnouncement && now - lastDashboardRefreshRequestAt < 1200L) {
+            if (!force && !includeAnnouncement && now - lastDashboardRefreshRequestAt < 1200L) {
                 return
             }
             lastDashboardRefreshRequestAt = now
@@ -278,7 +279,13 @@ class MainActivity : BaseActivity<MainDesign>() {
                             // Coalesce expensive dashboard refreshes so a burst of
                             // service/profile broadcasts does not pile up parallel
                             // proxy-group queries and stall follow-up taps.
-                            scheduleDashboardRefresh(includeAnnouncement = it == Event.ActivityStart)
+                            val serviceStateEvent = it == Event.ClashStop ||
+                                it == Event.ClashStart ||
+                                it == Event.ServiceRecreated
+                            scheduleDashboardRefresh(
+                                includeAnnouncement = it == Event.ActivityStart,
+                                force = serviceStateEvent,
+                            )
                         }
 
                         else -> Unit
@@ -289,23 +296,36 @@ class MainActivity : BaseActivity<MainDesign>() {
                     when (it) {
                         MainDesign.Request.ToggleStatus -> {
                             launch {
-                                val runningNow = withContext(Dispatchers.IO) {
-                                    resolveStatusSnapshot().serviceRunning
-                                }
-                                Remote.broadcasts.clashRunning = runningNow
-                                if (runningNow) {
-                                    stopClashService()
-                                } else {
-                                    if (!maybePromptRuBypass()) {
-                                        // User cancelled the prompt — do not start VPN.
-                                        return@launch
+                                if (isToggleStatusInFlight) return@launch
+                                isToggleStatusInFlight = true
+                                try {
+                                    val runningNow = withContext(Dispatchers.IO) {
+                                        resolveStatusSnapshot().serviceRunning
                                     }
-                                    design.setTunnelStarting(true)
-                                    try {
-                                        design.startClash()
-                                    } finally {
-                                        scheduleDashboardRefresh()
+                                    Remote.broadcasts.clashRunning = runningNow
+                                    if (runningNow) {
+                                        stopClashService()
+                                        design.setClashRunning(false)
+                                        design.setTunnelStarting(false)
+                                    } else {
+                                        if (!maybePromptRuBypass()) {
+                                            // User cancelled the prompt — do not start VPN.
+                                            return@launch
+                                        }
+                                        design.setTunnelStarting(true)
+                                        try {
+                                            design.startClash()
+                                        } finally {
+                                            scheduleDashboardRefresh()
+                                        }
                                     }
+                                } finally {
+                                    // Keep lock short so rapid taps don't enqueue duplicate start/stop sequences.
+                                    launch {
+                                        delay(350L)
+                                        isToggleStatusInFlight = false
+                                    }
+                                    scheduleDashboardRefresh(force = true)
                                 }
                             }
                         }

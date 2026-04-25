@@ -4,8 +4,6 @@ import android.app.Dialog
 import android.content.Context
 import android.view.View
 import android.view.ViewGroup
-import android.view.animation.Animation
-import android.view.animation.AnimationUtils
 import com.github.kr328.clash.design.adapter.ProfileAdapter
 import com.github.kr328.clash.design.databinding.DesignProfilesBinding
 import com.github.kr328.clash.design.databinding.DialogProfilesMenuBinding
@@ -23,6 +21,7 @@ class ProfilesDesign(context: Context) : Design<ProfilesDesign.Request>(context)
         data class Active(val profile: Profile) : Request()
         data class Update(val profile: Profile) : Request()
         data class Edit(val profile: Profile) : Request()
+        data class OpenSubscriptionSources(val profile: Profile) : Request()
         data class Duplicate(val profile: Profile) : Request()
         data class Delete(val profile: Profile) : Request()
     }
@@ -31,12 +30,7 @@ class ProfilesDesign(context: Context) : Design<ProfilesDesign.Request>(context)
         .inflate(context.layoutInflater, context.root, false)
     private val adapter = ProfileAdapter(this::requestActive, this::showMenu)
 
-    private var allUpdating: Boolean
-        get() = adapter.states.allUpdating;
-        set(value) {
-            adapter.states.allUpdating = value
-        }
-    private val rotateAnimation : Animation = AnimationUtils.loadAnimation(context, R.anim.rotate_infinite)
+    private var allUpdating: Boolean = false
 
     override val root: View
         get() = binding.root
@@ -49,9 +43,21 @@ class ProfilesDesign(context: Context) : Design<ProfilesDesign.Request>(context)
         val updatable = withContext(Dispatchers.Default) {
             profiles.any { it.imported && it.type != Profile.Type.File }
         }
+        val activeCount = withContext(Dispatchers.Default) {
+            profiles.count { it.active }
+        }
 
         withContext(Dispatchers.Main) {
-            binding.updateView.visibility = if (updatable) View.VISIBLE else View.GONE
+            binding.headerUpdateButton.visibility = if (updatable) View.VISIBLE else View.GONE
+            binding.headerCount.text = context.getString(R.string.profiles_header_total_fmt, profiles.size)
+            binding.headerActive.text = context.getString(R.string.profiles_header_active_fmt, activeCount)
+            binding.headerSubtitle.text = context.getString(
+                if (profiles.isEmpty()) R.string.profiles_header_subtitle_empty else R.string.profiles_header_subtitle_ready
+            )
+            val empty = profiles.isEmpty()
+            binding.emptyState.visibility = if (empty) View.VISIBLE else View.GONE
+            binding.recyclerList.visibility = if (empty) View.INVISIBLE else View.VISIBLE
+            changeUpdateAllButtonStatus()
         }
     }
 
@@ -69,13 +75,9 @@ class ProfilesDesign(context: Context) : Design<ProfilesDesign.Request>(context)
 
     init {
         binding.self = this
+        binding.toolbar.title = context.getString(R.string.nav_subscriptions)
 
-        binding.activityBarLayout.applyFrom(context)
-
-        binding.mainList.recyclerList.also {
-            it.bindAppBarElevation(binding.activityBarLayout)
-            it.applyLinearAdapter(context, adapter)
-        }
+        binding.recyclerList.applyLinearAdapter(context, adapter)
     }
 
     private fun showMenu(profile: Profile, @Suppress("UNUSED_PARAMETER") anchor: View) {
@@ -93,13 +95,13 @@ class ProfilesDesign(context: Context) : Design<ProfilesDesign.Request>(context)
     }
 
     fun requestUpdateAll() {
-        allUpdating = true;
+        allUpdating = true
         changeUpdateAllButtonStatus()
         requests.trySend(Request.UpdateAll)
     }
 
     fun finishUpdateAll() {
-        allUpdating = false;
+        allUpdating = false
         changeUpdateAllButtonStatus()
     }
 
@@ -123,6 +125,12 @@ class ProfilesDesign(context: Context) : Design<ProfilesDesign.Request>(context)
         dialog.dismiss()
     }
 
+    fun requestOpenSubscriptionSources(dialog: Dialog, profile: Profile) {
+        requests.trySend(Request.OpenSubscriptionSources(profile))
+
+        dialog.dismiss()
+    }
+
     fun requestDuplicate(dialog: Dialog, profile: Profile) {
         requests.trySend(Request.Duplicate(profile))
 
@@ -136,10 +144,10 @@ class ProfilesDesign(context: Context) : Design<ProfilesDesign.Request>(context)
     }
 
     private fun changeUpdateAllButtonStatus() {
-        if (allUpdating) {
-            binding.updateView.startAnimation(rotateAnimation)
-        } else {
-            binding.updateView.clearAnimation()
-        }
+        binding.headerUpdateButton.isEnabled = !allUpdating
+        binding.headerUpdateButton.alpha = if (allUpdating) 0.65f else 1f
+        binding.headerUpdateButton.text = context.getString(
+            if (allUpdating) R.string.profiles_updating else R.string.update
+        )
     }
 }

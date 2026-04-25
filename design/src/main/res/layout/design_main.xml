@@ -56,57 +56,23 @@
                 android:paddingTop="2dp"
                 android:paddingBottom="2dp">
 
-                <View
-                    android:id="@+id/main_power_glow"
-                    android:layout_width="@dimen/main_power_glow_size"
-                    android:layout_height="@dimen/main_power_glow_size"
-                    android:layout_gravity="center"
-                    android:alpha="0"
-                    android:background="@drawable/bg_power_glow" />
-
-                <com.google.android.material.card.MaterialCardView
+                <com.google.android.material.button.MaterialButton
                     android:id="@+id/main_power_card"
-                    style="@style/AppCard.Filled"
+                    style="@style/Widget.Material3.Button.IconButton.Filled"
                     android:layout_width="@dimen/main_power_button_size"
                     android:layout_height="@dimen/main_power_button_size"
                     android:layout_gravity="center"
-                    android:clickable="false"
-                    android:focusable="false"
-                    app:cardBackgroundColor="@android:color/transparent"
-                    app:cardCornerRadius="@dimen/main_power_button_radius"
-                    app:cardElevation="0dp"
-                    app:cardMaxElevation="0dp"
-                    app:cardUseCompatPadding="false"
-                    app:rippleColor="?attr/colorControlHighlight"
-                    app:strokeColor="@android:color/transparent"
-                    app:strokeWidth="0dp">
-
-                    <FrameLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent">
-
-                        <ImageView
-                            android:id="@+id/main_power_icon_base"
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:layout_gravity="center"
-                            android:contentDescription="@string/tap_to_start"
-                            android:src="@drawable/ic_clash"
-                            android:scaleType="centerInside"
-                            android:padding="@dimen/main_power_icon_padding" />
-
-                        <ImageView
-                            android:id="@+id/main_power_icon_overlay"
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:layout_gravity="center"
-                            android:alpha="0"
-                            android:contentDescription="@string/tap_to_start"
-                            android:scaleType="centerInside"
-                            android:padding="@dimen/main_power_icon_padding"
-                            android:visibility="gone" />
-                    </FrameLayout>
-                </com.google.android.material.card.MaterialCardView>
+                    android:contentDescription="@string/tap_to_start"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp"
+                    android:insetLeft="0dp"
+                    android:insetRight="0dp"
+                    android:padding="0dp"
+                    app:icon="@drawable/ic_baseline_bolt"
+                    app:iconGravity="textStart"
+                    app:iconPadding="0dp"
+                    app:iconSize="@dimen/main_power_icon_size"
+                    app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.App.FAB.Round" />
             </FrameLayout>
 
             <TextView

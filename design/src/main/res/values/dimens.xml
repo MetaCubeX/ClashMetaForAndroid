@@ -14,6 +14,7 @@
     <!--  Toolbar  -->
     <dimen name="main_toolbar_padding_horizontal">10dp</dimen>
     <dimen name="toolbar_height">42dp</dimen>
+    <dimen name="profiles_header_height">150dp</dimen>
     <dimen name="toolbar_elevation">5dp</dimen>
     <dimen name="toolbar_image_action_padding">5dp</dimen>
     <dimen name="toolbar_theme_button_size">38dp</dimen>
@@ -88,14 +89,12 @@
     <dimen name="main_logo_size">50dp</dimen>
     <dimen name="main_top_banner_height">90dp</dimen>
     <dimen name="profile_action_slot">40dp</dimen>
-    <dimen name="main_power_button_size">152dp</dimen>
-    <dimen name="main_power_glow_size">196dp</dimen>
-    <dimen name="main_power_button_radius">76dp</dimen>
+    <dimen name="main_power_button_size">192dp</dimen>
+    <dimen name="main_power_icon_size">60dp</dimen>
     <dimen name="theme_palette_check_inset">18dp</dimen>
     <dimen name="theme_palette_check_stroke">3dp</dimen>
     <dimen name="theme_screen_top_extra">12dp</dimen>
     <dimen name="theme_screen_bottom_extra">24dp</dimen>
-    <dimen name="main_power_icon_padding">0dp</dimen>
     <dimen name="main_power_section_padding_top">12dp</dimen>
     <dimen name="main_power_section_padding_bottom">8dp</dimen>
     <dimen name="main_profile_label_padding_bottom">4dp</dimen>

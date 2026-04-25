@@ -25,6 +25,11 @@
     <string name="main_no_profiles_title">Пока нет подписок</string>
     <string name="main_no_profiles_subtitle">Добавьте подписку, чтобы настроить маршрутизацию и открыть группы прокси на карточке (стрелка).</string>
     <string name="main_add_subscription">Добавить подписку</string>
+    <string name="profiles_header_subtitle_empty">Подписок пока нет.</string>
+    <string name="profiles_header_subtitle_ready">Управляйте подписками, редактором и источниками в одном месте.</string>
+    <string name="profiles_header_total_fmt">Всего: %1$d</string>
+    <string name="profiles_header_active_fmt">Активно: %1$d</string>
+    <string name="profiles_updating">Обновление…</string>
 
     <string name="logs">Логи</string>
     <string name="settings">Настройки</string>
@@ -57,7 +62,7 @@
     <!-- Bottom navigation labels -->
     <string name="nav_subscriptions">Подписки</string>
     <string name="nav_proxies">Прокси</string>
-    <string name="nav_routing">Правила</string>
+    <string name="nav_routing">Маршрутизация</string>
     <string name="nav_connections">Соединения</string>
 
     <!-- Routing hub screen -->

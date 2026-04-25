@@ -68,7 +68,7 @@ Presets only change <b>where</b> files are downloaded from (CDN / host). It is s
     <!-- Bottom navigation labels -->
     <string name="nav_subscriptions">Profiles</string>
     <string name="nav_proxies">Proxies</string>
-    <string name="nav_routing">Rules</string>
+    <string name="nav_routing">Routing</string>
     <string name="nav_connections">Connections</string>
 
     <!-- Routing hub screen -->
@@ -502,6 +502,11 @@ Presets only change <b>where</b> files are downloaded from (CDN / host). It is s
     <string name="main_no_profiles_title">No subscriptions yet</string>
     <string name="main_no_profiles_subtitle">Add your first subscription to start routing traffic and manage proxy groups.</string>
     <string name="main_add_subscription">Add subscription</string>
+    <string name="profiles_header_subtitle_empty">No subscriptions added yet.</string>
+    <string name="profiles_header_subtitle_ready">Manage subscriptions, open editor, and sources from one place.</string>
+    <string name="profiles_header_total_fmt">%1$d total</string>
+    <string name="profiles_header_active_fmt">%1$d active</string>
+    <string name="profiles_updating">Updating…</string>
 
     <string name="app">App</string>
     <string name="service">Service</string>

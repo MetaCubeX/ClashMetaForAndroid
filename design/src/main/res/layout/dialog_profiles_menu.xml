@@ -16,10 +16,30 @@
         <import type="android.view.View" />
     </data>
 
-    <LinearLayout
+    <com.google.android.material.card.MaterialCardView
+        style="@style/AppCard.Filled"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        app:cardBackgroundColor="?attr/colorSurfaceContainer"
+        app:cardCornerRadius="22dp"
+        app:cardElevation="0dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingHorizontal="20dp"
+                android:paddingBottom="8dp"
+                android:text="@{profile.name}"
+                android:textAppearance="@style/TextAppearance.App.TitleMedium"
+                android:textColor="?attr/colorOnSurface"
+                android:textStyle="bold" />
 
         <com.github.kr328.clash.design.view.LargeActionLabel
             android:layout_width="match_parent"
@@ -36,7 +56,16 @@
             android:onClick="@{() -> master.requestEdit(self, profile)}"
             android:padding="@dimen/bottom_sheet_menu_items_padding"
             app:icon="@drawable/ic_baseline_edit"
-            app:text="@string/edit" />
+            app:text="@string/profile_quick_open_advanced" />
+
+        <com.github.kr328.clash.design.view.LargeActionLabel
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:onClick="@{() -> master.requestOpenSubscriptionSources(self, profile)}"
+            android:padding="@dimen/bottom_sheet_menu_items_padding"
+            android:visibility="@{profile.imported ? View.VISIBLE : View.GONE}"
+            app:icon="@drawable/ic_baseline_subscriptions"
+            app:text="@string/profile_menu_subscription_sources" />
 
         <com.github.kr328.clash.design.view.LargeActionLabel
             android:layout_width="match_parent"
@@ -55,5 +84,6 @@
             android:theme="@style/ThemeOverlay.ControlColorError"
             app:icon="@drawable/ic_outline_delete"
             app:text="@string/delete" />
-    </LinearLayout>
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
 </layout>

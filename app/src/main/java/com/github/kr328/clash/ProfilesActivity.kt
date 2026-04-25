@@ -11,7 +11,6 @@ import com.github.kr328.clash.design.R as DesignR
 import com.github.kr328.clash.design.ProfilesDesign
 import com.github.kr328.clash.design.ui.ToastDuration
 import com.github.kr328.clash.service.model.Profile
-import com.github.kr328.clash.util.showProfileQuickEditSheet
 import com.github.kr328.clash.util.withProfile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.isActive
@@ -62,7 +61,9 @@ class ProfilesActivity : BaseActivity<ProfilesDesign>() {
                         is ProfilesDesign.Request.Delete ->
                             withProfile { delete(it.profile.uuid) }
                         is ProfilesDesign.Request.Edit ->
-                            showProfileQuickEditSheet(design, it.profile) { design.fetch() }
+                            startActivity(PropertiesActivity::class.intent.setUUID(it.profile.uuid))
+                        is ProfilesDesign.Request.OpenSubscriptionSources ->
+                            startActivity(ProxyProvidersEditorActivity::class.intent.setUUID(it.profile.uuid))
                         is ProfilesDesign.Request.Active -> {
                             withProfile {
                                 if (it.profile.imported)
