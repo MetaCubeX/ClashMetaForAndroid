@@ -42,108 +42,13 @@
             android:layout_height="match_parent"
             android:orientation="vertical"
             android:paddingTop="@{self.surface.insets.top}"
-            android:paddingBottom="@{self.surface.insets.bottom}">
+            android:paddingBottom="@{(float) self.surface.insets.bottom + @dimen/main_bottom_nav_reserved_space}">
 
             <TextView
                 android:id="@+id/btn_theme_toggle"
                 android:layout_width="1dp"
                 android:layout_height="1dp"
                 android:visibility="gone" />
-
-            <FrameLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:paddingTop="2dp"
-                android:paddingBottom="2dp">
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/main_power_card"
-                    style="@style/Widget.Material3.Button.IconButton.Filled"
-                    android:layout_width="@dimen/main_power_button_size"
-                    android:layout_height="@dimen/main_power_button_size"
-                    android:layout_gravity="center"
-                    android:contentDescription="@string/tap_to_start"
-                    android:insetTop="0dp"
-                    android:insetBottom="0dp"
-                    android:insetLeft="0dp"
-                    android:insetRight="0dp"
-                    android:padding="0dp"
-                    app:icon="@drawable/ic_baseline_bolt"
-                    app:iconGravity="textStart"
-                    app:iconPadding="0dp"
-                    app:iconSize="@dimen/main_power_icon_size"
-                    app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.App.FAB.Round" />
-            </FrameLayout>
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:paddingHorizontal="@dimen/main_padding_horizontal"
-                android:paddingBottom="2dp"
-                android:text="@{clashRunning ? @string/format_traffic_forwarded(forwarded) : @string/main_vpn_ready}"
-                android:textAppearance="@style/TextAppearance.App.BodySmall"
-                android:textColor="?attr/colorMainDashboardText"
-                tools:text="12 MB Forwarded" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:paddingHorizontal="@dimen/main_padding_horizontal"
-                android:paddingTop="2dp"
-                android:paddingBottom="4dp"
-                android:text="@string/mode"
-                android:textAppearance="@style/TextAppearance.App.TitleSmall"
-                android:textColor="?attr/colorOnSurface"
-                android:visibility="gone" />
-
-            <FrameLayout
-                android:id="@+id/mode_segment_container"
-                android:layout_width="match_parent"
-                android:layout_height="44dp"
-                android:layout_marginHorizontal="@dimen/main_padding_horizontal"
-                android:layout_marginBottom="@dimen/main_mode_row_margin_bottom"
-                android:background="@drawable/bg_m3_segment_container"
-                android:padding="2dp">
-
-                <View
-                    android:id="@+id/mode_segment_thumb"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:background="@drawable/bg_m3_status_chip_neutral" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:id="@+id/mode_label_rule"
-                        android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:layout_weight="1"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:foreground="?attr/selectableItemBackgroundBorderless"
-                        android:gravity="center"
-                        android:paddingHorizontal="10dp"
-                        android:text="@string/mode_chip_rule"
-                        android:textAppearance="@style/TextAppearance.App.LabelMedium" />
-
-                    <TextView
-                        android:id="@+id/mode_label_global"
-                        android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:layout_weight="1"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:foreground="?attr/selectableItemBackgroundBorderless"
-                        android:gravity="center"
-                        android:paddingHorizontal="10dp"
-                        android:text="@string/mode_chip_global"
-                        android:textAppearance="@style/TextAppearance.App.LabelMedium" />
-                </LinearLayout>
-            </FrameLayout>
 
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/main_announcement_card"
@@ -413,7 +318,7 @@
                     android:clipToPadding="false"
                     android:nestedScrollingEnabled="true"
                     android:overScrollMode="never"
-                    android:paddingBottom="76dp"
+                    android:paddingBottom="20dp"
                     android:visibility="@{hasProfiles ? View.VISIBLE : View.GONE}"
                     tools:listitem="@layout/adapter_profile" />
 
@@ -467,6 +372,90 @@
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
             </FrameLayout>
+
+            <FrameLayout
+                android:id="@+id/mode_segment_container"
+                android:layout_width="match_parent"
+                android:layout_height="44dp"
+                android:layout_marginHorizontal="@dimen/main_padding_horizontal"
+                android:layout_marginBottom="@dimen/main_mode_row_margin_bottom"
+                android:background="@drawable/bg_m3_segment_container"
+                android:padding="2dp">
+
+                <View
+                    android:id="@+id/mode_segment_thumb"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/bg_m3_status_chip_neutral" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/mode_label_rule"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?attr/selectableItemBackgroundBorderless"
+                        android:gravity="center"
+                        android:paddingHorizontal="10dp"
+                        android:text="@string/mode_chip_rule"
+                        android:textAppearance="@style/TextAppearance.App.LabelMedium" />
+
+                    <TextView
+                        android:id="@+id/mode_label_global"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?attr/selectableItemBackgroundBorderless"
+                        android:gravity="center"
+                        android:paddingHorizontal="10dp"
+                        android:text="@string/mode_chip_global"
+                        android:textAppearance="@style/TextAppearance.App.LabelMedium" />
+                </LinearLayout>
+            </FrameLayout>
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="@dimen/main_power_section_padding_top"
+                android:paddingBottom="2dp">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/main_power_card"
+                    style="@style/Widget.Material3.Button.IconButton.Filled"
+                    android:layout_width="@dimen/main_power_button_size"
+                    android:layout_height="@dimen/main_power_button_size"
+                    android:layout_gravity="center"
+                    android:contentDescription="@string/tap_to_start"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp"
+                    android:insetLeft="0dp"
+                    android:insetRight="0dp"
+                    android:padding="0dp"
+                    app:icon="@drawable/ic_baseline_bolt"
+                    app:iconGravity="textStart"
+                    app:iconPadding="0dp"
+                    app:iconSize="@dimen/main_power_icon_size"
+                    app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.App.FAB.Round" />
+            </FrameLayout>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:paddingHorizontal="@dimen/main_padding_horizontal"
+                android:paddingBottom="2dp"
+                android:text="@{clashRunning ? @string/format_traffic_forwarded(forwarded) : @string/main_vpn_ready}"
+                android:textAppearance="@style/TextAppearance.App.BodySmall"
+                android:textColor="?attr/colorMainDashboardText"
+                tools:text="12 MB Forwarded" />
 
         </LinearLayout>
 

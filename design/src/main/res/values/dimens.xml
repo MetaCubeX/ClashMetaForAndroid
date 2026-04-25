@@ -86,6 +86,7 @@
     <dimen name="main_bottom_nav_bottom_margin">12dp</dimen>
     <dimen name="main_bottom_nav_corner_radius">28dp</dimen>
     <dimen name="main_bottom_nav_elevation">8dp</dimen>
+    <dimen name="main_bottom_nav_reserved_space">104dp</dimen>
     <dimen name="main_logo_size">50dp</dimen>
     <dimen name="main_top_banner_height">90dp</dimen>
     <dimen name="profile_action_slot">40dp</dimen>
@@ -95,7 +96,7 @@
     <dimen name="theme_palette_check_stroke">3dp</dimen>
     <dimen name="theme_screen_top_extra">12dp</dimen>
     <dimen name="theme_screen_bottom_extra">24dp</dimen>
-    <dimen name="main_power_section_padding_top">12dp</dimen>
+    <dimen name="main_power_section_padding_top">32dp</dimen>
     <dimen name="main_power_section_padding_bottom">8dp</dimen>
     <dimen name="main_profile_label_padding_bottom">4dp</dimen>
     <dimen name="main_mode_row_margin_bottom">4dp</dimen>

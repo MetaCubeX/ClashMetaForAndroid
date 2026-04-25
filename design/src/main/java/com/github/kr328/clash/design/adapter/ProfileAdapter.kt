@@ -511,7 +511,7 @@ class ProfileAdapter(
             return
         }
 
-        for (p in pg.proxies) {
+        for (p in pg.proxies.asReversed()) {
             val row = inflater.inflate(R.layout.adapter_home_proxy_node, list, false)
 
             val title = p.title.ifBlank { p.name }
