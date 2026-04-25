@@ -128,11 +128,6 @@
             android:exported="false"
             android:label="@string/proxy_chain_title" />
         <activity
-            android:name=".ProvidersActivity"
-            android:configChanges="uiMode"
-            android:exported="false"
-            android:label="@string/providers" />
-        <activity
             android:name=".LogsActivity"
             android:configChanges="uiMode"
             android:exported="false"
@@ -223,20 +218,10 @@
             android:exported="false"
             android:label="@string/meta_features" />
         <activity
-            android:name=".AdvancedSettingsActivity"
-            android:configChanges="uiMode"
-            android:exported="false"
-            android:label="@string/advanced_settings" />
-        <activity
             android:name=".AccessControlActivity"
             android:configChanges="uiMode"
             android:exported="false"
             android:label="@string/access_control_packages" />
-        <activity
-            android:name=".HelpActivity"
-            android:configChanges="uiMode"
-            android:exported="false"
-            android:label="@string/help" />
         <activity
             android:name=".FilesActivity"
             android:configChanges="uiMode"
