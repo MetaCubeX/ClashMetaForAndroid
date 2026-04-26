@@ -38,8 +38,8 @@ data class ConnectionMetadata(
     @SerialName("sniffHost") val sniffHost: String = "",
     @SerialName("remoteDestination") val remoteDestination: String = "",
     @SerialName("processPath") val processPath: String = "",
-    @SerialName("sourceGeoIP") val sourceGeoIP: String = "",
-    @SerialName("destinationGeoIP") val destinationGeoIP: String = "",
+    @SerialName("sourceGeoIP") val sourceGeoIP: List<String>? = null,
+    @SerialName("destinationGeoIP") val destinationGeoIP: List<String>? = null,
     @SerialName("sourceIPASN") val sourceIPASN: String = "",
     @SerialName("destinationIPASN") val destinationIPASN: String = "",
 )
