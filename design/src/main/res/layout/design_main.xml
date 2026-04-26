@@ -33,16 +33,23 @@
     <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="?attr/mainDashboardBackground"
+        android:background="?attr/colorSurface"
         android:paddingStart="@{self.surface.insets.start}"
         android:paddingEnd="@{self.surface.insets.end}">
 
-        <LinearLayout
+        <androidx.core.widget.NestedScrollView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:orientation="vertical"
+            android:clipToPadding="false"
+            android:fillViewport="false"
+            android:overScrollMode="never"
             android:paddingTop="@{self.surface.insets.top}"
             android:paddingBottom="@{(float) self.surface.insets.bottom + @dimen/main_bottom_nav_reserved_space}">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
 
             <TextView
                 android:id="@+id/btn_theme_toggle"
@@ -50,16 +57,86 @@
                 android:layout_height="1dp"
                 android:visibility="gone" />
 
+            <LinearLayout
+                android:id="@+id/main_top_bar"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingHorizontal="20dp">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/main_header_title"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:ellipsize="end"
+                        android:maxLines="1"
+                        android:text="@string/launch_name"
+                        android:textAppearance="@style/TextAppearance.App.TitleMedium"
+                        android:textColor="?attr/colorOnSurface"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/main_header_summary"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:ellipsize="end"
+                        android:maxLines="2"
+                        android:visibility="gone"
+                        android:textAppearance="@style/TextAppearance.App.BodySmall"
+                        android:textColor="?attr/colorOnSurfaceVariant"
+                        tools:text="Короткий анонс или статус сервиса в две строки" />
+                </LinearLayout>
+
+                <ImageButton
+                    android:id="@+id/top_add_button"
+                    android:layout_width="42dp"
+                    android:layout_height="42dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@string/add"
+                    android:onClick="@{() -> self.request(Request.OpenNewProfile)}"
+                    android:padding="9dp"
+                    android:src="@drawable/ic_baseline_add"
+                    app:tint="?attr/colorOnSurfaceVariant" />
+
+                <ImageButton
+                    android:id="@+id/top_settings_button"
+                    android:layout_width="42dp"
+                    android:layout_height="42dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@string/settings"
+                    android:padding="9dp"
+                    android:src="@drawable/ic_baseline_settings"
+                    app:tint="?attr/colorOnSurfaceVariant" />
+
+                <ImageButton
+                    android:id="@+id/main_header_support"
+                    android:layout_width="42dp"
+                    android:layout_height="42dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@string/sub_announcement_support"
+                    android:padding="9dp"
+                    android:src="@drawable/ic_baseline_headset_mic"
+                    android:visibility="gone"
+                    app:tint="?attr/colorPrimary" />
+            </LinearLayout>
+
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/main_announcement_card"
                 style="@style/AppCard.Outlined"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginHorizontal="@dimen/main_padding_horizontal"
-                android:layout_marginBottom="6dp"
+                android:layout_marginHorizontal="20dp"
+                android:layout_marginTop="4dp"
                 android:visibility="gone"
                 app:cardBackgroundColor="?attr/colorSurfaceContainerHigh"
-                app:cardCornerRadius="16dp"
+                app:cardCornerRadius="22dp"
                 app:cardElevation="0dp"
                 app:strokeColor="?attr/colorOutlineVariant"
                 app:strokeWidth="1dp">
@@ -68,11 +145,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:paddingHorizontal="10dp"
-                    android:paddingTop="8dp"
-                    android:paddingBottom="10dp">
+                    android:padding="12dp">
 
-                    <!-- Header row: refresh + dismiss -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -80,245 +154,134 @@
                         android:orientation="horizontal">
 
                         <ImageView
-                            android:layout_width="20dp"
-                            android:layout_height="20dp"
+                            android:layout_width="22dp"
+                            android:layout_height="22dp"
                             android:contentDescription="@string/announcement_text"
                             android:src="@drawable/ic_baseline_campaign"
-                            app:tint="?attr/colorMainDashboardText" />
+                            app:tint="?attr/colorPrimary" />
 
                         <TextView
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="10dp"
                             android:layout_weight="1"
-                            android:alpha="0.85"
-                            android:text="@string/announcement_text"
-                            android:textAppearance="@style/TextAppearance.App.BodySmall"
-                            android:textColor="?attr/colorMainDashboardText" />
+                            android:text="@string/announcement_settings"
+                            android:textAppearance="@style/TextAppearance.App.TitleSmall"
+                            android:textColor="?attr/colorOnSurface"
+                            android:textStyle="bold" />
 
                         <ImageButton
                             android:id="@+id/main_announcement_refresh"
-                            android:layout_width="32dp"
-                            android:layout_height="32dp"
+                            android:layout_width="34dp"
+                            android:layout_height="34dp"
                             android:background="?attr/selectableItemBackgroundBorderless"
                             android:contentDescription="@string/sub_announcement_refresh"
+                            android:padding="8dp"
                             android:src="@drawable/ic_baseline_sync"
-                            app:tint="?attr/colorMainDashboardText" />
+                            app:tint="?attr/colorOnSurfaceVariant" />
 
                         <ImageButton
                             android:id="@+id/main_announcement_dismiss"
-                            android:layout_width="32dp"
-                            android:layout_height="32dp"
+                            android:layout_width="34dp"
+                            android:layout_height="34dp"
                             android:background="?attr/selectableItemBackgroundBorderless"
                             android:contentDescription="@string/dismiss"
+                            android:padding="8dp"
                             android:src="@drawable/ic_baseline_close"
-                            app:tint="?attr/colorMainDashboardText" />
+                            app:tint="?attr/colorOnSurfaceVariant" />
                     </LinearLayout>
 
-                    <!-- "If unavailable, tap [icon]" hint row -->
-                    <LinearLayout
-                        android:id="@+id/main_announcement_unavailable_row"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal"
-                        android:visibility="gone">
-
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:alpha="0.78"
-                            android:text="@string/sub_announcement_if_unavailable"
-                            android:textAppearance="@style/TextAppearance.App.BodyMedium"
-                            android:textColor="?attr/colorMainDashboardText" />
-
-                        <ImageButton
-                            android:id="@+id/main_announcement_open_link"
-                            android:layout_width="32dp"
-                            android:layout_height="32dp"
-                            android:layout_marginStart="6dp"
-                            android:background="?attr/selectableItemBackgroundBorderless"
-                            android:contentDescription="@string/sub_announcement_open_link"
-                            android:src="@drawable/ic_baseline_update"
-                            app:tint="?attr/colorMainDashboardText" />
-                    </LinearLayout>
-
-                    <!-- Optional announcement message -->
                     <TextView
                         android:id="@+id/main_announcement_text"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:textColor="?attr/colorMainDashboardText"
-                        android:textSize="13sp"
+                        android:layout_marginTop="8dp"
+                        android:textAppearance="@style/TextAppearance.App.BodyMedium"
+                        android:textColor="?attr/colorOnSurface"
                         android:visibility="gone"
                         tools:text="Announcement message" />
 
-                    <!-- Stats grid: traffic | days | expires -->
+                    <LinearLayout
+                        android:id="@+id/main_announcement_unavailable_row"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:visibility="gone">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/main_announcement_open_link"
+                            style="@style/AppButton.Text"
+                            android:layout_width="wrap_content"
+                            android:layout_height="40dp"
+                            android:minWidth="0dp"
+                            android:paddingHorizontal="10dp"
+                            android:text="@string/sub_announcement_open_link"
+                            android:textAllCaps="false"
+                            app:icon="@drawable/ic_baseline_update"
+                            app:iconGravity="textStart"
+                            app:iconPadding="6dp" />
+                    </LinearLayout>
+
                     <LinearLayout
                         android:id="@+id/main_announcement_stats_row"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
-                        android:baselineAligned="false"
                         android:orientation="horizontal"
-                        android:visibility="gone"
-                        android:weightSum="3">
+                        android:visibility="gone" />
 
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:gravity="center"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:alpha="0.7"
-                                android:text="@string/sub_announcement_traffic_left"
-                                android:textAppearance="@style/TextAppearance.App.BodySmall"
-                                android:textColor="?attr/colorMainDashboardText" />
-
-                            <TextView
-                                android:id="@+id/main_announcement_traffic_value"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="2dp"
-                                android:text="@string/sub_announcement_unlimited"
-                                android:textAppearance="@style/TextAppearance.App.TitleSmall"
-                                android:textColor="?attr/colorMainDashboardText"
-                                android:textStyle="bold"
-                                tools:text="12.4 / 50 GB" />
-                        </LinearLayout>
-
-                        <View
-                            android:layout_width="1dp"
-                            android:layout_height="match_parent"
-                            android:layout_marginVertical="4dp"
-                            android:alpha="0.2"
-                            android:background="?attr/colorMainDashboardText" />
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:gravity="center"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:alpha="0.7"
-                                android:text="@string/sub_announcement_days_left"
-                                android:textAppearance="@style/TextAppearance.App.BodySmall"
-                                android:textColor="?attr/colorMainDashboardText" />
-
-                            <TextView
-                                android:id="@+id/main_announcement_days_value"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="2dp"
-                                android:text="@string/sub_announcement_unlimited"
-                                android:textAppearance="@style/TextAppearance.App.TitleSmall"
-                                android:textColor="?attr/colorMainDashboardText"
-                                android:textStyle="bold"
-                                tools:text="28" />
-                        </LinearLayout>
-
-                        <View
-                            android:layout_width="1dp"
-                            android:layout_height="match_parent"
-                            android:layout_marginVertical="4dp"
-                            android:alpha="0.2"
-                            android:background="?attr/colorMainDashboardText" />
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:gravity="center"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:alpha="0.7"
-                                android:text="@string/sub_announcement_expires"
-                                android:textAppearance="@style/TextAppearance.App.BodySmall"
-                                android:textColor="?attr/colorMainDashboardText" />
-
-                            <TextView
-                                android:id="@+id/main_announcement_expires_value"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="2dp"
-                                android:text="@string/sub_announcement_never"
-                                android:textAppearance="@style/TextAppearance.App.TitleSmall"
-                                android:textColor="?attr/colorMainDashboardText"
-                                android:textStyle="bold"
-                                tools:text="Apr 30" />
-                        </LinearLayout>
-                    </LinearLayout>
-
-                    <!-- Usage progress bar -->
                     <com.google.android.material.progressindicator.LinearProgressIndicator
                         android:id="@+id/main_announcement_usage_bar"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
+                        android:layout_marginTop="8dp"
                         android:visibility="gone"
                         app:trackCornerRadius="3dp"
                         app:trackThickness="4dp" />
 
-                    <!-- Legacy usage text (hidden by default, kept for compat) -->
                     <TextView
                         android:id="@+id/main_announcement_usage_text"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="6dp"
-                        android:alpha="0.7"
-                        android:gravity="center"
-                        android:textColor="?attr/colorMainDashboardText"
-                        android:textSize="11sp"
-                        android:visibility="gone"
-                        tools:text="12.4 GB / 50 GB · expires Apr 30" />
+                        android:textAppearance="@style/TextAppearance.App.BodySmall"
+                        android:textColor="?attr/colorOnSurfaceVariant"
+                        android:visibility="gone" />
 
-                    <!-- Support button -->
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/main_announcement_support"
                         style="@style/AppButton.Tonal"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
+                        android:layout_marginTop="10dp"
                         android:text="@string/sub_announcement_support"
                         android:textAllCaps="false"
                         android:visibility="gone"
                         app:cornerRadius="16dp"
-                        app:icon="@drawable/ic_baseline_info"
+                        app:icon="@drawable/ic_baseline_headset_mic"
                         app:iconGravity="textStart"
                         app:iconPadding="8dp" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
             <FrameLayout
+                android:id="@+id/profile_section"
                 android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1"
-                android:minHeight="96dp"
-                android:paddingBottom="4dp">
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:minHeight="108dp">
 
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/profile_list"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:clipChildren="true"
+                    android:layout_height="wrap_content"
+                    android:clipChildren="false"
                     android:clipToPadding="false"
-                    android:nestedScrollingEnabled="true"
+                    android:nestedScrollingEnabled="false"
                     android:overScrollMode="never"
-                    android:paddingBottom="20dp"
+                    android:paddingBottom="8dp"
                     android:visibility="@{hasProfiles ? View.VISIBLE : View.GONE}"
                     tools:listitem="@layout/adapter_profile" />
 
@@ -328,10 +291,10 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
-                    android:layout_marginHorizontal="@dimen/main_padding_horizontal"
+                    android:layout_marginHorizontal="20dp"
                     android:visibility="@{hasProfiles ? View.GONE : View.VISIBLE}"
                     app:cardBackgroundColor="?attr/colorSurfaceContainer"
-                    app:cardCornerRadius="18dp"
+                    app:cardCornerRadius="24dp"
                     app:cardElevation="0dp"
                     app:strokeColor="?attr/colorOutlineVariant"
                     app:strokeWidth="1dp">
@@ -340,130 +303,263 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
-                        android:padding="16dp">
+                        android:padding="18dp">
 
                         <TextView
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:text="@string/main_no_profiles_title"
                             android:textAppearance="@style/TextAppearance.App.TitleMedium"
-                            android:textColor="?attr/colorMainDashboardText"
+                            android:textColor="?attr/colorOnSurface"
                             android:textStyle="bold" />
 
                         <TextView
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="6dp"
-                            android:alpha="0.86"
                             android:text="@string/main_no_profiles_subtitle"
                             android:textAppearance="@style/TextAppearance.App.BodyMedium"
-                            android:textColor="?attr/colorMainDashboardText" />
+                            android:textColor="?attr/colorOnSurfaceVariant" />
 
                         <com.google.android.material.button.MaterialButton
                             style="@style/AppButton"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="10dp"
+                            android:layout_marginTop="12dp"
                             android:onClick="@{() -> self.request(Request.OpenNewProfile)}"
                             android:text="@string/main_add_subscription"
-                            app:icon="@drawable/ic_neon_toolbar_add"
+                            android:textAllCaps="false"
+                            app:cornerRadius="16dp"
+                            app:icon="@drawable/ic_baseline_add"
                             app:iconGravity="textStart"
-                            app:iconPadding="10dp" />
+                            app:iconPadding="8dp" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
             </FrameLayout>
 
-            <FrameLayout
-                android:id="@+id/mode_segment_container"
+            <LinearLayout
+                android:id="@+id/power_status_group"
                 android:layout_width="match_parent"
-                android:layout_height="44dp"
-                android:layout_marginHorizontal="@dimen/main_padding_horizontal"
-                android:layout_marginBottom="@dimen/main_mode_row_margin_bottom"
-                android:background="@drawable/bg_m3_segment_container"
-                android:padding="2dp">
+                android:layout_height="wrap_content"
+                android:gravity="center_horizontal"
+                android:orientation="vertical"
+                android:paddingTop="2dp">
 
-                <View
-                    android:id="@+id/mode_segment_thumb"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:background="@drawable/bg_m3_status_chip_neutral" />
+                <TextView
+                    android:id="@+id/main_status_label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_m3_status_chip_neutral"
+                    android:paddingHorizontal="12dp"
+                    android:paddingVertical="4dp"
+                    android:text="@{clashRunning ? @string/main_status_connected : (tunnelStarting ? @string/main_status_connecting : @string/main_status_stopped)}"
+                    android:textAppearance="@style/TextAppearance.App.LabelMedium"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    tools:text="Connected" />
+
+                <FrameLayout
+                    android:id="@+id/main_power_shell"
+                    android:layout_width="190dp"
+                    android:layout_height="190dp"
+                    android:layout_marginTop="10dp">
+
+                    <View
+                        android:id="@+id/power_halo"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_gravity="center"
+                        android:alpha="0.12"
+                        android:background="@drawable/bg_power_glow" />
+
+                    <View
+                        android:id="@+id/power_ring_outer"
+                        android:layout_width="170dp"
+                        android:layout_height="170dp"
+                        android:layout_gravity="center"
+                        android:background="@drawable/bg_power_ring" />
+
+                    <View
+                        android:id="@+id/power_ring_inner"
+                        android:layout_width="154dp"
+                        android:layout_height="154dp"
+                        android:layout_gravity="center"
+                        android:alpha="0.65"
+                        android:background="@drawable/bg_power_ring" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/main_power_card"
+                        style="@style/Widget.Material3.Button.IconButton.Filled"
+                        android:layout_width="132dp"
+                        android:layout_height="132dp"
+                        android:layout_gravity="center"
+                        android:contentDescription="@string/tap_to_start"
+                        android:insetLeft="0dp"
+                        android:insetTop="0dp"
+                        android:insetRight="0dp"
+                        android:insetBottom="0dp"
+                        android:padding="0dp"
+                        app:cornerRadius="66dp"
+                        app:icon="@drawable/ic_baseline_bolt"
+                        app:iconGravity="textStart"
+                        app:iconPadding="0dp"
+                        app:iconSize="42dp" />
+                </FrameLayout>
+
+                <TextView
+                    android:id="@+id/main_power_hint"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="-4dp"
+                    android:text="@{clashRunning ? @string/main_power_hint_stop : @string/main_power_hint_start}"
+                    android:textAppearance="@style/TextAppearance.App.BodySmall"
+                    android:textColor="?attr/colorOnSurfaceVariant" />
+            </LinearLayout>
+
+            <com.google.android.material.card.MaterialCardView
+                style="@style/AppCard.Filled"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="20dp"
+                android:layout_marginTop="10dp"
+                app:cardBackgroundColor="?attr/colorSurfaceContainerLow"
+                app:cardCornerRadius="22dp"
+                app:cardElevation="0dp"
+                app:strokeColor="?attr/colorOutlineVariant"
+                app:strokeWidth="1dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:orientation="horizontal">
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
 
-                    <TextView
-                        android:id="@+id/mode_label_rule"
-                        android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:layout_weight="1"
+                    <LinearLayout
+                        android:id="@+id/main_routing_row"
+                        android:layout_width="match_parent"
+                        android:layout_height="64dp"
+                        android:background="?attr/selectableItemBackground"
                         android:clickable="true"
                         android:focusable="true"
-                        android:foreground="?attr/selectableItemBackgroundBorderless"
-                        android:gravity="center"
-                        android:paddingHorizontal="10dp"
-                        android:text="@string/mode_chip_rule"
-                        android:textAppearance="@style/TextAppearance.App.LabelMedium" />
+                        android:gravity="center_vertical"
+                        android:onClick="@{() -> self.request(Request.OpenRouting)}"
+                        android:orientation="horizontal"
+                        android:paddingHorizontal="14dp">
 
-                    <TextView
-                        android:id="@+id/mode_label_global"
-                        android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:layout_weight="1"
+                        <ImageView
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:background="@drawable/bg_m3_status_chip_neutral"
+                            android:padding="9dp"
+                            android:src="@drawable/ic_baseline_route"
+                            app:tint="?attr/colorPrimary"
+                            tools:ignore="ContentDescription" />
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="12dp"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="@string/nav_routing"
+                                android:textAppearance="@style/TextAppearance.App.TitleSmall"
+                                android:textColor="?attr/colorOnSurface"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:ellipsize="end"
+                                android:maxLines="1"
+                                android:text="@string/main_routing_summary"
+                                android:textAppearance="@style/TextAppearance.App.BodySmall"
+                                android:textColor="?attr/colorOnSurfaceVariant" />
+                        </LinearLayout>
+
+                        <ImageView
+                            android:layout_width="28dp"
+                            android:layout_height="28dp"
+                            android:padding="4dp"
+                            android:src="@drawable/ic_baseline_expand_more"
+                            android:rotation="-90"
+                            app:tint="?attr/colorOnSurfaceVariant"
+                            tools:ignore="ContentDescription" />
+                    </LinearLayout>
+
+                    <com.google.android.material.divider.MaterialDivider
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="66dp"
+                        android:layout_marginEnd="14dp" />
+
+                    <LinearLayout
+                        android:id="@+id/main_mode_row"
+                        android:layout_width="match_parent"
+                        android:layout_height="64dp"
+                        android:background="?attr/selectableItemBackground"
                         android:clickable="true"
                         android:focusable="true"
-                        android:foreground="?attr/selectableItemBackgroundBorderless"
-                        android:gravity="center"
-                        android:paddingHorizontal="10dp"
-                        android:text="@string/mode_chip_global"
-                        android:textAppearance="@style/TextAppearance.App.LabelMedium" />
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingHorizontal="14dp">
+
+                        <ImageView
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:background="@drawable/bg_m3_status_chip_neutral"
+                            android:padding="9dp"
+                            android:src="@drawable/ic_baseline_stack"
+                            app:tint="?attr/colorPrimary"
+                            tools:ignore="ContentDescription" />
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="12dp"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="@string/mode"
+                                android:textAppearance="@style/TextAppearance.App.TitleSmall"
+                                android:textColor="?attr/colorOnSurface"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:id="@+id/main_mode_value"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:ellipsize="end"
+                                android:maxLines="1"
+                                android:text="@{mode}"
+                                android:textAppearance="@style/TextAppearance.App.BodySmall"
+                                android:textColor="?attr/colorOnSurfaceVariant"
+                                tools:text="Rule mode" />
+                        </LinearLayout>
+
+                        <ImageView
+                            android:layout_width="28dp"
+                            android:layout_height="28dp"
+                            android:padding="4dp"
+                            android:src="@drawable/ic_baseline_expand_more"
+                            android:rotation="-90"
+                            app:tint="?attr/colorOnSurfaceVariant"
+                            tools:ignore="ContentDescription" />
+                    </LinearLayout>
                 </LinearLayout>
-            </FrameLayout>
-
-            <FrameLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:paddingTop="@dimen/main_power_section_padding_top"
-                android:paddingBottom="2dp">
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/main_power_card"
-                    style="@style/Widget.Material3.Button.IconButton.Filled"
-                    android:layout_width="@dimen/main_power_button_size"
-                    android:layout_height="@dimen/main_power_button_size"
-                    android:layout_gravity="center"
-                    android:contentDescription="@string/tap_to_start"
-                    android:insetTop="0dp"
-                    android:insetBottom="0dp"
-                    android:insetLeft="0dp"
-                    android:insetRight="0dp"
-                    android:padding="0dp"
-                    app:icon="@drawable/ic_baseline_bolt"
-                    app:iconGravity="textStart"
-                    app:iconPadding="0dp"
-                    app:iconSize="@dimen/main_power_icon_size"
-                    app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.App.FAB.Round" />
-            </FrameLayout>
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:paddingHorizontal="@dimen/main_padding_horizontal"
-                android:paddingBottom="2dp"
-                android:text="@{clashRunning ? @string/format_traffic_forwarded(forwarded) : @string/main_vpn_ready}"
-                android:textAppearance="@style/TextAppearance.App.BodySmall"
-                android:textColor="?attr/colorMainDashboardText"
-                tools:text="12 MB Forwarded" />
-
-        </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+            </LinearLayout>
+        </androidx.core.widget.NestedScrollView>
 
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/main_bottom_nav_card"
             style="@style/AppCard.BottomNav"
             android:layout_width="match_parent"
-            android:layout_height="60dp"
+            android:layout_height="64dp"
             android:layout_gravity="bottom"
             android:layout_marginHorizontal="@dimen/main_bottom_nav_horizontal_margin"
             android:layout_marginBottom="@dimen/main_bottom_nav_bottom_margin"
@@ -485,21 +581,51 @@
                 android:paddingVertical="3dp">
 
                 <LinearLayout
+                    android:id="@+id/main_nav_profiles"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:clickable="true"
+                    android:contentDescription="@string/nav_subscriptions"
+                    android:focusable="true"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <ImageView
+                        android:layout_width="21dp"
+                        android:layout_height="21dp"
+                        android:src="@drawable/ic_baseline_subscriptions"
+                        app:tint="?attr/colorOnSurfaceVariant" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:ellipsize="end"
+                        android:gravity="center"
+                        android:maxLines="1"
+                        android:text="@string/nav_subscriptions"
+                        android:textAppearance="@style/TextAppearance.App.BottomNavigation"
+                        android:textColor="?attr/colorOnSurfaceVariant" />
+                </LinearLayout>
+
+                <LinearLayout
                     android:id="@+id/main_nav_logs"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:clickable="true"
-                    android:contentDescription="@string/settings"
+                    android:contentDescription="@string/logs"
                     android:focusable="true"
                     android:gravity="center"
                     android:orientation="vertical">
 
                     <ImageView
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:src="@drawable/ic_baseline_settings"
+                        android:layout_width="21dp"
+                        android:layout_height="21dp"
+                        android:src="@drawable/ic_baseline_article"
                         app:tint="?attr/colorOnSurfaceVariant" />
 
                     <TextView
@@ -509,37 +635,7 @@
                         android:ellipsize="end"
                         android:gravity="center"
                         android:maxLines="1"
-                        android:text="@string/settings"
-                        android:textAppearance="@style/TextAppearance.App.BottomNavigation"
-                        android:textColor="?attr/colorOnSurfaceVariant" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:id="@+id/main_nav_connections"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:clickable="true"
-                    android:contentDescription="@string/nav_connections"
-                    android:focusable="true"
-                    android:gravity="center"
-                    android:orientation="vertical">
-
-                    <ImageView
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:src="@drawable/ic_baseline_swap_horiz"
-                        app:tint="?attr/colorOnSurfaceVariant" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:ellipsize="end"
-                        android:gravity="center"
-                        android:maxLines="1"
-                        android:text="@string/nav_connections"
+                        android:text="@string/logs"
                         android:textAppearance="@style/TextAppearance.App.BottomNavigation"
                         android:textColor="?attr/colorOnSurfaceVariant" />
                 </LinearLayout>
@@ -557,8 +653,8 @@
                     android:orientation="vertical">
 
                     <ImageView
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
+                        android:layout_width="21dp"
+                        android:layout_height="21dp"
                         android:src="@drawable/ic_baseline_route"
                         app:tint="?attr/colorOnSurfaceVariant" />
 
@@ -575,21 +671,21 @@
                 </LinearLayout>
 
                 <LinearLayout
-                    android:id="@+id/main_nav_profiles"
+                    android:id="@+id/main_nav_connections"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:clickable="true"
-                    android:contentDescription="@string/nav_subscriptions"
+                    android:contentDescription="@string/nav_connections"
                     android:focusable="true"
                     android:gravity="center"
                     android:orientation="vertical">
 
                     <ImageView
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:src="@drawable/ic_baseline_subscriptions"
+                        android:layout_width="21dp"
+                        android:layout_height="21dp"
+                        android:src="@drawable/ic_baseline_swap_horiz"
                         app:tint="?attr/colorOnSurfaceVariant" />
 
                     <TextView
@@ -599,36 +695,11 @@
                         android:ellipsize="end"
                         android:gravity="center"
                         android:maxLines="1"
-                        android:text="@string/nav_subscriptions"
+                        android:text="@string/nav_connections"
                         android:textAppearance="@style/TextAppearance.App.BottomNavigation"
                         android:textColor="?attr/colorOnSurfaceVariant" />
                 </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/main_add_profile_fab"
-            style="@style/Widget.Material3.Button.IconButton.Filled"
-            android:layout_width="60dp"
-            android:layout_height="60dp"
-            android:layout_gravity="bottom|end"
-            android:layout_marginEnd="56dp"
-            android:layout_marginBottom="78dp"
-            android:contentDescription="@string/add"
-            android:onClick="@{() -> self.request(Request.OpenNewProfile)}"
-            android:gravity="center"
-            android:insetTop="0dp"
-            android:insetBottom="0dp"
-            android:insetLeft="0dp"
-            android:insetRight="0dp"
-            android:text="+"
-            android:textAllCaps="false"
-            android:textColor="?attr/colorOnPrimaryContainer"
-            android:fontFamily="sans-serif-light"
-            android:textSize="30sp"
-            app:backgroundTint="?attr/colorPrimaryContainer"
-            app:cornerRadius="30dp"
-            app:icon="@null" />
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 </layout>
-

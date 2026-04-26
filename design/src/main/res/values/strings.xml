@@ -7,6 +7,21 @@
     <string name="stopped">Stopped</string>
     <string name="tap_to_start">Tap to start</string>
     <string name="main_vpn_ready">Ready to start</string>
+    <string name="main_status_connected">Connected</string>
+    <string name="main_status_connecting">Connecting</string>
+    <string name="main_status_stopped">Disconnected</string>
+    <string name="main_power_start">Connect</string>
+    <string name="main_power_stop">Stop</string>
+    <string name="main_power_hint_start">Tap to connect</string>
+    <string name="main_power_hint_stop">Tap to disconnect</string>
+    <string name="main_select_server">Servers</string>
+    <string name="main_session_title">Session</string>
+    <string name="main_profile_title">Profile</string>
+    <string name="main_routing_summary">Rules, apps and route providers</string>
+    <string name="main_mode_sheet_title">Connection mode</string>
+    <string name="main_mode_sheet_summary">Choose the simple behavior for this session.</string>
+    <string name="main_mode_rule_summary">Use profile rules. Recommended for daily use.</string>
+    <string name="main_mode_global_summary">Send all traffic through the selected server.</string>
     <string name="running">Running</string>
     <string name="format_traffic_forwarded">%s Forwarded</string>
 
@@ -79,13 +94,13 @@ Presets only change <b>where</b> files are downloaded from (CDN / host). It is s
     <string name="routing_hub_rules_summary">Edit reusable rule snippets and providers</string>
     <string name="routing_hub_per_app_summary">Choose which apps go through the VPN tunnel</string>
 
-    <!-- Announcement &amp; Support settings -->
-    <string name="announcement_settings">Announcements &amp; support</string>
+    <!-- Announcement settings -->
+    <string name="announcement_settings">Announcements</string>
     <string name="announcement_settings_tips">Show a banner on the main screen and a support button in About. Useful for operators distributing this build.</string>
     <string name="announcement_category_support">Support</string>
     <string name="announcement_category_announcement">Announcement</string>
     <string name="announcement_card_enabled">Show announcement card on home</string>
-    <string name="announcement_card_enabled_summary">Off by default. Turn on to show the Announcement &amp; Support card above subscriptions.</string>
+    <string name="announcement_card_enabled_summary">Off by default. Turn on to show the Announcement card above subscriptions.</string>
     <string name="support_url">Support URL</string>
     <string name="support_url_placeholder">https://t.me/your_support_bot</string>
     <string name="announcement_text">Announcement</string>
@@ -106,10 +121,10 @@ Presets only change <b>where</b> files are downloaded from (CDN / host). It is s
     <string name="sub_announcement_open_link">Open link</string>
     <string name="sub_announcement_support">Support</string>
     <!-- RU bypass pre-launch prompt -->
-    <string name="ru_bypass_prompt_title">Apply Russian bypass?</string>
-    <string name="ru_bypass_prompt_message">Your per-app exclusion list is empty. Route installed Russian apps (banks, Госуслуги, marketplaces, carriers) directly through your ISP and keep them out of the VPN tunnel? You can edit the list later in Routing → Per-app.</string>
-    <string name="ru_bypass_prompt_apply">Apply</string>
-    <string name="ru_bypass_prompt_skip">Skip</string>
+    <string name="ru_bypass_prompt_title">Enable app bypass?</string>
+    <string name="ru_bypass_prompt_message">Before starting, ClashFest can enable per-app bypass and route installed Russian apps directly through your ISP. You can edit the list later in Routing → Per-app.</string>
+    <string name="ru_bypass_prompt_apply">Enable bypass</string>
+    <string name="ru_bypass_prompt_skip">Start without it</string>
     <string name="ru_bypass_prompt_seeded">%1$d Russian apps added to bypass list.</string>
     <string name="sub_meta_lock_user">Ignore operator overrides</string>
     <string name="sub_meta_lock_user_summary">Don’t let the subscription server overwrite locally edited support URL or announcement.</string>
@@ -549,6 +564,10 @@ Presets only change <b>where</b> files are downloaded from (CDN / host). It is s
     <string name="app_routing_filter_other">other</string>
 
     <string name="no_profile_selected">No profile selected</string>
+    <string name="start_no_subscription_plain">Add a subscription first, then tap Connect.</string>
+    <string name="start_profile_not_ready_plain">The selected subscription is not ready yet. Open subscriptions and save or update it.</string>
+    <string name="profile_auto_refreshing">Checking subscription before start…</string>
+    <string name="profile_auto_refresh_failed_starting_saved">Could not refresh now. Starting with the saved subscription.</string>
 
     <string name="layout">Layout</string>
     <string name="single">Single</string>
@@ -630,6 +649,8 @@ Presets only change <b>where</b> files are downloaded from (CDN / host). It is s
 
     <string name="invalid_log_file">Invalid log file</string>
     <string name="unable_to_start_vpn">Unable to start VPN component</string>
+    <string name="vpn_permission_denied">Android VPN permission was not granted. Tap Connect again and allow the request.</string>
+    <string name="vpn_start_failed_plain">Could not start VPN. Open logs to see the reason.</string>
 
     <string name="version_updated">App Updated</string>
     <string name="version_updated_tips">The settings have been reseted and the old profiles needs to be saved again.</string>

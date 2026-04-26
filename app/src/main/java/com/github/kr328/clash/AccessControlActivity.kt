@@ -28,14 +28,16 @@ class AccessControlActivity : BaseActivity<AccessControlDesign>() {
         val selected = withContext(Dispatchers.IO) {
             service.accessControlPackages.toMutableSet()
         }
+        val initialSelected = selected.toSet()
         var currentMode: AccessControlMode = withContext(Dispatchers.IO) {
             service.accessControlMode
         }
+        val initialMode = currentMode
 
         defer {
             withContext(Dispatchers.IO) {
-                val changedPackages = selected != service.accessControlPackages
-                val changedMode = currentMode != service.accessControlMode
+                val changedPackages = selected != initialSelected
+                val changedMode = currentMode != initialMode
                 service.accessControlPackages = selected
                 service.accessControlMode = currentMode
                 if (clashRunning && (changedPackages || changedMode)) {
@@ -69,9 +71,6 @@ class AccessControlActivity : BaseActivity<AccessControlDesign>() {
                         AccessControlDesign.Request.ChangeMode -> {
                             design.pendingMode?.let { mode ->
                                 withContext(Dispatchers.IO) {
-                                    if (service.accessControlMode != mode) {
-                                        service.accessControlMode = mode
-                                    }
                                     if (mode == AccessControlMode.DenySelected &&
                                         !service.russianBypassSeeded
                                     ) {

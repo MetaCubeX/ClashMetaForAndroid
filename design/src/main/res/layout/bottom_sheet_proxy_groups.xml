@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:paddingStart="20dp"
+        android:paddingTop="18dp"
+        android:paddingEnd="20dp"
+        android:paddingBottom="24dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/proxy_sheet_title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:text="@string/profile_expand_proxies"
+                    android:textAppearance="@style/TextAppearance.App.TitleMedium"
+                    android:textColor="?attr/colorOnSurface"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/proxy_sheet_subtitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="3dp"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:text="@string/profile_nodes"
+                    android:textAppearance="@style/TextAppearance.App.BodySmall"
+                    android:textColor="?attr/colorOnSurfaceVariant" />
+            </LinearLayout>
+
+            <FrameLayout
+                android:id="@+id/proxy_sheet_ping_slot"
+                android:layout_width="92dp"
+                android:layout_height="40dp"
+                android:layout_marginStart="12dp">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/proxy_sheet_ping_button"
+                    style="@style/AppButton.Tonal"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:minWidth="0dp"
+                    android:paddingHorizontal="10dp"
+                    android:text="@string/profile_ping_all_short"
+                    android:textAllCaps="false"
+                    android:textAppearance="@style/TextAppearance.App.LabelSmall"
+                    app:cornerRadius="16dp"
+                    app:icon="@drawable/ic_speedometer_ping"
+                    app:iconGravity="textStart"
+                    app:iconPadding="4dp"
+                    app:iconSize="16dp" />
+
+                <ProgressBar
+                    android:id="@+id/proxy_sheet_ping_progress"
+                    style="?android:attr/progressBarStyle"
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
+                    android:layout_gravity="center"
+                    android:indeterminateTint="?attr/colorPrimary"
+                    android:visibility="gone" />
+            </FrameLayout>
+        </LinearLayout>
+
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:clipToPadding="false"
+            android:overScrollMode="never"
+            android:scrollbars="none">
+
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/proxy_sheet_group_chips"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:chipSpacingHorizontal="7dp"
+                app:singleLine="true"
+                app:singleSelection="true" />
+        </HorizontalScrollView>
+
+        <TextView
+            android:id="@+id/proxy_sheet_group_type_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/bg_m3_status_chip_neutral"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="3dp"
+            android:textAppearance="@style/TextAppearance.App.LabelSmall"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:visibility="gone"
+            tools:text="Selector" />
+
+        <androidx.core.widget.NestedScrollView
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginTop="10dp"
+            android:layout_weight="1"
+            android:clipToPadding="false"
+            android:overScrollMode="never"
+            android:paddingBottom="8dp">
+
+            <LinearLayout
+                android:id="@+id/proxy_sheet_nodes_list"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+        </androidx.core.widget.NestedScrollView>
+    </LinearLayout>
+</layout>

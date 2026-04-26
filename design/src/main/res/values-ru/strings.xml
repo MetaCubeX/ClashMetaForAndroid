@@ -2,6 +2,21 @@
     <string name="stopped">Остановлен</string>
     <string name="tap_to_start">Нажмите для запуска</string>
     <string name="main_vpn_ready">Готово к запуску</string>
+    <string name="main_status_connected">Подключено</string>
+    <string name="main_status_connecting">Подключаем</string>
+    <string name="main_status_stopped">Отключено</string>
+    <string name="main_power_start">Включить</string>
+    <string name="main_power_stop">Стоп</string>
+    <string name="main_power_hint_start">Нажмите, чтобы включить</string>
+    <string name="main_power_hint_stop">Нажмите, чтобы отключить</string>
+    <string name="main_select_server">Серверы</string>
+    <string name="main_session_title">Сессия</string>
+    <string name="main_profile_title">Профиль</string>
+    <string name="main_routing_summary">Правила, приложения и провайдеры</string>
+    <string name="main_mode_sheet_title">Режим подключения</string>
+    <string name="main_mode_sheet_summary">Выберите простое поведение для текущей сессии.</string>
+    <string name="main_mode_rule_summary">Использовать правила профиля. Рекомендуется на каждый день.</string>
+    <string name="main_mode_global_summary">Пустить весь трафик через выбранный сервер.</string>
     <string name="running">Запущен</string>
     <string name="format_traffic_forwarded">%s перенаправлено</string>
 
@@ -91,12 +106,12 @@
     <string name="rule_action_restore">Восстановить</string>
 
     <!-- Объявления и поддержка -->
-    <string name="announcement_settings">Объявления и поддержка</string>
+    <string name="announcement_settings">Объявление</string>
     <string name="announcement_settings_tips">Показывает баннер на главном экране и кнопку «Поддержка» в About. Полезно для операторов, распространяющих сборку.</string>
     <string name="announcement_category_support">Поддержка</string>
     <string name="announcement_category_announcement">Объявление</string>
     <string name="announcement_card_enabled">Показывать карточку объявлений на главном</string>
-    <string name="announcement_card_enabled_summary">По умолчанию выключено. Включите, чтобы показывать карточку «Объявления и поддержка» над подписками.</string>
+    <string name="announcement_card_enabled_summary">По умолчанию выключено. Включите, чтобы показывать карточку «Объявление» над подписками.</string>
     <string name="support_url">URL поддержки</string>
     <string name="support_url_placeholder">https://t.me/your_support_bot</string>
     <string name="announcement_text">Объявление</string>
@@ -119,10 +134,10 @@
     <string name="sub_announcement_refresh">Обновить подписку</string>
     <string name="sub_announcement_open_link">Открыть ссылку</string>
     <string name="sub_announcement_support">Поддержка</string>
-    <string name="ru_bypass_prompt_title">Применить обход для RU-приложений?</string>
-    <string name="ru_bypass_prompt_message">Список исключений по приложениям пуст. Пустить установленные российские приложения (банки, Госуслуги, маркетплейсы, операторы) мимо туннеля напрямую через провайдера? Список позже можно поправить в Роутинг → По приложениям.</string>
-    <string name="ru_bypass_prompt_apply">Применить</string>
-    <string name="ru_bypass_prompt_skip">Пропустить</string>
+    <string name="ru_bypass_prompt_title">Включить обход приложений?</string>
+    <string name="ru_bypass_prompt_message">Перед стартом ClashFest может включить bypass по приложениям и пустить установленные российские приложения напрямую через провайдера. Список позже можно поправить в Роутинг → По приложениям.</string>
+    <string name="ru_bypass_prompt_apply">Включить bypass</string>
+    <string name="ru_bypass_prompt_skip">Старт без обхода</string>
     <string name="ru_bypass_prompt_seeded">Добавлено %1$d российских приложений.</string>
     <string name="expires_on">до %1$s</string>
     <string name="sub_meta_lock_user">Игнорировать оператора</string>
@@ -414,6 +429,10 @@
     <string name="app_routing_not_selected">Не выбрано</string>
 
     <string name="no_profile_selected">Профиль не выбран</string>
+    <string name="start_no_subscription_plain">Сначала добавьте подписку, потом нажмите Connect.</string>
+    <string name="start_profile_not_ready_plain">Выбранная подписка ещё не готова. Откройте подписки и сохраните или обновите её.</string>
+    <string name="profile_auto_refreshing">Проверяем подписку перед стартом…</string>
+    <string name="profile_auto_refresh_failed_starting_saved">Не удалось обновить сейчас. Запускаем сохранённую подписку.</string>
 
     <string name="layout">Отображение</string>
     <string name="single">Одиночное</string>
@@ -494,6 +513,8 @@
 
     <string name="invalid_log_file">Недопустимый лог файл</string>
     <string name="unable_to_start_vpn">Не удалось запустить компонент VPN</string>
+    <string name="vpn_permission_denied">Android не выдал разрешение на VPN. Нажмите Connect ещё раз и разрешите запрос.</string>
+    <string name="vpn_start_failed_plain">Не удалось запустить VPN. Откройте логи, чтобы увидеть причину.</string>
 
     <string name="version_updated">Приложение обновлено</string>
     <string name="version_updated_tips">Настройки были сброшены, старые профили необходимо сохранить повторно</string>

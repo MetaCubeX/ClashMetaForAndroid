@@ -17,49 +17,320 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginHorizontal="4dp"
-        android:layout_marginBottom="4dp"
+        android:layout_marginHorizontal="20dp"
+        android:layout_marginBottom="10dp"
+        android:clipChildren="false"
         android:orientation="vertical">
 
         <com.google.android.material.card.MaterialCardView
-            android:id="@+id/proxy_expand_panel"
+            android:id="@+id/profile_card"
+            style="@style/AppCard.Filled"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="4dp"
-            android:visibility="gone"
-            app:cardBackgroundColor="@android:color/transparent"
-            app:cardCornerRadius="12dp"
+            app:cardBackgroundColor="?attr/colorSurfaceContainerLow"
+            app:cardCornerRadius="26dp"
             app:cardElevation="0dp"
-            app:strokeWidth="0dp">
+            app:rippleColor="?attr/colorControlHighlight"
+            app:strokeColor="?attr/colorOutlineVariant"
+            app:strokeWidth="1dp">
+
+            <LinearLayout
+                android:id="@+id/root_view"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:minHeight="78dp"
+                android:onClick="@{clicked}"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="78dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingStart="14dp"
+                    android:paddingEnd="10dp">
+
+                    <FrameLayout
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:background="@drawable/bg_m3_status_chip">
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:layout_gravity="center"
+                            android:contentDescription="@string/profile"
+                            android:src="@drawable/ic_baseline_language"
+                            app:tint="?attr/colorOnPrimaryContainer" />
+                    </FrameLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="12dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:ellipsize="end"
+                                android:maxLines="1"
+                                android:text="@{profile.name}"
+                                android:textAppearance="@style/TextAppearance.App.TitleSmall"
+                                android:textColor="?attr/colorOnSurface"
+                                android:textStyle="bold"
+                                tools:text="Germany 1" />
+
+                            <TextView
+                                android:id="@+id/active_status_chip"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="8dp"
+                                android:paddingHorizontal="8dp"
+                                android:paddingVertical="3dp"
+                                android:textAppearance="@style/TextAppearance.App.LabelSmall"
+                                android:visibility="gone"
+                                tools:text="Active" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="3dp"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@{profile.pending ? @string/format_type_unsaved(I18nKt.toString(profile.type, context)) : I18nKt.toString(profile.type, context)}"
+                                android:textAppearance="@style/TextAppearance.App.BodySmall"
+                                android:textColor="?attr/colorOnSurfaceVariant"
+                                tools:text="URL" />
+
+                            <TextView
+                                android:id="@+id/usage_summary"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="8dp"
+                                android:layout_weight="1"
+                                android:ellipsize="end"
+                                android:maxLines="1"
+                                android:textAppearance="@style/TextAppearance.App.BodySmall"
+                                android:textColor="?attr/colorOnSurfaceVariant"
+                                android:visibility="gone"
+                                tools:text="48 ms · Frankfurt"
+                                tools:visibility="visible" />
+                        </LinearLayout>
+
+                        <com.google.android.material.progressindicator.LinearProgressIndicator
+                            android:id="@+id/usage_progress"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="6dp"
+                            android:max="1000"
+                            android:visibility="gone"
+                            app:trackCornerRadius="2dp"
+                            app:trackThickness="3dp"
+                            tools:progress="400"
+                            tools:visibility="visible" />
+
+                        <TextView
+                            android:id="@+id/announcement_inline"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="5dp"
+                            android:autoLink="web"
+                            android:ellipsize="end"
+                            android:linksClickable="true"
+                            android:maxLines="1"
+                            android:textAppearance="@style/TextAppearance.App.BodySmall"
+                            android:textColor="?attr/colorOnSurfaceVariant"
+                            android:visibility="gone"
+                            tools:text="Announcement preview" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="3dp"
+                            android:text='@{profile.expire>0 ? I18nKt.toDateStr(profile.expire):""}'
+                            android:textAppearance="@style/TextAppearance.App.BodySmall"
+                            android:textColor="?attr/colorOnSurfaceVariant"
+                            android:visibility="@{profile.expire==0 ? View.GONE : View.VISIBLE}"
+                            tools:text="2026-04-30 01:06:58" />
+                    </LinearLayout>
+
+                    <FrameLayout
+                        android:id="@+id/force_update_slot"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:visibility="gone">
+
+                        <ImageView
+                            android:id="@+id/force_update_view"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:background="?attr/selectableItemBackgroundBorderless"
+                            android:clickable="true"
+                            android:contentDescription="@string/profile_force_update"
+                            android:focusable="true"
+                            android:padding="9dp"
+                            android:scaleType="centerInside"
+                            android:src="@drawable/ic_baseline_sync"
+                            app:tint="?attr/colorOnSurfaceVariant" />
+                    </FrameLayout>
+
+                    <FrameLayout
+                        android:id="@+id/ping_slot"
+                        android:layout_width="0dp"
+                        android:layout_height="0dp"
+                        android:visibility="gone">
+
+                        <ImageView
+                            android:id="@+id/ping_all_view"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:background="?attr/selectableItemBackgroundBorderless"
+                            android:clickable="true"
+                            android:contentDescription="@string/profile_ping_all"
+                            android:focusable="true"
+                            android:padding="10dp"
+                            android:scaleType="fitCenter"
+                            android:src="@drawable/ic_speedometer_ping"
+                            android:visibility="gone"
+                            app:tint="?attr/colorPrimary" />
+
+                        <ProgressBar
+                            android:id="@+id/ping_progress"
+                            style="?android:attr/progressBarStyle"
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:layout_gravity="center"
+                            android:indeterminateTint="?attr/colorPrimary"
+                            android:visibility="gone" />
+                    </FrameLayout>
+
+                    <FrameLayout
+                        android:id="@+id/support_slot"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:visibility="gone">
+
+                        <ImageView
+                            android:id="@+id/support_view"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:background="?attr/selectableItemBackgroundBorderless"
+                            android:clickable="true"
+                            android:contentDescription="@string/sub_announcement_support"
+                            android:focusable="true"
+                            android:padding="9dp"
+                            android:scaleType="centerInside"
+                            android:src="@drawable/ic_baseline_headset_mic"
+                            app:tint="?attr/colorPrimary" />
+                    </FrameLayout>
+
+                    <FrameLayout
+                        android:id="@+id/menu_view"
+                        android:layout_width="36dp"
+                        android:layout_height="40dp"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:clickable="true"
+                        android:focusable="true">
+
+                        <ImageView
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:contentDescription="@string/more"
+                            android:padding="9dp"
+                            android:src="@drawable/ic_baseline_more_vert"
+                            app:tint="?attr/colorOnSurfaceVariant" />
+                    </FrameLayout>
+                </LinearLayout>
+
+                <FrameLayout
+                    android:id="@+id/chevron_slot"
+                    android:layout_width="match_parent"
+                    android:layout_height="42dp"
+                    android:layout_marginHorizontal="14dp"
+                    android:layout_marginBottom="12dp"
+                    android:visibility="gone">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/server_button"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:contentDescription="@string/profile_expand_proxies"
+                        android:text="@string/main_select_server"
+                        android:textAllCaps="false"
+                        android:textAppearance="@style/TextAppearance.App.LabelMedium"
+                        app:cornerRadius="16dp"
+                        app:icon="@drawable/ic_baseline_language"
+                        app:iconGravity="textStart"
+                        app:iconPadding="8dp" />
+
+                    <ImageView
+                        android:id="@+id/chevron_view"
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:layout_gravity="center_vertical|end"
+                        android:layout_marginEnd="12dp"
+                        android:clickable="false"
+                        android:contentDescription="@string/profile_expand_proxies"
+                        android:focusable="false"
+                        android:padding="4dp"
+                        android:rotation="-90"
+                        android:scaleType="centerInside"
+                        android:src="@drawable/ic_baseline_expand_more"
+                        app:tint="?attr/colorOnPrimaryContainer" />
+                </FrameLayout>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/activate_button"
+                    style="@style/Widget.Material3.Button.TonalButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="40dp"
+                    android:layout_marginHorizontal="14dp"
+                    android:layout_marginBottom="12dp"
+                    android:text="@string/profile_use"
+                    android:textAllCaps="false"
+                    app:cornerRadius="16dp" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/proxy_expand_panel"
+            style="@style/AppCard.Filled"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:visibility="gone"
+            app:cardBackgroundColor="?attr/colorSurfaceContainerLow"
+            app:cardCornerRadius="24dp"
+            app:cardElevation="0dp"
+            app:strokeColor="?attr/colorOutlineVariant"
+            app:strokeWidth="1dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="?attr/profileProxyBlockBackground"
                 android:orientation="vertical"
-                android:paddingStart="10dp"
-                android:paddingTop="8dp"
-                android:paddingEnd="10dp"
-                android:paddingBottom="8dp">
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/profile_nodes"
-                    android:textAppearance="@style/TextAppearance.App.LabelMedium"
-                    android:textColor="?attr/colorOnSurfaceVariant" />
-
-                <LinearLayout
-                    android:id="@+id/proxy_nodes_list"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
-                    android:orientation="vertical" />
+                android:padding="14dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
                     android:gravity="center_vertical"
                     android:orientation="horizontal">
 
@@ -67,33 +338,20 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="@string/profile_selected_group"
+                        android:text="@string/profile_expand_proxies"
                         android:textAppearance="@style/TextAppearance.App.TitleSmall"
-                        android:textColor="?attr/colorOnSurface" />
-
-                    <TextView
-                        android:id="@+id/proxy_group_type_label"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="8dp"
-                        android:background="@drawable/bg_m3_status_chip_neutral"
-                        android:paddingHorizontal="8dp"
-                        android:paddingVertical="3dp"
-                        android:textAppearance="@style/TextAppearance.App.LabelSmall"
-                        android:textColor="?attr/colorOnSurfaceVariant"
-                        android:visibility="gone"
-                        tools:text="Selector"
-                        tools:visibility="visible" />
+                        android:textColor="?attr/colorOnSurface"
+                        android:textStyle="bold" />
 
                     <FrameLayout
                         android:id="@+id/ping_group_slot"
-                        android:layout_width="76dp"
-                        android:layout_height="34dp"
-                        android:layout_marginStart="4dp"
+                        android:layout_width="84dp"
+                        android:layout_height="36dp"
                         android:visibility="gone">
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/ping_group_view"
+                            style="@style/AppButton.Tonal"
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
                             android:clickable="true"
@@ -104,6 +362,7 @@
                             android:text="@string/profile_ping_all_short"
                             android:textAllCaps="false"
                             android:textAppearance="@style/TextAppearance.App.LabelSmall"
+                            app:cornerRadius="14dp"
                             app:icon="@drawable/ic_speedometer_ping"
                             app:iconGravity="textStart"
                             app:iconPadding="4dp"
@@ -123,7 +382,7 @@
                 <HorizontalScrollView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
+                    android:layout_marginTop="10dp"
                     android:clipToPadding="false"
                     android:overScrollMode="never"
                     android:scrollbars="none">
@@ -136,256 +395,35 @@
                         app:singleLine="true"
                         app:singleSelection="true" />
                 </HorizontalScrollView>
-            </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
-
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/profile_card"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:cardBackgroundColor="@android:color/transparent"
-            app:cardCornerRadius="12dp"
-            app:cardElevation="2dp"
-            app:strokeColor="?attr/colorOutlineVariant"
-            app:strokeWidth="0dp">
-
-            <LinearLayout
-                android:id="@+id/root_view"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="?attr/profileCardBackground"
-                android:clickable="true"
-                android:focusable="true"
-                android:minHeight="54dp"
-                android:onClick="@{clicked}"
-                android:orientation="vertical"
-                android:paddingHorizontal="8dp"
-                android:paddingVertical="6dp">
 
                 <TextView
-                    android:id="@+id/active_status_chip"
-                    android:layout_width="0dp"
-                    android:layout_height="0dp"
-                    android:visibility="gone" />
+                    android:id="@+id/proxy_group_type_label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:background="@drawable/bg_m3_status_chip_neutral"
+                    android:paddingHorizontal="8dp"
+                    android:paddingVertical="3dp"
+                    android:textAppearance="@style/TextAppearance.App.LabelSmall"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:visibility="gone"
+                    tools:text="Selector" />
 
-                <LinearLayout
+                <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:baselineAligned="false"
-                    android:gravity="top"
-                    android:orientation="horizontal">
+                    android:layout_marginTop="10dp"
+                    android:text="@string/profile_nodes"
+                    android:textAppearance="@style/TextAppearance.App.LabelMedium"
+                    android:textColor="?attr/colorOnSurfaceVariant" />
 
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical"
-                        android:paddingEnd="10dp">
-
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:ellipsize="end"
-                            android:maxLines="1"
-                            android:text="@{profile.name}"
-                            android:textAppearance="@style/TextAppearance.App.TitleSmall"
-                            android:textColor="?attr/colorOnSurface"
-                            android:textStyle="bold"
-                            tools:text="∞ дн | 📊 ∞" />
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="2dp"
-                            android:gravity="center_vertical"
-                            android:orientation="horizontal">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="@{profile.pending ? @string/format_type_unsaved(I18nKt.toString(profile.type, context)) : I18nKt.toString(profile.type, context)}"
-                                android:textAppearance="@style/TextAppearance.App.LabelSmall"
-                                android:textColor="?attr/colorOnSurfaceVariant"
-                                tools:text="URL" />
-
-                            <TextView
-                                android:id="@+id/usage_summary"
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="8dp"
-                                android:layout_weight="1"
-                                android:ellipsize="end"
-                                android:maxLines="1"
-                                android:textAppearance="@style/TextAppearance.App.LabelSmall"
-                                android:textColor="?attr/colorOnSurfaceVariant"
-                                android:visibility="gone"
-                                tools:text="1.34 TiB / ∞"
-                                tools:visibility="visible" />
-                        </LinearLayout>
-
-                        <com.google.android.material.progressindicator.LinearProgressIndicator
-                            android:id="@+id/usage_progress"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="3dp"
-                            android:max="1000"
-                            android:visibility="gone"
-                            app:trackCornerRadius="3dp"
-                            app:trackThickness="4dp"
-                            tools:progress="400"
-                            tools:visibility="visible" />
-
-                        <TextView
-                            android:id="@+id/announcement_inline"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="3dp"
-                            android:autoLink="web"
-                            android:ellipsize="end"
-                            android:linksClickable="true"
-                            android:maxLines="1"
-                            android:textAppearance="@style/TextAppearance.App.BodySmall"
-                            android:textColor="?attr/colorOnSurfaceVariant"
-                            android:visibility="gone"
-                            tools:text="Announcement preview"
-                            tools:visibility="visible" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="2dp"
-                            android:text='@{profile.expire>0 ? I18nKt.toDateStr(profile.expire):""}'
-                            android:textAppearance="@style/TextAppearance.App.BodySmall"
-                            android:textColor="?attr/colorOnSurfaceVariant"
-                            android:visibility="@{profile.expire==0 ? View.GONE : View.VISIBLE}" />
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal">
-
-                        <FrameLayout
-                            android:id="@+id/force_update_slot"
-                            android:layout_width="34dp"
-                            android:layout_height="34dp">
-
-                            <ImageView
-                                android:id="@+id/force_update_view"
-                                android:layout_width="match_parent"
-                                android:layout_height="match_parent"
-                                android:background="?attr/selectableItemBackgroundBorderless"
-                                android:clickable="true"
-                                android:contentDescription="@string/profile_force_update"
-                                android:focusable="true"
-                                android:padding="8dp"
-                                android:scaleType="centerInside"
-                                android:src="@drawable/ic_baseline_sync"
-                                android:visibility="gone"
-                                app:tint="?attr/colorOnSurfaceVariant" />
-                        </FrameLayout>
-
-                        <FrameLayout
-                            android:id="@+id/ping_slot"
-                            android:layout_width="0dp"
-                            android:layout_height="0dp"
-                            android:visibility="gone">
-
-                            <ImageView
-                                android:id="@+id/ping_all_view"
-                                android:layout_width="match_parent"
-                                android:layout_height="match_parent"
-                                android:background="?attr/selectableItemBackgroundBorderless"
-                                android:clickable="true"
-                                android:contentDescription="@string/profile_ping_all"
-                                android:focusable="true"
-                                android:padding="10dp"
-                                android:scaleType="fitCenter"
-                                android:src="@drawable/ic_speedometer_ping"
-                                android:visibility="gone"
-                                app:tint="?attr/colorPrimary" />
-
-                            <ProgressBar
-                                android:id="@+id/ping_progress"
-                                style="?android:attr/progressBarStyle"
-                                android:layout_width="24dp"
-                                android:layout_height="24dp"
-                                android:layout_gravity="center"
-                                android:indeterminateTint="?attr/colorPrimary"
-                                android:visibility="gone" />
-                        </FrameLayout>
-
-                        <FrameLayout
-                            android:id="@+id/support_slot"
-                            android:layout_width="34dp"
-                            android:layout_height="34dp"
-                            android:visibility="gone">
-
-                            <ImageView
-                                android:id="@+id/support_view"
-                                android:layout_width="match_parent"
-                                android:layout_height="match_parent"
-                                android:background="?attr/selectableItemBackgroundBorderless"
-                                android:clickable="true"
-                                android:contentDescription="@string/sub_announcement_support"
-                                android:focusable="true"
-                                android:padding="8dp"
-                                android:scaleType="centerInside"
-                                android:src="@drawable/ic_baseline_headset_mic"
-                                app:tint="?attr/colorPrimary" />
-                        </FrameLayout>
-
-                        <FrameLayout
-                            android:id="@+id/chevron_slot"
-                            android:layout_width="0dp"
-                            android:layout_height="0dp"
-                            android:visibility="gone">
-
-                            <ImageView
-                                android:id="@+id/chevron_view"
-                                android:layout_width="match_parent"
-                                android:layout_height="match_parent"
-                                android:background="?attr/selectableItemBackgroundBorderless"
-                                android:clickable="true"
-                                android:contentDescription="@string/profile_expand_proxies"
-                                android:focusable="true"
-                                android:padding="10dp"
-                                android:scaleType="centerInside"
-                                android:src="@drawable/ic_baseline_expand_more"
-                                android:visibility="gone"
-                            app:tint="?attr/colorOnSurfaceVariant" />
-                        </FrameLayout>
-
-                        <FrameLayout
-                            android:id="@+id/menu_view"
-                            android:layout_width="34dp"
-                            android:layout_height="34dp"
-                            android:background="?attr/selectableItemBackgroundBorderless"
-                            android:clickable="true"
-                            android:focusable="true">
-
-                            <ImageView
-                                android:layout_width="match_parent"
-                                android:layout_height="match_parent"
-                                android:contentDescription="@string/more"
-                                android:padding="8dp"
-                                android:src="@drawable/ic_baseline_more_vert"
-                                app:tint="?attr/colorOnSurfaceVariant" />
-                        </FrameLayout>
-                    </LinearLayout>
-                </LinearLayout>
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/activate_button"
-                    style="@style/Widget.Material3.Button.TonalButton"
+                <LinearLayout
+                    android:id="@+id/proxy_nodes_list"
                     android:layout_width="match_parent"
-                    android:layout_height="32dp"
-                    android:layout_marginTop="4dp"
-                    android:text="@string/profile_use"
-                    android:textAllCaps="false" />
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:orientation="vertical" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
-
     </LinearLayout>
 </layout>
