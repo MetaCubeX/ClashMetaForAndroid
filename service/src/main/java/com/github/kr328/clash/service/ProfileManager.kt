@@ -2,6 +2,7 @@ package com.github.kr328.clash.service
 
 import android.content.Context
 import com.github.kr328.clash.common.log.Log
+import com.github.kr328.clash.common.util.SubscriptionUsage
 import com.github.kr328.clash.service.data.Database
 import com.github.kr328.clash.service.data.Imported
 import com.github.kr328.clash.service.data.ImportedDao
@@ -33,7 +34,6 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.io.File
 import java.io.FileNotFoundException
-import java.math.BigDecimal
 import java.util.*
 
 class ProfileManager(private val context: Context) : IProfileManager,
@@ -160,42 +160,11 @@ class ProfileManager(private val context: Context) : IProfileManager,
             client.newCall(request).execute().use { response ->
                 if (!response.isSuccessful || response.headers["subscription-userinfo"] == null) return
 
-                var upload: Long = 0
-                var download: Long = 0
-                var total: Long = 0
-                var expire: Long = 0
-
-                val userinfo = response.headers["subscription-userinfo"]
-                if (response.isSuccessful && userinfo != null) {
-                    val flags = userinfo.split(";")
-                    for (flag in flags) {
-                        val info = flag.split("=", limit = 2)
-                        val key = info.getOrNull(0)?.trim().orEmpty()
-                        val value = info.getOrNull(1)?.trim().orEmpty()
-                        if (value.isEmpty()) continue
-
-                        when {
-                            key.contains("upload") -> {
-                                upload = value.toLongOrNull()
-                                    ?: BigDecimal(value.split('.').first()).longValueExact()
-                            }
-
-                            key.contains("download") -> {
-                                download = value.toLongOrNull()
-                                    ?: BigDecimal(value.split('.').first()).longValueExact()
-                            }
-
-                            key.contains("total") -> {
-                                total = value.toLongOrNull()
-                                    ?: BigDecimal(value.split('.').first()).longValueExact()
-                            }
-
-                            key.contains("expire") -> {
-                                expire = (value.toDoubleOrNull()?.times(1000.0))?.toLong() ?: 0L
-                            }
-                        }
-                    }
-                }
+                val usage = SubscriptionUsage.parse(response.headers["subscription-userinfo"])
+                val upload = usage?.upload ?: 0L
+                val download = usage?.download ?: 0L
+                val total = usage?.total ?: 0L
+                val expire = usage?.expireAt?.times(1000L) ?: 0L
 
                 val new = Imported(
                     old.uuid,

@@ -3,6 +3,7 @@ package com.github.kr328.clash.service
 import android.content.Context
 import android.net.Uri
 import com.github.kr328.clash.common.log.Log
+import com.github.kr328.clash.common.util.SubscriptionUsage
 import com.github.kr328.clash.core.Clash
 import com.github.kr328.clash.service.data.Imported
 import com.github.kr328.clash.service.data.ImportedDao
@@ -26,8 +27,6 @@ import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.io.File
-import java.math.BigDecimal
-import java.net.URL
 import java.util.*
 import java.util.concurrent.TimeUnit
 
@@ -62,7 +61,7 @@ object ProfileProcessor {
                     } catch (e: Exception) {
                         cb = null
 
-                        Log.w("Report fetch status: $e", e)
+                        Log.w("Report fetch status callback failed", e)
                     }
                 }.await()
 
@@ -91,32 +90,11 @@ object ProfileProcessor {
                                     .build()
 
                                 client.newCall(request).execute().use { response ->
-                                    val userinfo = response.headers["subscription-userinfo"]
-                                    if (response.isSuccessful && userinfo != null) {
-                                        val flags = userinfo.split(";")
-                                        for (flag in flags) {
-                                            val info = flag.split("=", limit = 2)
-                                            val key = info.getOrNull(0)?.trim().orEmpty()
-                                            val value = info.getOrNull(1)?.trim().orEmpty()
-                                            if (value.isEmpty()) continue
-                                            when {
-                                                key.contains("upload") -> upload =
-                                                    value.toLongOrNull()
-                                                        ?: BigDecimal(value.split('.').first()).longValueExact()
-
-                                                key.contains("download") -> download =
-                                                    value.toLongOrNull()
-                                                        ?: BigDecimal(value.split('.').first()).longValueExact()
-
-                                                key.contains("total") -> total =
-                                                    value.toLongOrNull()
-                                                        ?: BigDecimal(value.split('.').first()).longValueExact()
-
-                                                key.contains("expire") -> expire =
-                                                    (value.toDoubleOrNull()?.times(1000.0))?.toLong() ?: 0L
-                                            }
-                                        }
-                                    }
+                                    val usage = SubscriptionUsage.parse(response.headers["subscription-userinfo"])
+                                    upload = usage?.upload ?: 0L
+                                    download = usage?.download ?: 0L
+                                    total = usage?.total ?: 0L
+                                    expire = usage?.expireAt?.times(1000L) ?: 0L
                                 }
                             }
                             val new = Imported(
@@ -206,7 +184,7 @@ object ProfileProcessor {
                     } catch (e: Exception) {
                         cb = null
 
-                        Log.w("Report fetch status: $e", e)
+                        Log.w("Report fetch status callback failed", e)
                     }
                 }.await()
 
