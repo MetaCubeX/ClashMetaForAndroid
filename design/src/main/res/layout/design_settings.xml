@@ -62,13 +62,6 @@
                 <com.github.kr328.clash.design.view.ActionLabel
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:onClick="@{() -> self.request(Request.StartAnnouncement)}"
-                    app:icon="@drawable/ic_baseline_campaign"
-                    app:text="@string/announcement_settings" />
-
-                <com.github.kr328.clash.design.view.ActionLabel
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
                     android:onClick="@{() -> self.request(Request.StartLogs)}"
                     app:icon="@drawable/ic_baseline_article"
                     app:text="@string/logs" />
