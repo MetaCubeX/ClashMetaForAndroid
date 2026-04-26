@@ -9,10 +9,12 @@ import android.os.SystemClock
 import androidx.core.app.NotificationChannelCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import com.github.kr328.clash.BuildConfig
 import com.github.kr328.clash.MainActivity
 import com.github.kr328.clash.UpdateCheckReceiver
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.json.JSONObject
-import java.net.URL
 import java.util.Locale
 import com.github.kr328.clash.design.R as DesignR
 import com.github.kr328.clash.service.R as ServiceR
@@ -108,15 +110,22 @@ object AppUpdateChecker {
     }
 
     private suspend fun fetchLatestReleaseInfo(): ReleaseInfo? {
-        return runCatching {
-            val endpoint = "https://api.github.com/repos/Nemu-x/ClashFest/releases/latest"
-            val text = URL(endpoint).openStream().bufferedReader().use { it.readText() }
-            val json = JSONObject(text)
-            ReleaseInfo(
-                tagName = json.optString("tag_name"),
-                htmlUrl = json.optString("html_url"),
-            )
-        }.getOrNull()
+        return withContext(Dispatchers.IO) {
+            runCatching {
+                val endpoint = "https://api.github.com/repos/Nemu-x/ClashFest/releases/latest"
+                val text = HttpTextFetcher.fetchUtf8(
+                    endpoint,
+                    connectTimeoutMs = 15_000,
+                    readTimeoutMs = 15_000,
+                    headers = mapOf("User-Agent" to "ClashFest/${BuildConfig.VERSION_NAME}"),
+                )
+                val json = JSONObject(text)
+                ReleaseInfo(
+                    tagName = json.optString("tag_name"),
+                    htmlUrl = json.optString("html_url"),
+                )
+            }.getOrNull()
+        }
     }
 
     private fun compareVersions(left: String, right: String): Int {

@@ -46,6 +46,7 @@ import com.github.kr328.clash.service.model.AccessControlMode
 import com.github.kr328.clash.service.model.Profile
 import com.github.kr328.clash.service.store.ServiceStore
 import com.github.kr328.clash.util.RussianBypassDefaults
+import com.github.kr328.clash.util.HttpTextFetcher
 import com.github.kr328.clash.util.showProfileQuickEditSheet
 import com.github.kr328.clash.util.startClashService
 import com.github.kr328.clash.util.stopClashService
@@ -68,7 +69,6 @@ import kotlinx.coroutines.selects.select
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
-import java.net.URL
 import java.util.*
 import java.util.concurrent.TimeUnit
 
@@ -982,7 +982,12 @@ class MainActivity : BaseActivity<MainDesign>() {
     private suspend fun fetchLatestReleaseInfo(): ReleaseInfo? = withContext(Dispatchers.IO) {
         runCatching {
             val endpoint = "https://api.github.com/repos/Nemu-x/ClashFest/releases/latest"
-            val text = URL(endpoint).openStream().bufferedReader().use { it.readText() }
+            val text = HttpTextFetcher.fetchUtf8(
+                endpoint,
+                connectTimeoutMs = 15_000,
+                readTimeoutMs = 15_000,
+                headers = mapOf("User-Agent" to "ClashFest/${BuildConfig.VERSION_NAME}"),
+            )
             val json = JSONObject(text)
             val assets = json.optJSONArray("assets")
             var apkUrl: String? = null

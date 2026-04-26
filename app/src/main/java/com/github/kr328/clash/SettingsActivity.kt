@@ -4,6 +4,7 @@ import com.github.kr328.clash.common.util.intent
 import com.github.kr328.clash.core.bridge.Bridge
 import com.github.kr328.clash.design.SettingsDesign
 import com.github.kr328.clash.design.dialog.showAboutDialog
+import com.github.kr328.clash.util.HttpTextFetcher
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.isActive
@@ -11,7 +12,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.select
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
-import java.net.URL
 import android.content.Intent
 import android.net.Uri
 
@@ -83,7 +83,12 @@ class SettingsActivity : BaseActivity<SettingsDesign>() {
         val latest = withContext(Dispatchers.IO) {
             runCatching {
                 val endpoint = "https://api.github.com/repos/Nemu-x/ClashFest/releases/latest"
-                val text = URL(endpoint).openStream().bufferedReader().use { it.readText() }
+                val text = HttpTextFetcher.fetchUtf8(
+                    endpoint,
+                    connectTimeoutMs = 15_000,
+                    readTimeoutMs = 15_000,
+                    headers = mapOf("User-Agent" to "ClashFest/${BuildConfig.VERSION_NAME}"),
+                )
                 val json = JSONObject(text)
                 json.optString("tag_name") to json.optString("html_url")
             }.getOrNull()
