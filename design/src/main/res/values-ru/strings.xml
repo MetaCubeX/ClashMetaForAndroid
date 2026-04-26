@@ -148,10 +148,11 @@
     <string name="sub_announcement_refresh">Обновить подписку</string>
     <string name="sub_announcement_open_link">Открыть ссылку</string>
     <string name="sub_announcement_support">Поддержка</string>
-    <string name="ru_bypass_prompt_title">Включить обход приложений?</string>
-    <string name="ru_bypass_prompt_message">Перед стартом ClashFest может включить bypass по приложениям и пустить установленные российские приложения напрямую через провайдера. Список позже можно поправить в Роутинг → По приложениям.</string>
-    <string name="ru_bypass_prompt_apply">Включить bypass</string>
-    <string name="ru_bypass_prompt_skip">Старт без обхода</string>
+    <string name="ru_bypass_prompt_title">Применить обход для RU-приложений?</string>
+    <string name="ru_bypass_prompt_message">Список исключений по приложениям пуст. Пустить установленные российские приложения (банки, Госуслуги, маркетплейсы, операторы) мимо туннеля напрямую через провайдера? Список позже можно поправить в Роутинг → По приложениям.</string>
+    <string name="ru_bypass_prompt_tile_note">Плитка быстрых настроек только включает или выключает VPN и не меняет список приложений.</string>
+    <string name="ru_bypass_prompt_apply">Применить</string>
+    <string name="ru_bypass_prompt_skip">Пропустить</string>
     <string name="ru_bypass_prompt_seeded">Добавлено %1$d российских приложений.</string>
     <string name="expires_on">до %1$s</string>
     <string name="sub_meta_lock_user">Игнорировать оператора</string>
@@ -540,6 +541,7 @@
     <string name="unable_to_start_vpn">Не удалось запустить компонент VPN</string>
     <string name="vpn_permission_denied">Android не выдал разрешение на VPN. Нажмите Connect ещё раз и разрешите запрос.</string>
     <string name="vpn_start_failed_plain">Не удалось запустить VPN. Откройте логи, чтобы увидеть причину.</string>
+    <string name="quick_tile_permission_denied_notification">Разрешение на VPN отклонено. Откройте ClashFest и разрешите VPN-запрос.</string>
 
     <string name="version_updated">Приложение обновлено</string>
     <string name="version_updated_tips">Настройки были сброшены, старые профили необходимо сохранить повторно</string>

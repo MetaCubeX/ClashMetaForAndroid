@@ -135,10 +135,11 @@ Presets only change <b>where</b> files are downloaded from (CDN / host). It is s
     <string name="sub_announcement_open_link">Open link</string>
     <string name="sub_announcement_support">Support</string>
     <!-- RU bypass pre-launch prompt -->
-    <string name="ru_bypass_prompt_title">Enable app bypass?</string>
-    <string name="ru_bypass_prompt_message">Before starting, ClashFest can enable per-app bypass and route installed Russian apps directly through your ISP. You can edit the list later in Routing → Per-app.</string>
-    <string name="ru_bypass_prompt_apply">Enable bypass</string>
-    <string name="ru_bypass_prompt_skip">Start without it</string>
+    <string name="ru_bypass_prompt_title">Apply Russian bypass?</string>
+    <string name="ru_bypass_prompt_message">Your per-app exclusion list is empty. Route installed Russian apps (banks, Госуслуги, marketplaces, carriers) directly through your ISP and keep them out of the VPN tunnel? You can edit the list later in Routing → Per-app.</string>
+    <string name="ru_bypass_prompt_tile_note">The Quick Settings tile only starts or stops VPN; it does not change per-app routing.</string>
+    <string name="ru_bypass_prompt_apply">Apply</string>
+    <string name="ru_bypass_prompt_skip">Skip</string>
     <string name="ru_bypass_prompt_seeded">%1$d Russian apps added to bypass list.</string>
     <string name="sub_meta_lock_user">Ignore operator overrides</string>
     <string name="sub_meta_lock_user_summary">Don’t let the subscription server overwrite locally edited support URL or announcement.</string>
@@ -676,6 +677,7 @@ Presets only change <b>where</b> files are downloaded from (CDN / host). It is s
     <string name="unable_to_start_vpn">Unable to start VPN component</string>
     <string name="vpn_permission_denied">Android VPN permission was not granted. Tap Connect again and allow the request.</string>
     <string name="vpn_start_failed_plain">Could not start VPN. Open logs to see the reason.</string>
+    <string name="quick_tile_permission_denied_notification">VPN permission was denied. Open ClashFest and allow the VPN request.</string>
 
     <string name="version_updated">App Updated</string>
     <string name="version_updated_tips">The settings have been reseted and the old profiles needs to be saved again.</string>

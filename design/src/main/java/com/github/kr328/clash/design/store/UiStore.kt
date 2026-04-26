@@ -117,6 +117,12 @@ class UiStore(context: Context) {
         defaultValue = false,
     )
 
+    /** True once the one-time RU bypass prompt has been shown and explicitly answered. */
+    var ruBypassPromptHandled: Boolean by store.boolean(
+        key = "ru_bypass_prompt_handled",
+        defaultValue = false,
+    )
+
     /** Optional support contact (e.g. https://t.me/your_bot). Shown in About + Settings. */
     var supportUrl: String by store.string(
         key = "support_url",

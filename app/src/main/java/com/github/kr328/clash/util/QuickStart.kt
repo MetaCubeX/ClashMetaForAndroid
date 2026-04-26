@@ -2,14 +2,17 @@ package com.github.kr328.clash.util
 
 import android.content.Context
 import com.github.kr328.clash.core.model.ProxySort
-import com.github.kr328.clash.service.model.AccessControlMode
 import com.github.kr328.clash.service.store.ServiceStore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 
-suspend fun Context.prepareQuickTileStart(includeInstalledPackages: Boolean = true) = withContext(Dispatchers.IO) {
-    val store = ServiceStore(this@prepareQuickTileStart)
+/**
+ * Quick Settings tile must not change per-app routing. Only geo mirror defaults
+ * and optional activation of a single imported profile.
+ */
+suspend fun Context.prepareQuickTileVpnOnly() = withContext(Dispatchers.IO) {
+    val store = ServiceStore(this@prepareQuickTileVpnOnly)
     store.seedDefaultGeoMirrors = true
 
     val active = withProfile { queryActive() }
@@ -20,13 +23,6 @@ suspend fun Context.prepareQuickTileStart(includeInstalledPackages: Boolean = tr
             withProfile { setActive(imported.first()) }
         }
     }
-
-    val existing = store.accessControlPackages
-    val seed = existing + RussianBypassDefaults.PACKAGES +
-        if (includeInstalledPackages) RussianBypassDefaults.installed(packageManager) else emptySet()
-    store.accessControlMode = AccessControlMode.DenySelected
-    store.accessControlPackages = seed
-    store.russianBypassSeeded = true
 }
 
 suspend fun autoSelectFirstRuntimeProxy() {

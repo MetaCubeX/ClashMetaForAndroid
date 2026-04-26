@@ -65,6 +65,7 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.select
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import java.net.URL
@@ -310,7 +311,9 @@ class MainActivity : BaseActivity<MainDesign>() {
                                         design.setClashRunning(false)
                                         design.setTunnelStarting(false)
                                     } else {
-                                        ensureRuBypass()
+                                        if (!maybePromptRuBypass()) {
+                                            return@launch
+                                        }
                                         design.setTunnelStarting(true)
                                         try {
                                             design.startClash()
@@ -1268,26 +1271,57 @@ class MainActivity : BaseActivity<MainDesign>() {
     }
 
     /**
-     * Before starting the tunnel, silently enable per-app bypass for installed
-     * Russian apps. The user-facing path stays one tap: Connect always prepares
-     * the safe default package exclusions first.
+     * When the per-app exclusion list is empty, offer to seed it with installed
+     * Russian apps before starting the tunnel. Skip still starts VPN; cancel does not.
      */
-    private suspend fun ensureRuBypass() {
+    private suspend fun maybePromptRuBypass(): Boolean {
         val service = ServiceStore(this)
-        val count = withContext(Dispatchers.IO) {
-            val existing = service.accessControlPackages
-            val seed = existing + RussianBypassDefaults.installed(packageManager)
-            service.accessControlMode = AccessControlMode.DenySelected
-            service.accessControlPackages = seed
-            service.russianBypassSeeded = true
-            seed.size - existing.size
-        }
-        if (count > 0) {
-            Toast.makeText(
-                this@MainActivity,
-                getString(R.string.ru_bypass_prompt_seeded, count),
-                Toast.LENGTH_SHORT
-            ).show()
+        if (uiStore.ruBypassPromptHandled) return true
+        val packages = withContext(Dispatchers.IO) { service.accessControlPackages }
+        if (packages.isNotEmpty()) return true
+
+        return suspendCancellableCoroutine { cont ->
+            val message = buildString {
+                append(getString(R.string.ru_bypass_prompt_message))
+                append("\n\n")
+                append(getString(R.string.ru_bypass_prompt_tile_note))
+            }
+            val dialog = MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.ru_bypass_prompt_title)
+                .setMessage(message)
+                .setPositiveButton(R.string.ru_bypass_prompt_apply) { d, _ ->
+                    d.dismiss()
+                    launch {
+                        val count = withContext(Dispatchers.IO) {
+                            val seed = RussianBypassDefaults.installed(packageManager)
+                            if (seed.isNotEmpty()) {
+                                service.accessControlPackages = seed
+                                service.accessControlMode = AccessControlMode.DenySelected
+                                service.russianBypassSeeded = true
+                            }
+                            seed.size
+                        }
+                        uiStore.ruBypassPromptHandled = true
+                        if (count > 0) {
+                            Toast.makeText(
+                                this@MainActivity,
+                                getString(R.string.ru_bypass_prompt_seeded, count),
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                        if (cont.isActive) cont.resumeWith(Result.success(true))
+                    }
+                }
+                .setNegativeButton(R.string.ru_bypass_prompt_skip) { d, _ ->
+                    d.dismiss()
+                    uiStore.ruBypassPromptHandled = true
+                    if (cont.isActive) cont.resumeWith(Result.success(true))
+                }
+                .setOnCancelListener {
+                    if (cont.isActive) cont.resumeWith(Result.success(false))
+                }
+                .show()
+            cont.invokeOnCancellation { runCatching { dialog.dismiss() } }
         }
     }
 
