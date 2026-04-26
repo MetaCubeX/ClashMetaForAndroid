@@ -42,7 +42,10 @@ import com.github.kr328.clash.design.ui.ToastDuration
 import com.github.kr328.clash.design.util.showExceptionToast
 import com.github.kr328.clash.remote.Remote
 import com.github.kr328.clash.remote.StatusClient
+import com.github.kr328.clash.service.model.AccessControlMode
 import com.github.kr328.clash.service.model.Profile
+import com.github.kr328.clash.service.store.ServiceStore
+import com.github.kr328.clash.util.RussianBypassDefaults
 import com.github.kr328.clash.util.showProfileQuickEditSheet
 import com.github.kr328.clash.util.startClashService
 import com.github.kr328.clash.util.stopClashService
@@ -309,7 +312,6 @@ class MainActivity : BaseActivity<MainDesign>() {
                                         design.setTunnelStarting(false)
                                     } else {
                                         if (!maybePromptRuBypass()) {
-                                            // User cancelled the prompt — do not start VPN.
                                             return@launch
                                         }
                                         design.setTunnelStarting(true)
@@ -341,6 +343,9 @@ class MainActivity : BaseActivity<MainDesign>() {
 
                         MainDesign.Request.OpenRouting ->
                             startActivity(RoutingHubActivity::class.intent)
+
+                        MainDesign.Request.OpenPerAppRouting ->
+                            startActivity(AccessControlActivity::class.intent)
 
                         MainDesign.Request.OpenProfiles ->
                             startActivity(ProfilesActivity::class.intent)
@@ -777,10 +782,12 @@ class MainActivity : BaseActivity<MainDesign>() {
         }
         val activeUuid = active?.uuid
         val expandedSet = getExpandedProfileUuids()
-        val offlinePreviewByProfile = expandedSet.associateWith { uuid ->
+        val summaryPreviewUuid = activeUuid ?: profiles.firstOrNull { it.imported }?.uuid
+        val previewUuids = (expandedSet + listOfNotNull(summaryPreviewUuid)).toSet()
+        val offlinePreviewByProfile = previewUuids.associateWith { uuid ->
             withProfile { readProxyGroupsPreview(uuid) }
         }
-        val offlineSelectionsByProfile = expandedSet.associateWith { uuid ->
+        val offlineSelectionsByProfile = previewUuids.associateWith { uuid ->
             withProfile { queryProxySelections(uuid) }
         }
 
@@ -835,21 +842,12 @@ class MainActivity : BaseActivity<MainDesign>() {
     }
 
     private suspend fun MainDesign.startClash() {
-        val active = withProfile { queryActive() }
+        val active = prepareActiveProfileForStart()
 
-        if (active == null || !active.imported) {
-            setTunnelStarting(false)
-            showToast(R.string.no_profile_selected, ToastDuration.Long) {
-                setAction(R.string.profiles) {
-                    startActivity(ProfilesActivity::class.intent)
-                }
-            }
-            return
-        }
-
-        val vpnRequest = startClashService()
+        if (active == null) return
 
         try {
+            val vpnRequest = startClashService()
             if (vpnRequest != null) {
                 val result = startActivityForResult(
                     ActivityResultContracts.StartActivityForResult(),
@@ -860,12 +858,74 @@ class MainActivity : BaseActivity<MainDesign>() {
                     startClashService()
                 } else {
                     setTunnelStarting(false)
+                    showToast(R.string.vpn_permission_denied, ToastDuration.Long)
                 }
             }
         } catch (e: Exception) {
             setTunnelStarting(false)
-            design?.showToast(R.string.unable_to_start_vpn, ToastDuration.Long)
+            showToast(R.string.vpn_start_failed_plain, ToastDuration.Indefinite) {
+                setAction(R.string.logs) {
+                    startActivity(LogsActivity::class.intent)
+                }
+            }
         }
+    }
+
+    private suspend fun MainDesign.prepareActiveProfileForStart(): Profile? {
+        val service = ServiceStore(this@MainActivity)
+        service.seedDefaultGeoMirrors = true
+
+        var active = withProfile { queryActive() }
+        if (active == null) {
+            val importedProfiles = withProfile { queryAll() }
+                .filter { it.imported && !it.pending }
+            if (importedProfiles.size == 1) {
+                val only = importedProfiles.first()
+                withProfile { setActive(only) }
+                active = withProfile { queryActive() }
+            }
+        }
+
+        if (active == null) {
+            setTunnelStarting(false)
+            showToast(R.string.start_no_subscription_plain, ToastDuration.Long) {
+                setAction(R.string.main_add_subscription) {
+                    showHomeImportSheet(this@prepareActiveProfileForStart)
+                }
+            }
+            return null
+        }
+
+        if (!active.imported || active.pending) {
+            setTunnelStarting(false)
+            showToast(R.string.start_profile_not_ready_plain, ToastDuration.Long) {
+                setAction(R.string.profiles) {
+                    startActivity(ProfilesActivity::class.intent)
+                }
+            }
+            return null
+        }
+
+        if (shouldAutoRefreshBeforeStart(active)) {
+            showToast(R.string.profile_auto_refreshing, ToastDuration.Short)
+            val refreshed = runCatching {
+                withProfile { update(active.uuid) }
+            }.isSuccess
+            if (!refreshed) {
+                showToast(R.string.profile_auto_refresh_failed_starting_saved, ToastDuration.Long)
+            }
+        }
+
+        return withProfile { queryActive() } ?: active
+    }
+
+    private fun shouldAutoRefreshBeforeStart(profile: Profile): Boolean {
+        if (profile.type != Profile.Type.Url || profile.source.isBlank()) return false
+        val now = System.currentTimeMillis()
+        val last = profile.updatedAt.takeIf { it > 0L } ?: return true
+        val userInterval = profile.interval.takeIf { it >= TimeUnit.MINUTES.toMillis(15) }
+        val interval = userInterval ?: TimeUnit.HOURS.toMillis(12)
+        return now - last >= interval
     }
 
     private suspend fun queryAppVersionName(): String {
@@ -1179,70 +1239,69 @@ class MainActivity : BaseActivity<MainDesign>() {
         val text = uiStore.announcement
         val url = uiStore.announcementUrl
         val supportUrl = uiStore.supportUrl
-        val cardEnabled = uiStore.announcementCardEnabled
         val hash = text.hashCode().toString()
         if (uiStore.announcementSeenHash != hash) {
             uiStore.announcementSeenHash = hash
             uiStore.announcementDismissed = false
         }
-        val textVisible = cardEnabled && text.isNotBlank() && !uiStore.announcementDismissed
+        val textVisible = text.isNotBlank() && !uiStore.announcementDismissed
         val usage = com.github.kr328.clash.common.util.SubscriptionUsage.parse(
             uiStore.subscriptionUserinfo.takeIf { it.isNotBlank() }
         )
 
         design.setAnnouncement(
             text = if (textVisible) text else null,
-            url = url.takeIf { cardEnabled && it.isNotBlank() },
+            url = url.takeIf { it.isNotBlank() },
             usage = usage,
-            supportUrl = supportUrl.takeIf { cardEnabled && it.isNotBlank() },
+            supportUrl = supportUrl.takeIf { it.isNotBlank() },
             onOpenUrl = { openExternalUrl(it) },
-            onDismiss = if (cardEnabled) ({ uiStore.announcementDismissed = true }) else null,
-            onRefresh = if (cardEnabled) ({
+            onDismiss = if (text.isNotBlank()) ({ uiStore.announcementDismissed = true }) else null,
+            onRefresh = {
                 // Force cooldown bypass by resetting timestamp, then re-fetch.
                 launch(Dispatchers.IO) {
                     uiStore.subscriptionMetadataLastFetch = 0L
                     runCatching { syncSubscriptionMetadata() }
                     withContext(Dispatchers.Main) { refreshAnnouncement(design) }
                 }
-            }) else null,
-            onSupport = if (cardEnabled) ({
+            },
+            onSupport = {
                 supportUrl.takeIf { it.isNotBlank() }?.let { openExternalUrl(it) }
-            }) else null,
+            },
         )
     }
 
     /**
-     * Before starting the tunnel, offer to seed the per-app access list with the
-     * default Russian bypass pack (banks, \u0413\u043e\u0441\u0443\u0441\u043b\u0443\u0433\u0438, carriers, marketplaces)
-     * whenever the list is currently empty. Re-offers on every Start tap until the
-     * user explicitly applies the pack.
-     *
-     * Returns `true` if the caller should proceed to start, `false` if the user
-     * cancelled the dialog (back/tap-outside).
+     * When the per-app exclusion list is empty, offer to seed it with installed
+     * Russian apps before starting the tunnel. Skip still starts VPN; cancel does not.
      */
     private suspend fun maybePromptRuBypass(): Boolean {
-        val service = com.github.kr328.clash.service.store.ServiceStore(this)
+        val service = ServiceStore(this)
+        if (uiStore.ruBypassPromptHandled) return true
         val packages = withContext(Dispatchers.IO) { service.accessControlPackages }
         if (packages.isNotEmpty()) return true
 
-        return suspendCancellableCoroutine<Boolean> { cont ->
+        return suspendCancellableCoroutine { cont ->
+            val message = buildString {
+                append(getString(R.string.ru_bypass_prompt_message))
+                append("\n\n")
+                append(getString(R.string.ru_bypass_prompt_tile_note))
+            }
             val dialog = MaterialAlertDialogBuilder(this)
                 .setTitle(R.string.ru_bypass_prompt_title)
-                .setMessage(R.string.ru_bypass_prompt_message)
+                .setMessage(message)
                 .setPositiveButton(R.string.ru_bypass_prompt_apply) { d, _ ->
                     d.dismiss()
                     launch {
                         val count = withContext(Dispatchers.IO) {
-                            val seed = com.github.kr328.clash.util.RussianBypassDefaults
-                                .installed(packageManager)
+                            val seed = RussianBypassDefaults.installed(packageManager)
                             if (seed.isNotEmpty()) {
                                 service.accessControlPackages = seed
-                                service.accessControlMode =
-                                    com.github.kr328.clash.service.model.AccessControlMode.DenySelected
+                                service.accessControlMode = AccessControlMode.DenySelected
                                 service.russianBypassSeeded = true
                             }
                             seed.size
                         }
+                        uiStore.ruBypassPromptHandled = true
                         if (count > 0) {
                             Toast.makeText(
                                 this@MainActivity,
@@ -1255,6 +1314,7 @@ class MainActivity : BaseActivity<MainDesign>() {
                 }
                 .setNegativeButton(R.string.ru_bypass_prompt_skip) { d, _ ->
                     d.dismiss()
+                    uiStore.ruBypassPromptHandled = true
                     if (cont.isActive) cont.resumeWith(Result.success(true))
                 }
                 .setOnCancelListener {

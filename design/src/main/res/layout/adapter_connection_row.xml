@@ -27,6 +27,18 @@
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
+            <ImageView
+                android:id="@+id/conn_app_icon"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:layout_marginEnd="12dp"
+                android:background="@drawable/bg_m3_status_chip_neutral"
+                android:contentDescription="@string/connections_app_icon"
+                android:padding="8dp"
+                android:scaleType="centerInside"
+                android:src="@drawable/ic_baseline_dns"
+                tools:src="@mipmap/ic_launcher" />
+
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -67,6 +79,17 @@
                 android:textAppearance="@style/TextAppearance.App.LabelSmall"
                 android:textColor="?attr/colorOnSurfaceVariant"
                 tools:text="TCP" />
+
+            <ImageView
+                android:id="@+id/conn_expand"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:layout_marginStart="2dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/connections_details"
+                android:padding="8dp"
+                android:src="@drawable/ic_baseline_expand_more"
+                app:tint="?attr/colorOnSurfaceVariant" />
 
             <ImageButton
                 android:id="@+id/conn_close"

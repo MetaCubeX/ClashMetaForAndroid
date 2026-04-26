@@ -28,9 +28,8 @@ class ConnectionsActivity : BaseActivity<ConnectionsDesign>() {
         }
 
         val refresh = launch {
-            var lastRevision: Long = Long.MIN_VALUE
             var lastRawSnapshot: String? = null
-            val activeDelayMs = 2500L
+            val activeDelayMs = 2000L
             val idleDelayMs = 7000L
             while (isActive) {
                 if (!activityStarted) {
@@ -39,31 +38,28 @@ class ConnectionsActivity : BaseActivity<ConnectionsDesign>() {
                 }
                 val interactive = getSystemService<PowerManager>()?.isInteractive ?: true
                 try {
-                    // Refresh when traffic totals *or* the connections snapshot JSON changes.
-                    // Basing updates only on queryTrafficTotal() misses new flows while byte counters stay flat.
-                    val revision = withClash { queryTrafficTotal() }
                     val raw = withClash { queryConnectionsSnapshot() }
-                    if (revision == lastRevision && raw == lastRawSnapshot) {
+                    if (raw == lastRawSnapshot) {
                         delay(if (interactive) activeDelayMs else idleDelayMs)
                         continue
                     }
-                    lastRevision = revision
                     lastRawSnapshot = raw
                     val snap = withContext(Dispatchers.Default) {
                         runCatching {
                             json.decodeFromString(ConnectionsSnapshot.serializer(), raw)
-                        }.getOrNull()
+                        }.getOrElse {
+                            Log.w("Connections snapshot decode failed; raw size=${raw.length}", it)
+                            null
+                        }
                     }
                     if (snap != null) {
                         if (snap.connections.isEmpty() && raw.length > 64) {
                             Log.w("Connections snapshot parsed but empty list; raw size=${raw.length}")
                         }
                         design.patchSnapshot(snap)
-                    } else {
-                        Log.w("Connections snapshot decode failed; raw size=${raw.length}; keeping previous UI snapshot")
                     }
-                } catch (_: Exception) {
-                    Log.w("Connections refresh query failed")
+                } catch (e: Exception) {
+                    Log.w("Connections refresh query failed", e)
                 }
                 delay(if (interactive) activeDelayMs else idleDelayMs)
             }
@@ -74,12 +70,13 @@ class ConnectionsActivity : BaseActivity<ConnectionsDesign>() {
             val snap = withContext(Dispatchers.Default) {
                 runCatching {
                     json.decodeFromString(ConnectionsSnapshot.serializer(), raw)
-                }.getOrNull()
+                }.getOrElse {
+                    Log.w("Connections reload decode failed; raw size=${raw.length}", it)
+                    null
+                }
             }
             if (snap != null) {
                 design.patchSnapshot(snap)
-            } else {
-                Log.w("Connections reload decode failed; raw size=${raw.length}; keeping previous UI snapshot")
             }
         }
 

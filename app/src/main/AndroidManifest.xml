@@ -97,6 +97,12 @@
             </intent-filter>
         </activity>
         <activity
+            android:name=".QuickTileStartActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:launchMode="singleTop"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar.Fullscreen" />
+        <activity
             android:name=".ApkBrokenActivity"
             android:configChanges="uiMode"
             android:exported="false"
@@ -239,7 +245,7 @@
         <service
             android:name=".TileService"
             android:exported="true"
-            android:icon="@drawable/ic_logo_service"
+            android:icon="@drawable/ic_qs_tile"
             android:label="@string/launch_name"
             android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
             <intent-filter>

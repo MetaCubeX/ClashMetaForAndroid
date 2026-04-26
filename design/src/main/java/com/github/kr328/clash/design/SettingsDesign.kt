@@ -15,7 +15,6 @@ class SettingsDesign(context: Context) : Design<SettingsDesign.Request>(context)
         StartAppRouting,
         StartFeatures,
         StartAdvanced,
-        StartAnnouncement,
         StartLogs,
         StartAbout,
     }

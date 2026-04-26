@@ -40,8 +40,6 @@ class SettingsActivity : BaseActivity<SettingsDesign>() {
                             startActivity(FeaturesSettingsActivity::class.intent)
                         SettingsDesign.Request.StartAdvanced ->
                             startActivity(FeaturesSettingsActivity::class.intent)
-                        SettingsDesign.Request.StartAnnouncement ->
-                            startActivity(AnnouncementSettingsActivity::class.intent)
                         SettingsDesign.Request.StartLogs ->
                             startActivity(LogsActivity::class.intent)
                         SettingsDesign.Request.StartAbout ->

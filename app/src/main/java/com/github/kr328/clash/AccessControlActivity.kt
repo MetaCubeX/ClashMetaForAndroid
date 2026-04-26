@@ -7,6 +7,7 @@ import android.content.pm.ApplicationInfo
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import androidx.core.content.getSystemService
+import com.github.kr328.clash.common.log.Log
 import com.github.kr328.clash.design.AccessControlDesign
 import com.github.kr328.clash.design.model.AppInfo
 import com.github.kr328.clash.design.util.toAppInfo
@@ -28,14 +29,29 @@ class AccessControlActivity : BaseActivity<AccessControlDesign>() {
         val selected = withContext(Dispatchers.IO) {
             service.accessControlPackages.toMutableSet()
         }
+        val initialSelected = selected.toSet()
         var currentMode: AccessControlMode = withContext(Dispatchers.IO) {
             service.accessControlMode
         }
+        val initialMode = currentMode
 
         defer {
             withContext(Dispatchers.IO) {
-                val changedPackages = selected != service.accessControlPackages
-                val changedMode = currentMode != service.accessControlMode
+                val locallyModified =
+                    selected.toSet() != initialSelected || currentMode != initialMode
+                if (!locallyModified) return@withContext
+
+                val latestPackages = service.accessControlPackages
+                val latestMode = service.accessControlMode
+                val externallyModified =
+                    latestPackages != initialSelected || latestMode != initialMode
+                if (externallyModified) {
+                    Log.w("Skip access-control save due to external concurrent update")
+                    return@withContext
+                }
+
+                val changedPackages = selected.toSet() != latestPackages
+                val changedMode = currentMode != latestMode
                 service.accessControlPackages = selected
                 service.accessControlMode = currentMode
                 if (clashRunning && (changedPackages || changedMode)) {
@@ -69,9 +85,6 @@ class AccessControlActivity : BaseActivity<AccessControlDesign>() {
                         AccessControlDesign.Request.ChangeMode -> {
                             design.pendingMode?.let { mode ->
                                 withContext(Dispatchers.IO) {
-                                    if (service.accessControlMode != mode) {
-                                        service.accessControlMode = mode
-                                    }
                                     if (mode == AccessControlMode.DenySelected &&
                                         !service.russianBypassSeeded
                                     ) {

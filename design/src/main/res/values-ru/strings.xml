@@ -2,6 +2,24 @@
     <string name="stopped">Остановлен</string>
     <string name="tap_to_start">Нажмите для запуска</string>
     <string name="main_vpn_ready">Готово к запуску</string>
+    <string name="main_status_connected">Подключено</string>
+    <string name="main_status_connecting">Подключаем</string>
+    <string name="main_status_stopped">Отключено</string>
+    <string name="main_power_start">Включить</string>
+    <string name="main_power_stop">Стоп</string>
+    <string name="main_power_hint_start">Нажмите, чтобы включить</string>
+    <string name="main_power_hint_stop">Нажмите, чтобы отключить</string>
+    <string name="main_select_server">Серверы</string>
+    <string name="main_select_server_group">Выбрать сервер или группу</string>
+    <string name="main_selected_group_fmt">Группа: %1$s</string>
+    <string name="main_selected_route_fmt">Группа: %1$s · Сервер: %2$s</string>
+    <string name="main_session_title">Сессия</string>
+    <string name="main_profile_title">Профиль</string>
+    <string name="main_routing_summary">Правила, приложения и провайдеры</string>
+    <string name="main_mode_sheet_title">Режим подключения</string>
+    <string name="main_mode_sheet_summary">Выберите простое поведение для текущей сессии.</string>
+    <string name="main_mode_rule_summary">Использовать правила профиля. Рекомендуется на каждый день.</string>
+    <string name="main_mode_global_summary">Пустить весь трафик через выбранный сервер.</string>
     <string name="running">Запущен</string>
     <string name="format_traffic_forwarded">%s перенаправлено</string>
 
@@ -60,10 +78,21 @@
     <string name="routing_rules">Маршрутизация</string>
 
     <!-- Bottom navigation labels -->
+    <string name="nav_home">Главная</string>
     <string name="nav_subscriptions">Подписки</string>
     <string name="nav_proxies">Прокси</string>
     <string name="nav_routing">Маршрутизация</string>
     <string name="nav_connections">Соединения</string>
+    <string name="main_activity_title">Активность</string>
+    <string name="main_activity_summary">Живые соединения и диагностика</string>
+    <string name="main_open_profiles">Управлять профилями</string>
+    <string name="main_open_profiles_summary">Подписки, обновления и файлы</string>
+    <string name="main_open_connections">Открыть соединения</string>
+    <string name="main_open_connections_summary">Поиск активных потоков и закрытие зависших соединений</string>
+    <string name="main_open_logs">Открыть логи</string>
+    <string name="main_open_logs_summary">Диагностика, если подключение не стартует</string>
+    <string name="main_settings_summary">Настройки приложения, диагностика и дополнительные инструменты</string>
+    <string name="main_open_settings_summary">Тема, сеть, обновления и расширенные параметры</string>
 
     <!-- Routing hub screen -->
     <string name="routing_hub_tips">Управляйте тем, как маршрутизируется трафик: фрагменты правил, активный список правил и включение/исключение по приложениям.</string>
@@ -91,12 +120,12 @@
     <string name="rule_action_restore">Восстановить</string>
 
     <!-- Объявления и поддержка -->
-    <string name="announcement_settings">Объявления и поддержка</string>
+    <string name="announcement_settings">Объявление</string>
     <string name="announcement_settings_tips">Показывает баннер на главном экране и кнопку «Поддержка» в About. Полезно для операторов, распространяющих сборку.</string>
     <string name="announcement_category_support">Поддержка</string>
     <string name="announcement_category_announcement">Объявление</string>
     <string name="announcement_card_enabled">Показывать карточку объявлений на главном</string>
-    <string name="announcement_card_enabled_summary">По умолчанию выключено. Включите, чтобы показывать карточку «Объявления и поддержка» над подписками.</string>
+    <string name="announcement_card_enabled_summary">По умолчанию выключено. Включите, чтобы показывать карточку «Объявление» над подписками.</string>
     <string name="support_url">URL поддержки</string>
     <string name="support_url_placeholder">https://t.me/your_support_bot</string>
     <string name="announcement_text">Объявление</string>
@@ -121,6 +150,7 @@
     <string name="sub_announcement_support">Поддержка</string>
     <string name="ru_bypass_prompt_title">Применить обход для RU-приложений?</string>
     <string name="ru_bypass_prompt_message">Список исключений по приложениям пуст. Пустить установленные российские приложения (банки, Госуслуги, маркетплейсы, операторы) мимо туннеля напрямую через провайдера? Список позже можно поправить в Роутинг → По приложениям.</string>
+    <string name="ru_bypass_prompt_tile_note">Плитка быстрых настроек только включает или выключает VPN и не меняет список приложений.</string>
     <string name="ru_bypass_prompt_apply">Применить</string>
     <string name="ru_bypass_prompt_skip">Пропустить</string>
     <string name="ru_bypass_prompt_seeded">Добавлено %1$d российских приложений.</string>
@@ -154,7 +184,18 @@
     <string name="connections_closed_one">Соединение закрыто</string>
     <string name="connections_closed_none">Соединение уже закрыто</string>
     <string name="connections_closed_many">Закрыто соединений: %d</string>
+    <string name="connections_app_icon">Иконка приложения</string>
+    <string name="connections_app_unknown">Неизвестное приложение</string>
     <string name="connections_details">Детали</string>
+    <string name="connections_app_fmt">Приложение: %1$s</string>
+    <string name="connections_package_fmt">Пакет: %1$s</string>
+    <string name="connections_uid_fmt">UID: %1$d</string>
+    <string name="connections_network_fmt">Сеть: %1$s</string>
+    <string name="connections_host_fmt">Хост: %1$s</string>
+    <string name="connections_remote_fmt">Удалённый адрес: %1$s</string>
+    <string name="connections_process_path_fmt">Путь процесса: %1$s</string>
+    <string name="connections_started_fmt">Старт: %1$s</string>
+    <string name="connections_traffic_fmt">Трафик: ↑%1$s · ↓%2$s</string>
     <string name="connections_endpoint_fmt">%1$s:%2$s → %3$s:%4$s</string>
     <string name="connections_rule_fmt">Правило: %1$s %2$s</string>
     <string name="connections_inbound_fmt">Вход: %1$s</string>
@@ -414,6 +455,10 @@
     <string name="app_routing_not_selected">Не выбрано</string>
 
     <string name="no_profile_selected">Профиль не выбран</string>
+    <string name="start_no_subscription_plain">Сначала добавьте подписку, потом нажмите Connect.</string>
+    <string name="start_profile_not_ready_plain">Выбранная подписка ещё не готова. Откройте подписки и сохраните или обновите её.</string>
+    <string name="profile_auto_refreshing">Проверяем подписку перед стартом…</string>
+    <string name="profile_auto_refresh_failed_starting_saved">Не удалось обновить сейчас. Запускаем сохранённую подписку.</string>
 
     <string name="layout">Отображение</string>
     <string name="single">Одиночное</string>
@@ -494,6 +539,9 @@
 
     <string name="invalid_log_file">Недопустимый лог файл</string>
     <string name="unable_to_start_vpn">Не удалось запустить компонент VPN</string>
+    <string name="vpn_permission_denied">Android не выдал разрешение на VPN. Нажмите Connect ещё раз и разрешите запрос.</string>
+    <string name="vpn_start_failed_plain">Не удалось запустить VPN. Откройте логи, чтобы увидеть причину.</string>
+    <string name="quick_tile_permission_denied_notification">Разрешение на VPN отклонено. Откройте ClashFest и разрешите VPN-запрос.</string>
 
     <string name="version_updated">Приложение обновлено</string>
     <string name="version_updated_tips">Настройки были сброшены, старые профили необходимо сохранить повторно</string>

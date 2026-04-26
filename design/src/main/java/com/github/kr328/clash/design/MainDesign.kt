@@ -6,12 +6,17 @@ import android.content.Intent
 import android.net.Uri
 import android.view.MotionEvent
 import android.view.View
+import android.view.ViewGroup
+import android.widget.FrameLayout
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.DefaultItemAnimator
+import androidx.recyclerview.widget.RecyclerView
+import androidx.viewpager2.widget.ViewPager2
 import com.github.kr328.clash.core.model.ProxyGroup
 import com.github.kr328.clash.core.model.TunnelState
 import com.github.kr328.clash.core.util.trafficTotal
 import com.github.kr328.clash.design.adapter.ProfileAdapter
+import com.github.kr328.clash.design.databinding.BottomSheetMainModeBinding
 import com.github.kr328.clash.design.databinding.DesignAboutBinding
 import com.github.kr328.clash.design.databinding.DesignMainBinding
 import com.github.kr328.clash.design.dialog.AppBottomSheetDialog
@@ -27,7 +32,6 @@ import com.github.kr328.clash.design.util.resolveThemedResourceId
 import com.github.kr328.clash.design.util.root
 import com.github.kr328.clash.design.R
 import com.github.kr328.clash.service.model.Profile
-import android.widget.FrameLayout
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.withContext
@@ -49,8 +53,17 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         OpenConnections,
         /** Hub screen combining YAML rules, routing rules and per-app routing. */
         OpenRouting,
+        /** Direct entry to per-app routing for quick access from the routing tab. */
+        OpenPerAppRouting,
         /** Subscriptions / profiles list. */
         OpenProfiles,
+    }
+
+    private enum class MainTab {
+        Home,
+        Profiles,
+        Routing,
+        Settings,
     }
 
     val profileActivateRequests = Channel<Profile>(Channel.UNLIMITED)
@@ -72,6 +85,43 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
     private val uiStore = UiStore(context)
     private val expandedProfileUuids: LinkedHashSet<UUID> = linkedSetOf()
     private var currentModeSegment: TunnelState.Mode = TunnelState.Mode.Rule
+
+    private class StaticPageAdapter(
+        private val pages: List<View>,
+    ) : RecyclerView.Adapter<StaticPageAdapter.Holder>() {
+        class Holder(val container: FrameLayout) : RecyclerView.ViewHolder(container)
+
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): Holder {
+            val container = FrameLayout(parent.context).apply {
+                layoutParams = RecyclerView.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                )
+            }
+            return Holder(container)
+        }
+
+        override fun onBindViewHolder(holder: Holder, position: Int) {
+            holder.container.removeAllViews()
+            val page = pages[position]
+            (page.parent as? ViewGroup)?.removeView(page)
+            page.visibility = View.VISIBLE
+            holder.container.addView(
+                page,
+                FrameLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                ),
+            )
+        }
+
+        override fun onViewRecycled(holder: Holder) {
+            holder.container.removeAllViews()
+        }
+
+        override fun getItemCount(): Int = pages.size
+    }
+
     private val profileAdapter = ProfileAdapter(
         { profile -> profileActivateRequests.trySend(profile) },
         { profile, anchor -> profileMenuRequests.trySend(profile to anchor) },
@@ -92,11 +142,7 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
     fun getExpandedProfileUuids(): Set<UUID> = expandedProfileUuids.toSet()
 
     /**
-     * Pushes operator-pushed subscription metadata into the per-profile UI.
-     *
-     * The legacy global "Koala-style" announcement card is now always hidden — operators'
-     * announcement text is rendered inline on the active profile card instead, so it stays
-     * tied to the subscription it belongs to.
+     * Pushes operator-pushed subscription metadata into the home UI and the active profile card.
      */
     suspend fun setAnnouncement(
         text: String?,
@@ -109,19 +155,36 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         onSupport: (() -> Unit)? = null,
     ) {
         withContext(Dispatchers.Main) {
-            val message = text?.trim().orEmpty()
+            val message = text
+                ?.takeIf { it.isNotBlank() }
+                ?.let { com.github.kr328.clash.common.util.MaybeBase64.decode(it).trim() }
+                .orEmpty()
             val announcementUrl = url?.takeIf { it.isNotBlank() }
             val support = supportUrl?.takeIf { it.isNotBlank() }
-            val hasCardContent = message.isNotBlank() || announcementUrl != null || support != null
+            val hasAnnouncement = message.isNotBlank()
 
-            binding.mainAnnouncementCard.visibility = if (hasCardContent) View.VISIBLE else View.GONE
+            binding.mainHeaderTitle.text = context.getString(
+                if (hasAnnouncement) R.string.announcement_settings else R.string.launch_name_alpha,
+            )
+            binding.mainHeaderSummary.visibility = if (hasAnnouncement) View.VISIBLE else View.GONE
+            binding.mainHeaderSummary.text = message
+            binding.mainHeaderSummary.setOnClickListener {
+                val target = announcementUrl ?: return@setOnClickListener
+                onOpenUrl?.invoke(target)
+            }
+            binding.mainHeaderSummary.isClickable = announcementUrl != null
+            binding.mainHeaderSupport.visibility = View.GONE
+            binding.mainHeaderSupport.setOnClickListener(null)
+
+            binding.mainAnnouncementCard.visibility = View.GONE
             binding.mainAnnouncementText.visibility = if (message.isNotBlank()) View.VISIBLE else View.GONE
             binding.mainAnnouncementText.text = message
 
             binding.mainAnnouncementStatsRow.visibility = View.GONE
             binding.mainAnnouncementUsageBar.visibility = View.GONE
             binding.mainAnnouncementUsageText.visibility = View.GONE
-            binding.mainAnnouncementUnavailableRow.visibility = View.GONE
+            binding.mainAnnouncementUnavailableRow.visibility =
+                if (announcementUrl != null) View.VISIBLE else View.GONE
 
             binding.mainAnnouncementOpenLink.visibility = if (announcementUrl != null) View.VISIBLE else View.GONE
             binding.mainAnnouncementOpenLink.setOnClickListener {
@@ -211,7 +274,30 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         }
         button.backgroundTintList = ColorStateList.valueOf(context.resolveThemedColor(bgAttr))
         button.iconTint = ColorStateList.valueOf(context.resolveThemedColor(iconAttr))
+        button.setTextColor(context.resolveThemedColor(iconAttr))
         button.elevation = elevationDp * context.resources.displayMetrics.density
+
+        val targetAlpha = when {
+            running -> 0.34f
+            starting -> 0.24f
+            else -> 0.12f
+        }
+        val targetScale = when {
+            running -> 1.08f
+            starting -> 1.04f
+            else -> 0.96f
+        }
+        binding.powerHalo.animate().cancel()
+        binding.powerHalo.animate()
+            .alpha(targetAlpha)
+            .scaleX(targetScale)
+            .scaleY(targetScale)
+            .setDuration(260L)
+            .start()
+        binding.powerRingOuter.animate()
+            .alpha(if (running || starting) 0.95f else 0.62f)
+            .setDuration(220L)
+            .start()
     }
 
     suspend fun setForwarded(value: Long) {
@@ -228,7 +314,6 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
                 TunnelState.Mode.Global -> context.getString(R.string.global_mode)
                 else -> context.getString(R.string.rule_mode)
             }
-            updateModeSegment(normalized, animate = true)
         }
     }
 
@@ -249,36 +334,6 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
     private fun normalizeMode(mode: TunnelState.Mode): TunnelState.Mode =
         if (mode == TunnelState.Mode.Direct) TunnelState.Mode.Rule else mode
 
-    private fun updateModeSegment(mode: TunnelState.Mode, animate: Boolean) {
-        val container = binding.modeSegmentContainer
-        val thumb = binding.modeSegmentThumb
-        if (container.width == 0) {
-            container.post { updateModeSegment(mode, animate = false) }
-            return
-        }
-
-        val inset = container.paddingStart + container.paddingEnd
-        val slotWidth = ((container.width - inset) / 2).coerceAtLeast(1)
-
-        val lp = (thumb.layoutParams as FrameLayout.LayoutParams).apply {
-            width = slotWidth
-        }
-        thumb.layoutParams = lp
-
-        val targetX = if (mode == TunnelState.Mode.Global) slotWidth.toFloat() else 0f
-        thumb.animate().cancel()
-        thumb.animate()
-            .translationX(targetX)
-            .setDuration(if (animate) 160L else 0L)
-            .start()
-
-        val selectedColor = context.resolveThemedColor(com.google.android.material.R.attr.colorOnSecondaryContainer)
-        val normalColor = context.resolveThemedColor(com.google.android.material.R.attr.colorOnSurfaceVariant)
-        val isRule = mode != TunnelState.Mode.Global
-        binding.modeLabelRule.setTextColor(if (isRule) selectedColor else normalColor)
-        binding.modeLabelGlobal.setTextColor(if (isRule) normalColor else selectedColor)
-    }
-
     suspend fun syncThemeToggleIcon(mode: DarkMode) {
         withContext(Dispatchers.Main) {
             binding.btnThemeToggle.text = context.getString(
@@ -293,10 +348,11 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
     suspend fun patchProfiles(profiles: List<Profile>) {
         withContext(Dispatchers.Main) {
             binding.hasProfiles = profiles.isNotEmpty()
+            val homeProfiles = profiles.filter { it.active }.ifEmpty { profiles.take(1) }
             profileAdapter.apply {
-                val ids = profiles.map { it.uuid }.toSet()
+                val ids = homeProfiles.map { it.uuid }.toSet()
                 expandedProfileUuids.retainAll { it in ids }
-                patchDataSet(this::profiles, profiles, id = { it.uuid })
+                patchDataSet(this::profiles, homeProfiles, id = { it.uuid })
             }
             profileAdapter.setExpandedUuids(expandedProfileUuids.toSet())
         }
@@ -359,18 +415,23 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         if (!profile.imported) {
             return
         }
-        val expanded = expandedProfileUuids.add(profile.uuid)
-        if (!expanded) {
-            expandedProfileUuids.remove(profile.uuid)
-        }
+        val hadGroups = profileAdapter.hasProxyGroupsFor(profile)
+        val needsRefresh = expandedProfileUuids.add(profile.uuid)
         profileAdapter.setExpandedUuids(expandedProfileUuids.toSet())
-        if (expanded && clashRunningState && profile.active) {
-            binding.profileList.postDelayed({
-                val distance = (binding.profileList.height * 0.36f).toInt().coerceAtLeast(120)
-                binding.profileList.smoothScrollBy(0, distance)
-            }, 120L)
+        if (needsRefresh || !hadGroups) {
+            profileExpandChanged.trySend(Unit)
         }
-        profileExpandChanged.trySend(Unit)
+        openProxySheetWhenReady(profile)
+    }
+
+    private fun openProxySheetWhenReady(profile: Profile, attempt: Int = 0) {
+        if (profileAdapter.hasProxyGroupsFor(profile) || attempt >= 15) {
+            profileAdapter.showProxySheet(context, profile)
+            return
+        }
+        binding.profileList.postDelayed({
+            openProxySheetWhenReady(profile, attempt + 1)
+        }, 180L)
     }
 
     suspend fun requestSave(profile: Profile) {
@@ -414,8 +475,25 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
                 }
             }
 
-            if (onCheckUpdates != null) {
+            val support = uiStore.supportUrl.takeIf { it.isNotBlank() }
+            if (support != null) {
                 binding.aboutSupportButton.apply {
+                    visibility = View.VISIBLE
+                    text = context.getString(R.string.about_support)
+                    setIconResource(R.drawable.ic_baseline_headset_mic)
+                    setOnClickListener {
+                        runCatching {
+                            context.startActivity(
+                                Intent(Intent.ACTION_VIEW, Uri.parse(support))
+                                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+                            )
+                        }
+                    }
+                }
+            }
+
+            if (onCheckUpdates != null) {
+                binding.aboutCheckUpdatesButton.apply {
                     visibility = View.VISIBLE
                     var statusText: String? = null
 
@@ -451,15 +529,86 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         }
     }
 
+    private fun showModeSheet() {
+        val sheet = BottomSheetMainModeBinding.inflate(context.layoutInflater)
+        val dialog = AppBottomSheetDialog(context, fitContentHeight = true)
+        val isGlobal = currentModeSegment == TunnelState.Mode.Global
+
+        sheet.modeRuleSelected.visibility = if (isGlobal) View.INVISIBLE else View.VISIBLE
+        sheet.modeGlobalSelected.visibility = if (isGlobal) View.VISIBLE else View.INVISIBLE
+        sheet.modeRuleRow.setOnClickListener {
+            requests.trySend(Request.PatchModeRule)
+            dialog.dismiss()
+        }
+        sheet.modeGlobalRow.setOnClickListener {
+            requests.trySend(Request.PatchModeGlobal)
+            dialog.dismiss()
+        }
+
+        dialog.setContentView(sheet.root)
+        dialog.show()
+    }
+
+    private fun setupMainPager() {
+        val pages = listOf(
+            binding.mainHomePage,
+            binding.mainProfilesPage,
+            binding.mainRoutingPage,
+            binding.mainSettingsPage,
+        )
+        pages.forEach { page ->
+            (page.parent as? ViewGroup)?.removeView(page)
+            page.visibility = View.VISIBLE
+        }
+
+        binding.mainPager.adapter = StaticPageAdapter(pages)
+        binding.mainPager.offscreenPageLimit = pages.lastIndex
+        binding.mainPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+            override fun onPageSelected(position: Int) {
+                MainTab.values().getOrNull(position)?.let(::renderMainTab)
+            }
+        })
+        renderMainTab(MainTab.Home)
+    }
+
+    private fun selectMainTab(tab: MainTab) {
+        if (binding.mainPager.currentItem == tab.ordinal) {
+            pageForMainTab(tab).smoothScrollTo(0, 0)
+            return
+        }
+        binding.mainPager.setCurrentItem(tab.ordinal, true)
+    }
+
+    private fun renderMainTab(tab: MainTab) {
+        MainTab.values().forEach {
+            navForMainTab(it).isSelected = it == tab
+        }
+    }
+
+    private fun pageForMainTab(tab: MainTab) = when (tab) {
+        MainTab.Home -> binding.mainHomePage
+        MainTab.Profiles -> binding.mainProfilesPage
+        MainTab.Routing -> binding.mainRoutingPage
+        MainTab.Settings -> binding.mainSettingsPage
+    }
+
+    private fun navForMainTab(tab: MainTab): View = when (tab) {
+        MainTab.Home -> binding.mainNavHome
+        MainTab.Profiles -> binding.mainNavProfiles
+        MainTab.Routing -> binding.mainNavRouting
+        MainTab.Settings -> binding.mainNavSettings
+    }
+
     init {
         binding.self = this
         binding.tunnelStarting = false
         binding.hasProfiles = false
         applyHomeBackgroundStyle()
+        setupMainPager()
 
         binding.profileList.also {
             it.applyLinearAdapter(context, profileAdapter)
-            (it.layoutManager as? LinearLayoutManager)?.stackFromEnd = true
+            (it.layoutManager as? LinearLayoutManager)?.stackFromEnd = false
             it.itemAnimator = DefaultItemAnimator().apply {
                 supportsChangeAnimations = true
                 changeDuration = 280
@@ -489,47 +638,11 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         binding.tunnelStarting = false
         applyPowerVisuals()
 
-        binding.modeLabelRule.setOnClickListener {
-            requests.trySend(Request.PatchModeRule)
-        }
-        binding.modeLabelGlobal.setOnClickListener {
-            requests.trySend(Request.PatchModeGlobal)
-        }
-        binding.modeSegmentContainer.post {
-            updateModeSegment(currentModeSegment, animate = false)
-        }
-
-        binding.mainNavProfiles.setOnClickListener { requests.trySend(Request.OpenProfiles) }
-        binding.mainNavLogs.setOnClickListener { requests.trySend(Request.OpenSettings) }
-        binding.mainNavRouting.setOnClickListener { requests.trySend(Request.OpenRouting) }
-        binding.mainNavConnections.setOnClickListener { requests.trySend(Request.OpenConnections) }
-
-        val alignFab: () -> Unit = {
-            binding.root.post { alignAddProfileFabToProfiles() }
-        }
-        binding.mainBottomNavCard.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> alignFab() }
-        binding.mainNavProfiles.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> alignFab() }
-        binding.mainAddProfileFab.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> alignFab() }
-        alignFab()
-    }
-
-    private fun alignAddProfileFabToProfiles() {
-        val fab = binding.mainAddProfileFab
-        val profiles = binding.mainNavProfiles
-        if (fab.width == 0 || profiles.width == 0) return
-
-        val fabLocation = IntArray(2)
-        val profilesLocation = IntArray(2)
-        fab.getLocationOnScreen(fabLocation)
-        profiles.getLocationOnScreen(profilesLocation)
-
-        val fabCenterX = fabLocation[0] + fab.width / 2f
-        val profilesCenterX = profilesLocation[0] + profiles.width / 2f
-        val deltaX = profilesCenterX - fabCenterX
-
-        if (kotlin.math.abs(deltaX) > 0.5f) {
-            fab.translationX += deltaX
-        }
+        binding.mainNavHome.setOnClickListener { selectMainTab(MainTab.Home) }
+        binding.mainNavProfiles.setOnClickListener { selectMainTab(MainTab.Profiles) }
+        binding.mainNavRouting.setOnClickListener { selectMainTab(MainTab.Routing) }
+        binding.mainNavSettings.setOnClickListener { selectMainTab(MainTab.Settings) }
+        binding.mainModeRow.setOnClickListener { showModeSheet() }
     }
 
     private fun applyHomeBackgroundStyle() {

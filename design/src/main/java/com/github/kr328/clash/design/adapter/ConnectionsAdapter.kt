@@ -1,16 +1,23 @@
 package com.github.kr328.clash.design.adapter
 
+import android.content.Context
+import android.content.pm.PackageManager
+import android.graphics.drawable.Drawable
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
+import android.widget.ImageView
 import android.widget.TextView
-import android.content.Context
 import androidx.recyclerview.widget.RecyclerView
 import com.github.kr328.clash.core.model.ConnectionTracker
 import com.github.kr328.clash.design.R
 import com.github.kr328.clash.design.util.diffWith
 import com.github.kr328.clash.design.util.layoutInflater
 import com.github.kr328.clash.design.util.toBytesString
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 
 /** Lists policy hops only; dialer-proxy used inside the leaf is not reported as a chain hop. */
 class ConnectionsAdapter(
@@ -18,18 +25,32 @@ class ConnectionsAdapter(
 ) : RecyclerView.Adapter<ConnectionsAdapter.Holder>() {
     class Holder(view: View) : RecyclerView.ViewHolder(view) {
         val root: View = view.findViewById(R.id.conn_root)
+        val appIcon: ImageView = view.findViewById(R.id.conn_app_icon)
         val title: TextView = view.findViewById(R.id.conn_title)
         val subtitle: TextView = view.findViewById(R.id.conn_subtitle)
         val route: TextView = view.findViewById(R.id.conn_route)
         val meta: TextView = view.findViewById(R.id.conn_meta)
         val rule: TextView = view.findViewById(R.id.conn_rule_chip)
         val network: TextView = view.findViewById(R.id.conn_network_chip)
+        val expand: ImageView = view.findViewById(R.id.conn_expand)
         val details: TextView = view.findViewById(R.id.conn_details)
         val close: ImageButton = view.findViewById(R.id.conn_close)
     }
 
+    private data class AppDisplay(
+        val label: String,
+        val packageName: String?,
+        val icon: Drawable?,
+        val known: Boolean,
+    )
+
     private var rows: List<ConnectionTracker> = emptyList()
     private val expandedIds = linkedSetOf<String>()
+    private val appCache = linkedMapOf<String, AppDisplay>()
+    private val pendingAppKeys = linkedSetOf<String>()
+    private val cacheLock = Any()
+    private val ioScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private val mainScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
     fun submit(items: List<ConnectionTracker>) {
         expandedIds.retainAll(items.mapTo(mutableSetOf(), ConnectionTracker::id))
@@ -56,8 +77,18 @@ class ConnectionsAdapter(
         holder.title.text = title
 
         val ctx = holder.itemView.context
+        val app = resolveApp(ctx.applicationContext, c)
+        if (app.icon != null) {
+            holder.appIcon.clearColorFilter()
+            holder.appIcon.setImageDrawable(app.icon.constantState?.newDrawable() ?: app.icon)
+        } else {
+            holder.appIcon.setImageResource(R.drawable.ic_baseline_dns)
+        }
+
         holder.subtitle.text = buildList {
-            m?.process?.takeIf { it.isNotBlank() }?.let { add(it) }
+            if (app.known) add(app.label)
+            app.packageName?.takeIf { app.known && it != app.label }?.let { add(it) }
+            if (!app.known) m?.process?.takeIf { it.isNotBlank() }?.let { add(it) }
             m?.uid?.takeIf { it > 0 }?.let { add("uid $it") }
             m?.network?.takeIf { it.isNotBlank() }?.let { add(it.uppercase()) }
         }.joinToString(" · ").ifBlank { "—" }
@@ -81,8 +112,9 @@ class ConnectionsAdapter(
         holder.rule.text = ruleLine.ifBlank { "—" }
 
         val expanded = c.id in expandedIds
+        holder.expand.rotation = if (expanded) 180f else 0f
         holder.details.visibility = if (expanded) View.VISIBLE else View.GONE
-        holder.details.text = formatDetails(ctx, c)
+        holder.details.text = formatDetails(ctx, c, app)
         holder.root.setOnClickListener {
             if (!expandedIds.add(c.id)) {
                 expandedIds.remove(c.id)
@@ -99,22 +131,135 @@ class ConnectionsAdapter(
 
     override fun getItemCount(): Int = rows.size
 
-    private fun formatDetails(context: Context, c: ConnectionTracker): String {
+    private fun formatDetails(context: Context, c: ConnectionTracker, app: AppDisplay): String {
         val m = c.metadata
         val lines = mutableListOf<String>()
+        if (app.known) lines += context.getString(R.string.connections_app_fmt, app.label)
+        app.packageName?.let { lines += context.getString(R.string.connections_package_fmt, it) }
         if (m != null) {
+            if (m.uid > 0) lines += context.getString(R.string.connections_uid_fmt, m.uid)
+            if (m.network.isNotBlank()) lines += context.getString(R.string.connections_network_fmt, m.network.uppercase())
+            if (m.sniffHost.isNotBlank()) lines += context.getString(R.string.connections_host_fmt, m.sniffHost)
+            if (m.host.isNotBlank() && m.host != m.sniffHost) {
+                lines += context.getString(R.string.connections_host_fmt, m.host)
+            }
             val source = endpoint(m.sourceIP, m.sourcePort)
             val destination = endpoint(m.destinationIP, m.destinationPort)
             if (source.isNotBlank() || destination.isNotBlank()) {
                 lines += listOf(source.ifBlank { "?" }, destination.ifBlank { "?" }).joinToString(" → ")
             }
             if (m.inboundName.isNotBlank()) lines += context.getString(R.string.connections_inbound_fmt, m.inboundName)
-            if (m.processPath.isNotBlank()) lines += m.processPath
-            if (m.remoteDestination.isNotBlank()) lines += "Remote: ${m.remoteDestination}"
+            if (m.processPath.isNotBlank()) {
+                lines += context.getString(R.string.connections_process_path_fmt, m.processPath)
+            }
+            if (m.remoteDestination.isNotBlank()) {
+                lines += context.getString(R.string.connections_remote_fmt, m.remoteDestination)
+            }
         }
-        if (c.start.isNotBlank()) lines += "Start: ${c.start}"
+        formatChainLine(c)?.let { lines += context.getString(R.string.connections_chain_label, it) }
+        lines += context.getString(
+            R.string.connections_traffic_fmt,
+            c.upload.toBytesString(),
+            c.download.toBytesString(),
+        )
+        if (c.start.isNotBlank()) lines += context.getString(R.string.connections_started_fmt, c.start)
         if (c.id.isNotBlank()) lines += context.getString(R.string.connections_id_fmt, c.id)
         return lines.joinToString("\n").ifBlank { "—" }
+    }
+
+    private fun resolveApp(context: Context, c: ConnectionTracker): AppDisplay {
+        val key = appCacheKey(c)
+        synchronized(cacheLock) {
+            appCache[key]?.let { return it }
+            if (pendingAppKeys.add(key)) {
+                ioScope.launch {
+                    val resolved = runCatching {
+                        resolveAppBlocking(context, c)
+                    }.getOrElse {
+                        AppDisplay(
+                            label = c.metadata?.process?.takeIf(String::isNotBlank)
+                                ?: context.getString(R.string.connections_app_unknown),
+                            packageName = null,
+                            icon = null,
+                            known = false,
+                        )
+                    }
+                    synchronized(cacheLock) {
+                        pendingAppKeys.remove(key)
+                        appCache[key] = resolved
+                    }
+                    mainScope.launch {
+                        notifyRowsForKey(key)
+                    }
+                }
+            }
+        }
+        return AppDisplay(
+            label = c.metadata?.process?.takeIf(String::isNotBlank)
+                ?: context.getString(R.string.connections_app_unknown),
+            packageName = null,
+            icon = null,
+            known = false,
+        )
+    }
+
+    private fun appCacheKey(c: ConnectionTracker): String {
+        val m = c.metadata
+        val process = m?.process.orEmpty()
+        val uid = m?.uid ?: 0
+        return "${process}|${uid}|${m?.processPath.orEmpty()}"
+    }
+
+    private fun notifyRowsForKey(key: String) {
+        for (index in rows.indices) {
+            if (appCacheKey(rows[index]) == key) {
+                notifyItemChanged(index)
+            }
+        }
+    }
+
+    private fun resolveAppBlocking(context: Context, c: ConnectionTracker): AppDisplay {
+        val m = c.metadata
+        val process = m?.process.orEmpty()
+        val uid = m?.uid ?: 0
+        val pm = context.packageManager
+        val uidPackages = if (uid > 0) {
+            pm.getPackagesForUid(uid)?.toList().orEmpty()
+        } else {
+            emptyList()
+        }
+        val candidates = buildList {
+            process.takeIf { it.isNotBlank() }?.let {
+                add(it)
+                add(it.substringBefore(':'))
+            }
+            addAll(uidPackages)
+        }.distinct().filter { it.isNotBlank() }
+
+        return candidates.firstNotNullOfOrNull { packageName ->
+            resolvePackage(pm, packageName)
+        } ?: AppDisplay(
+            label = process.takeIf { it.isNotBlank() }
+                ?: context.getString(R.string.connections_app_unknown),
+            packageName = uidPackages.firstOrNull(),
+            icon = null,
+            known = false,
+        )
+    }
+
+    private fun resolvePackage(pm: PackageManager, packageName: String): AppDisplay? {
+        val info = runCatching { pm.getApplicationInfo(packageName, 0) }.getOrNull()
+            ?: return null
+        val label = runCatching { pm.getApplicationLabel(info).toString() }
+            .getOrDefault(packageName)
+            .ifBlank { packageName }
+        val icon = runCatching { pm.getApplicationIcon(info) }.getOrNull()
+        return AppDisplay(
+            label = label,
+            packageName = packageName,
+            icon = icon,
+            known = true,
+        )
     }
 
     private fun endpoint(ip: String, port: String): String {
