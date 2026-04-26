@@ -9,7 +9,7 @@ https://img.shields.io/github/actions/workflow/status/Nemu-x/ClashFest/android-d
 ![Status: WIP](https://img.shields.io/badge/status-WIP-orange)
 ![Branch](https://img.shields.io/badge/branch-feat%2Finit--clashfest-blue)
 
-**ClashFest** is an Android client in the **Clash Meta / Mihomo** family: refreshed branding, a calmer home screen with compact profile cards, routing helpers, and room to grow without inheriting every upstream UI choice.
+**ClashFest** is an Android client in the **Clash Meta / Mihomo** family with a refreshed dashboard, cleaner profile/node flows, routing tools, and practical safety defaults for everyday use.
 
 > **Status:** work in progress · **Active branch:** `feat/init-clashfest`
 
@@ -19,30 +19,32 @@ https://img.shields.io/github/actions/workflow/status/Nemu-x/ClashFest/android-d
 
 | Area | What you get |
 |------|----------------|
-| **Home** | Slim profile cards, quick actions, import from URL / QR / clipboard |
+| **Home** | Active node focused card, compact profile actions, import from URL / QR / clipboard |
 | **Modes** | Rule / Global / Direct tunnel modes |
-| **Rules & routing** | Rule snippets, effective rules, app routing (per‑app VPN policy) |
+| **Rules & routing** | Routing hub, rule snippets, effective rules, app routing (per‑app VPN policy) |
 | **Network** | DNS / VPN options, security-oriented toggles where we wire them |
 | **Features** | Safe “every‑day” toggles (unified delay, geodata mode, TCP concurrent) + entry to **Geo Data Source** |
 | **Geo Data Source** | Presets for **geox-url** mirrors (same upstream data, different CDN paths), custom URLs, on-device geo DB import |
 | **Subscriptions** | HTTP(S) / `content:` profiles; **`mierus://`** shares parsed via the same pipeline as other URL imports |
+| **Quick start** | Quick Settings tile flow with VPN permission handling and one-tap startup |
+| **Connections** | Live connections view with resilient snapshot decoding and lower polling load |
 | **App** | Dark mode, optional **UI language** (system / EN / RU / ZH), notification & recents options |
 | **Look** | Neon-accent dark direction; light theme still evolving |
 
 ### Screenshots
 
 <p align="center">
-  <img src="docs/screenshots/home.jpg" width="180"/>
-  <img src="docs/screenshots/profile_options.jpg" width="180"/>
-  <img src="docs/screenshots/add_profile.png" width="180"/>
-  <img src="docs/screenshots/connections.png" width="180"/>
+  <img src="docs/screenshots/home_on.png" width="180"/>
+  <img src="docs/screenshots/home_off.jpg" width="180"/>
+  <img src="docs/screenshots/node_list.png" width="180"/>
+  <img src="docs/screenshots/profiles_main.jpg" width="180"/>
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/rules.jpg" width="180"/>
-  <img src="docs/screenshots/add_rules.jpg" width="180"/>
-  <img src="docs/screenshots/routing_rules1.jpg" width="180"/>
-  <img src="docs/screenshots/routing_rules2.jpg" width="180"/>
+  <img src="docs/screenshots/profiles_edit.jpg" width="180"/>
+  <img src="docs/screenshots/routing.jpg" width="180"/>
+  <img src="docs/screenshots/settings.jpg" width="180"/>
+  <img src="docs/screenshots/themes.jpg" width="180"/>
 </p>
 
 ---
@@ -125,8 +127,8 @@ ClashFest builds on the open Clash / Meta stack. If you use or ship derivatives,
 
 ## Current focus
 
-- Stabilize the redesigned home and profile flows
-- Finish branding pass on remaining screens
-- Rules / routing UX and connections clarity
-- Light theme parity and polish
-- Safe removal of experimental leftovers
+- Stability and regression-free releases on top of the redesigned Home
+- Routing and profile management polish without breaking upstream compatibility
+- Performance and battery optimizations in high-refresh screens
+- Localization quality (EN / RU / ZH first, others incremental)
+- Post-release cleanup of medium-risk technical debt
