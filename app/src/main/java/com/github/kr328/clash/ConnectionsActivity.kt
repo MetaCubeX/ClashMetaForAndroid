@@ -29,8 +29,8 @@ class ConnectionsActivity : BaseActivity<ConnectionsDesign>() {
 
         val refresh = launch {
             var lastRawSnapshot: String? = null
-            val activeDelayMs = 800L
-            val idleDelayMs = 3000L
+            val activeDelayMs = 2000L
+            val idleDelayMs = 7000L
             while (isActive) {
                 if (!activityStarted) {
                     delay(idleDelayMs)

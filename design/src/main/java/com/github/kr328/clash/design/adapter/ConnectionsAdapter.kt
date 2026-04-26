@@ -14,6 +14,10 @@ import com.github.kr328.clash.design.R
 import com.github.kr328.clash.design.util.diffWith
 import com.github.kr328.clash.design.util.layoutInflater
 import com.github.kr328.clash.design.util.toBytesString
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 
 /** Lists policy hops only; dialer-proxy used inside the leaf is not reported as a chain hop. */
 class ConnectionsAdapter(
@@ -43,6 +47,10 @@ class ConnectionsAdapter(
     private var rows: List<ConnectionTracker> = emptyList()
     private val expandedIds = linkedSetOf<String>()
     private val appCache = linkedMapOf<String, AppDisplay>()
+    private val pendingAppKeys = linkedSetOf<String>()
+    private val cacheLock = Any()
+    private val ioScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private val mainScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
     fun submit(items: List<ConnectionTracker>) {
         expandedIds.retainAll(items.mapTo(mutableSetOf(), ConnectionTracker::id))
@@ -69,7 +77,7 @@ class ConnectionsAdapter(
         holder.title.text = title
 
         val ctx = holder.itemView.context
-        val app = resolveApp(ctx, c)
+        val app = resolveApp(ctx.applicationContext, c)
         if (app.icon != null) {
             holder.appIcon.clearColorFilter()
             holder.appIcon.setImageDrawable(app.icon.constantState?.newDrawable() ?: app.icon)
@@ -160,35 +168,83 @@ class ConnectionsAdapter(
     }
 
     private fun resolveApp(context: Context, c: ConnectionTracker): AppDisplay {
+        val key = appCacheKey(c)
+        synchronized(cacheLock) {
+            appCache[key]?.let { return it }
+            if (pendingAppKeys.add(key)) {
+                ioScope.launch {
+                    val resolved = runCatching {
+                        resolveAppBlocking(context, c)
+                    }.getOrElse {
+                        AppDisplay(
+                            label = c.metadata?.process?.takeIf(String::isNotBlank)
+                                ?: context.getString(R.string.connections_app_unknown),
+                            packageName = null,
+                            icon = null,
+                            known = false,
+                        )
+                    }
+                    synchronized(cacheLock) {
+                        pendingAppKeys.remove(key)
+                        appCache[key] = resolved
+                    }
+                    mainScope.launch {
+                        notifyRowsForKey(key)
+                    }
+                }
+            }
+        }
+        return AppDisplay(
+            label = c.metadata?.process?.takeIf(String::isNotBlank)
+                ?: context.getString(R.string.connections_app_unknown),
+            packageName = null,
+            icon = null,
+            known = false,
+        )
+    }
+
+    private fun appCacheKey(c: ConnectionTracker): String {
         val m = c.metadata
         val process = m?.process.orEmpty()
         val uid = m?.uid ?: 0
-        val key = "${process}|${uid}|${m?.processPath.orEmpty()}"
-        return appCache.getOrPut(key) {
-            val pm = context.packageManager
-            val uidPackages = if (uid > 0) {
-                pm.getPackagesForUid(uid)?.toList().orEmpty()
-            } else {
-                emptyList()
-            }
-            val candidates = buildList {
-                process.takeIf { it.isNotBlank() }?.let {
-                    add(it)
-                    add(it.substringBefore(':'))
-                }
-                addAll(uidPackages)
-            }.distinct().filter { it.isNotBlank() }
+        return "${process}|${uid}|${m?.processPath.orEmpty()}"
+    }
 
-            candidates.firstNotNullOfOrNull { packageName ->
-                resolvePackage(pm, packageName)
-            } ?: AppDisplay(
-                label = process.takeIf { it.isNotBlank() }
-                    ?: context.getString(R.string.connections_app_unknown),
-                packageName = uidPackages.firstOrNull(),
-                icon = null,
-                known = false,
-            )
+    private fun notifyRowsForKey(key: String) {
+        for (index in rows.indices) {
+            if (appCacheKey(rows[index]) == key) {
+                notifyItemChanged(index)
+            }
         }
+    }
+
+    private fun resolveAppBlocking(context: Context, c: ConnectionTracker): AppDisplay {
+        val m = c.metadata
+        val process = m?.process.orEmpty()
+        val uid = m?.uid ?: 0
+        val pm = context.packageManager
+        val uidPackages = if (uid > 0) {
+            pm.getPackagesForUid(uid)?.toList().orEmpty()
+        } else {
+            emptyList()
+        }
+        val candidates = buildList {
+            process.takeIf { it.isNotBlank() }?.let {
+                add(it)
+                add(it.substringBefore(':'))
+            }
+            addAll(uidPackages)
+        }.distinct().filter { it.isNotBlank() }
+
+        return candidates.firstNotNullOfOrNull { packageName ->
+            resolvePackage(pm, packageName)
+        } ?: AppDisplay(
+            label = process.takeIf { it.isNotBlank() }
+                ?: context.getString(R.string.connections_app_unknown),
+            packageName = uidPackages.firstOrNull(),
+            icon = null,
+            known = false,
+        )
     }
 
     private fun resolvePackage(pm: PackageManager, packageName: String): AppDisplay? {
