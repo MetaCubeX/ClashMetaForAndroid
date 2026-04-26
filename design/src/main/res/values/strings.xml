@@ -81,10 +81,19 @@ Presets only change <b>where</b> files are downloaded from (CDN / host). It is s
     <string name="routing_rules">Routing</string>
 
     <!-- Bottom navigation labels -->
+    <string name="nav_home">Home</string>
     <string name="nav_subscriptions">Profiles</string>
     <string name="nav_proxies">Proxies</string>
     <string name="nav_routing">Routing</string>
     <string name="nav_connections">Connections</string>
+    <string name="main_activity_title">Activity</string>
+    <string name="main_activity_summary">Live connections and diagnostics</string>
+    <string name="main_open_profiles">Manage profiles</string>
+    <string name="main_open_profiles_summary">Subscriptions, updates and files</string>
+    <string name="main_open_connections">Open live connections</string>
+    <string name="main_open_connections_summary">Search active flows and close stale connections</string>
+    <string name="main_open_logs">Open logs</string>
+    <string name="main_open_logs_summary">Diagnostics when connection fails</string>
 
     <!-- Routing hub screen -->
     <string name="routing_hub_tips">Manage how traffic is routed: rule snippets, the active rule list, and per-app inclusion/exclusion.</string>

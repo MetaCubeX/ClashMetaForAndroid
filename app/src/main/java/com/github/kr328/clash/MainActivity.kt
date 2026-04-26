@@ -341,6 +341,9 @@ class MainActivity : BaseActivity<MainDesign>() {
                         MainDesign.Request.OpenRouting ->
                             startActivity(RoutingHubActivity::class.intent)
 
+                        MainDesign.Request.OpenPerAppRouting ->
+                            startActivity(AccessControlActivity::class.intent)
+
                         MainDesign.Request.OpenProfiles ->
                             startActivity(ProfilesActivity::class.intent)
 

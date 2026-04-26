@@ -75,10 +75,19 @@
     <string name="routing_rules">Маршрутизация</string>
 
     <!-- Bottom navigation labels -->
+    <string name="nav_home">Главная</string>
     <string name="nav_subscriptions">Подписки</string>
     <string name="nav_proxies">Прокси</string>
     <string name="nav_routing">Маршрутизация</string>
     <string name="nav_connections">Соединения</string>
+    <string name="main_activity_title">Активность</string>
+    <string name="main_activity_summary">Живые соединения и диагностика</string>
+    <string name="main_open_profiles">Управлять профилями</string>
+    <string name="main_open_profiles_summary">Подписки, обновления и файлы</string>
+    <string name="main_open_connections">Открыть соединения</string>
+    <string name="main_open_connections_summary">Поиск активных потоков и закрытие зависших соединений</string>
+    <string name="main_open_logs">Открыть логи</string>
+    <string name="main_open_logs_summary">Диагностика, если подключение не стартует</string>
 
     <!-- Routing hub screen -->
     <string name="routing_hub_tips">Управляйте тем, как маршрутизируется трафик: фрагменты правил, активный список правил и включение/исключение по приложениям.</string>

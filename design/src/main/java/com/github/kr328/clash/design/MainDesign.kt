@@ -31,6 +31,7 @@ import com.github.kr328.clash.service.model.Profile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.withContext
+import kotlin.math.abs
 import java.util.UUID
 
 class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
@@ -49,8 +50,16 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         OpenConnections,
         /** Hub screen combining YAML rules, routing rules and per-app routing. */
         OpenRouting,
+        /** Direct entry to per-app routing for quick access from the routing tab. */
+        OpenPerAppRouting,
         /** Subscriptions / profiles list. */
         OpenProfiles,
+    }
+
+    private enum class HomeTab {
+        Home,
+        Routing,
+        Activity,
     }
 
     val profileActivateRequests = Channel<Profile>(Channel.UNLIMITED)
@@ -72,6 +81,9 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
     private val uiStore = UiStore(context)
     private val expandedProfileUuids: LinkedHashSet<UUID> = linkedSetOf()
     private var currentModeSegment: TunnelState.Mode = TunnelState.Mode.Rule
+    private var currentHomeTab: HomeTab = HomeTab.Home
+    private var swipeStartX: Float = 0f
+    private var swipeStartY: Float = 0f
     private val profileAdapter = ProfileAdapter(
         { profile -> profileActivateRequests.trySend(profile) },
         { profile, anchor -> profileMenuRequests.trySend(profile to anchor) },
@@ -498,6 +510,90 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         dialog.show()
     }
 
+    private fun showHomeTab(tab: HomeTab, animate: Boolean = true) {
+        if (currentHomeTab == tab && animate) return
+
+        val previousPage = pageForTab(currentHomeTab)
+        val nextPage = pageForTab(tab)
+        currentHomeTab = tab
+
+        listOf(HomeTab.Home, HomeTab.Routing, HomeTab.Activity).forEach {
+            navForTab(it).isSelected = it == tab
+        }
+
+        if (!animate || previousPage == nextPage) {
+            listOf(binding.mainHomePage, binding.mainRoutingPage, binding.mainActivityPage).forEach {
+                it.visibility = if (it == nextPage) View.VISIBLE else View.GONE
+                it.alpha = 1f
+            }
+            return
+        }
+
+        previousPage.animate().cancel()
+        nextPage.animate().cancel()
+        nextPage.alpha = 0f
+        nextPage.visibility = View.VISIBLE
+        previousPage.animate()
+            .alpha(0f)
+            .setDuration(90L)
+            .withEndAction {
+                previousPage.visibility = View.GONE
+                previousPage.alpha = 1f
+            }
+            .start()
+        nextPage.animate()
+            .alpha(1f)
+            .setDuration(150L)
+            .start()
+    }
+
+    private fun pageForTab(tab: HomeTab): View = when (tab) {
+        HomeTab.Home -> binding.mainHomePage
+        HomeTab.Routing -> binding.mainRoutingPage
+        HomeTab.Activity -> binding.mainActivityPage
+    }
+
+    private fun navForTab(tab: HomeTab): View = when (tab) {
+        HomeTab.Home -> binding.mainNavHome
+        HomeTab.Routing -> binding.mainNavRouting
+        HomeTab.Activity -> binding.mainNavConnections
+    }
+
+    private fun moveHomeTab(delta: Int) {
+        val tabs = HomeTab.values()
+        val next = (currentHomeTab.ordinal + delta).coerceIn(0, tabs.lastIndex)
+        showHomeTab(tabs[next])
+    }
+
+    private fun installSwipeTabs() {
+        val density = context.resources.displayMetrics.density
+        val threshold = 72f * density
+        val listener = View.OnTouchListener { _, event ->
+            when (event.actionMasked) {
+                MotionEvent.ACTION_DOWN -> {
+                    swipeStartX = event.rawX
+                    swipeStartY = event.rawY
+                    false
+                }
+                MotionEvent.ACTION_UP -> {
+                    val dx = event.rawX - swipeStartX
+                    val dy = event.rawY - swipeStartY
+                    if (abs(dx) > threshold && abs(dx) > abs(dy) * 1.35f) {
+                        moveHomeTab(if (dx < 0f) 1 else -1)
+                        true
+                    } else {
+                        false
+                    }
+                }
+                else -> false
+            }
+        }
+
+        binding.mainHomePage.setOnTouchListener(listener)
+        binding.mainRoutingPage.setOnTouchListener(listener)
+        binding.mainActivityPage.setOnTouchListener(listener)
+    }
+
     init {
         binding.self = this
         binding.tunnelStarting = false
@@ -536,10 +632,12 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         binding.tunnelStarting = false
         applyPowerVisuals()
 
-        binding.mainNavProfiles.setOnClickListener { requests.trySend(Request.OpenProfiles) }
-        binding.mainNavLogs.setOnClickListener { requests.trySend(Request.OpenLogs) }
-        binding.mainNavRouting.setOnClickListener { requests.trySend(Request.OpenRouting) }
-        binding.mainNavConnections.setOnClickListener { requests.trySend(Request.OpenConnections) }
+        showHomeTab(HomeTab.Home, animate = false)
+        installSwipeTabs()
+
+        binding.mainNavHome.setOnClickListener { showHomeTab(HomeTab.Home) }
+        binding.mainNavRouting.setOnClickListener { showHomeTab(HomeTab.Routing) }
+        binding.mainNavConnections.setOnClickListener { showHomeTab(HomeTab.Activity) }
         binding.mainModeRow.setOnClickListener { showModeSheet() }
         binding.topSettingsButton.setOnClickListener { requests.trySend(Request.OpenSettings) }
     }

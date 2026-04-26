@@ -38,6 +38,7 @@
         android:paddingEnd="@{self.surface.insets.end}">
 
         <androidx.core.widget.NestedScrollView
+            android:id="@+id/main_home_page"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:clipToPadding="false"
@@ -555,6 +556,345 @@
             </LinearLayout>
         </androidx.core.widget.NestedScrollView>
 
+        <androidx.core.widget.NestedScrollView
+            android:id="@+id/main_routing_page"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:fillViewport="false"
+            android:overScrollMode="never"
+            android:paddingTop="@{self.surface.insets.top}"
+            android:paddingBottom="@{(float) self.surface.insets.bottom + @dimen/main_bottom_nav_reserved_space}"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingHorizontal="20dp"
+                android:paddingTop="18dp"
+                android:paddingBottom="24dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/nav_routing"
+                    android:textAppearance="@style/TextAppearance.App.TitleLarge"
+                    android:textColor="?attr/colorOnSurface"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="@string/main_routing_summary"
+                    android:textAppearance="@style/TextAppearance.App.BodyMedium"
+                    android:textColor="?attr/colorOnSurfaceVariant" />
+
+                <com.google.android.material.card.MaterialCardView
+                    style="@style/AppCard.Filled"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="18dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground"
+                    android:onClick="@{() -> self.request(Request.OpenRouting)}"
+                    app:cardBackgroundColor="?attr/colorPrimaryContainer"
+                    app:cardCornerRadius="24dp"
+                    app:cardElevation="0dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:padding="18dp">
+
+                        <ImageView
+                            android:layout_width="34dp"
+                            android:layout_height="34dp"
+                            android:contentDescription="@string/routing_rules"
+                            android:src="@drawable/ic_baseline_route"
+                            app:tint="?attr/colorOnPrimaryContainer" />
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="16dp"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="@string/routing_rules"
+                                android:textAppearance="@style/TextAppearance.App.TitleMedium"
+                                android:textColor="?attr/colorOnPrimaryContainer"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="4dp"
+                                android:text="@string/routing_hub_effective_summary"
+                                android:textAppearance="@style/TextAppearance.App.BodySmall"
+                                android:textColor="?attr/colorOnPrimaryContainer" />
+                        </LinearLayout>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <com.google.android.material.card.MaterialCardView
+                    style="@style/AppCard.Filled"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground"
+                    android:onClick="@{() -> self.request(Request.OpenPerAppRouting)}"
+                    app:cardBackgroundColor="?attr/colorSurfaceContainer"
+                    app:cardCornerRadius="22dp"
+                    app:cardElevation="0dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:padding="16dp">
+
+                        <ImageView
+                            android:layout_width="30dp"
+                            android:layout_height="30dp"
+                            android:contentDescription="@string/access_control_packages"
+                            android:src="@drawable/ic_baseline_subscriptions"
+                            app:tint="?attr/colorPrimary" />
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="14dp"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="@string/access_control_packages"
+                                android:textAppearance="@style/TextAppearance.App.TitleSmall"
+                                android:textColor="?attr/colorOnSurface"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="3dp"
+                                android:text="@string/routing_hub_per_app_summary"
+                                android:textAppearance="@style/TextAppearance.App.BodySmall"
+                                android:textColor="?attr/colorOnSurfaceVariant" />
+                        </LinearLayout>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <com.google.android.material.card.MaterialCardView
+                    style="@style/AppCard.Filled"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground"
+                    android:onClick="@{() -> self.request(Request.OpenProfiles)}"
+                    app:cardBackgroundColor="?attr/colorSurfaceContainer"
+                    app:cardCornerRadius="22dp"
+                    app:cardElevation="0dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:padding="16dp">
+
+                        <ImageView
+                            android:layout_width="30dp"
+                            android:layout_height="30dp"
+                            android:contentDescription="@string/nav_subscriptions"
+                            android:src="@drawable/ic_baseline_dns"
+                            app:tint="?attr/colorPrimary" />
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="14dp"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="@string/main_open_profiles"
+                                android:textAppearance="@style/TextAppearance.App.TitleSmall"
+                                android:textColor="?attr/colorOnSurface"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="3dp"
+                                android:text="@string/main_open_profiles_summary"
+                                android:textAppearance="@style/TextAppearance.App.BodySmall"
+                                android:textColor="?attr/colorOnSurfaceVariant" />
+                        </LinearLayout>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+            </LinearLayout>
+        </androidx.core.widget.NestedScrollView>
+
+        <androidx.core.widget.NestedScrollView
+            android:id="@+id/main_activity_page"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:fillViewport="false"
+            android:overScrollMode="never"
+            android:paddingTop="@{self.surface.insets.top}"
+            android:paddingBottom="@{(float) self.surface.insets.bottom + @dimen/main_bottom_nav_reserved_space}"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingHorizontal="20dp"
+                android:paddingTop="18dp"
+                android:paddingBottom="24dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/main_activity_title"
+                    android:textAppearance="@style/TextAppearance.App.TitleLarge"
+                    android:textColor="?attr/colorOnSurface"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="@string/main_activity_summary"
+                    android:textAppearance="@style/TextAppearance.App.BodyMedium"
+                    android:textColor="?attr/colorOnSurfaceVariant" />
+
+                <com.google.android.material.card.MaterialCardView
+                    style="@style/AppCard.Filled"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="18dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground"
+                    android:onClick="@{() -> self.request(Request.OpenConnections)}"
+                    app:cardBackgroundColor="?attr/colorPrimaryContainer"
+                    app:cardCornerRadius="24dp"
+                    app:cardElevation="0dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:padding="18dp">
+
+                        <ImageView
+                            android:layout_width="34dp"
+                            android:layout_height="34dp"
+                            android:contentDescription="@string/nav_connections"
+                            android:src="@drawable/ic_baseline_swap_horiz"
+                            app:tint="?attr/colorOnPrimaryContainer" />
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="16dp"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="@string/main_open_connections"
+                                android:textAppearance="@style/TextAppearance.App.TitleMedium"
+                                android:textColor="?attr/colorOnPrimaryContainer"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="4dp"
+                                android:text="@string/main_open_connections_summary"
+                                android:textAppearance="@style/TextAppearance.App.BodySmall"
+                                android:textColor="?attr/colorOnPrimaryContainer" />
+                        </LinearLayout>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <com.google.android.material.card.MaterialCardView
+                    style="@style/AppCard.Filled"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground"
+                    android:onClick="@{() -> self.request(Request.OpenLogs)}"
+                    app:cardBackgroundColor="?attr/colorSurfaceContainer"
+                    app:cardCornerRadius="22dp"
+                    app:cardElevation="0dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:padding="16dp">
+
+                        <ImageView
+                            android:layout_width="30dp"
+                            android:layout_height="30dp"
+                            android:contentDescription="@string/logs"
+                            android:src="@drawable/ic_baseline_article"
+                            app:tint="?attr/colorPrimary" />
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="14dp"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="@string/main_open_logs"
+                                android:textAppearance="@style/TextAppearance.App.TitleSmall"
+                                android:textColor="?attr/colorOnSurface"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="3dp"
+                                android:text="@string/main_open_logs_summary"
+                                android:textAppearance="@style/TextAppearance.App.BodySmall"
+                                android:textColor="?attr/colorOnSurfaceVariant" />
+                        </LinearLayout>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+            </LinearLayout>
+        </androidx.core.widget.NestedScrollView>
+
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/main_bottom_nav_card"
             style="@style/AppCard.BottomNav"
@@ -581,13 +921,13 @@
                 android:paddingVertical="3dp">
 
                 <LinearLayout
-                    android:id="@+id/main_nav_profiles"
+                    android:id="@+id/main_nav_home"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
-                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:background="@drawable/bg_bottom_nav_item"
                     android:clickable="true"
-                    android:contentDescription="@string/nav_subscriptions"
+                    android:contentDescription="@string/nav_home"
                     android:focusable="true"
                     android:gravity="center"
                     android:orientation="vertical">
@@ -595,49 +935,21 @@
                     <ImageView
                         android:layout_width="21dp"
                         android:layout_height="21dp"
-                        android:src="@drawable/ic_baseline_subscriptions"
-                        app:tint="?attr/colorOnSurfaceVariant" />
+                        android:duplicateParentState="true"
+                        android:src="@drawable/ic_baseline_bolt"
+                        app:tint="@color/selector_bottom_nav_item" />
 
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="2dp"
+                        android:duplicateParentState="true"
                         android:ellipsize="end"
                         android:gravity="center"
                         android:maxLines="1"
-                        android:text="@string/nav_subscriptions"
+                        android:text="@string/nav_home"
                         android:textAppearance="@style/TextAppearance.App.BottomNavigation"
-                        android:textColor="?attr/colorOnSurfaceVariant" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:id="@+id/main_nav_logs"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:clickable="true"
-                    android:contentDescription="@string/logs"
-                    android:focusable="true"
-                    android:gravity="center"
-                    android:orientation="vertical">
-
-                    <ImageView
-                        android:layout_width="21dp"
-                        android:layout_height="21dp"
-                        android:src="@drawable/ic_baseline_article"
-                        app:tint="?attr/colorOnSurfaceVariant" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:ellipsize="end"
-                        android:gravity="center"
-                        android:maxLines="1"
-                        android:text="@string/logs"
-                        android:textAppearance="@style/TextAppearance.App.BottomNavigation"
-                        android:textColor="?attr/colorOnSurfaceVariant" />
+                        android:textColor="@color/selector_bottom_nav_item" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -645,7 +957,8 @@
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
-                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:layout_marginStart="4dp"
+                    android:background="@drawable/bg_bottom_nav_item"
                     android:clickable="true"
                     android:contentDescription="@string/nav_routing"
                     android:focusable="true"
@@ -655,19 +968,21 @@
                     <ImageView
                         android:layout_width="21dp"
                         android:layout_height="21dp"
+                        android:duplicateParentState="true"
                         android:src="@drawable/ic_baseline_route"
-                        app:tint="?attr/colorOnSurfaceVariant" />
+                        app:tint="@color/selector_bottom_nav_item" />
 
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="2dp"
+                        android:duplicateParentState="true"
                         android:ellipsize="end"
                         android:gravity="center"
                         android:maxLines="1"
                         android:text="@string/nav_routing"
                         android:textAppearance="@style/TextAppearance.App.BottomNavigation"
-                        android:textColor="?attr/colorOnSurfaceVariant" />
+                        android:textColor="@color/selector_bottom_nav_item" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -675,7 +990,8 @@
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
-                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:layout_marginStart="4dp"
+                    android:background="@drawable/bg_bottom_nav_item"
                     android:clickable="true"
                     android:contentDescription="@string/nav_connections"
                     android:focusable="true"
@@ -685,19 +1001,21 @@
                     <ImageView
                         android:layout_width="21dp"
                         android:layout_height="21dp"
+                        android:duplicateParentState="true"
                         android:src="@drawable/ic_baseline_swap_horiz"
-                        app:tint="?attr/colorOnSurfaceVariant" />
+                        app:tint="@color/selector_bottom_nav_item" />
 
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="2dp"
+                        android:duplicateParentState="true"
                         android:ellipsize="end"
                         android:gravity="center"
                         android:maxLines="1"
                         android:text="@string/nav_connections"
                         android:textAppearance="@style/TextAppearance.App.BottomNavigation"
-                        android:textColor="?attr/colorOnSurfaceVariant" />
+                        android:textColor="@color/selector_bottom_nav_item" />
                 </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
