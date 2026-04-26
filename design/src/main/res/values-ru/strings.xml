@@ -15,6 +15,7 @@
     <string name="main_selected_route_fmt">Группа: %1$s · Сервер: %2$s</string>
     <string name="main_session_title">Сессия</string>
     <string name="main_profile_title">Профиль</string>
+    <string name="main_active_profile_title">Активный профиль</string>
     <string name="main_routing_summary">Правила, приложения и провайдеры</string>
     <string name="main_mode_sheet_title">Режим подключения</string>
     <string name="main_mode_sheet_summary">Выберите простое поведение для текущей сессии.</string>

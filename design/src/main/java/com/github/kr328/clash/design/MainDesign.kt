@@ -8,6 +8,8 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
+import android.widget.ImageView
+import androidx.core.view.drawToBitmap
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.DefaultItemAnimator
 import androidx.recyclerview.widget.RecyclerView
@@ -85,11 +87,20 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
     private val uiStore = UiStore(context)
     private val expandedProfileUuids: LinkedHashSet<UUID> = linkedSetOf()
     private var currentModeSegment: TunnelState.Mode = TunnelState.Mode.Rule
+    private var activeProfileForQuickActions: Profile? = null
+    private var activeAnnouncementSupportUrl: String? = null
+    private var activeAnnouncementOnOpenUrl: ((String) -> Unit)? = null
+    private var activeAnnouncementOnSupport: (() -> Unit)? = null
 
     private class StaticPageAdapter(
         private val pages: List<View>,
     ) : RecyclerView.Adapter<StaticPageAdapter.Holder>() {
         class Holder(val container: FrameLayout) : RecyclerView.ViewHolder(container)
+
+        private fun isBoundaryPage(position: Int): Boolean {
+            val count = pages.size
+            return position == 0 || position == count + 1
+        }
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): Holder {
             val container = FrameLayout(parent.context).apply {
@@ -101,9 +112,35 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
             return Holder(container)
         }
 
+        private fun logicalPosition(position: Int): Int {
+            val count = pages.size
+            return when (position) {
+                0 -> count - 1
+                count + 1 -> 0
+                else -> position - 1
+            }
+        }
+
         override fun onBindViewHolder(holder: Holder, position: Int) {
             holder.container.removeAllViews()
-            val page = pages[position]
+            val page = pages[logicalPosition(position)]
+            if (isBoundaryPage(position)) {
+                val snapshot = ImageView(holder.container.context).apply {
+                    layoutParams = FrameLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                    )
+                    scaleType = ImageView.ScaleType.FIT_XY
+                    if (page.width > 0 && page.height > 0) {
+                        setImageBitmap(page.drawToBitmap())
+                    } else {
+                        setImageDrawable(null)
+                    }
+                }
+                holder.container.addView(snapshot)
+                return
+            }
+
             (page.parent as? ViewGroup)?.removeView(page)
             page.visibility = View.VISIBLE
             holder.container.addView(
@@ -119,7 +156,7 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
             holder.container.removeAllViews()
         }
 
-        override fun getItemCount(): Int = pages.size
+        override fun getItemCount(): Int = pages.size + 2
     }
 
     private val profileAdapter = ProfileAdapter(
@@ -162,9 +199,12 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
             val announcementUrl = url?.takeIf { it.isNotBlank() }
             val support = supportUrl?.takeIf { it.isNotBlank() }
             val hasAnnouncement = message.isNotBlank()
+            activeAnnouncementSupportUrl = support
+            activeAnnouncementOnOpenUrl = onOpenUrl
+            activeAnnouncementOnSupport = onSupport
 
             binding.mainHeaderTitle.text = context.getString(
-                if (hasAnnouncement) R.string.announcement_settings else R.string.launch_name_alpha,
+                if (hasAnnouncement) R.string.announcement_settings else R.string.launch_name_meta,
             )
             binding.mainHeaderSummary.visibility = if (hasAnnouncement) View.VISIBLE else View.GONE
             binding.mainHeaderSummary.text = message
@@ -214,6 +254,7 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
                 onOpenUrl = onOpenUrl,
                 onSupport = onSupport,
             )
+            renderActiveProfileCard(activeProfileForQuickActions)
             // Usage is currently rendered by profile cards; keep signature for compatibility.
             usage?.let { /* kept for API stability; per-profile usage is rendered from Profile fields */ }
         }
@@ -349,6 +390,8 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         withContext(Dispatchers.Main) {
             binding.hasProfiles = profiles.isNotEmpty()
             val homeProfiles = profiles.filter { it.active }.ifEmpty { profiles.take(1) }
+            activeProfileForQuickActions = profiles.firstOrNull { it.active } ?: profiles.firstOrNull()
+            renderActiveProfileCard(activeProfileForQuickActions)
             profileAdapter.apply {
                 val ids = homeProfiles.map { it.uuid }.toSet()
                 expandedProfileUuids.retainAll { it in ids }
@@ -356,6 +399,51 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
             }
             profileAdapter.setExpandedUuids(expandedProfileUuids.toSet())
         }
+    }
+
+    private fun renderActiveProfileCard(profile: Profile?) {
+        val p = profile
+        binding.mainActiveProfileValue.text = p?.name.orEmpty().ifBlank { context.getString(R.string.not_selected) }
+        binding.mainActiveProfileMeta.text = p?.let(::profileMetaLabel).orEmpty()
+        binding.mainActiveProfileMeta.visibility = if (p != null) View.VISIBLE else View.GONE
+        binding.mainActiveProfileUsage.text = p?.let(::usageLabel).orEmpty()
+        binding.mainActiveProfileUsage.visibility = if (p != null) View.VISIBLE else View.GONE
+        val showUpdate = p?.imported == true && p.type != Profile.Type.File
+        binding.mainActiveProfileUpdate.visibility = if (showUpdate) View.VISIBLE else View.GONE
+        val showSupport = !resolveSupportUrl().isNullOrBlank()
+        binding.mainActiveProfileSupport.visibility = if (showSupport) View.VISIBLE else View.GONE
+    }
+
+    private fun resolveSupportUrl(): String? =
+        activeAnnouncementSupportUrl?.takeIf { it.isNotBlank() }
+            ?: uiStore.supportUrl.takeIf { it.isNotBlank() }
+
+    private fun profileMetaLabel(profile: Profile): String {
+        val base = profileTypeLabel(profile)
+        val daysLeft = daysLeftValue(profile) ?: return base
+        return "$base • ${context.getString(R.string.sub_announcement_days_left)} $daysLeft"
+    }
+
+    private fun profileTypeLabel(profile: Profile): String = when (profile.type) {
+        Profile.Type.Url -> context.getString(R.string.url)
+        Profile.Type.File -> context.getString(R.string.file)
+        Profile.Type.External -> context.getString(R.string.external)
+    }
+
+    private fun daysLeftValue(profile: Profile): Int? {
+        val expireAt = profile.expire.takeIf { it > 0L } ?: return null
+        val now = System.currentTimeMillis()
+        if (expireAt <= now) return 0
+
+        val millisLeft = expireAt - now
+        return ((millisLeft + 86_400_000L - 1L) / 86_400_000L).toInt().coerceAtLeast(1)
+    }
+
+    private fun usageLabel(profile: Profile): String {
+        val used = profile.upload + profile.download
+        val usedText = used.trafficTotal()
+        if (profile.total < 2L) return "$usedText / ${context.getString(R.string.sub_announcement_unlimited)}"
+        return "$usedText / ${profile.total.trafficTotal()}"
     }
 
     suspend fun patchProxyGroups(
@@ -564,19 +652,41 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         binding.mainPager.adapter = StaticPageAdapter(pages)
         binding.mainPager.offscreenPageLimit = pages.lastIndex
         binding.mainPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+            override fun onPageScrollStateChanged(state: Int) {
+                if (state != ViewPager2.SCROLL_STATE_IDLE) return
+                val count = MainTab.values().size
+                when (binding.mainPager.currentItem) {
+                    0 -> binding.mainPager.setCurrentItem(count, false)
+                    count + 1 -> binding.mainPager.setCurrentItem(1, false)
+                }
+            }
+
             override fun onPageSelected(position: Int) {
-                MainTab.values().getOrNull(position)?.let(::renderMainTab)
+                mainTabForPagerPosition(position)?.let(::renderMainTab)
             }
         })
+        binding.mainPager.setCurrentItem(1, false)
         renderMainTab(MainTab.Home)
     }
 
+    private fun mainTabForPagerPosition(position: Int): MainTab? {
+        val tabs = MainTab.values()
+        val size = tabs.size
+        val logical = when (position) {
+            0 -> size - 1
+            size + 1 -> 0
+            else -> position - 1
+        }
+        return tabs.getOrNull(logical)
+    }
+
     private fun selectMainTab(tab: MainTab) {
-        if (binding.mainPager.currentItem == tab.ordinal) {
+        val targetItem = tab.ordinal + 1
+        if (binding.mainPager.currentItem == targetItem) {
             pageForMainTab(tab).smoothScrollTo(0, 0)
             return
         }
-        binding.mainPager.setCurrentItem(tab.ordinal, true)
+        binding.mainPager.setCurrentItem(targetItem, true)
     }
 
     private fun renderMainTab(tab: MainTab) {
@@ -643,6 +753,17 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         binding.mainNavRouting.setOnClickListener { selectMainTab(MainTab.Routing) }
         binding.mainNavSettings.setOnClickListener { selectMainTab(MainTab.Settings) }
         binding.mainModeRow.setOnClickListener { showModeSheet() }
+        binding.mainActiveProfileUpdate.setOnClickListener {
+            activeProfileForQuickActions?.let { profile ->
+                if (profile.imported && profile.type != Profile.Type.File) {
+                    profileForceUpdateRequests.trySend(profile)
+                }
+            }
+        }
+        binding.mainActiveProfileSupport.setOnClickListener {
+            val target = resolveSupportUrl() ?: return@setOnClickListener
+            activeAnnouncementOnOpenUrl?.invoke(target) ?: activeAnnouncementOnSupport?.invoke()
+        }
     }
 
     private fun applyHomeBackgroundStyle() {

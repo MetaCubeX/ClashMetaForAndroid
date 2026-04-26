@@ -20,6 +20,7 @@
     <string name="main_selected_route_fmt">Group: %1$s · Server: %2$s</string>
     <string name="main_session_title">Session</string>
     <string name="main_profile_title">Profile</string>
+    <string name="main_active_profile_title">Active profile</string>
     <string name="main_routing_summary">Rules, apps and route providers</string>
     <string name="main_mode_sheet_title">Connection mode</string>
     <string name="main_mode_sheet_summary">Choose the simple behavior for this session.</string>
