@@ -366,19 +366,6 @@ class ProfileAdapter(
                 fillProxyRowsInto(sheet.proxySheetNodesList, profile, groupNames, selectedIndex)
             }
 
-            val pinging = states.pingingUuid == profile.uuid
-            sheet.proxySheetPingProgress.visibility = if (pinging) View.VISIBLE else View.GONE
-            sheet.proxySheetPingButton.visibility = if (pinging) View.INVISIBLE else View.VISIBLE
-            sheet.proxySheetPingButton.setOnClickListener {
-                val currentIndex = selectedGroupIndex[profile.uuid] ?: 0
-                val groupName = groupNames.getOrNull(currentIndex) ?: return@setOnClickListener
-                val pg = proxyGroupForRow(profile, groupName) ?: return@setOnClickListener
-                onPingAll(profile, groupName, pg.proxies.map { it.name })
-            }
-
-            render(idx)
-            reportVisibleGroup(profile, groupNames[idx])
-
             val refreshRunnable = object : Runnable {
                 override fun run() {
                     if (!dialog.isShowing) return
@@ -387,9 +374,26 @@ class ProfileAdapter(
                     val pingingNow = states.pingingUuid == profile.uuid
                     sheet.proxySheetPingProgress.visibility = if (pingingNow) View.VISIBLE else View.GONE
                     sheet.proxySheetPingButton.visibility = if (pingingNow) View.INVISIBLE else View.VISIBLE
-                    sheet.root.postDelayed(this, if (pingingNow) 260L else 700L)
+                    if (pingingNow) {
+                        sheet.root.postDelayed(this, 260L)
+                    }
                 }
             }
+
+            val pinging = states.pingingUuid == profile.uuid
+            sheet.proxySheetPingProgress.visibility = if (pinging) View.VISIBLE else View.GONE
+            sheet.proxySheetPingButton.visibility = if (pinging) View.INVISIBLE else View.VISIBLE
+            sheet.proxySheetPingButton.setOnClickListener {
+                val currentIndex = selectedGroupIndex[profile.uuid] ?: 0
+                val groupName = groupNames.getOrNull(currentIndex) ?: return@setOnClickListener
+                val pg = proxyGroupForRow(profile, groupName) ?: return@setOnClickListener
+                onPingAll(profile, groupName, pg.proxies.map { it.name })
+                sheet.root.post(refreshRunnable)
+            }
+
+            render(idx)
+            reportVisibleGroup(profile, groupNames[idx])
+
             sheet.root.post(refreshRunnable)
             dialog.setOnDismissListener {
                 sheet.root.removeCallbacks(refreshRunnable)
