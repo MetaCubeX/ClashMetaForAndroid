@@ -6,8 +6,12 @@ import android.content.Intent
 import android.net.Uri
 import android.view.MotionEvent
 import android.view.View
+import android.view.ViewGroup
+import android.widget.FrameLayout
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.DefaultItemAnimator
+import androidx.recyclerview.widget.RecyclerView
+import androidx.viewpager2.widget.ViewPager2
 import com.github.kr328.clash.core.model.ProxyGroup
 import com.github.kr328.clash.core.model.TunnelState
 import com.github.kr328.clash.core.util.trafficTotal
@@ -55,6 +59,13 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         OpenProfiles,
     }
 
+    private enum class MainTab {
+        Home,
+        Profiles,
+        Routing,
+        Settings,
+    }
+
     val profileActivateRequests = Channel<Profile>(Channel.UNLIMITED)
     val profileMenuRequests = Channel<Pair<Profile, View>>(Channel.UNLIMITED)
     val profileEditRequests = Channel<Profile>(Channel.UNLIMITED)
@@ -74,6 +85,43 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
     private val uiStore = UiStore(context)
     private val expandedProfileUuids: LinkedHashSet<UUID> = linkedSetOf()
     private var currentModeSegment: TunnelState.Mode = TunnelState.Mode.Rule
+
+    private class StaticPageAdapter(
+        private val pages: List<View>,
+    ) : RecyclerView.Adapter<StaticPageAdapter.Holder>() {
+        class Holder(val container: FrameLayout) : RecyclerView.ViewHolder(container)
+
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): Holder {
+            val container = FrameLayout(parent.context).apply {
+                layoutParams = RecyclerView.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                )
+            }
+            return Holder(container)
+        }
+
+        override fun onBindViewHolder(holder: Holder, position: Int) {
+            holder.container.removeAllViews()
+            val page = pages[position]
+            (page.parent as? ViewGroup)?.removeView(page)
+            page.visibility = View.VISIBLE
+            holder.container.addView(
+                page,
+                FrameLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                ),
+            )
+        }
+
+        override fun onViewRecycled(holder: Holder) {
+            holder.container.removeAllViews()
+        }
+
+        override fun getItemCount(): Int = pages.size
+    }
+
     private val profileAdapter = ProfileAdapter(
         { profile -> profileActivateRequests.trySend(profile) },
         { profile, anchor -> profileMenuRequests.trySend(profile to anchor) },
@@ -504,11 +552,62 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         dialog.show()
     }
 
+    private fun setupMainPager() {
+        val pages = listOf(
+            binding.mainHomePage,
+            binding.mainProfilesPage,
+            binding.mainRoutingPage,
+            binding.mainSettingsPage,
+        )
+        pages.forEach { page ->
+            (page.parent as? ViewGroup)?.removeView(page)
+            page.visibility = View.VISIBLE
+        }
+
+        binding.mainPager.adapter = StaticPageAdapter(pages)
+        binding.mainPager.offscreenPageLimit = pages.lastIndex
+        binding.mainPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+            override fun onPageSelected(position: Int) {
+                MainTab.values().getOrNull(position)?.let(::renderMainTab)
+            }
+        })
+        renderMainTab(MainTab.Home)
+    }
+
+    private fun selectMainTab(tab: MainTab) {
+        if (binding.mainPager.currentItem == tab.ordinal) {
+            pageForMainTab(tab).smoothScrollTo(0, 0)
+            return
+        }
+        binding.mainPager.setCurrentItem(tab.ordinal, true)
+    }
+
+    private fun renderMainTab(tab: MainTab) {
+        MainTab.values().forEach {
+            navForMainTab(it).isSelected = it == tab
+        }
+    }
+
+    private fun pageForMainTab(tab: MainTab) = when (tab) {
+        MainTab.Home -> binding.mainHomePage
+        MainTab.Profiles -> binding.mainProfilesPage
+        MainTab.Routing -> binding.mainRoutingPage
+        MainTab.Settings -> binding.mainSettingsPage
+    }
+
+    private fun navForMainTab(tab: MainTab): View = when (tab) {
+        MainTab.Home -> binding.mainNavHome
+        MainTab.Profiles -> binding.mainNavProfiles
+        MainTab.Routing -> binding.mainNavRouting
+        MainTab.Settings -> binding.mainNavSettings
+    }
+
     init {
         binding.self = this
         binding.tunnelStarting = false
         binding.hasProfiles = false
         applyHomeBackgroundStyle()
+        setupMainPager()
 
         binding.profileList.also {
             it.applyLinearAdapter(context, profileAdapter)
@@ -542,12 +641,10 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         binding.tunnelStarting = false
         applyPowerVisuals()
 
-        binding.mainHomePage.visibility = View.VISIBLE
-        binding.mainNavHome.isSelected = true
-        binding.mainNavHome.setOnClickListener { binding.mainHomePage.smoothScrollTo(0, 0) }
-        binding.mainNavProfiles.setOnClickListener { requests.trySend(Request.OpenProfiles) }
-        binding.mainNavRouting.setOnClickListener { requests.trySend(Request.OpenRouting) }
-        binding.mainNavSettings.setOnClickListener { requests.trySend(Request.OpenSettings) }
+        binding.mainNavHome.setOnClickListener { selectMainTab(MainTab.Home) }
+        binding.mainNavProfiles.setOnClickListener { selectMainTab(MainTab.Profiles) }
+        binding.mainNavRouting.setOnClickListener { selectMainTab(MainTab.Routing) }
+        binding.mainNavSettings.setOnClickListener { selectMainTab(MainTab.Settings) }
         binding.mainModeRow.setOnClickListener { showModeSheet() }
     }
 

@@ -94,6 +94,8 @@ Presets only change <b>where</b> files are downloaded from (CDN / host). It is s
     <string name="main_open_connections_summary">Search active flows and close stale connections</string>
     <string name="main_open_logs">Open logs</string>
     <string name="main_open_logs_summary">Diagnostics when connection fails</string>
+    <string name="main_settings_summary">App preferences, diagnostics and extra tools</string>
+    <string name="main_open_settings_summary">Theme, network, updates and advanced options</string>
 
     <!-- Routing hub screen -->
     <string name="routing_hub_tips">Manage how traffic is routed: rule snippets, the active rule list, and per-app inclusion/exclusion.</string>

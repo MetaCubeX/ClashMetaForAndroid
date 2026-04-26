@@ -88,6 +88,8 @@
     <string name="main_open_connections_summary">Поиск активных потоков и закрытие зависших соединений</string>
     <string name="main_open_logs">Открыть логи</string>
     <string name="main_open_logs_summary">Диагностика, если подключение не стартует</string>
+    <string name="main_settings_summary">Настройки приложения, диагностика и дополнительные инструменты</string>
+    <string name="main_open_settings_summary">Тема, сеть, обновления и расширенные параметры</string>
 
     <!-- Routing hub screen -->
     <string name="routing_hub_tips">Управляйте тем, как маршрутизируется трафик: фрагменты правил, активный список правил и включение/исключение по приложениям.</string>
