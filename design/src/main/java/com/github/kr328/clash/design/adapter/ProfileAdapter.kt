@@ -406,9 +406,17 @@ class ProfileAdapter(
         val expanded = current.uuid in expandedUuids && current.imported
 
         binding.pingSlot.visibility = View.GONE
-        binding.chevronSlot.visibility = View.GONE
-        binding.chevronView.visibility = View.GONE
+        val showServerChooser = current.imported
+        binding.chevronSlot.visibility = if (showServerChooser) View.VISIBLE else View.GONE
+        binding.chevronView.visibility = if (showServerChooser) View.VISIBLE else View.GONE
         binding.chevronView.rotation = -90f
+        binding.chevronSlot.isClickable = showServerChooser
+        binding.chevronSlot.setOnClickListener {
+            if (showServerChooser) onExpandToggle(current)
+        }
+        binding.serverButton.setOnClickListener {
+            if (showServerChooser) onExpandToggle(current)
+        }
 
         val showPing = expanded && current.imported
         binding.pingGroupSlot.visibility = if (showPing) View.VISIBLE else View.GONE
@@ -441,10 +449,7 @@ class ProfileAdapter(
             if (showForceUpdate) onForceUpdate(current)
         }
 
-        binding.chevronSlot.setOnClickListener(null)
-        binding.chevronSlot.isClickable = false
         binding.chevronView.isClickable = false
-        binding.serverButton.setOnClickListener(null)
 
         binding.proxyExpandPanel.visibility = View.GONE
         if (!expanded) return

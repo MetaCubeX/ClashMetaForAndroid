@@ -173,11 +173,8 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
                 onOpenUrl?.invoke(target)
             }
             binding.mainHeaderSummary.isClickable = announcementUrl != null
-            binding.mainHeaderSupport.visibility = if (support != null) View.VISIBLE else View.GONE
-            binding.mainHeaderSupport.setOnClickListener {
-                val target = support ?: return@setOnClickListener
-                onOpenUrl?.invoke(target) ?: onSupport?.invoke()
-            }
+            binding.mainHeaderSupport.visibility = View.GONE
+            binding.mainHeaderSupport.setOnClickListener(null)
 
             binding.mainAnnouncementCard.visibility = View.GONE
             binding.mainAnnouncementText.visibility = if (message.isNotBlank()) View.VISIBLE else View.GONE

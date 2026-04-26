@@ -15,6 +15,7 @@
     <string name="main_power_hint_start">Tap to connect</string>
     <string name="main_power_hint_stop">Tap to disconnect</string>
     <string name="main_select_server">Servers</string>
+    <string name="main_select_server_group">Choose server or group</string>
     <string name="main_session_title">Session</string>
     <string name="main_profile_title">Profile</string>
     <string name="main_routing_summary">Rules, apps and route providers</string>

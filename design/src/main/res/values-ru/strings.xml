@@ -10,6 +10,7 @@
     <string name="main_power_hint_start">Нажмите, чтобы включить</string>
     <string name="main_power_hint_stop">Нажмите, чтобы отключить</string>
     <string name="main_select_server">Серверы</string>
+    <string name="main_select_server_group">Выбрать сервер или группу</string>
     <string name="main_session_title">Сессия</string>
     <string name="main_profile_title">Профиль</string>
     <string name="main_routing_summary">Правила, приложения и провайдеры</string>

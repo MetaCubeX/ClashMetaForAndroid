@@ -422,7 +422,8 @@
                     android:layout_marginTop="-4dp"
                     android:text="@{clashRunning ? @string/main_power_hint_stop : @string/main_power_hint_start}"
                     android:textAppearance="@style/TextAppearance.App.BodySmall"
-                    android:textColor="?attr/colorOnSurfaceVariant" />
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:visibility="gone" />
             </LinearLayout>
 
             <com.google.android.material.card.MaterialCardView

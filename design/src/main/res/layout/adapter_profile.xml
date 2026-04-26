@@ -271,12 +271,12 @@
                         android:id="@+id/server_button"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
-                        android:contentDescription="@string/profile_expand_proxies"
-                        android:text="@string/main_select_server"
+                        android:contentDescription="@string/main_select_server_group"
+                        android:text="@string/main_select_server_group"
                         android:textAllCaps="false"
                         android:textAppearance="@style/TextAppearance.App.LabelMedium"
                         app:cornerRadius="16dp"
-                        app:icon="@drawable/ic_baseline_language"
+                        app:icon="@drawable/ic_baseline_swap_vert"
                         app:iconGravity="textStart"
                         app:iconPadding="8dp" />
 
