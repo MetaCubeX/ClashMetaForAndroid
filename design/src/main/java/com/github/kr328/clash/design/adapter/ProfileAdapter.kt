@@ -241,6 +241,44 @@ class ProfileAdapter(
     fun hasProxyGroupsFor(profile: Profile): Boolean =
         effectiveGroupsForProfile(profile).isNotEmpty()
 
+    private fun groupsForSelectionSummary(profile: Profile): List<String> {
+        if (!profile.imported) return emptyList()
+        return if (useEngineFor(profile)) {
+            proxyGroupNames
+        } else {
+            offlinePreviewByProfile[profile.uuid]?.keys?.toList().orEmpty()
+        }
+    }
+
+    private fun selectedGroupForSummary(profile: Profile): String? {
+        val groups = groupsForSelectionSummary(profile)
+        if (groups.isEmpty()) return null
+        val preferred = lastGroupHint?.takeIf { groups.contains(it) }
+        var index = selectedGroupIndex[profile.uuid]
+            ?: preferred?.let { groups.indexOf(it).takeIf { i -> i >= 0 } }
+            ?: 0
+        if (index >= groups.size) index = 0
+        selectedGroupIndex[profile.uuid] = index
+        return groups[index]
+    }
+
+    private fun formatSelectionSummary(
+        context: Context,
+        profile: Profile,
+        groupName: String,
+    ): String {
+        val groupDisplay = displayGroupName(groupName)
+        val selectedProxy = proxyGroupForRow(profile, groupName)
+            ?.now
+            ?.takeIf { it.isNotBlank() }
+            ?.let(::displayGroupName)
+        return if (selectedProxy.isNullOrBlank()) {
+            context.getString(R.string.main_selected_group_fmt, groupDisplay)
+        } else {
+            context.getString(R.string.main_selected_route_fmt, groupDisplay, selectedProxy)
+        }
+    }
+
     private fun proxyGroupForRow(profile: Profile, groupName: String): ProxyGroup? {
         if (useEngineFor(profile)) {
             proxyDetails[groupName]?.let { return it.withPendingSelection(profile.uuid, groupName) }
@@ -416,6 +454,16 @@ class ProfileAdapter(
         }
         binding.serverButton.setOnClickListener {
             if (showServerChooser) onExpandToggle(current)
+        }
+        val selectedGroup = selectedGroupForSummary(current)
+        val selectionSummary = selectedGroup?.let { group ->
+            formatSelectionSummary(context, current, group)
+        }
+        binding.serverSelectionSummary.visibility =
+            if (showServerChooser && !selectionSummary.isNullOrBlank()) View.VISIBLE else View.GONE
+        binding.serverSelectionSummary.text = selectionSummary.orEmpty()
+        if (showServerChooser && useEngineFor(current) && selectedGroup != null) {
+            reportVisibleGroup(current, selectedGroup)
         }
 
         val showPing = expanded && current.imported

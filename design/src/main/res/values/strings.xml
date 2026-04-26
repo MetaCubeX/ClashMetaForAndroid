@@ -16,6 +16,8 @@
     <string name="main_power_hint_stop">Tap to disconnect</string>
     <string name="main_select_server">Servers</string>
     <string name="main_select_server_group">Choose server or group</string>
+    <string name="main_selected_group_fmt">Group: %1$s</string>
+    <string name="main_selected_route_fmt">Group: %1$s · Server: %2$s</string>
     <string name="main_session_title">Session</string>
     <string name="main_profile_title">Profile</string>
     <string name="main_routing_summary">Rules, apps and route providers</string>

@@ -264,7 +264,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="42dp"
                     android:layout_marginHorizontal="14dp"
-                    android:layout_marginBottom="12dp"
+                    android:layout_marginBottom="4dp"
                     android:visibility="gone">
 
                     <com.google.android.material.button.MaterialButton
@@ -295,6 +295,20 @@
                         android:src="@drawable/ic_baseline_expand_more"
                         app:tint="?attr/colorOnPrimaryContainer" />
                 </FrameLayout>
+
+                <TextView
+                    android:id="@+id/server_selection_summary"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="18dp"
+                    android:layout_marginBottom="12dp"
+                    android:ellipsize="end"
+                    android:maxLines="2"
+                    android:textAppearance="@style/TextAppearance.App.BodySmall"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:visibility="gone"
+                    tools:text="Группа: Выбор сервера · Сервер: Germany 1"
+                    tools:visibility="visible" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/activate_button"

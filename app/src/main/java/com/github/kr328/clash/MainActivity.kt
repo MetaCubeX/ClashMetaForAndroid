@@ -779,10 +779,12 @@ class MainActivity : BaseActivity<MainDesign>() {
         }
         val activeUuid = active?.uuid
         val expandedSet = getExpandedProfileUuids()
-        val offlinePreviewByProfile = expandedSet.associateWith { uuid ->
+        val summaryPreviewUuid = activeUuid ?: profiles.firstOrNull { it.imported }?.uuid
+        val previewUuids = (expandedSet + listOfNotNull(summaryPreviewUuid)).toSet()
+        val offlinePreviewByProfile = previewUuids.associateWith { uuid ->
             withProfile { readProxyGroupsPreview(uuid) }
         }
-        val offlineSelectionsByProfile = expandedSet.associateWith { uuid ->
+        val offlineSelectionsByProfile = previewUuids.associateWith { uuid ->
             withProfile { queryProxySelections(uuid) }
         }
 
