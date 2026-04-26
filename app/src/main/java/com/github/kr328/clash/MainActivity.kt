@@ -429,6 +429,7 @@ class MainActivity : BaseActivity<MainDesign>() {
                     launch {
                         try {
                             design.setPingingProfile(profile.uuid)
+                            design.clearStandalonePingForProfile(profile.uuid)
                             val engineReady = runCatching {
                                 resolveStatusSnapshot().serviceRunning &&
                                     withClash { queryProxyGroupNames(false).isNotEmpty() }
@@ -1233,9 +1234,21 @@ class MainActivity : BaseActivity<MainDesign>() {
      * Resets the dismissed-flag automatically when the announcement text changes.
      */
     private suspend fun refreshAnnouncement(design: com.github.kr328.clash.design.MainDesign) {
-        // Try to refresh operator-pushed metadata in the background; don't block the UI.
-        launch(Dispatchers.IO) { runCatching { syncSubscriptionMetadata() } }
+        // Render current cache first for snappy UI.
+        renderAnnouncementFromStore(design)
 
+        // Then refresh metadata and re-render so support/announce updates appear immediately.
+        launch(Dispatchers.IO) {
+            val updated = runCatching { syncSubscriptionMetadata() }.isSuccess
+            if (updated) {
+                withContext(Dispatchers.Main) {
+                    renderAnnouncementFromStore(design)
+                }
+            }
+        }
+    }
+
+    private suspend fun renderAnnouncementFromStore(design: com.github.kr328.clash.design.MainDesign) {
         val text = uiStore.announcement
         val url = uiStore.announcementUrl
         val supportUrl = uiStore.supportUrl

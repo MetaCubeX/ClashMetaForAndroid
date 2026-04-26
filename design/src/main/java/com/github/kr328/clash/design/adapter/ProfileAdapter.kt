@@ -201,9 +201,15 @@ class ProfileAdapter(
     }
 
     fun setStandalonePingResults(uuid: UUID, results: Map<String, Int>) {
+        var changed = false
         for ((name, ms) in results) {
-            standalonePingDelays["${uuid}|$name"] = ms
+            val key = "${uuid}|$name"
+            if (standalonePingDelays[key] != ms) {
+                standalonePingDelays[key] = ms
+                changed = true
+            }
         }
+        if (!changed) return
         val i = profiles.indexOfFirst { it.uuid == uuid }
         if (i >= 0) notifyItemChanged(i)
     }
@@ -262,7 +268,9 @@ class ProfileAdapter(
         return groups[index]
     }
 
-    private fun formatSelectionSummary(
+    private fun formatSelectionSummaryForHome(groupName: String): String = displayGroupName(groupName)
+
+    private fun formatSelectionSummaryForProfiles(
         context: Context,
         profile: Profile,
         groupName: String,
@@ -307,7 +315,7 @@ class ProfileAdapter(
     private fun applyActiveVisuals(holder: Holder, profile: Profile) {
         val chip = holder.binding.activeStatusChip
         val context = chip.context
-        holder.binding.profileCard.strokeWidth = 0
+        holder.binding.profileCard.strokeWidth = context.dp(1)
         chip.visibility = View.GONE
         if (profile.active) {
             chip.text = context.getString(R.string.profile_active_status)
@@ -370,6 +378,22 @@ class ProfileAdapter(
 
             render(idx)
             reportVisibleGroup(profile, groupNames[idx])
+
+            val refreshRunnable = object : Runnable {
+                override fun run() {
+                    if (!dialog.isShowing) return
+                    val currentIndex = selectedGroupIndex[profile.uuid] ?: 0
+                    render(currentIndex.coerceIn(0, groupNames.lastIndex))
+                    val pingingNow = states.pingingUuid == profile.uuid
+                    sheet.proxySheetPingProgress.visibility = if (pingingNow) View.VISIBLE else View.GONE
+                    sheet.proxySheetPingButton.visibility = if (pingingNow) View.INVISIBLE else View.VISIBLE
+                    sheet.root.postDelayed(this, if (pingingNow) 260L else 700L)
+                }
+            }
+            sheet.root.post(refreshRunnable)
+            dialog.setOnDismissListener {
+                sheet.root.removeCallbacks(refreshRunnable)
+            }
         }
 
         dialog.setContentView(sheet.root)
@@ -422,8 +446,13 @@ class ProfileAdapter(
         binding.menuView.setOnClickListener { v ->
             onMenuClicked(current, v)
         }
+        val compactHomeCard = expandOnProfileClick
+        binding.rootView.minimumHeight = if (compactHomeCard) context.dp(68) else context.dp(78)
+        binding.menuView.visibility = if (compactHomeCard) View.GONE else View.VISIBLE
+        binding.menuView.isClickable = !compactHomeCard
+        binding.menuView.isFocusable = !compactHomeCard
         val hasSupport = !announcementSupportUrl.isNullOrBlank() && current.imported && current.uuid == activeProfileUuid
-        binding.supportSlot.visibility = if (hasSupport) View.VISIBLE else View.GONE
+        binding.supportSlot.visibility = if (!compactHomeCard && hasSupport) View.VISIBLE else View.GONE
         binding.supportView.setOnClickListener {
             announcementSupportUrl?.let { url ->
                 announcementOnOpenUrl?.invoke(url) ?: announcementOnSupport?.invoke()
@@ -439,12 +468,17 @@ class ProfileAdapter(
         applyActiveVisuals(holder, current)
         bindUsageAndProgress(holder, current)
         bindAnnouncement(holder, current)
+        if (compactHomeCard) {
+            binding.usageSummary.visibility = View.GONE
+            binding.usageProgress.visibility = View.GONE
+            binding.announcementInline.visibility = View.GONE
+        }
 
         val groupNames = effectiveGroupsForProfile(current)
         val expanded = current.uuid in expandedUuids && current.imported
 
         binding.pingSlot.visibility = View.GONE
-        val showServerChooser = current.imported
+        val showServerChooser = !compactHomeCard && current.imported
         binding.chevronSlot.visibility = if (showServerChooser) View.VISIBLE else View.GONE
         binding.chevronView.visibility = if (showServerChooser) View.VISIBLE else View.GONE
         binding.chevronView.rotation = -90f
@@ -455,14 +489,35 @@ class ProfileAdapter(
         binding.serverButton.setOnClickListener {
             if (showServerChooser) onExpandToggle(current)
         }
+        if (compactHomeCard) {
+            val profileTitle = resolveCurrentNodeDisplayName(current)
+                ?: context.getString(R.string.not_selected)
+            val (titleText, emoji) = formatNodeHeadline(profileTitle, context)
+            binding.profileTitle.text = titleText
+            val iconEmoji = emoji ?: extractLeadingEmoji(profileTitle)
+            binding.profileIconEmoji.visibility = if (iconEmoji != null) View.VISIBLE else View.GONE
+            binding.profileIcon.visibility = if (iconEmoji != null) View.GONE else View.VISIBLE
+            if (iconEmoji != null) {
+                binding.profileIconEmoji.text = iconEmoji
+            }
+        } else {
+            binding.profileTitle.text = current.name
+            binding.profileIconEmoji.visibility = View.GONE
+            binding.profileIcon.visibility = View.VISIBLE
+        }
+
         val selectedGroup = selectedGroupForSummary(current)
         val selectionSummary = selectedGroup?.let { group ->
-            formatSelectionSummary(context, current, group)
+            if (compactHomeCard) {
+                formatSelectionSummaryForHome(group)
+            } else {
+                formatSelectionSummaryForProfiles(context, current, group)
+            }
         }
         binding.serverSelectionSummary.visibility =
-            if (showServerChooser && !selectionSummary.isNullOrBlank()) View.VISIBLE else View.GONE
+            if (!selectionSummary.isNullOrBlank()) View.VISIBLE else View.GONE
         binding.serverSelectionSummary.text = selectionSummary.orEmpty()
-        if (showServerChooser && useEngineFor(current) && selectedGroup != null) {
+        if (useEngineFor(current) && selectedGroup != null) {
             reportVisibleGroup(current, selectedGroup)
         }
 
@@ -487,7 +542,7 @@ class ProfileAdapter(
             onPingAll(current, groupName, pg.proxies.map { it.name })
         }
 
-        val showForceUpdate = current.imported && current.type != Profile.Type.File
+        val showForceUpdate = !compactHomeCard && current.imported && current.type != Profile.Type.File
         binding.forceUpdateSlot.visibility = if (showForceUpdate) View.VISIBLE else View.GONE
         binding.forceUpdateView.visibility = if (showForceUpdate) View.VISIBLE else View.INVISIBLE
         binding.forceUpdateView.isClickable = false
@@ -776,6 +831,74 @@ class ProfileAdapter(
 
     private fun displayGroupName(groupName: String): String =
         groupName.trim().replace(Regex("\\s+"), " ")
+
+    private fun resolveCurrentNodeDisplayName(profile: Profile): String? {
+        val groups = groupsForSelectionSummary(profile)
+        if (groups.isEmpty()) return null
+
+        val preferred = selectedGroupForSummary(profile)
+        val orderedGroups = buildList {
+            preferred?.let { add(it) }
+            addAll(groups.filterNot { it == preferred })
+        }
+
+        for (group in orderedGroups) {
+            val selected = proxyGroupForRow(profile, group)
+                ?.now
+                ?.takeIf { it.isNotBlank() }
+                ?.let(::displayGroupName)
+            if (!selected.isNullOrBlank()) return selected
+        }
+
+        val offlineSelected = offlineSelectionsByProfile[profile.uuid]
+            ?.values
+            ?.firstOrNull { it.isNotBlank() }
+            ?.let(::displayGroupName)
+        if (!offlineSelected.isNullOrBlank()) return offlineSelected
+
+        return null
+    }
+
+    private fun formatNodeHeadline(raw: String, context: Context): Pair<String, String?> {
+        val trimmed = raw.trim()
+        val leadingEmoji = extractLeadingEmoji(trimmed)
+        val stripped = if (leadingEmoji != null) {
+            trimmed.removePrefix(leadingEmoji).trimStart(' ', '|', '-', '_', '.', ':')
+        } else {
+            trimmed
+        }
+        return stripped to leadingEmoji
+    }
+
+    private fun extractLeadingEmoji(raw: String): String? {
+        val input = raw.trimStart()
+        if (input.isEmpty()) return null
+
+        val firstCp = input.codePointAt(0)
+        val firstLen = Character.charCount(firstCp)
+
+        // Handle country flags encoded as two regional-indicator symbols.
+        if (isRegionalIndicator(firstCp) && input.length >= firstLen + 2) {
+            val secondCp = input.codePointAt(firstLen)
+            if (isRegionalIndicator(secondCp)) {
+                return String(Character.toChars(firstCp)) + String(Character.toChars(secondCp))
+            }
+        }
+
+        if (!isEmojiLike(firstCp)) return null
+        val base = String(Character.toChars(firstCp))
+        val remaining = input.substring(firstLen)
+        val variant = if (remaining.startsWith("\uFE0F")) "\uFE0F" else ""
+        return base + variant
+    }
+
+    private fun isRegionalIndicator(codePoint: Int): Boolean =
+        codePoint in 0x1F1E6..0x1F1FF
+
+    private fun isEmojiLike(codePoint: Int): Boolean =
+        codePoint in 0x1F300..0x1FAFF ||
+            codePoint in 0x2600..0x27BF ||
+            codePoint in 0x2300..0x23FF
 
     override fun getItemCount(): Int = profiles.size
 }

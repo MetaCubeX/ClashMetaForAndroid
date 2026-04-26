@@ -28,7 +28,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:cardBackgroundColor="?attr/colorSurfaceContainerLow"
-            app:cardCornerRadius="26dp"
+            app:cardCornerRadius="22dp"
             app:cardElevation="0dp"
             app:rippleColor="?attr/colorControlHighlight"
             app:strokeColor="?attr/colorOutlineVariant"
@@ -59,12 +59,24 @@
                         android:background="@drawable/bg_m3_status_chip">
 
                         <ImageView
+                            android:id="@+id/profile_icon"
                             android:layout_width="24dp"
                             android:layout_height="24dp"
                             android:layout_gravity="center"
                             android:contentDescription="@string/profile"
                             android:src="@drawable/ic_baseline_language"
                             app:tint="?attr/colorOnPrimaryContainer" />
+
+                        <TextView
+                            android:id="@+id/profile_icon_emoji"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:layout_gravity="center"
+                            android:gravity="center"
+                            android:textSize="24sp"
+                            android:visibility="gone"
+                            tools:text="🇩🇪"
+                            tools:visibility="visible" />
                     </FrameLayout>
 
                     <LinearLayout
@@ -81,12 +93,13 @@
                             android:orientation="horizontal">
 
                             <TextView
+                                android:id="@+id/profile_title"
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
                                 android:ellipsize="end"
                                 android:maxLines="1"
-                                android:text="@{profile.name}"
+                                android:text="@string/not_selected"
                                 android:textAppearance="@style/TextAppearance.App.TitleSmall"
                                 android:textColor="?attr/colorOnSurface"
                                 android:textStyle="bold"
