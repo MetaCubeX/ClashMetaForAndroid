@@ -114,6 +114,7 @@
                     android:contentDescription="@string/settings"
                     android:padding="9dp"
                     android:src="@drawable/ic_baseline_settings"
+                    android:visibility="gone"
                     app:tint="?attr/colorOnSurfaceVariant" />
 
                 <ImageButton
@@ -443,7 +444,8 @@
                         android:gravity="center_vertical"
                         android:onClick="@{() -> self.request(Request.OpenRouting)}"
                         android:orientation="horizontal"
-                        android:paddingHorizontal="14dp">
+                        android:paddingHorizontal="14dp"
+                        android:visibility="gone">
 
                         <ImageView
                             android:layout_width="40dp"
@@ -493,7 +495,8 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="66dp"
-                        android:layout_marginEnd="14dp" />
+                        android:layout_marginEnd="14dp"
+                        android:visibility="gone" />
 
                     <LinearLayout
                         android:id="@+id/main_mode_row"
@@ -953,6 +956,39 @@
                 </LinearLayout>
 
                 <LinearLayout
+                    android:id="@+id/main_nav_profiles"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:layout_marginStart="4dp"
+                    android:background="@drawable/bg_bottom_nav_item"
+                    android:clickable="true"
+                    android:contentDescription="@string/nav_subscriptions"
+                    android:focusable="true"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <ImageView
+                        android:layout_width="21dp"
+                        android:layout_height="21dp"
+                        android:duplicateParentState="true"
+                        android:src="@drawable/ic_baseline_subscriptions"
+                        app:tint="@color/selector_bottom_nav_item" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:duplicateParentState="true"
+                        android:ellipsize="end"
+                        android:gravity="center"
+                        android:maxLines="1"
+                        android:text="@string/nav_subscriptions"
+                        android:textAppearance="@style/TextAppearance.App.BottomNavigation"
+                        android:textColor="@color/selector_bottom_nav_item" />
+                </LinearLayout>
+
+                <LinearLayout
                     android:id="@+id/main_nav_routing"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
@@ -986,14 +1022,14 @@
                 </LinearLayout>
 
                 <LinearLayout
-                    android:id="@+id/main_nav_connections"
+                    android:id="@+id/main_nav_settings"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
                     android:layout_marginStart="4dp"
                     android:background="@drawable/bg_bottom_nav_item"
                     android:clickable="true"
-                    android:contentDescription="@string/nav_connections"
+                    android:contentDescription="@string/settings"
                     android:focusable="true"
                     android:gravity="center"
                     android:orientation="vertical">
@@ -1002,7 +1038,7 @@
                         android:layout_width="21dp"
                         android:layout_height="21dp"
                         android:duplicateParentState="true"
-                        android:src="@drawable/ic_baseline_swap_horiz"
+                        android:src="@drawable/ic_baseline_settings"
                         app:tint="@color/selector_bottom_nav_item" />
 
                     <TextView
@@ -1013,7 +1049,7 @@
                         android:ellipsize="end"
                         android:gravity="center"
                         android:maxLines="1"
-                        android:text="@string/nav_connections"
+                        android:text="@string/settings"
                         android:textAppearance="@style/TextAppearance.App.BottomNavigation"
                         android:textColor="@color/selector_bottom_nav_item" />
                 </LinearLayout>

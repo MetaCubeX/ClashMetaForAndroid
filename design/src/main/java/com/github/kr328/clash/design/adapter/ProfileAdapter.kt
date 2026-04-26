@@ -405,10 +405,9 @@ class ProfileAdapter(
         val groupNames = effectiveGroupsForProfile(current)
         val expanded = current.uuid in expandedUuids && current.imported
 
-        val showChevron = current.imported
         binding.pingSlot.visibility = View.GONE
-        binding.chevronSlot.visibility = if (showChevron) View.VISIBLE else View.GONE
-        binding.chevronView.visibility = if (showChevron) View.VISIBLE else View.GONE
+        binding.chevronSlot.visibility = View.GONE
+        binding.chevronView.visibility = View.GONE
         binding.chevronView.rotation = -90f
 
         val showPing = expanded && current.imported
@@ -442,17 +441,10 @@ class ProfileAdapter(
             if (showForceUpdate) onForceUpdate(current)
         }
 
-        if (showChevron) {
-            binding.chevronView.isClickable = false
-            binding.chevronSlot.isClickable = true
-            binding.chevronSlot.setOnClickListener { onExpandToggle(current) }
-            binding.serverButton.setOnClickListener { onExpandToggle(current) }
-        } else {
-            binding.chevronSlot.setOnClickListener(null)
-            binding.chevronSlot.isClickable = false
-            binding.chevronView.isClickable = false
-            binding.serverButton.setOnClickListener(null)
-        }
+        binding.chevronSlot.setOnClickListener(null)
+        binding.chevronSlot.isClickable = false
+        binding.chevronView.isClickable = false
+        binding.serverButton.setOnClickListener(null)
 
         binding.proxyExpandPanel.visibility = View.GONE
         if (!expanded) return
