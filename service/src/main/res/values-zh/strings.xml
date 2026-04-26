@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="clash_notification_content" translatable="false">"%1$s↑\t%2$s↓"</string>
     <string name="clash_service_status_channel">Clash 状态</string>
     <string name="running">正在运行</string>
     <string name="format_update_complete">更新 %s 成功</string>
@@ -16,4 +17,5 @@
     <string name="profile_updating">配置更新中</string>
     <string name="profile_service_status">配置文件服务状态</string>
     <string name="profile_process_result">配置文件处理结果</string>
+    <string name="vpn_session_name" translatable="true">ClashFest</string>
 </resources>

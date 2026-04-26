@@ -46,6 +46,9 @@
     <string name="logcat">Logcat</string>
     <string name="logs">日誌</string>
     <string name="mode">模式</string>
+    <string name="main_selected_group_fmt">群組：%1$s</string>
+    <string name="main_selected_route_fmt">群組：%1$s · 伺服器：%2$s</string>
+    <string name="main_active_profile_title">使用中的設定檔</string>
     <string name="name">名稱</string>
     <string name="network">網路</string>
     <string name="new_profile">新設定檔</string>
