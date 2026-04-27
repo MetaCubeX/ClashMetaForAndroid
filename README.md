@@ -6,10 +6,11 @@ https://img.shields.io/github/actions/workflow/status/Nemu-x/ClashFest/android-d
 
 ![License: GPL v3](https://img.shields.io/badge/license-GPLv3-green.svg)
 ![Platform: Android](https://img.shields.io/badge/platform-Android-3DDC84)
-![Status: WIP](https://img.shields.io/badge/status-WIP-orange)
+![Status: Active development](https://img.shields.io/badge/status-Active%20development-1f8bff)
+![Latest Release](https://img.shields.io/github/v/release/Nemu-x/ClashFest?display_name=tag)
 ![Branch](https://img.shields.io/badge/branch-feat%2Finit--clashfest-blue)
 
-**ClashFest** is an Android client in the **Clash Meta / Mihomo** family with a refreshed dashboard, cleaner profile/node flows, routing tools, and practical safety defaults for everyday use.
+**ClashFest** is an Android client in the **Clash Meta / Mihomo** family with a redesigned Home experience, cleaner subscription/node flows, routing-focused tools, and practical safety defaults for everyday use.
 
 > **Status:** work in progress · **Active branch:** `feat/init-clashfest`
 
@@ -19,9 +20,9 @@ https://img.shields.io/github/actions/workflow/status/Nemu-x/ClashFest/android-d
 
 | Area | What you get |
 |------|----------------|
-| **Home** | Active node focused card, compact profile actions, import from URL / QR / clipboard |
-| **Modes** | Rule / Global / Direct tunnel modes |
-| **Rules & routing** | Routing hub, rule snippets, effective rules, app routing (per‑app VPN policy) |
+| **Home** | Active node card, compact subscription actions, circular tab swipe, import from URL / QR / clipboard |
+| **Modes** | Rule / Global quick switch from Home |
+| **Rules & routing** | Dedicated Routing hub, rule snippets, effective rules, app routing (per‑app VPN policy) |
 | **Network** | DNS / VPN options, security-oriented toggles where we wire them |
 | **Features** | Safe “every‑day” toggles (unified delay, geodata mode, TCP concurrent) + entry to **Geo Data Source** |
 | **Geo Data Source** | Presets for **geox-url** mirrors (same upstream data, different CDN paths), custom URLs, on-device geo DB import |
@@ -29,7 +30,7 @@ https://img.shields.io/github/actions/workflow/status/Nemu-x/ClashFest/android-d
 | **Quick start** | Quick Settings tile flow with VPN permission handling and one-tap startup |
 | **Connections** | Live connections view with resilient snapshot decoding and lower polling load |
 | **App** | Dark mode, optional **UI language** (system / EN / RU / ZH), notification & recents options |
-| **Look** | Neon-accent dark direction; light theme still evolving |
+| **Look** | Material 3 dark-first direction with refreshed ClashFest branding |
 
 ### Screenshots
 
@@ -115,12 +116,15 @@ Right now development is focused on the ClashFest fork and branch workflow; cont
 
 ClashFest builds on the open Clash / Meta stack. If you use or ship derivatives, keep **copyright and license notices** intact.
 
+If ClashFest is useful for you, consider giving the project a star ⭐
+
 | Project | What it is | Link |
 |---------|----------------|------|
 | **Clash Meta for Android** | Upstream Android client this tree forked from | [MetaCubeX/ClashMetaForAndroid](https://github.com/MetaCubeX/ClashMetaForAndroid) |
 | **mihomo** | Clash.Meta core (Go) used under the hood | [MetaCubeX/mihomo](https://github.com/MetaCubeX/mihomo) |
 | **Meta rules dat** | Community geo / ruleset data releases (our **Geo Data Source** presets mirror these) | [MetaCubeX/meta-rules-dat](https://github.com/MetaCubeX/meta-rules-dat) |
 | **Mieru** | UDP port hopping VPN protocol; **mierus://** subscription links are supported as imports | [enfein/mieru](https://github.com/enfein/mieru) |
+| **SlothClash (Desktop)** | Companion desktop client in the same ecosystem (Wails · Go · React) | [Nemu-x/SlothClash](https://github.com/Nemu-x/SlothClash) |
 | **Documentation** | Mihomo / Meta docs (rules, parsers, …) | [wiki.metacubex.one](https://wiki.metacubex.one/) |
 
 ---
