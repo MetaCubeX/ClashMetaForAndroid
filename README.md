@@ -48,6 +48,14 @@ https://img.shields.io/github/actions/workflow/status/Nemu-x/ClashFest/android-d
   <img src="docs/screenshots/themes.jpg" width="180"/>
 </p>
 
+## Current focus
+
+- Stability and regression-free releases on top of the redesigned Home
+- Routing and profile management polish without breaking upstream compatibility
+- Performance and battery optimizations in high-refresh screens
+- Localization quality (EN / RU / ZH first, others incremental)
+- Post-release cleanup of medium-risk technical debt
+
 ---
 
 ## Repository layout
@@ -127,12 +135,3 @@ If ClashFest is useful for you, consider giving the project a star ⭐
 | **SlothClash (Desktop)** | Companion desktop client in the same ecosystem (Wails · Go · React) | [Nemu-x/SlothClash](https://github.com/Nemu-x/SlothClash) |
 | **Documentation** | Mihomo / Meta docs (rules, parsers, …) | [wiki.metacubex.one](https://wiki.metacubex.one/) |
 
----
-
-## Current focus
-
-- Stability and regression-free releases on top of the redesigned Home
-- Routing and profile management polish without breaking upstream compatibility
-- Performance and battery optimizations in high-refresh screens
-- Localization quality (EN / RU / ZH first, others incremental)
-- Post-release cleanup of medium-risk technical debt
