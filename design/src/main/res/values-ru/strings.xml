@@ -154,6 +154,10 @@
     <string name="ru_bypass_prompt_apply">Применить</string>
     <string name="ru_bypass_prompt_skip">Пропустить</string>
     <string name="ru_bypass_prompt_seeded">Добавлено %1$d российских приложений.</string>
+    <string name="ru_bypass_routing_prompt_title">Настроить обход РФ-приложений?</string>
+    <string name="ru_bypass_routing_prompt_message">ClashFest может включить режим обхода и выбрать установленные российские приложения, чтобы они шли напрямую через провайдера. После настройки список можно изменить вручную.</string>
+    <string name="ru_bypass_routing_prompt_apply">Настроить обход</string>
+    <string name="ru_bypass_routing_prompt_later">Не сейчас</string>
     <string name="expires_on">до %1$s</string>
     <string name="sub_meta_lock_user">Игнорировать оператора</string>
     <string name="sub_meta_lock_user_summary">Не давать серверу подписки перезаписывать локальные URL поддержки и объявления.</string>
@@ -447,9 +451,12 @@
     <string name="always_dark">Всегда тёмная</string>
     <string name="always_light">Всегда светлая</string>
 
-    <string name="allow_all_apps">Все приложения</string>
-    <string name="allow_selected_apps">Только выбранные</string>
-    <string name="deny_selected_apps">Кроме выбранных</string>
+    <string name="allow_all_apps">Все</string>
+    <string name="allow_all_apps_description">Все приложения идут через VPN</string>
+    <string name="allow_selected_apps">В VPN</string>
+    <string name="allow_selected_apps_description">Только выбранные приложения идут через VPN</string>
+    <string name="deny_selected_apps">В обход</string>
+    <string name="deny_selected_apps_description">Выбранные приложения обходят VPN</string>
     <string name="app_routing_counter">Выбрано: %1$d / %2$d</string>
     <string name="app_routing_selected">Выбрано</string>
     <string name="app_routing_not_selected">Не выбрано</string>
