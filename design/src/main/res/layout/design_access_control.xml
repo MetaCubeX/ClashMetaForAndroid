@@ -71,7 +71,12 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
+                        android:contentDescription="@string/allow_all_apps_description"
+                        android:ellipsize="end"
+                        android:maxLines="1"
+                        android:minWidth="0dp"
                         android:onClick="@{() -> self.requestModeAcceptAll()}"
+                        android:textAllCaps="false"
                         android:text="@string/allow_all_apps" />
 
                     <com.google.android.material.button.MaterialButton
@@ -80,7 +85,12 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
+                        android:contentDescription="@string/allow_selected_apps_description"
+                        android:ellipsize="end"
+                        android:maxLines="1"
+                        android:minWidth="0dp"
                         android:onClick="@{() -> self.requestModeAcceptSelected()}"
+                        android:textAllCaps="false"
                         android:text="@string/allow_selected_apps" />
 
                     <com.google.android.material.button.MaterialButton
@@ -89,7 +99,12 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
+                        android:contentDescription="@string/deny_selected_apps_description"
+                        android:ellipsize="end"
+                        android:maxLines="1"
+                        android:minWidth="0dp"
                         android:onClick="@{() -> self.requestModeDenySelected()}"
+                        android:textAllCaps="false"
                         android:text="@string/deny_selected_apps" />
                 </com.google.android.material.button.MaterialButtonToggleGroup>
 

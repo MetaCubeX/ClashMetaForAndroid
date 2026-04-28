@@ -15,6 +15,15 @@ import kotlin.text.Charsets
  * Uses response headers (incl. subscription-userinfo) and structured fields in the body.
  */
 object SubscriptionNameGuesser {
+    fun guessFast(urlString: String): String {
+        val trimmed = urlString.trim()
+        if (isMierusLinkForSubscriptionTitle(trimmed)) {
+            parseFragmentName(trimmed)?.let { return sanitizeName(it) }
+            return "mieru"
+        }
+        parseFragmentName(trimmed)?.let { return sanitizeName(it) }
+        return fallbackName(stripUrlFragment(trimmed))
+    }
 
     suspend fun guess(context: Context, urlString: String): String =
         withContext(Dispatchers.IO) {
