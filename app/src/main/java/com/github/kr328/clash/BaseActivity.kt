@@ -155,9 +155,9 @@ abstract class BaseActivity<D : Design<*>> : AppCompatActivity(),
         super.onConfigurationChanged(newConfig)
 
         if (queryDayNight(newConfig) != dayNight) {
-            ApplicationObserver.createdActivities.forEach {
-                it.recreate()
-            }
+            // Recreate only this activity. Mass-recreating every tracked activity caused
+            // recreate storms on some Android 15 OEM builds (Honor).
+            recreate()
         }
     }
 

@@ -8,6 +8,7 @@ import android.content.IntentFilter
 import com.github.kr328.clash.common.compat.registerReceiverCompat
 import com.github.kr328.clash.common.constants.Intents
 import com.github.kr328.clash.common.log.Log
+import com.github.kr328.clash.common.log.LogRedaction
 import java.util.*
 
 class Broadcasts(private val context: Application) {
@@ -102,7 +103,7 @@ class Broadcasts(private val context: Application) {
             registered = true
             clashRunning = StatusClient(context).statusSnapshot().serviceRunning
         } catch (e: Exception) {
-            Log.w("Register global receiver: $e", e)
+            Log.w("Register global receiver: ${LogRedaction.throwableMessage(e)}")
         }
     }
 
@@ -113,7 +114,7 @@ class Broadcasts(private val context: Application) {
         try {
             context.unregisterReceiver(broadcastReceiver)
         } catch (e: Exception) {
-            Log.w("Unregister global receiver: $e", e)
+            Log.w("Unregister global receiver: ${LogRedaction.throwableMessage(e)}")
         } finally {
             registered = false
             clashRunning = false

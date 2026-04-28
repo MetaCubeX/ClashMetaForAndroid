@@ -4,16 +4,13 @@ import com.github.kr328.clash.common.util.intent
 import com.github.kr328.clash.core.bridge.Bridge
 import com.github.kr328.clash.design.SettingsDesign
 import com.github.kr328.clash.design.dialog.showAboutDialog
-import com.github.kr328.clash.util.HttpTextFetcher
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.github.kr328.clash.util.GitHubReleaseUpdate
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.select
 import kotlinx.coroutines.withContext
-import org.json.JSONObject
-import android.content.Intent
-import android.net.Uri
+import android.widget.Toast
 
 class SettingsActivity : BaseActivity<SettingsDesign>() {
     override suspend fun main() {
@@ -80,19 +77,7 @@ class SettingsActivity : BaseActivity<SettingsDesign>() {
     }
 
     private suspend fun checkForUpdates(setStatus: (String?) -> Unit) {
-        val latest = withContext(Dispatchers.IO) {
-            runCatching {
-                val endpoint = "https://api.github.com/repos/Nemu-x/ClashFest/releases/latest"
-                val text = HttpTextFetcher.fetchUtf8(
-                    endpoint,
-                    connectTimeoutMs = 15_000,
-                    readTimeoutMs = 15_000,
-                    headers = mapOf("User-Agent" to "ClashFest/${BuildConfig.VERSION_NAME}"),
-                )
-                val json = JSONObject(text)
-                json.optString("tag_name") to json.optString("html_url")
-            }.getOrNull()
-        }
+        val latest = GitHubReleaseUpdate.fetchLatest()
         if (latest == null) {
             setStatus(getString(com.github.kr328.clash.design.R.string.about_update_check_failed))
             return
@@ -101,41 +86,34 @@ class SettingsActivity : BaseActivity<SettingsDesign>() {
         val current = withContext(Dispatchers.IO) {
             packageManager.getPackageInfo(packageName, 0).versionName ?: "0.0.0"
         }
-        val hasUpdate = compareVersions(latest.first, current) > 0
+        val hasUpdate = GitHubReleaseUpdate.compareVersions(latest.tagName, current) > 0
         if (!hasUpdate) {
             setStatus(getString(com.github.kr328.clash.design.R.string.about_update_latest))
             return
         }
 
-        setStatus(getString(com.github.kr328.clash.design.R.string.about_update_available, latest.first))
-        MaterialAlertDialogBuilder(this)
-            .setTitle(getString(com.github.kr328.clash.design.R.string.about_update_available, latest.first))
-            .setMessage(getString(com.github.kr328.clash.design.R.string.about_open_release))
-            .setPositiveButton(com.github.kr328.clash.design.R.string.about_open_release) { _, _ ->
-                startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(latest.second)))
+        setStatus(getString(com.github.kr328.clash.design.R.string.about_update_available, latest.tagName))
+        val id = GitHubReleaseUpdate.enqueueApkDownload(this, latest)
+        if (id >= 0L) {
+            Toast.makeText(
+                this,
+                getString(com.github.kr328.clash.design.R.string.about_download_started),
+                Toast.LENGTH_SHORT,
+            ).show()
+        } else {
+            Toast.makeText(
+                this,
+                getString(com.github.kr328.clash.design.R.string.about_download_failed),
+                Toast.LENGTH_SHORT,
+            ).show()
+            runCatching {
+                startActivity(
+                    android.content.Intent(
+                        android.content.Intent.ACTION_VIEW,
+                        android.net.Uri.parse(latest.htmlUrl),
+                    ),
+                )
             }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
-    }
-
-    private fun compareVersions(left: String, right: String): Int {
-        fun semverTriplet(v: String): IntArray? {
-            val m = Regex("""(\d+)\.(\d+)\.(\d+)""").find(v) ?: return null
-            return intArrayOf(
-                m.groupValues[1].toIntOrNull() ?: 0,
-                m.groupValues[2].toIntOrNull() ?: 0,
-                m.groupValues[3].toIntOrNull() ?: 0,
-            )
         }
-
-        val a = semverTriplet(left)
-        val b = semverTriplet(right)
-        if (a != null && b != null) {
-            for (i in 0..2) {
-                if (a[i] != b[i]) return a[i].compareTo(b[i])
-            }
-            return 0
-        }
-        return left.compareTo(right)
     }
 }

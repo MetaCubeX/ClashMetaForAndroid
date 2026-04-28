@@ -33,6 +33,13 @@ class PropertiesDesign(context: Context) : Design<PropertiesDesign.Request>(cont
 
     private var suppressFieldSync: Boolean = false
 
+    /** Operator policy: disallow editing subscription URL (still allows name/interval). */
+    var subscriptionSourceLocked: Boolean = false
+        set(value) {
+            field = value
+            applyFieldEnabled()
+        }
+
     override val root: View
         get() = binding.root
 
@@ -128,7 +135,7 @@ class PropertiesDesign(context: Context) : Design<PropertiesDesign.Request>(cont
 
     private fun applyFieldEnabled() {
         val p = profile
-        binding.layoutUrl.isEnabled = p.type == Profile.Type.Url
+        binding.layoutUrl.isEnabled = p.type == Profile.Type.Url && !subscriptionSourceLocked
         binding.layoutInterval.isEnabled = p.type != Profile.Type.File
     }
 
@@ -147,11 +154,17 @@ class PropertiesDesign(context: Context) : Design<PropertiesDesign.Request>(cont
     private fun ModelProgressBarConfigure.applyFrom(status: FetchStatus) {
         when (status.action) {
             FetchStatus.Action.FetchConfiguration -> {
-                text = context.getString(R.string.format_fetching_configuration, status.args[0])
+                text = context.getString(
+                    R.string.format_fetching_configuration,
+                    status.args.getOrElse(0) { "…" },
+                )
                 isIndeterminate = true
             }
             FetchStatus.Action.FetchProviders -> {
-                text = context.getString(R.string.format_fetching_provider, status.args[0])
+                text = context.getString(
+                    R.string.format_fetching_provider,
+                    status.args.getOrElse(0) { "…" },
+                )
                 isIndeterminate = false
                 max = status.max
                 progress = status.progress

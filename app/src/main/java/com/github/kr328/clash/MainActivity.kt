@@ -48,7 +48,7 @@ import com.github.kr328.clash.service.model.AccessControlMode
 import com.github.kr328.clash.service.model.Profile
 import com.github.kr328.clash.service.store.ServiceStore
 import com.github.kr328.clash.util.RussianBypassDefaults
-import com.github.kr328.clash.util.HttpTextFetcher
+import com.github.kr328.clash.util.GitHubReleaseUpdate
 import com.github.kr328.clash.util.showProfileQuickEditSheet
 import com.github.kr328.clash.util.startClashService
 import com.github.kr328.clash.util.stopClashService
@@ -70,20 +70,12 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.select
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.withContext
-import org.json.JSONObject
 import java.util.*
 import java.util.concurrent.TimeUnit
 
 class MainActivity : BaseActivity<MainDesign>() {
-    private data class ReleaseInfo(
-        val tagName: String,
-        val body: String,
-        val htmlUrl: String,
-        val apkUrl: String?,
-        val apkName: String?,
-    )
-
     private data class HomeRuntimeSnapshot(
         val running: Boolean,
         val activeProfileUuid: UUID?,
@@ -147,7 +139,11 @@ class MainActivity : BaseActivity<MainDesign>() {
         } catch (e: Exception) {
             if (e !is CancellationException) showExceptionToast(e)
         } finally {
-            scheduleRefresh()
+            // Defer heavy dashboard work so mode UI updates immediately (Rule / Global switch).
+            launch {
+                delay(48)
+                scheduleRefresh()
+            }
         }
     }
 
@@ -355,6 +351,12 @@ class MainActivity : BaseActivity<MainDesign>() {
 
                         MainDesign.Request.OpenSettings ->
                             startActivity(SettingsActivity::class.intent)
+
+                        MainDesign.Request.OpenThemeSettings ->
+                            startActivity(ThemeSettingsActivity::class.intent)
+
+                        MainDesign.Request.OpenAppSettings ->
+                            startActivity(AppSettingsActivity::class.intent)
 
                         MainDesign.Request.OpenAbout ->
                             design.showAbout(
@@ -581,6 +583,9 @@ class MainActivity : BaseActivity<MainDesign>() {
             profile.imported && profile.type != Profile.Type.File
         m.findItem(R.id.profile_menu_subscription_sources).isVisible = profile.imported
         m.findItem(R.id.profile_menu_duplicate).isVisible = profile.imported
+        val shareLocked = ServiceStore(this).subscriptionShareLinksLocked
+        m.findItem(R.id.profile_menu_share).isVisible =
+            profile.imported && profile.type == Profile.Type.Url && !shareLocked
         popup.setOnMenuItemClickListener { item ->
             when (item.itemId) {
                 R.id.profile_menu_set_active -> {
@@ -602,6 +607,19 @@ class MainActivity : BaseActivity<MainDesign>() {
                         design.showToast(R.string.profile_update_scheduled, ToastDuration.Long)
                         design.fetch()
                     }
+                    true
+                }
+                R.id.profile_menu_share -> {
+                    val text = profile.source.takeIf { it.isNotBlank() } ?: return@setOnMenuItemClickListener false
+                    startActivity(
+                        Intent.createChooser(
+                            Intent(Intent.ACTION_SEND).apply {
+                                type = "text/plain"
+                                putExtra(Intent.EXTRA_TEXT, text)
+                            },
+                            getString(R.string.profile_menu_share),
+                        ),
+                    )
                     true
                 }
                 R.id.profile_menu_edit -> {
@@ -663,7 +681,9 @@ class MainActivity : BaseActivity<MainDesign>() {
      */
     private suspend fun importSubscriptionFromUrl(design: MainDesign, url: String) {
         design.showToast(R.string.import_resolving, ToastDuration.Short)
-        val name = SubscriptionNameGuesser.guessFast(url)
+        val name = withTimeoutOrNull(4500L) {
+            SubscriptionNameGuesser.guess(this@MainActivity, url)
+        } ?: SubscriptionNameGuesser.guessFast(url)
         val uuid = withProfile {
             create(Profile.Type.Url, name, url)
         }
@@ -972,7 +992,7 @@ class MainActivity : BaseActivity<MainDesign>() {
     }
 
     private suspend fun checkForUpdates(design: MainDesign, setStatus: (String?) -> Unit) {
-        val latest = fetchLatestReleaseInfo()
+        val latest = GitHubReleaseUpdate.fetchLatest()
         if (latest == null) {
             setStatus(getString(R.string.about_update_check_failed))
             return
@@ -980,117 +1000,24 @@ class MainActivity : BaseActivity<MainDesign>() {
         val current = withContext(Dispatchers.IO) {
             packageManager.getPackageInfo(packageName, 0).versionName ?: "0.0.0"
         }
-        val hasUpdate = compareVersions(latest.tagName, current) > 0
+        val hasUpdate = GitHubReleaseUpdate.compareVersions(latest.tagName, current) > 0
         withContext(Dispatchers.Main) {
             if (!hasUpdate) {
                 setStatus(getString(R.string.about_update_latest))
                 return@withContext
             }
             setStatus(getString(R.string.about_update_available, latest.tagName))
-            MaterialAlertDialogBuilder(this@MainActivity)
-                .setTitle(getString(R.string.about_update_available, latest.tagName))
-                .setMessage(latest.body.take(1200))
-                .setPositiveButton(R.string.about_download_install) { _, _ ->
-                    if (!startApkDownload(latest)) {
-                        startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(latest.htmlUrl)))
-                    }
-                }
-                .setNeutralButton(R.string.about_open_release) { _, _ ->
+            val id = GitHubReleaseUpdate.enqueueApkDownload(this@MainActivity, latest)
+            if (id >= 0L) {
+                pendingApkDownloadId = id
+                Toast.makeText(this@MainActivity, R.string.about_download_started, Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(this@MainActivity, R.string.about_download_failed, Toast.LENGTH_SHORT).show()
+                runCatching {
                     startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(latest.htmlUrl)))
                 }
-                .setNegativeButton(android.R.string.cancel, null)
-                .show()
-        }
-    }
-
-    private suspend fun fetchLatestReleaseInfo(): ReleaseInfo? = withContext(Dispatchers.IO) {
-        runCatching {
-            val endpoint = "https://api.github.com/repos/Nemu-x/ClashFest/releases/latest"
-            val text = HttpTextFetcher.fetchUtf8(
-                endpoint,
-                connectTimeoutMs = 15_000,
-                readTimeoutMs = 15_000,
-                headers = mapOf("User-Agent" to "ClashFest/${BuildConfig.VERSION_NAME}"),
-            )
-            val json = JSONObject(text)
-            val assets = json.optJSONArray("assets")
-            var apkUrl: String? = null
-            var apkName: String? = null
-
-            if (assets != null) {
-                // Prefer universal/arm64 alpha assets, then fallback to any APK.
-                val candidates = mutableListOf<JSONObject>()
-                for (i in 0 until assets.length()) {
-                    val item = assets.optJSONObject(i) ?: continue
-                    val name = item.optString("name")
-                    val url = item.optString("browser_download_url")
-                    if (name.endsWith(".apk", ignoreCase = true) && url.isNotBlank()) {
-                        candidates += item
-                    }
-                }
-                val picked = candidates.firstOrNull {
-                    val n = it.optString("name").lowercase(Locale.ROOT)
-                    n.contains("alpha") && n.contains("universal")
-                } ?: candidates.firstOrNull {
-                    val n = it.optString("name").lowercase(Locale.ROOT)
-                    n.contains("alpha") && n.contains("arm64-v8a")
-                } ?: candidates.firstOrNull()
-
-                apkUrl = picked?.optString("browser_download_url")
-                apkName = picked?.optString("name")
             }
-
-            ReleaseInfo(
-                tagName = json.optString("tag_name"),
-                body = json.optString("body"),
-                htmlUrl = json.optString("html_url"),
-                apkUrl = apkUrl,
-                apkName = apkName,
-            )
-        }.getOrNull()
-    }
-
-    private fun compareVersions(left: String, right: String): Int {
-        fun semverTriplet(v: String): IntArray? {
-            val m = Regex("""(\d+)\.(\d+)\.(\d+)""").find(v) ?: return null
-            return intArrayOf(
-                m.groupValues[1].toIntOrNull() ?: 0,
-                m.groupValues[2].toIntOrNull() ?: 0,
-                m.groupValues[3].toIntOrNull() ?: 0,
-            )
         }
-
-        val a = semverTriplet(left)
-        val b = semverTriplet(right)
-        if (a != null && b != null) {
-            for (i in 0..2) {
-                if (a[i] != b[i]) return a[i].compareTo(b[i])
-            }
-            return 0
-        }
-
-        // Safe fallback for unexpected formats.
-        return left.compareTo(right)
-    }
-
-    private fun startApkDownload(release: ReleaseInfo): Boolean {
-        val url = release.apkUrl ?: return false
-        val dm = getSystemService<DownloadManager>() ?: return false
-
-        val fileName = (release.apkName ?: "clashfest-${release.tagName}.apk")
-            .replace(Regex("""[^A-Za-z0-9._-]"""), "_")
-
-        val request = DownloadManager.Request(Uri.parse(url))
-            .setTitle(getString(R.string.about_update_available, release.tagName))
-            .setDescription(getString(R.string.about_download_started))
-            .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
-            .setMimeType("application/vnd.android.package-archive")
-            .setDestinationInExternalFilesDir(this, Environment.DIRECTORY_DOWNLOADS, fileName)
-
-        pendingApkDownloadId = dm.enqueue(request)
-        updatePrefs.edit().putLong("pending_download_id", pendingApkDownloadId).apply()
-        Toast.makeText(this, R.string.about_download_started, Toast.LENGTH_SHORT).show()
-        return true
     }
 
     private fun checkDownloadedApkAndInstall(downloadId: Long) {
@@ -1411,7 +1338,12 @@ class MainActivity : BaseActivity<MainDesign>() {
         val cooldown = 6L * 3600L
         if (now - uiStore.subscriptionMetadataLastFetch < cooldown) return
 
-        val meta = com.github.kr328.clash.common.util.SubscriptionMetadataFetcher.fetch(this, url)
+        val meta = com.github.kr328.clash.common.util.SubscriptionMetadataFetcher.fetch(
+            this,
+            url,
+            uiStore.subscriptionMetadataAllowInsecureHttp,
+        )
+        meta.shareLinksDisable?.let { ServiceStore(this).subscriptionShareLinksLocked = it }
         if (meta.isEmpty()) {
             // still mark the attempt to avoid hammering the server every screen-on
             uiStore.subscriptionMetadataLastFetch = now

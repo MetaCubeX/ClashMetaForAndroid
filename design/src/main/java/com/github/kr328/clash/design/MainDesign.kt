@@ -8,8 +8,7 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
-import android.widget.ImageView
-import androidx.core.view.drawToBitmap
+import com.google.android.material.R as MaterialR
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.DefaultItemAnimator
 import androidx.recyclerview.widget.RecyclerView
@@ -44,6 +43,8 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         ToggleStatus,
         OpenNewProfile,
         OpenSettings,
+        OpenThemeSettings,
+        OpenAppSettings,
         OpenAbout,
         PatchModeDirect,
         PatchModeGlobal,
@@ -125,19 +126,15 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
             holder.container.removeAllViews()
             val page = pages[logicalPosition(position)]
             if (isBoundaryPage(position)) {
-                val snapshot = ImageView(holder.container.context).apply {
+                // Circular wrap placeholders: avoid drawToBitmap (memory churn / jank on low-RAM devices).
+                val bg = FrameLayout(holder.container.context).apply {
                     layoutParams = FrameLayout.LayoutParams(
                         ViewGroup.LayoutParams.MATCH_PARENT,
                         ViewGroup.LayoutParams.MATCH_PARENT,
                     )
-                    scaleType = ImageView.ScaleType.FIT_XY
-                    if (page.width > 0 && page.height > 0) {
-                        setImageBitmap(page.drawToBitmap())
-                    } else {
-                        setImageDrawable(null)
-                    }
+                    setBackgroundColor(context.resolveThemedColor(MaterialR.attr.colorSurface))
                 }
-                holder.container.addView(snapshot)
+                holder.container.addView(bg)
                 return
             }
 
@@ -568,7 +565,7 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
                 binding.aboutSupportButton.apply {
                     visibility = View.VISIBLE
                     text = context.getString(R.string.about_support)
-                    setIconResource(R.drawable.ic_baseline_headset_mic)
+                    icon = null
                     setOnClickListener {
                         runCatching {
                             context.startActivity(

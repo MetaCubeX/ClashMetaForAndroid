@@ -8,11 +8,17 @@ import com.github.kr328.clash.design.dialog.ModelProgressBarConfigure
 fun ModelProgressBarConfigure.applyFetchStatus(context: Context, status: FetchStatus) {
     when (status.action) {
         FetchStatus.Action.FetchConfiguration -> {
-            text = context.getString(R.string.format_fetching_configuration, status.args[0])
+            text = context.getString(
+                R.string.format_fetching_configuration,
+                status.args.getOrElse(0) { "…" },
+            )
             isIndeterminate = true
         }
         FetchStatus.Action.FetchProviders -> {
-            text = context.getString(R.string.format_fetching_provider, status.args[0])
+            text = context.getString(
+                R.string.format_fetching_provider,
+                status.args.getOrElse(0) { "…" },
+            )
             isIndeterminate = false
             max = status.max
             progress = status.progress

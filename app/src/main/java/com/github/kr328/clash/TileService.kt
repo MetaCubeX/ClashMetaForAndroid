@@ -7,6 +7,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.graphics.drawable.Icon
 import android.os.Build
+import android.net.VpnService
 import android.service.quicksettings.Tile
 import android.service.quicksettings.TileService
 import androidx.annotation.RequiresApi
@@ -14,19 +15,29 @@ import com.github.kr328.clash.common.compat.registerReceiverCompat
 import com.github.kr328.clash.common.constants.Intents
 import com.github.kr328.clash.common.constants.Permissions
 import com.github.kr328.clash.remote.StatusClient
+import com.github.kr328.clash.util.autoSelectFirstRuntimeProxy
+import com.github.kr328.clash.util.prepareQuickTileVpnOnly
+import com.github.kr328.clash.util.startClashService
 import com.github.kr328.clash.util.stopClashService
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 
 @RequiresApi(Build.VERSION_CODES.N)
 class TileService : TileService() {
     private var currentProfile = ""
     private var clashRunning = false
+    private val tileJob = SupervisorJob()
+    private val tileScope = CoroutineScope(tileJob + Dispatchers.Main.immediate)
 
     override fun onClick() {
         val tile = qsTile ?: return
 
         when (tile.state) {
             Tile.STATE_INACTIVE -> {
-                startQuickTileActivity()
+                startVpnFromTileOrShowPermission()
             }
             Tile.STATE_ACTIVE -> {
                 stopClashService()
@@ -81,6 +92,28 @@ class TileService : TileService() {
         tile.updateTile()
     }
 
+    /**
+     * When VPN permission is already granted, start the service from the tile without
+     * launching a task-root activity (avoids "opening" the full app on many OEMs).
+     */
+    private fun startVpnFromTileOrShowPermission() {
+        if (VpnService.prepare(this) != null) {
+            startQuickTileActivity()
+            return
+        }
+        tileScope.launch {
+            runCatching {
+                prepareQuickTileVpnOnly()
+                val pendingPermission = startClashService()
+                if (pendingPermission != null) {
+                    startQuickTileActivity()
+                } else {
+                    autoSelectFirstRuntimeProxy()
+                }
+            }
+        }
+    }
+
     private fun startQuickTileActivity() {
         val intent = Intent(this, QuickTileStartActivity::class.java)
             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
@@ -97,6 +130,11 @@ class TileService : TileService() {
             @Suppress("DEPRECATION")
             startActivityAndCollapse(intent)
         }
+    }
+
+    override fun onDestroy() {
+        tileJob.cancel()
+        super.onDestroy()
     }
 
     private val receiver = object : BroadcastReceiver() {

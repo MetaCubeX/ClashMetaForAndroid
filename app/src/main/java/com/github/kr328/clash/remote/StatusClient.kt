@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.Uri
 import com.github.kr328.clash.common.constants.Authorities
 import com.github.kr328.clash.common.log.Log
+import com.github.kr328.clash.common.log.LogRedaction
 import com.github.kr328.clash.service.StatusProvider
 
 class StatusClient(private val context: Context) {
@@ -31,7 +32,7 @@ class StatusClient(private val context: Context) {
 
             result?.getString(StatusProvider.EXTRA_CURRENT_PROFILE)
         } catch (e: Exception) {
-            Log.w("Query current profile: $e", e)
+            Log.w("Query current profile: ${LogRedaction.throwableMessage(e)}")
 
             null
         }
@@ -51,7 +52,7 @@ class StatusClient(private val context: Context) {
                 currentProfile = result?.getString(StatusProvider.EXTRA_CURRENT_PROFILE),
             )
         } catch (e: Exception) {
-            Log.w("Query service status: $e", e)
+            Log.w("Query service status: ${LogRedaction.throwableMessage(e)}")
 
             StatusSnapshot(serviceRunning = false, currentProfile = null)
         }
