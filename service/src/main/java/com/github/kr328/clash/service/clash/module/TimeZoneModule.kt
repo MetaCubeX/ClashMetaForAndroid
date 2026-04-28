@@ -11,12 +11,18 @@ class TimeZoneModule(service: Service) : Module<Unit>(service) {
             addAction(Intent.ACTION_TIMEZONE_CHANGED)
         }
 
+        // Push the current timezone once on startup, then react only to broadcasts.
+        // The previous loop notified the core *before* every receive(), causing one extra
+        // redundant native call on every timezone change.
+        var current = TimeZone.getDefault()
+        Clash.notifyTimeZoneChanged(current.id, current.rawOffset / 1000)
+
         while (true) {
-            val timeZone = TimeZone.getDefault()
-
-            Clash.notifyTimeZoneChanged(timeZone.id, timeZone.rawOffset / 1000)
-
             timeZones.receive()
+            val next = TimeZone.getDefault()
+            if (next.id == current.id && next.rawOffset == current.rawOffset) continue
+            current = next
+            Clash.notifyTimeZoneChanged(current.id, current.rawOffset / 1000)
         }
     }
 }

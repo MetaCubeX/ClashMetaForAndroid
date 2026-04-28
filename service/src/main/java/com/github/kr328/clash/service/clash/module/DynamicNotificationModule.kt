@@ -93,8 +93,12 @@ class DynamicNotificationModule(service: Service) : Module<Unit>(service) {
             addAction(Intents.ACTION_PROFILE_LOADED)
         }
 
+        // Two tickers: a frequent one while the user is looking at the screen,
+        // and a sparse one while the screen is off. The screen-off ticker exists only
+        // so totals stay roughly accurate after a long sleep; per-second deltas are not
+        // visible anyway when there is nothing to display.
         val tickerInteractive = ticker(TimeUnit.SECONDS.toMillis(10))
-        val tickerIdle = ticker(TimeUnit.SECONDS.toMillis(60))
+        val tickerIdle = ticker(TimeUnit.MINUTES.toMillis(2))
 
         while (true) {
             select<Unit> {

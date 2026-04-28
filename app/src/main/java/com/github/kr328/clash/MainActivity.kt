@@ -212,7 +212,10 @@ class MainActivity : BaseActivity<MainDesign>() {
         refreshAnnouncement(design)
 
         val tickerInteractive = ticker(TimeUnit.SECONDS.toMillis(2))
-        val tickerIdle = ticker(TimeUnit.SECONDS.toMillis(8))
+        // Bumped from 8s -> 30s. While the screen is off (or activity is in background),
+        // the dashboard is invisible; we only need infrequent updates so totals stay
+        // roughly accurate when the user comes back.
+        val tickerIdle = ticker(TimeUnit.SECONDS.toMillis(30))
         val profileTicker = ticker(TimeUnit.MINUTES.toMillis(2))
         val refreshRequests = kotlinx.coroutines.channels.Channel<Unit>(kotlinx.coroutines.channels.Channel.CONFLATED)
         val proxyDetailRequests =
@@ -558,6 +561,9 @@ class MainActivity : BaseActivity<MainDesign>() {
 
                 if (clashRunning && activityStarted) {
                     val interactive = getSystemService<PowerManager>()?.isInteractive ?: true
+                    // Pick the ticker BEFORE registering the select branch so that the idle
+                    // ticker (and only it) wakes us when the screen is off, instead of both
+                    // tickers competing.
                     val trafficTicker = if (interactive) tickerInteractive else tickerIdle
                     trafficTicker.onReceive {
                         launch { design.fetchTraffic() }

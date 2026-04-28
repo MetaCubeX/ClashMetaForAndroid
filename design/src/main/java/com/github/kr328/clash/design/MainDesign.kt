@@ -510,13 +510,15 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
     }
 
     private fun openProxySheetWhenReady(profile: Profile, attempt: Int = 0) {
-        if (profileAdapter.hasProxyGroupsFor(profile) || attempt >= 15) {
+        // Was 180ms x 15 ≈ 2.7s of recursive postDelayed wakeups while waiting for
+        // proxy groups to load. 400ms x 6 ≈ 2.4s but with ~2.5x fewer wakeups.
+        if (profileAdapter.hasProxyGroupsFor(profile) || attempt >= 6) {
             profileAdapter.showProxySheet(context, profile)
             return
         }
         binding.profileList.postDelayed({
             openProxySheetWhenReady(profile, attempt + 1)
-        }, 180L)
+        }, 400L)
     }
 
     suspend fun requestSave(profile: Profile) {
@@ -716,10 +718,14 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         binding.profileList.also {
             it.applyLinearAdapter(context, profileAdapter)
             (it.layoutManager as? LinearLayoutManager)?.stackFromEnd = false
+            it.setHasFixedSize(true)
+            // Change-animations were running on every traffic tick across all visible cards
+            // (~2–8s cadence) and added measurable GPU/CPU load. Add/remove animations are kept,
+            // but per-item rebind animations are disabled.
             it.itemAnimator = DefaultItemAnimator().apply {
-                supportsChangeAnimations = true
-                changeDuration = 280
-                moveDuration = 220
+                supportsChangeAnimations = false
+                changeDuration = 0
+                moveDuration = 0
             }
         }
 

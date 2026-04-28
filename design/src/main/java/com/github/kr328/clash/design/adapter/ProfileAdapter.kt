@@ -98,9 +98,19 @@ class ProfileAdapter(
     }
 
     fun setPingingUuid(uuid: UUID?) {
-        if (states.pingingUuid == uuid) return
+        val prev = states.pingingUuid
+        if (prev == uuid) return
         states.pingingUuid = uuid
-        notifyDataSetChanged()
+        // Targeted notify instead of full-list rebind: ping spinners only affect at most
+        // two cards (the one that was pinging and the one that just started).
+        prev?.let { id ->
+            val i = profiles.indexOfFirst { it.uuid == id }
+            if (i >= 0) notifyItemChanged(i)
+        }
+        uuid?.let { id ->
+            val i = profiles.indexOfFirst { it.uuid == id }
+            if (i >= 0) notifyItemChanged(i)
+        }
     }
 
     override fun onViewRecycled(holder: Holder) {

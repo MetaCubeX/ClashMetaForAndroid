@@ -38,10 +38,16 @@ class StaticNotificationModule(service: Service) : Module<Unit>(service) {
             addAction(Intents.ACTION_PROFILE_LOADED)
         }
 
+        // Avoid rebuilding the foreground notification on every PROFILE_LOADED broadcast
+        // when the displayed title would be identical (e.g. profile reloaded but name kept).
+        var lastProfileName: String? = null
+
         while (true) {
             loaded.receive()
 
             val profileName = StatusProvider.currentProfile ?: "Not selected"
+            if (profileName == lastProfileName) continue
+            lastProfileName = profileName
 
             val notification = builder
                 .setContentTitle(profileName)

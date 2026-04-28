@@ -30,17 +30,20 @@ class ConnectionsActivity : BaseActivity<ConnectionsDesign>() {
         val refresh = launch {
             var lastRawSnapshot: String? = null
             val activeDelayMs = 2000L
-            val idleDelayMs = 7000L
+            // Bumped from 7s -> 30s. While the activity is in background or screen is off,
+            // the live list is invisible; reduce wakeups and avoid pulling JSON snapshots.
+            val idleDelayMs = 30_000L
             while (isActive) {
-                if (!activityStarted) {
+                val interactive = getSystemService<PowerManager>()?.isInteractive ?: true
+                if (!activityStarted || !interactive) {
+                    // Skip query entirely: no UI to update, no need to wake the core.
                     delay(idleDelayMs)
                     continue
                 }
-                val interactive = getSystemService<PowerManager>()?.isInteractive ?: true
                 try {
                     val raw = withClash { queryConnectionsSnapshot() }
                     if (raw == lastRawSnapshot) {
-                        delay(if (interactive) activeDelayMs else idleDelayMs)
+                        delay(activeDelayMs)
                         continue
                     }
                     lastRawSnapshot = raw
@@ -61,7 +64,7 @@ class ConnectionsActivity : BaseActivity<ConnectionsDesign>() {
                 } catch (e: Exception) {
                     Log.w("Connections refresh query failed", e)
                 }
-                delay(if (interactive) activeDelayMs else idleDelayMs)
+                delay(activeDelayMs)
             }
         }
 

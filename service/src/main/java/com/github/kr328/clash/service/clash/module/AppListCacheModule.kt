@@ -6,8 +6,7 @@ import android.content.pm.PackageInfo
 import com.github.kr328.clash.common.log.Log
 import com.github.kr328.clash.core.Clash
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.delay
-import java.util.concurrent.TimeUnit
+import kotlinx.coroutines.withTimeoutOrNull
 
 class AppListCacheModule(service: Service) : Module<Unit>(service) {
     private fun PackageInfo.uniqueUidName(): String =
@@ -45,9 +44,17 @@ class AppListCacheModule(service: Service) : Module<Unit>(service) {
         while (true) {
             reload()
 
+            // Block until the system tells us a package was added/removed (event-driven only;
+            // the previous unconditional 10s polling loop scanned the entire PM list every cycle).
             packageChanged.receive()
 
-            delay(TimeUnit.SECONDS.toMillis(10))
+            // Short debounce to coalesce install/remove bursts (system updates, batch installs).
+            // Drains any further events that arrive within ~1.5s before doing a single full reload.
+            withTimeoutOrNull(1_500L) {
+                while (true) {
+                    packageChanged.receive()
+                }
+            }
         }
     }
 }
