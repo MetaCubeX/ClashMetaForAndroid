@@ -24,6 +24,11 @@ data class SubscriptionMetadata(
     val announcementUrl: String? = null,
     /** Raw `subscription-userinfo: upload=…; download=…; total=…; expire=…` line. */
     val subscriptionUserinfo: String? = null,
+    /**
+     * When true, operator asks the client to disable sharing subscription links and lock sensitive edits.
+     * Parsed from `share-links` / `share_links` style headers.
+     */
+    val shareLinksDisable: Boolean? = null,
 ) {
     fun isEmpty(): Boolean =
         supportUrl == null &&
@@ -32,14 +37,25 @@ data class SubscriptionMetadata(
             profileUpdateIntervalHours == null &&
             announcement == null &&
             announcementUrl == null &&
-            subscriptionUserinfo == null
+            subscriptionUserinfo == null &&
+            shareLinksDisable == null
 }
 
 object SubscriptionMetadataFetcher {
 
-    suspend fun fetch(context: Context, urlString: String): SubscriptionMetadata =
+    /**
+     * @param allowHttpMetadata When false (default), skips metadata probe for `http://` subscription URLs unless user opted in.
+     */
+    suspend fun fetch(
+        context: Context,
+        urlString: String,
+        allowHttpMetadata: Boolean = false,
+    ): SubscriptionMetadata =
         withContext(Dispatchers.IO) {
             val request = urlString.substringBefore('#')
+            if (request.startsWith("http://", ignoreCase = true) && !allowHttpMetadata) {
+                return@withContext SubscriptionMetadata()
+            }
             try {
                 val url = URL(request)
                 val conn = (url.openConnection() as HttpURLConnection).apply {
@@ -54,6 +70,7 @@ object SubscriptionMetadataFetcher {
                         "0"
                     }
                     setRequestProperty("User-Agent", "ClashFest/$ver")
+                    SubscriptionHttpHeaders.applyTo(this, context)
                 }
                 try {
                     conn.connect()
@@ -105,6 +122,16 @@ object SubscriptionMetadataFetcher {
         )
         val userinfo = header("Subscription-Userinfo", "subscription-userinfo")
 
+        val shareLinksRaw = header(
+            "share-links",
+            "Share-Links",
+            "share_links",
+            "Share_Links",
+            "X-Share-Links",
+            "X-Share-Links-Policy",
+        )
+        val shareLinksDisable = parseShareLinksPolicy(shareLinksRaw)
+
         return SubscriptionMetadata(
             supportUrl = supportRaw?.let(::normalizeUrl)?.takeIf { looksLikeUrl(it) },
             profileTitle = title?.takeIf { it.isNotBlank() },
@@ -113,7 +140,17 @@ object SubscriptionMetadataFetcher {
             announcement = announce?.takeIf { it.isNotBlank() },
             announcementUrl = announceUrl?.takeIf { looksLikeUrl(it) },
             subscriptionUserinfo = userinfo,
+            shareLinksDisable = shareLinksDisable,
         )
+    }
+
+    private fun parseShareLinksPolicy(raw: String?): Boolean? {
+        if (raw.isNullOrBlank()) return null
+        return when (raw.trim().lowercase()) {
+            "true", "1", "yes", "on" -> true
+            "false", "0", "no", "off" -> false
+            else -> null
+        }
     }
 
     private fun looksLikeUrl(value: String): Boolean {

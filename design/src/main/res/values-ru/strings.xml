@@ -94,6 +94,9 @@
     <string name="main_open_logs_summary">Диагностика, если подключение не стартует</string>
     <string name="main_settings_summary">Настройки приложения, диагностика и дополнительные инструменты</string>
     <string name="main_open_settings_summary">Тема, сеть, обновления и расширенные параметры</string>
+    <string name="main_open_theme_summary">Темная тема, палитра и масштаб текста</string>
+    <string name="main_open_language_summary">Смена языка без глубокого перехода в настройки</string>
+    <string name="main_open_about_summary">Версия приложения, версия core и проверка обновлений</string>
 
     <!-- Routing hub screen -->
     <string name="routing_hub_tips">Управляйте тем, как маршрутизируется трафик: фрагменты правил, активный список правил и включение/исключение по приложениям.</string>
@@ -319,6 +322,10 @@
     <string name="profile_quick_edit_title">Быстрое редактирование подписки</string>
     <string name="profile_quick_open_advanced">Открыть полный редактор</string>
     <string name="profile_quick_saved">Подписка обновлена</string>
+    <string name="profile_menu_share">Поделиться ссылкой подписки</string>
+    <string name="subscription_source_locked">URL этой подписки нельзя менять (политика оператора).</string>
+    <string name="sub_meta_allow_http">Разрешить HTTP для запроса метаданных подписки</string>
+    <string name="sub_meta_allow_http_summary">Если выключено, метаданные запрашиваются только по HTTPS. Включайте только если панель отдаёт метаданные по HTTP (небезопасно).</string>
     <string name="profile_proxy_group">Группа прокси</string>
     <string name="profile_ping_ms_result">Задержка ~%d мс (напрямую)</string>
     <string name="profile_ping_timeout">Пинг: таймаут</string>

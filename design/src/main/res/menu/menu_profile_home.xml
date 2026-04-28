@@ -7,6 +7,9 @@
         android:id="@+id/profile_menu_update"
         android:title="@string/update" />
     <item
+        android:id="@+id/profile_menu_share"
+        android:title="@string/profile_menu_share" />
+    <item
         android:id="@+id/profile_menu_edit"
         android:title="@string/edit" />
     <item

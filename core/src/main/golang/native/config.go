@@ -7,6 +7,7 @@ import (
 	"runtime"
 	"unsafe"
 
+	"cfa/native/app"
 	"cfa/native/config"
 )
 
@@ -19,8 +20,11 @@ func (r *remoteValidCallback) reportStatus(json string) {
 }
 
 //export fetchAndValid
-func fetchAndValid(callback unsafe.Pointer, path, url C.c_string, force C.int) {
-	go func(path, url string, callback unsafe.Pointer) {
+func fetchAndValid(callback unsafe.Pointer, path, url C.c_string, force C.int, headersJson C.c_string) {
+	go func(path, url, headers string, callback unsafe.Pointer) {
+		app.SetSubscriptionFetchHeadersJSON(headers)
+		defer app.ClearSubscriptionFetchHeaders()
+
 		cb := &remoteValidCallback{callback: callback}
 
 		err := config.FetchAndValid(path, url, force != 0, cb.reportStatus)
@@ -30,7 +34,7 @@ func fetchAndValid(callback unsafe.Pointer, path, url C.c_string, force C.int) {
 		C.release_object(callback)
 
 		runtime.GC()
-	}(C.GoString(path), C.GoString(url), callback)
+	}(C.GoString(path), C.GoString(url), C.GoString(headersJson), callback)
 }
 
 //export load

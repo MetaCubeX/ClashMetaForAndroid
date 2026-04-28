@@ -133,6 +133,15 @@ class ServiceStore(context: Context) {
         defaultValue = ""
     )
 
+    /**
+     * When true (operator policy via `share-links` headers), subscription URL/source
+     * edits from UI are rejected and share/copy actions are disabled.
+     */
+    var subscriptionShareLinksLocked: Boolean by store.boolean(
+        key = "subscription_share_links_locked",
+        defaultValue = false,
+    )
+
     companion object {
         private const val KEY_ALLOW_BYPASS = "allow_bypass"
         private const val MIGRATION_ALLOW_BYPASS_OFF_V1 = "migration_allow_bypass_off_v1"

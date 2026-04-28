@@ -47,6 +47,7 @@ object SubscriptionNameGuesser {
                         "0"
                     }
                     setRequestProperty("User-Agent", "ClashFest/$ver")
+                    SubscriptionHttpHeaders.applyTo(this, context)
                 }
                 try {
                     conn.connect()

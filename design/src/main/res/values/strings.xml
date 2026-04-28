@@ -100,6 +100,9 @@ Presets only change <b>where</b> files are downloaded from (CDN / host). It is s
     <string name="main_open_logs_summary">Diagnostics when connection fails</string>
     <string name="main_settings_summary">App preferences, diagnostics and extra tools</string>
     <string name="main_open_settings_summary">Theme, network, updates and advanced options</string>
+    <string name="main_open_theme_summary">Dark mode, palette and text scale</string>
+    <string name="main_open_language_summary">Change app language without opening deep settings</string>
+    <string name="main_open_about_summary">Version info, core version and update check</string>
 
     <!-- Routing hub screen -->
     <string name="routing_hub_tips">Manage how traffic is routed: rule snippets, the active rule list, and per-app inclusion/exclusion.</string>
@@ -275,6 +278,10 @@ Presets only change <b>where</b> files are downloaded from (CDN / host). It is s
     <string name="profile_quick_edit_title">Quick edit subscription</string>
     <string name="profile_quick_open_advanced">Open full editor</string>
     <string name="profile_quick_saved">Subscription updated</string>
+    <string name="profile_menu_share">Share subscription link</string>
+    <string name="subscription_source_locked">This subscription URL cannot be edited (operator policy).</string>
+    <string name="sub_meta_allow_http">Allow HTTP for subscription metadata probe</string>
+    <string name="sub_meta_allow_http_summary">When off, metadata headers are only fetched over HTTPS. Enable only if your panel uses HTTP (cleartext).</string>
     <string name="rule_apply_active_only">Active profile only</string>
     <string name="rule_apply_replace_all">Active profile (replace all rules)</string>
     <string name="rule_insert_mode">Insert mode for new rules</string>

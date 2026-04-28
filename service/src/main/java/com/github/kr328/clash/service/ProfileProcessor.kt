@@ -18,6 +18,7 @@ import com.github.kr328.clash.service.util.importedDir
 import com.github.kr328.clash.service.util.pendingDir
 import com.github.kr328.clash.service.util.processingDir
 import com.github.kr328.clash.common.util.ShareImportSupport
+import com.github.kr328.clash.common.util.SubscriptionDeviceHeaders
 import com.github.kr328.clash.service.util.sendProfileChanged
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
@@ -87,6 +88,11 @@ object ProfileProcessor {
                                 val request = Request.Builder()
                                     .url(snapshot.source)
                                     .header("User-Agent", "ClashFest/$versionName")
+                                    .apply {
+                                        SubscriptionDeviceHeaders.headerMap(context).forEach { (k, v) ->
+                                            header(k, v)
+                                        }
+                                    }
                                     .build()
 
                                 client.newCall(request).execute().use { response ->

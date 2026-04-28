@@ -89,6 +89,12 @@ class AnnouncementSettingsDesign(
                 title = R.string.sub_meta_lock_user,
                 summary = R.string.sub_meta_lock_user_summary,
             )
+
+            switch(
+                value = uiStore::subscriptionMetadataAllowInsecureHttp,
+                title = R.string.sub_meta_allow_http,
+                summary = R.string.sub_meta_allow_http_summary,
+            )
         }
 
         binding.content.addView(screen.root)

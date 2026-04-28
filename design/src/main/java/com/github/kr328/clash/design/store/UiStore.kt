@@ -165,6 +165,15 @@ class UiStore(context: Context) {
         defaultValue = false,
     )
 
+    /**
+     * When false (default), subscription metadata HTTP probes use HTTPS only.
+     * Opt-in allows probing `http://` subscription URLs (cleartext risk).
+     */
+    var subscriptionMetadataAllowInsecureHttp: Boolean by store.boolean(
+        key = "sub_meta_allow_http",
+        defaultValue = false,
+    )
+
     /** UNIX seconds of last successful subscription metadata fetch; 0 = never. */
     var subscriptionMetadataLastFetch: Long by store.long(
         key = "sub_meta_last_fetch",

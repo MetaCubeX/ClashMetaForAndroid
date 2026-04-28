@@ -2,6 +2,7 @@ package com.github.kr328.clash.service
 
 import android.content.Context
 import com.github.kr328.clash.common.log.Log
+import com.github.kr328.clash.common.util.MaybeBase64
 import com.github.kr328.clash.common.util.SubscriptionUsage
 import com.github.kr328.clash.service.data.Database
 import com.github.kr328.clash.service.data.Imported
@@ -13,6 +14,7 @@ import com.github.kr328.clash.service.data.SelectionDao
 import com.github.kr328.clash.service.model.Profile
 import com.github.kr328.clash.service.remote.IFetchObserver
 import com.github.kr328.clash.service.remote.IProfileManager
+import com.github.kr328.clash.common.util.SubscriptionDeviceHeaders
 import com.github.kr328.clash.service.store.ServiceStore
 import com.github.kr328.clash.service.util.directoryLastModified
 import com.github.kr328.clash.service.util.generateProfileUUID
@@ -103,6 +105,15 @@ class ProfileManager(private val context: Context) : IProfileManager,
     }
 
     override suspend fun patch(uuid: UUID, name: String, source: String, interval: Long) {
+        val locked = store.subscriptionShareLinksLocked
+        val resolvedSource =
+            if (!locked) {
+                source
+            } else {
+                PendingDao().queryByUUID(uuid)?.source
+                    ?: ImportedDao().queryByUUID(uuid)?.source
+                    ?: source
+            }
         val pending = PendingDao().queryByUUID(uuid)
 
         if (pending == null) {
@@ -116,7 +127,7 @@ class ProfileManager(private val context: Context) : IProfileManager,
                     uuid = imported.uuid,
                     name = name,
                     type = imported.type,
-                    source = source,
+                    source = resolvedSource,
                     interval = interval,
                     upload = 0,
                     total = 0,
@@ -127,7 +138,7 @@ class ProfileManager(private val context: Context) : IProfileManager,
         } else {
             val newPending = pending.copy(
                 name = name,
-                source = source,
+                source = resolvedSource,
                 interval = interval,
                 upload = 0,
                 total = 0,
@@ -155,6 +166,11 @@ class ProfileManager(private val context: Context) : IProfileManager,
             val request = Request.Builder()
                 .url(old.source)
                 .header("User-Agent", "ClashFest/$versionName")
+                .apply {
+                    SubscriptionDeviceHeaders.headerMap(context).forEach { (k, v) ->
+                        header(k, v)
+                    }
+                }
                 .build()
 
             client.newCall(request).execute().use { response ->
@@ -165,10 +181,16 @@ class ProfileManager(private val context: Context) : IProfileManager,
                 val download = usage?.download ?: 0L
                 val total = usage?.total ?: 0L
                 val expire = usage?.expireAt?.times(1000L) ?: 0L
+                val renamed = deriveTitleFromHeaders(response.headers)
+                val effectiveName = if (looksLikeGeneratedTokenName(old.name) && !renamed.isNullOrBlank()) {
+                    renamed
+                } else {
+                    old.name
+                }
 
                 val new = Imported(
                     old.uuid,
-                    old.name,
+                    effectiveName,
                     old.type,
                     old.source,
                     old.interval,
@@ -188,6 +210,32 @@ class ProfileManager(private val context: Context) : IProfileManager,
         } catch (e: Exception) {
             Log.w("updateFlow failed", e)
         }
+    }
+
+    private fun deriveTitleFromHeaders(headers: okhttp3.Headers): String? {
+        val raw = listOf(
+            "Subscription-Title",
+            "Profile-Title",
+            "X-Subscription-Title",
+            "Display-Name",
+            "X-Display-Name",
+            "Subscription-Display-Name",
+        ).firstNotNullOfOrNull { key ->
+            headers[key]?.trim()?.trim('"', '\'')
+        } ?: return null
+
+        val decoded = MaybeBase64.decode(raw).trim()
+        if (decoded.isBlank()) return null
+        if (decoded.length > 64) return decoded.take(64)
+        return decoded
+    }
+
+    private fun looksLikeGeneratedTokenName(name: String): Boolean {
+        val n = name.trim()
+        if (n.length < 12 || n.length > 48) return false
+        if (n.contains(' ')) return false
+        if (n.contains('.') || n.contains('/')) return false
+        return n.matches(Regex("^[A-Za-z0-9_-]{12,48}$"))
     }
 
     override suspend fun commit(uuid: UUID, callback: IFetchObserver?) {

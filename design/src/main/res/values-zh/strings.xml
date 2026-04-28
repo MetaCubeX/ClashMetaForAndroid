@@ -294,6 +294,10 @@
     <string name="profile_quick_edit_title">快速编辑订阅</string>
     <string name="profile_quick_open_advanced">打开完整编辑器</string>
     <string name="profile_quick_saved">订阅已更新</string>
+    <string name="profile_menu_share">分享订阅链接</string>
+    <string name="subscription_source_locked">根据运营商策略，无法编辑此订阅 URL。</string>
+    <string name="sub_meta_allow_http">允许通过 HTTP 拉取订阅元数据</string>
+    <string name="sub_meta_allow_http_summary">关闭时仅通过 HTTPS 获取元数据头。仅在面板使用 HTTP（明文）时开启。</string>
     <string name="toast_profile_updated_complete">更新配置 %s 成功</string>
     <string name="toast_profile_updated_failed">更新配置 %1$s 失败：%2$s</string>
     <string name="external_control_activity">外部控制</string>

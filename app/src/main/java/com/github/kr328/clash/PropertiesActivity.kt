@@ -8,6 +8,7 @@ import com.github.kr328.clash.design.PropertiesDesign
 import com.github.kr328.clash.design.ui.ToastDuration
 import com.github.kr328.clash.design.util.showExceptionToast
 import com.github.kr328.clash.service.model.Profile
+import com.github.kr328.clash.service.store.ServiceStore
 import com.github.kr328.clash.util.withProfile
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.isActive
@@ -29,6 +30,7 @@ class PropertiesActivity : BaseActivity<PropertiesDesign>() {
         original = withProfile { queryByUUID(uuid) } ?: return finish()
 
         design.profile = original
+        design.subscriptionSourceLocked = ServiceStore(this).subscriptionShareLinksLocked
 
         setContentDesign(design)
 
@@ -88,6 +90,13 @@ class PropertiesActivity : BaseActivity<PropertiesDesign>() {
     }
 
     private suspend fun PropertiesDesign.verifyAndCommit() {
+        if (ServiceStore(this@PropertiesActivity).subscriptionShareLinksLocked &&
+            profile.source.trim() != original.source.trim()
+        ) {
+            showToast(R.string.subscription_source_locked, ToastDuration.Long)
+            profile = original
+            return
+        }
         if (profile.name.isBlank()) {
             showToast(R.string.empty_name, ToastDuration.Long)
             return

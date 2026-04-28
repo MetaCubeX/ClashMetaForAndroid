@@ -1,6 +1,7 @@
 #include <jni.h>
 #include <stdint.h>
 #include <stddef.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "bridge_helper.h"
@@ -228,14 +229,22 @@ JNIEXPORT void JNICALL
 Java_com_github_kr328_clash_core_bridge_Bridge_nativeFetchAndValid(JNIEnv *env, jobject thiz,
                                                                    jobject callback,
                                                                    jstring path,
-                                                                   jstring url, jboolean force) {
+                                                                   jstring url, jboolean force,
+                                                                   jstring headersJson) {
     TRACE_METHOD();
 
     jobject _completable = new_global(callback);
     scoped_string _path = get_string(path);
     scoped_string _url = get_string(url);
+    char *_headers_raw;
+    if (headersJson == NULL) {
+        _headers_raw = strdup("");
+    } else {
+        _headers_raw = get_string(headersJson);
+    }
+    scoped_string _headers = _headers_raw;
 
-    fetchAndValid(_completable, _path, _url, force);
+    fetchAndValid(_completable, _path, _url, force, _headers);
 }
 
 JNIEXPORT jstring JNICALL

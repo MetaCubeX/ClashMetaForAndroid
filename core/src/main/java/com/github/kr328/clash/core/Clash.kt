@@ -1,8 +1,10 @@
 package com.github.kr328.clash.core
 
+import com.github.kr328.clash.common.util.SubscriptionDeviceHeaders
 import com.github.kr328.clash.core.bridge.*
 import com.github.kr328.clash.core.model.*
 import com.github.kr328.clash.core.util.parseInetSocketAddress
+import com.github.kr328.clash.common.Global
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
@@ -135,7 +137,8 @@ object Clash {
         path: File,
         url: String,
         force: Boolean,
-        reportStatus: (FetchStatus) -> Unit
+        subscriptionHeadersJson: String = SubscriptionDeviceHeaders.toJson(Global.application),
+        reportStatus: (FetchStatus) -> Unit,
     ): CompletableDeferred<Unit> {
         return CompletableDeferred<Unit>().apply {
             Bridge.nativeFetchAndValid(
@@ -158,7 +161,8 @@ object Clash {
                 },
                 path.absolutePath,
                 url,
-                force
+                force,
+                subscriptionHeadersJson,
             )
         }
     }
