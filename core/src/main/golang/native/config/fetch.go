@@ -25,6 +25,12 @@ type Status struct {
 	MaxProgress int      `json:"max"`
 }
 
+type providerFetchTask struct {
+	name string
+	url  *U.URL
+	path string
+}
+
 func openUrl(ctx context.Context, url string) (io.ReadCloser, error) {
 	response, err := clashHttp.HttpRequest(ctx, url, http.MethodGet, http.Header{"User-Agent": {"ClashMetaForAndroid/" + app.VersionName()}}, nil)
 
@@ -127,16 +133,8 @@ func FetchAndValid(
 		return err
 	}
 
+	providerFetchTasks := make([]providerFetchTask, 0)
 	forEachProviders(rawCfg, func(index int, total int, name string, provider map[string]any, prefix string) {
-		bytes, _ := json.Marshal(&Status{
-			Action:      "FetchProviders",
-			Args:        []string{name},
-			Progress:    index,
-			MaxProgress: total,
-		})
-
-		reportStatus(string(bytes))
-
 		u, uok := provider["url"]
 		p, pok := provider["path"]
 
@@ -160,8 +158,25 @@ func FetchAndValid(
 			return
 		}
 
-		_ = fetch(url, ps)
+		providerFetchTasks = append(providerFetchTasks, providerFetchTask{
+			name: name,
+			url:  url,
+			path: ps,
+		})
 	})
+
+	for index, task := range providerFetchTasks {
+		bytes, _ := json.Marshal(&Status{
+			Action:      "FetchProviders",
+			Args:        []string{task.name},
+			Progress:    index,
+			MaxProgress: len(providerFetchTasks),
+		})
+
+		reportStatus(string(bytes))
+
+		_ = fetch(task.url, task.path)
+	}
 
 	bytes, _ := json.Marshal(&Status{
 		Action:      "Verifying",

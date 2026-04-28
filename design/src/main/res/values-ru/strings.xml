@@ -585,8 +585,8 @@
     <string name="geofile_unknown_db_format">Неизвестный формат базы</string>
     <string name="geofile_unknown_db_format_message">Поддерживаются только: %1$s</string>
     <string name="geofile_imported">Импортировано: %1$s</string>
-    <string name="toast_profile_updated_complete">Update profile %s completed</string>
-    <string name="toast_profile_updated_failed">Update profile %1$s failed: %2$s</string>
+    <string name="toast_profile_updated_complete">Подписка «%s» обновлена</string>
+    <string name="toast_profile_updated_failed">Не удалось обновить «%1$s»: %2$s</string>
     <string name="external_control_activity">External Control</string>
     <string name="external_control_started">Clash.Meta service started</string>
     <string name="external_control_stopped">Clash.Meta service stopped</string>

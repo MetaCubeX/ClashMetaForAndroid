@@ -730,8 +730,8 @@ Presets only change <b>where</b> files are downloaded from (CDN / host). It is s
     <string name="geofile_unknown_db_format">Unknown Database format</string>
     <string name="geofile_unknown_db_format_message">Only %1$s are supported</string>
     <string name="geofile_imported">%1$s imported</string>
-    <string name="toast_profile_updated_complete">Update profile %s completed</string>
-    <string name="toast_profile_updated_failed">Update profile %1$s failed: %2$s</string>
+    <string name="toast_profile_updated_complete">Subscription "%s" updated</string>
+    <string name="toast_profile_updated_failed">Could not update "%1$s": %2$s</string>
     <string name="external_control_activity">External Control</string>
     <string name="external_control_started">Clash.Meta service started</string>
     <string name="external_control_stopped">Clash.Meta service stopped</string>

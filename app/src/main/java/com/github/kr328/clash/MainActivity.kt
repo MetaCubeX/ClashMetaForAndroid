@@ -37,8 +37,10 @@ import com.github.kr328.clash.core.model.ProxyGroup
 import com.github.kr328.clash.core.model.TunnelState
 import com.github.kr328.clash.design.MainDesign
 import com.github.kr328.clash.design.R
+import com.github.kr328.clash.design.dialog.withModelProgressBar
 import com.github.kr328.clash.design.model.DarkMode
 import com.github.kr328.clash.design.ui.ToastDuration
+import com.github.kr328.clash.design.util.applyFetchStatus
 import com.github.kr328.clash.design.util.showExceptionToast
 import com.github.kr328.clash.remote.Remote
 import com.github.kr328.clash.remote.StatusClient
@@ -59,6 +61,7 @@ import io.github.g00fy2.quickie.QRResult.QRSuccess
 import io.github.g00fy2.quickie.QRResult.QRUserCanceled
 import io.github.g00fy2.quickie.ScanQRCode
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.isActive
@@ -659,12 +662,12 @@ class MainActivity : BaseActivity<MainDesign>() {
      */
     private suspend fun importSubscriptionFromUrl(design: MainDesign, url: String) {
         design.showToast(R.string.import_resolving, ToastDuration.Short)
-        val name = SubscriptionNameGuesser.guess(this, url)
+        val name = SubscriptionNameGuesser.guessFast(url)
         val uuid = withProfile {
             create(Profile.Type.Url, name, url)
         }
         try {
-            withProfile { commit(uuid) }
+            commitProfileWithProgress(uuid)
         } catch (e: Exception) {
             showImportCommitFailureDialog(uuid, e)
             return
@@ -677,6 +680,27 @@ class MainActivity : BaseActivity<MainDesign>() {
             launchProperties(uuid)
         }
         design.fetch()
+    }
+
+    private suspend fun commitProfileWithProgress(uuid: UUID) {
+        withModelProgressBar {
+            configure {
+                isIndeterminate = true
+                text = getString(R.string.initializing)
+            }
+
+            coroutineScope {
+                withProfile {
+                    commit(uuid) { status ->
+                        launch {
+                            configure {
+                                applyFetchStatus(this@MainActivity, status)
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private suspend fun launchProperties(uuid: UUID) {
@@ -1322,6 +1346,36 @@ class MainActivity : BaseActivity<MainDesign>() {
                 }
                 .show()
             cont.invokeOnCancellation { runCatching { dialog.dismiss() } }
+        }
+    }
+
+    override fun onProfileUpdateCompleted(uuid: UUID?) {
+        super.onProfileUpdateCompleted(uuid)
+        if (uuid == null) return
+
+        launch {
+            val name = withProfile { queryByUUID(uuid)?.name } ?: return@launch
+            design?.showToast(
+                getString(R.string.toast_profile_updated_complete, name),
+                ToastDuration.Long
+            )
+        }
+    }
+
+    override fun onProfileUpdateFailed(uuid: UUID?, reason: String?) {
+        super.onProfileUpdateFailed(uuid, reason)
+        if (uuid == null) return
+
+        launch {
+            val name = withProfile { queryByUUID(uuid)?.name } ?: return@launch
+            design?.showToast(
+                getString(R.string.toast_profile_updated_failed, name, reason ?: "Unknown"),
+                ToastDuration.Long
+            ) {
+                setAction(R.string.edit) {
+                    startActivity(PropertiesActivity::class.intent.setUUID(uuid))
+                }
+            }
         }
     }
 
