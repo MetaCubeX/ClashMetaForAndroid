@@ -11,6 +11,7 @@ import com.github.kr328.clash.service.store.ServiceStore
 import com.github.kr328.clash.service.util.GeoUrlSanitizer
 import com.github.kr328.clash.service.util.ProxyDialerYamlEdit
 import com.github.kr328.clash.service.util.ProxyHardener
+import com.github.kr328.clash.service.util.ensureBundledGeoAssets
 import com.github.kr328.clash.service.util.importedDir
 import com.github.kr328.clash.service.util.sendProfileLoaded
 import kotlinx.coroutines.channels.Channel
@@ -123,6 +124,7 @@ class ConfigurationModule(service: Service) : Module<ConfigurationModule.LoadExc
 
                 try {
                     GeoUrlSanitizer.sanitizeProfile(profileDir)
+                    service.ensureBundledGeoAssets()
                     Clash.load(profileDir).await()
                     applyPostLoad()
                 } catch (e: Exception) {
