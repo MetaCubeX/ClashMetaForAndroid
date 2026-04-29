@@ -16,6 +16,7 @@ import androidx.viewpager2.widget.ViewPager2
 import com.github.kr328.clash.core.model.ProxyGroup
 import com.github.kr328.clash.core.model.TunnelState
 import com.github.kr328.clash.core.util.trafficTotal
+import com.github.kr328.clash.common.util.SubscriptionUsage
 import com.github.kr328.clash.design.adapter.ProfileAdapter
 import com.github.kr328.clash.design.databinding.BottomSheetMainModeBinding
 import com.github.kr328.clash.design.databinding.DesignAboutBinding
@@ -90,6 +91,7 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
     private var currentModeSegment: TunnelState.Mode = TunnelState.Mode.Rule
     private var activeProfileForQuickActions: Profile? = null
     private var activeAnnouncementSupportUrl: String? = null
+    private var activeSubscriptionUsage: SubscriptionUsage? = null
     private var activeAnnouncementOnOpenUrl: ((String) -> Unit)? = null
     private var activeAnnouncementOnSupport: (() -> Unit)? = null
 
@@ -181,7 +183,7 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
     suspend fun setAnnouncement(
         text: String?,
         url: String?,
-        usage: com.github.kr328.clash.common.util.SubscriptionUsage? = null,
+        usage: SubscriptionUsage? = null,
         supportUrl: String? = null,
         onOpenUrl: ((String) -> Unit)? = null,
         onDismiss: (() -> Unit)? = null,
@@ -197,6 +199,7 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
             val support = supportUrl?.takeIf { it.isNotBlank() }
             val hasAnnouncement = message.isNotBlank()
             activeAnnouncementSupportUrl = support
+            activeSubscriptionUsage = usage
             activeAnnouncementOnOpenUrl = onOpenUrl
             activeAnnouncementOnSupport = onSupport
 
@@ -252,8 +255,6 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
                 onSupport = onSupport,
             )
             renderActiveProfileCard(activeProfileForQuickActions)
-            // Usage is currently rendered by profile cards; keep signature for compatibility.
-            usage?.let { /* kept for API stability; per-profile usage is rendered from Profile fields */ }
         }
     }
 
@@ -437,10 +438,12 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
     }
 
     private fun usageLabel(profile: Profile): String {
-        val used = profile.upload + profile.download
+        val headerUsage = activeSubscriptionUsage.takeIf { profile.type == Profile.Type.Url }
+        val used = headerUsage?.used ?: (profile.upload + profile.download)
         val usedText = used.trafficTotal()
-        if (profile.total < 2L) return "$usedText / ${context.getString(R.string.sub_announcement_unlimited)}"
-        return "$usedText / ${profile.total.trafficTotal()}"
+        val total = headerUsage?.total ?: profile.total
+        if (total < 2L) return "$usedText / ${context.getString(R.string.sub_announcement_unlimited)}"
+        return "$usedText / ${total.trafficTotal()}"
     }
 
     suspend fun patchProxyGroups(
