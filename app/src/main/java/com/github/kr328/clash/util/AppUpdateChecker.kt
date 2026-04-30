@@ -57,6 +57,14 @@ object AppUpdateChecker {
         prefs.edit().putString(KEY_LAST_NOTIFIED_TAG, latest.tagName).apply()
     }
 
+    /**
+     * Immediately shows update notification with actions.
+     * Used by manual "Check for updates" flow.
+     */
+    fun showUpdateNotification(context: Context, release: GitHubReleaseUpdate.Info) {
+        notifyUpdateAvailable(context.applicationContext, release)
+    }
+
     private fun periodicPendingIntent(context: Context): PendingIntent {
         val intent = Intent(context, UpdateCheckReceiver::class.java)
         return PendingIntent.getBroadcast(

@@ -4,13 +4,13 @@ import com.github.kr328.clash.common.util.intent
 import com.github.kr328.clash.core.bridge.Bridge
 import com.github.kr328.clash.design.SettingsDesign
 import com.github.kr328.clash.design.dialog.showAboutDialog
+import com.github.kr328.clash.util.AppUpdateChecker
 import com.github.kr328.clash.util.GitHubReleaseUpdate
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.select
 import kotlinx.coroutines.withContext
-import android.widget.Toast
 
 class SettingsActivity : BaseActivity<SettingsDesign>() {
     override suspend fun main() {
@@ -95,27 +95,6 @@ class SettingsActivity : BaseActivity<SettingsDesign>() {
         }
 
         setStatus(getString(com.github.kr328.clash.design.R.string.about_update_available, latest.tagName))
-        val id = GitHubReleaseUpdate.enqueueApkDownload(this, latest)
-        if (id >= 0L) {
-            Toast.makeText(
-                this,
-                getString(com.github.kr328.clash.design.R.string.about_download_started),
-                Toast.LENGTH_SHORT,
-            ).show()
-        } else {
-            Toast.makeText(
-                this,
-                getString(com.github.kr328.clash.design.R.string.about_download_failed),
-                Toast.LENGTH_SHORT,
-            ).show()
-            runCatching {
-                startActivity(
-                    android.content.Intent(
-                        android.content.Intent.ACTION_VIEW,
-                        android.net.Uri.parse(latest.htmlUrl),
-                    ),
-                )
-            }
-        }
+        AppUpdateChecker.showUpdateNotification(this, latest)
     }
 }

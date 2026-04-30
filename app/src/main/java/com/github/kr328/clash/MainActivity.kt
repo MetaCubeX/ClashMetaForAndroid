@@ -51,6 +51,7 @@ import com.github.kr328.clash.service.model.Profile
 import com.github.kr328.clash.service.store.ServiceStore
 import com.github.kr328.clash.util.RussianBypassDefaults
 import com.github.kr328.clash.util.GitHubReleaseUpdate
+import com.github.kr328.clash.util.AppUpdateChecker
 import com.github.kr328.clash.util.showProfileQuickEditSheet
 import com.github.kr328.clash.util.startClashService
 import com.github.kr328.clash.util.stopClashService
@@ -1177,16 +1178,7 @@ class MainActivity : BaseActivity<MainDesign>() {
                 return@withContext
             }
             setStatus(getString(R.string.about_update_available, latest.tagName))
-            val id = GitHubReleaseUpdate.enqueueApkDownload(this@MainActivity, latest)
-            if (id >= 0L) {
-                pendingApkDownloadId = id
-                Toast.makeText(this@MainActivity, R.string.about_download_started, Toast.LENGTH_SHORT).show()
-            } else {
-                Toast.makeText(this@MainActivity, R.string.about_download_failed, Toast.LENGTH_SHORT).show()
-                runCatching {
-                    startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(latest.htmlUrl)))
-                }
-            }
+            AppUpdateChecker.showUpdateNotification(this@MainActivity, latest)
         }
     }
 
