@@ -286,5 +286,12 @@
         <receiver
             android:name=".UpdateCheckReceiver"
             android:exported="false" />
+        <receiver
+            android:name=".UpdateActionReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.DOWNLOAD_COMPLETE" />
+            </intent-filter>
+        </receiver>
     </application>
 </manifest>

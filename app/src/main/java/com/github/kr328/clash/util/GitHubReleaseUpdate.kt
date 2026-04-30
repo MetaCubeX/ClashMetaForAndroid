@@ -79,13 +79,25 @@ object GitHubReleaseUpdate {
      */
     fun enqueueApkDownload(context: Context, info: Info): Long {
         val url = info.apkUrl ?: return -1L
+        return enqueueApkDownload(
+            context = context,
+            tagName = info.tagName,
+            apkUrl = url,
+            apkName = info.apkName,
+        )
+    }
+
+    fun enqueueApkDownload(
+        context: Context,
+        tagName: String,
+        apkUrl: String,
+        apkName: String?,
+    ): Long {
         val dm = context.getSystemService(DownloadManager::class.java) ?: return -1L
-
-        val fileName = (info.apkName ?: "clashfest-${info.tagName}.apk")
+        val fileName = (apkName ?: "clashfest-$tagName.apk")
             .replace(Regex("""[^A-Za-z0-9._-]"""), "_")
-
-        val request = DownloadManager.Request(Uri.parse(url))
-            .setTitle(context.getString(com.github.kr328.clash.design.R.string.about_update_available, info.tagName))
+        val request = DownloadManager.Request(Uri.parse(apkUrl))
+            .setTitle(context.getString(com.github.kr328.clash.design.R.string.about_update_available, tagName))
             .setDescription(context.getString(com.github.kr328.clash.design.R.string.about_download_started))
             .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
             .setMimeType("application/vnd.android.package-archive")
