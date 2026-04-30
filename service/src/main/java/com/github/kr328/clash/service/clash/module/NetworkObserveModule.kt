@@ -44,7 +44,11 @@ class NetworkObserveModule(service: Service) : Module<Network>(service) {
     private val callback = object : ConnectivityManager.NetworkCallback() {
         override fun onAvailable(network: Network) {
             Log.i("NetworkObserve onAvailable")
-            networkInfos[network] = NetworkInfo()
+            val dns = runCatching {
+                connectivity.getLinkProperties(network)?.dnsServers ?: emptyList()
+            }.getOrDefault(emptyList())
+            networkInfos[network] = NetworkInfo(dnsList = dns)
+            networks.trySend(network)
         }
 
         override fun onLosing(network: Network, maxMsToLive: Int) {
@@ -65,6 +69,11 @@ class NetworkObserveModule(service: Service) : Module<Network>(service) {
             Log.i("NetworkObserve onLinkPropertiesChanged")
             networkInfos[network]?.dnsList = linkProperties.dnsServers
 
+            networks.trySend(network)
+        }
+
+        override fun onCapabilitiesChanged(network: Network, networkCapabilities: NetworkCapabilities) {
+            Log.i("NetworkObserve onCapabilitiesChanged")
             networks.trySend(network)
         }
 
@@ -120,8 +129,8 @@ class NetworkObserveModule(service: Service) : Module<Network>(service) {
         val dnsList = (networkInfos.asSequence().minByOrNull { networkToInt(it) }?.value?.dnsList
             ?: emptyList()).map { x -> x.asSocketAddressText(53) }
         val prevDnsList = curDnsList
-        if (dnsList.isNotEmpty() && prevDnsList != dnsList) {
-            Log.i("notifyDnsChange updated")
+        if (prevDnsList != dnsList) {
+            Log.i("notifyDnsChange updated: ${prevDnsList.size} -> ${dnsList.size}")
             curDnsList = dnsList
             Clash.notifyDnsChanged(dnsList)
         }
@@ -158,14 +167,14 @@ class NetworkObserveModule(service: Service) : Module<Network>(service) {
     }
 
     /**
-     * Wait up to ~500ms for additional network events so we batch a quick "available -> losing
+     * Wait up to ~180ms for additional network events so we batch a quick "available -> losing
      * -> link-properties" burst into a single notification. Sleeps efficiently and exits early
      * once events stop arriving - the previous version did a hard `delay(500)` on every single
      * event, which was wasted CPU when nothing else was happening.
      */
     private suspend fun coalesceNetworkEvents(first: Network): Network {
         var latest = first
-        val deadline = System.currentTimeMillis() + 500
+        val deadline = System.currentTimeMillis() + 180
         while (true) {
             val remaining = deadline - System.currentTimeMillis()
             if (remaining <= 0) return latest

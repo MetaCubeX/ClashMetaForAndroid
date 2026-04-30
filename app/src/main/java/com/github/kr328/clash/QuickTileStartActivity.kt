@@ -60,13 +60,13 @@ class QuickTileStartActivity : ComponentActivity(), CoroutineScope by MainScope(
     private fun startFromForeground() {
         launch {
             runCatching {
-                prepareQuickTileVpnOnly()
                 val vpnRequest = startClashService()
                 if (vpnRequest != null) {
                     requestInFlight = true
                     vpnPermissionLauncher.launch(vpnRequest)
                     return@launch
                 }
+                prepareQuickTileVpnOnly()
                 finishStarted()
             }.onFailure {
                 Log.e("Quick tile start failed", it)

@@ -40,6 +40,9 @@ class TileService : TileService() {
                 startVpnFromTileOrShowPermission()
             }
             Tile.STATE_ACTIVE -> {
+                clashRunning = false
+                currentProfile = ""
+                updateTile()
                 stopClashService()
             }
         }
@@ -101,15 +104,23 @@ class TileService : TileService() {
             startQuickTileActivity()
             return
         }
+        clashRunning = true
+        currentProfile = ""
+        updateTile()
+        val pendingPermission = runCatching { startClashService() }.getOrNull()
+        if (pendingPermission != null) {
+            clashRunning = false
+            updateTile()
+            startQuickTileActivity()
+            return
+        }
         tileScope.launch {
             runCatching {
                 prepareQuickTileVpnOnly()
-                val pendingPermission = startClashService()
-                if (pendingPermission != null) {
-                    startQuickTileActivity()
-                } else {
-                    autoSelectFirstRuntimeProxy()
-                }
+                autoSelectFirstRuntimeProxy()
+            }.onFailure {
+                clashRunning = false
+                updateTile()
             }
         }
     }

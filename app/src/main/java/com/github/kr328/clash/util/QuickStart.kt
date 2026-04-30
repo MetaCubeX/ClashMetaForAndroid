@@ -1,6 +1,7 @@
 package com.github.kr328.clash.util
 
 import android.content.Context
+import com.github.kr328.clash.core.model.Proxy
 import com.github.kr328.clash.core.model.ProxySort
 import com.github.kr328.clash.service.store.ServiceStore
 import kotlinx.coroutines.Dispatchers
@@ -68,6 +69,13 @@ private suspend fun selectFirstLeaf(
     }.getOrNull() ?: return null
 
     for (proxy in group.proxies) {
+        if (proxy.type == Proxy.Type.Direct ||
+            proxy.type == Proxy.Type.Reject ||
+            proxy.name.equals("DIRECT", ignoreCase = true) ||
+            proxy.name.equals("REJECT", ignoreCase = true)
+        ) {
+            continue
+        }
         if (proxy.name.matches(Regex("^sub\\d+$", RegexOption.IGNORE_CASE))) continue
         if (proxy.type.group || proxy.name in knownGroups) {
             val nested = selectFirstLeaf(proxy.name, knownGroups, visited)

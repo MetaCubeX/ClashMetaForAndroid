@@ -28,6 +28,7 @@ import androidx.core.content.getSystemService
 import com.github.kr328.clash.common.util.ShareImportSupport
 import com.github.kr328.clash.common.util.StandalonePing
 import com.github.kr328.clash.common.util.SubscriptionNameGuesser
+import com.github.kr328.clash.common.util.SubscriptionOverrides
 import com.github.kr328.clash.common.util.intent
 import com.github.kr328.clash.common.util.setUUID
 import com.github.kr328.clash.common.util.ticker
@@ -88,6 +89,7 @@ class MainActivity : BaseActivity<MainDesign>() {
     private var lastForwardedTrafficTotal: Long = Long.MIN_VALUE
     private var isCheckingUpdates: Boolean = false
     private var isToggleStatusInFlight: Boolean = false
+    private var pendingTunnelMode: TunnelState.Mode? = null
     private var pendingApkDownloadId: Long = -1L
     private var downloadReceiverRegistered: Boolean = false
     private val updatePrefs by lazy { getSharedPreferences("app_update", MODE_PRIVATE) }
@@ -122,9 +124,10 @@ class MainActivity : BaseActivity<MainDesign>() {
         try {
             val normalized = normalizeTunnelMode(mode)
             uiStore.tunnelModePreference = normalized.name
+            pendingTunnelMode = normalized
             setMode(normalized)
 
-            val running = withContext(Dispatchers.IO) { resolveStatusSnapshot().serviceRunning }
+            val running = clashRunning || withContext(Dispatchers.IO) { resolveStatusSnapshot().serviceRunning }
             if (running) {
                 val error = runCatching {
                     withClash {
@@ -132,13 +135,31 @@ class MainActivity : BaseActivity<MainDesign>() {
                         o.mode = normalized
                         patchOverride(Clash.OverrideSlot.Session, o)
                     }
+                    if (normalized == TunnelState.Mode.Global) {
+                        ensureGlobalSelectionSafe()
+                    }
+                    delay(120L)
+                    val applied = runCatching {
+                        withClash { queryTunnelState().mode }
+                    }.getOrNull()
+                    if (applied != null && normalizeTunnelMode(applied) != normalized) {
+                        withClash {
+                            val o = queryOverride(Clash.OverrideSlot.Session)
+                            o.mode = normalized
+                            patchOverride(Clash.OverrideSlot.Session, o)
+                        }
+                    } else if (applied != null) {
+                        pendingTunnelMode = null
+                    }
                 }.exceptionOrNull()
 
                 if (error != null && error !is CancellationException) {
+                    pendingTunnelMode = null
                     showExceptionToast(error as? Exception ?: Exception(error))
                 }
             }
         } catch (e: Exception) {
+            pendingTunnelMode = null
             if (e !is CancellationException) showExceptionToast(e)
         } finally {
             // Defer heavy dashboard work so mode UI updates immediately (Rule / Global switch).
@@ -180,6 +201,49 @@ class MainActivity : BaseActivity<MainDesign>() {
             normalized.contains("авто") ||
             normalized.contains("лучш") ||
             normalized.contains("быстр")
+    }
+
+    private fun isBlockedGlobalChoice(name: String): Boolean =
+        name.equals("DIRECT", ignoreCase = true) || name.equals("REJECT", ignoreCase = true)
+
+    private fun isBlockedGlobalChoice(proxy: Proxy): Boolean =
+        proxy.type == Proxy.Type.Direct ||
+            proxy.type == Proxy.Type.Reject ||
+            isBlockedGlobalChoice(proxy.name)
+
+    private suspend fun ensureGlobalSelectionSafe() {
+        runCatching {
+            val global = withClash {
+                queryProxyGroup("GLOBAL", com.github.kr328.clash.core.model.ProxySort.Default)
+            }
+            if (!isBlockedGlobalChoice(global.now)) return@runCatching
+            val firstUsable = global.proxies.firstOrNull { !isBlockedGlobalChoice(it) }?.name ?: return@runCatching
+            withClash { patchSelector("GLOBAL", firstUsable) }
+        }
+    }
+
+    private suspend fun ensureGlobalSelectionSafeWithRetry(
+        attempts: Int = 10,
+        delayMs: Long = 180L,
+    ) {
+        repeat(attempts) { index ->
+            val done = runCatching {
+                val running = resolveStatusSnapshot().serviceRunning
+                if (!running) return@runCatching true
+
+                val mode = withClash { queryTunnelState().mode }
+                if (normalizeTunnelMode(mode) != TunnelState.Mode.Global) return@runCatching true
+
+                val hasGlobal = withClash { queryProxyGroupNames(false).any { it.equals("GLOBAL", ignoreCase = true) } }
+                if (!hasGlobal) return@runCatching false
+
+                ensureGlobalSelectionSafe()
+                true
+            }.getOrDefault(false)
+
+            if (done) return
+            if (index < attempts - 1) delay(delayMs)
+        }
     }
 
     private suspend fun warmUpAutoProxyGroups() = coroutineScope {
@@ -349,6 +413,12 @@ class MainActivity : BaseActivity<MainDesign>() {
                                 includeAnnouncement = it == Event.ActivityStart,
                                 force = serviceStateEvent,
                             )
+                            if (it == Event.ProfileLoaded || it == Event.ProfileChanged) {
+                                launch {
+                                    delay(260L)
+                                    ensureGlobalSelectionSafeWithRetry()
+                                }
+                            }
                         }
 
                         else -> Unit
@@ -402,7 +472,13 @@ class MainActivity : BaseActivity<MainDesign>() {
                             startActivity(LogsActivity::class.intent)
 
                         MainDesign.Request.OpenRouting ->
-                            startActivity(RoutingHubActivity::class.intent)
+                            startActivity(EffectiveRulesActivity::class.intent)
+
+                        MainDesign.Request.OpenRules ->
+                            startActivity(RuleSnippetActivity::class.intent)
+
+                        MainDesign.Request.OpenProxyChain ->
+                            startActivity(ProxyChainActivity::class.intent)
 
                         MainDesign.Request.OpenPerAppRouting ->
                             startActivity(AccessControlActivity::class.intent)
@@ -417,7 +493,7 @@ class MainActivity : BaseActivity<MainDesign>() {
                             startActivity(ThemeSettingsActivity::class.intent)
 
                         MainDesign.Request.OpenAppSettings ->
-                            startActivity(AppSettingsActivity::class.intent)
+                            startActivity(SubscriptionIdentityActivity::class.intent)
 
                         MainDesign.Request.OpenAbout ->
                             design.showAbout(
@@ -599,6 +675,7 @@ class MainActivity : BaseActivity<MainDesign>() {
                         withProfile {
                             if (profile.imported) {
                                 setActive(profile)
+                                ensureGlobalSelectionSafeWithRetry()
                             } else {
                                 design.requestSave(profile)
                             }
@@ -657,6 +734,7 @@ class MainActivity : BaseActivity<MainDesign>() {
                         withProfile {
                             if (profile.imported) {
                                 setActive(profile)
+                                ensureGlobalSelectionSafeWithRetry()
                             } else {
                                 design.requestSave(profile)
                             }
@@ -760,6 +838,7 @@ class MainActivity : BaseActivity<MainDesign>() {
         val profile = withProfile { queryByUUID(uuid) }
         if (profile?.imported == true) {
             withProfile { setActive(profile) }
+            ensureGlobalSelectionSafeWithRetry()
             design.showToast(getString(R.string.import_done_named, name), ToastDuration.Long)
         } else {
             launchProperties(uuid)
@@ -873,9 +952,23 @@ class MainActivity : BaseActivity<MainDesign>() {
             } else {
                 uiStore.tunnelModePreference = normalizeTunnelMode(state.mode).name
             }
+
+            val preferredMode = parseTunnelMode(uiStore.tunnelModePreference)
+            if (preferredMode == TunnelState.Mode.Global || state.mode == TunnelState.Mode.Global) {
+                ensureGlobalSelectionSafe()
+            }
         }
 
-        setMode(state.mode)
+        val pendingMode = pendingTunnelMode
+        if (pendingMode != null) {
+            setMode(pendingMode)
+            if (state.mode == pendingMode) {
+                pendingTunnelMode = null
+            }
+        } else {
+            val preferredMode = if (running) parseTunnelMode(uiStore.tunnelModePreference) else null
+            setMode(preferredMode ?: state.mode)
+        }
 
         val active = withProfile { queryActive() }
         val profiles = withProfile { queryAll() }
@@ -1422,9 +1515,14 @@ class MainActivity : BaseActivity<MainDesign>() {
         val meta = com.github.kr328.clash.common.util.SubscriptionMetadataFetcher.fetch(
             this,
             url,
+            SubscriptionOverrides.getUserAgent(this, active.uuid),
             uiStore.subscriptionMetadataAllowInsecureHttp,
         )
         meta.shareLinksDisable?.let { ServiceStore(this).subscriptionShareLinksLocked = it }
+        uiStore.subscriptionHwidActive = meta.hwidActive?.toString().orEmpty()
+        uiStore.subscriptionHwidNotSupported = meta.hwidNotSupported?.toString().orEmpty()
+        uiStore.subscriptionHwidMaxDevicesReached = meta.hwidMaxDevicesReached?.toString().orEmpty()
+        uiStore.subscriptionHwidLimit = meta.hwidLimit?.toString().orEmpty()
         if (meta.isEmpty()) {
             // still mark the attempt to avoid hammering the server every screen-on
             uiStore.subscriptionMetadataLastFetch = now
