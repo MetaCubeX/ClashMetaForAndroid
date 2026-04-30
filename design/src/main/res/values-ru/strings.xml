@@ -76,7 +76,7 @@
     <string name="about">О программе</string>
     <string name="add">Добавить</string>
     <string name="rules">Правила</string>
-    <string name="routing_rules">Маршрутизация</string>
+    <string name="routing_rules">Правила маршрутизации</string>
 
     <!-- Bottom navigation labels -->
     <string name="nav_home">Главная</string>
@@ -105,7 +105,7 @@
     <string name="routing_hub_effective_summary">Активные правила маршрутизации из текущего профиля</string>
     <string name="routing_hub_rules_summary">Редактирование наборов правил и провайдеров</string>
     <string name="routing_hub_per_app_summary">Какие приложения идут через VPN-туннель</string>
-    <string name="effective_rules_title">Правила маршрутизации</string>
+    <string name="effective_rules_title">Routing Rules</string>
     <string name="effective_rules_intro">Правила активного профиля в порядке YAML.</string>
     <string name="effective_rules_count">Правил в конфиге: %d</string>
     <string name="effective_rules_filter_all">Все</string>
@@ -442,6 +442,24 @@
 
     <string name="dark_mode">Тёмный режим</string>
     <string name="app_language">Язык приложения</string>
+    <string name="subscription_identity">Schemes и HWID</string>
+    <string name="subscription_hwid_title">HWID текущего устройства</string>
+    <string name="subscription_copy_hwid">Скопировать HWID</string>
+    <string name="subscription_scheme_title">Поддерживаемые URL-схемы импорта</string>
+    <string name="subscription_copy_schemes">Скопировать URL-схемы</string>
+    <string name="subscription_hwid_diagnostics_title">Диагностика HWID</string>
+    <string name="subscription_copy_hwid_diagnostics">Скопировать диагностику</string>
+    <string name="subscription_user_agent_override">Переопределение User-Agent подписки</string>
+    <string name="subscription_user_agent_custom">Свой User-Agent</string>
+    <string name="subscription_user_agent_preset_default">По умолчанию (ClashFest)</string>
+    <string name="subscription_user_agent_preset_happ_ios">Happ iOS</string>
+    <string name="subscription_user_agent_preset_happ_android">Happ Android</string>
+    <string name="subscription_user_agent_preset_v2raytun_ios">v2raytun iOS</string>
+    <string name="subscription_user_agent_preset_v2raytun_android">v2raytun Android</string>
+    <string name="subscription_user_agent_preset_custom">Custom</string>
+    <string name="subscription_user_agent_override_summary">Необязательно. Применяется только к этой подписке (fetch/update/metadata). Оставьте пустым для User-Agent по умолчанию ClashFest.</string>
+    <string name="subscription_user_agent_strict">Строгий custom User-Agent</string>
+    <string name="subscription_user_agent_strict_summary">Вкл: ошибка сразу, если этот User-Agent вернул невалидный формат. Выкл: авто-повтор с дефолтным User-Agent ядра.</string>
     <string name="app_language_system">Как в системе</string>
     <string name="app_language_en">English</string>
     <string name="app_language_ru">Русский</string>
@@ -650,7 +668,7 @@
 
     <string name="rule_manual_custom_kind">Тип правила Clash</string>
     <string name="rule_manual_content_payload_hint">Значение (домен, IP/CIDR, порт, …)</string>
-    <string name="rule_existing_provider_toggle_hint">Чтобы отключить набор правил, откройте «Маршрутизация» (ручные правила) и выключите строку RULE-SET — не отключайте провайдера в этом списке.</string>
+    <string name="rule_existing_provider_toggle_hint">Провайдеры здесь только для просмотра. Чтобы отключить ruleset, откройте «Rules -> Manual rules» и выключите соответствующую строку RULE-SET.</string>
     <string name="theme_settings">Тема</string>
     <string name="theme_mode">Режим темы</string>
     <string name="theme_auto">Авто</string>

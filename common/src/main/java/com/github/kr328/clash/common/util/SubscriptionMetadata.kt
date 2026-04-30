@@ -29,6 +29,10 @@ data class SubscriptionMetadata(
      * Parsed from `share-links` / `share_links` style headers.
      */
     val shareLinksDisable: Boolean? = null,
+    val hwidActive: Boolean? = null,
+    val hwidNotSupported: Boolean? = null,
+    val hwidMaxDevicesReached: Boolean? = null,
+    val hwidLimit: Boolean? = null,
 ) {
     fun isEmpty(): Boolean =
         supportUrl == null &&
@@ -38,7 +42,11 @@ data class SubscriptionMetadata(
             announcement == null &&
             announcementUrl == null &&
             subscriptionUserinfo == null &&
-            shareLinksDisable == null
+            shareLinksDisable == null &&
+            hwidActive == null &&
+            hwidNotSupported == null &&
+            hwidMaxDevicesReached == null &&
+            hwidLimit == null
 }
 
 object SubscriptionMetadataFetcher {
@@ -49,6 +57,7 @@ object SubscriptionMetadataFetcher {
     suspend fun fetch(
         context: Context,
         urlString: String,
+        userAgentOverride: String? = null,
         allowHttpMetadata: Boolean = false,
     ): SubscriptionMetadata =
         withContext(Dispatchers.IO) {
@@ -63,14 +72,7 @@ object SubscriptionMetadataFetcher {
                     connectTimeout = 15_000
                     readTimeout = 15_000
                     instanceFollowRedirects = true
-                    val ver = try {
-                        context.packageManager
-                            .getPackageInfo(context.packageName, 0).versionName ?: "0"
-                    } catch (_: Exception) {
-                        "0"
-                    }
-                    setRequestProperty("User-Agent", "ClashFest/$ver")
-                    SubscriptionHttpHeaders.applyTo(this, context)
+                    SubscriptionHttpHeaders.applyTo(this, context, userAgentOverride)
                 }
                 try {
                     conn.connect()
@@ -131,6 +133,12 @@ object SubscriptionMetadataFetcher {
             "X-Share-Links-Policy",
         )
         val shareLinksDisable = parseShareLinksPolicy(shareLinksRaw)
+        val hwidActive = parseBooleanHeader(header("x-hwid-active", "X-HWID-ACTIVE"))
+        val hwidNotSupported = parseBooleanHeader(header("x-hwid-not-supported", "X-HWID-NOT-SUPPORTED"))
+        val hwidMaxDevicesReached = parseBooleanHeader(
+            header("x-hwid-max-devices-reached", "X-HWID-MAX-DEVICES-REACHED"),
+        )
+        val hwidLimit = parseBooleanHeader(header("x-hwid-limit", "X-HWID-LIMIT"))
 
         return SubscriptionMetadata(
             supportUrl = supportRaw?.let(::normalizeUrl)?.takeIf { looksLikeUrl(it) },
@@ -141,10 +149,23 @@ object SubscriptionMetadataFetcher {
             announcementUrl = announceUrl?.takeIf { looksLikeUrl(it) },
             subscriptionUserinfo = userinfo,
             shareLinksDisable = shareLinksDisable,
+            hwidActive = hwidActive,
+            hwidNotSupported = hwidNotSupported,
+            hwidMaxDevicesReached = hwidMaxDevicesReached,
+            hwidLimit = hwidLimit,
         )
     }
 
     private fun parseShareLinksPolicy(raw: String?): Boolean? {
+        if (raw.isNullOrBlank()) return null
+        return when (raw.trim().lowercase()) {
+            "true", "1", "yes", "on" -> true
+            "false", "0", "no", "off" -> false
+            else -> null
+        }
+    }
+
+    private fun parseBooleanHeader(raw: String?): Boolean? {
         if (raw.isNullOrBlank()) return null
         return when (raw.trim().lowercase()) {
             "true", "1", "yes", "on" -> true

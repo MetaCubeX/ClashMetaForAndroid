@@ -1,6 +1,7 @@
 package com.github.kr328.clash
 
 import com.github.kr328.clash.common.util.ShareImportSupport
+import com.github.kr328.clash.common.util.SubscriptionOverrides
 import com.github.kr328.clash.common.util.intent
 import com.github.kr328.clash.common.util.setUUID
 import com.github.kr328.clash.common.util.uuid
@@ -20,6 +21,10 @@ import java.util.concurrent.TimeUnit
 class PropertiesActivity : BaseActivity<PropertiesDesign>() {
     private var canceled: Boolean = false
     private lateinit var original: Profile
+    private var originalUserAgentOverride: String? = null
+    private var userAgentOverride: String? = null
+    private var originalStrictUserAgent: Boolean = false
+    private var strictUserAgent: Boolean = false
 
     override suspend fun main() {
         setResult(RESULT_CANCELED)
@@ -28,8 +33,16 @@ class PropertiesActivity : BaseActivity<PropertiesDesign>() {
         val design = PropertiesDesign(this)
 
         original = withProfile { queryByUUID(uuid) } ?: return finish()
+        originalUserAgentOverride = SubscriptionOverrides.getUserAgent(this, uuid)
+        originalStrictUserAgent = SubscriptionOverrides.isStrictUserAgent(this, uuid)
+        userAgentOverride = originalUserAgentOverride
+        strictUserAgent = originalStrictUserAgent
 
         design.profile = original
+        design.userAgentOverride = originalUserAgentOverride.orEmpty()
+        design.setOnUserAgentChanged { userAgentOverride = it.takeIf(String::isNotBlank) }
+        design.strictUserAgent = originalStrictUserAgent
+        design.setOnStrictUserAgentChanged { strictUserAgent = it }
         design.subscriptionSourceLocked = ServiceStore(this).subscriptionShareLinksLocked
 
         setContentDesign(design)
@@ -51,6 +64,22 @@ class PropertiesActivity : BaseActivity<PropertiesDesign>() {
                                 withProfile {
                                     patch(profile.uuid, profile.name, profile.source, profile.interval)
                                 }
+                            }
+                            if (!canceled && userAgentOverride != originalUserAgentOverride) {
+                                SubscriptionOverrides.setUserAgent(
+                                    this@PropertiesActivity,
+                                    profile.uuid,
+                                    userAgentOverride,
+                                )
+                                originalUserAgentOverride = userAgentOverride
+                            }
+                            if (!canceled && strictUserAgent != originalStrictUserAgent) {
+                                SubscriptionOverrides.setStrictUserAgent(
+                                    this@PropertiesActivity,
+                                    profile.uuid,
+                                    strictUserAgent,
+                                )
+                                originalStrictUserAgent = strictUserAgent
                             }
                         }
                         Event.ServiceRecreated -> {
@@ -121,6 +150,18 @@ class PropertiesActivity : BaseActivity<PropertiesDesign>() {
             withProcessing { updateStatus ->
                 withProfile {
                     patch(profile.uuid, profile.name, profile.source, profile.interval)
+                    SubscriptionOverrides.setUserAgent(
+                        this@PropertiesActivity,
+                        profile.uuid,
+                        userAgentOverride,
+                    )
+                    SubscriptionOverrides.setStrictUserAgent(
+                        this@PropertiesActivity,
+                        profile.uuid,
+                        strictUserAgent,
+                    )
+                    originalUserAgentOverride = userAgentOverride
+                    originalStrictUserAgent = strictUserAgent
 
                     coroutineScope {
                         commit(profile.uuid) {

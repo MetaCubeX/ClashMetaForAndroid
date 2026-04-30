@@ -6,8 +6,8 @@ import java.net.HttpURLConnection
 /** Applies [SubscriptionDeviceHeaders] in addition to any existing request properties. */
 object SubscriptionHttpHeaders {
 
-    fun applyTo(connection: HttpURLConnection, context: Context) {
-        SubscriptionDeviceHeaders.headerMap(context).forEach { (k, v) ->
+    fun applyTo(connection: HttpURLConnection, context: Context, userAgentOverride: String? = null) {
+        SubscriptionRequestHeaders.build(context, userAgentOverride).forEach { (k, v) ->
             connection.setRequestProperty(k, v)
         }
     }

@@ -82,6 +82,7 @@
                 <data android:scheme="clashmeta"/>
                 <data android:scheme="clashfest"/>
                 <data android:host="install-config"/>
+                <data android:host="installconfig"/>
             </intent-filter>
             <intent-filter>
                 <action android:name="com.github.metacubex.clash.meta.action.START_CLASH" />
@@ -158,6 +159,16 @@
             android:configChanges="uiMode"
             android:exported="false"
             android:label="@string/app" />
+        <activity
+            android:name=".LanguageSettingsActivity"
+            android:configChanges="uiMode"
+            android:exported="false"
+            android:label="@string/app_language" />
+        <activity
+            android:name=".SubscriptionIdentityActivity"
+            android:configChanges="uiMode"
+            android:exported="false"
+            android:label="@string/subscription_identity" />
         <activity
             android:name=".ThemeSettingsActivity"
             android:configChanges="uiMode"

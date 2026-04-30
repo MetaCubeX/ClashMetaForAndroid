@@ -95,7 +95,7 @@ class UiStore(context: Context) {
         defaultValue = ""
     )
 
-    /** Persisted Rule / Global / Direct choice; survives VPN stop/start. Empty = uninitialized. */
+    /** Persisted Rule / Global / Direct choice; survives VPN stop/start. Empty = use profile/runtime default. */
     var tunnelModePreference: String by store.string(
         key = "tunnel_mode_preference",
         defaultValue = ""
@@ -183,6 +183,24 @@ class UiStore(context: Context) {
     /** Cached `subscription-userinfo` header (used/total/expiry) of active profile. */
     var subscriptionUserinfo: String by store.string(
         key = "sub_userinfo",
+        defaultValue = "",
+    )
+
+    /** Cached Remnawave diagnostics headers (`true`/`false`/empty when unknown). */
+    var subscriptionHwidActive: String by store.string(
+        key = "sub_hwid_active",
+        defaultValue = "",
+    )
+    var subscriptionHwidNotSupported: String by store.string(
+        key = "sub_hwid_not_supported",
+        defaultValue = "",
+    )
+    var subscriptionHwidMaxDevicesReached: String by store.string(
+        key = "sub_hwid_max_devices_reached",
+        defaultValue = "",
+    )
+    var subscriptionHwidLimit: String by store.string(
+        key = "sub_hwid_limit",
         defaultValue = "",
     )
 

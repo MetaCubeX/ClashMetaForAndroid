@@ -3,6 +3,8 @@ package com.github.kr328.clash.service
 import android.content.Context
 import com.github.kr328.clash.common.log.Log
 import com.github.kr328.clash.common.util.MaybeBase64
+import com.github.kr328.clash.common.util.SubscriptionOverrides
+import com.github.kr328.clash.common.util.SubscriptionRequestHeaders
 import com.github.kr328.clash.common.util.SubscriptionUsage
 import com.github.kr328.clash.service.data.Database
 import com.github.kr328.clash.service.data.Imported
@@ -14,7 +16,6 @@ import com.github.kr328.clash.service.data.SelectionDao
 import com.github.kr328.clash.service.model.Profile
 import com.github.kr328.clash.service.remote.IFetchObserver
 import com.github.kr328.clash.service.remote.IProfileManager
-import com.github.kr328.clash.common.util.SubscriptionDeviceHeaders
 import com.github.kr328.clash.service.store.ServiceStore
 import com.github.kr328.clash.service.util.directoryLastModified
 import com.github.kr328.clash.service.util.generateProfileUUID
@@ -162,12 +163,13 @@ class ProfileManager(private val context: Context) : IProfileManager,
     suspend fun updateFlow(old: Imported) {
         val client = OkHttpClient()
         try {
-            val versionName = context.packageManager.getPackageInfo(context.packageName, 0).versionName
             val request = Request.Builder()
                 .url(old.source)
-                .header("User-Agent", "ClashFest/$versionName")
                 .apply {
-                    SubscriptionDeviceHeaders.headerMap(context).forEach { (k, v) ->
+                    SubscriptionRequestHeaders.build(
+                        context,
+                        SubscriptionOverrides.getUserAgent(context, old.uuid),
+                    ).forEach { (k, v) ->
                         header(k, v)
                     }
                 }

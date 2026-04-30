@@ -82,7 +82,7 @@ Presets only change <b>where</b> files are downloaded from (CDN / host). It is s
 
     <string name="add">ADD</string>
     <string name="rules">Rules</string>
-    <string name="routing_rules">Routing</string>
+    <string name="routing_rules">Routing Rules</string>
 
     <!-- Bottom navigation labels -->
     <string name="nav_home">Home</string>
@@ -102,6 +102,7 @@ Presets only change <b>where</b> files are downloaded from (CDN / host). It is s
     <string name="main_open_settings_summary">Theme, network, updates and advanced options</string>
     <string name="main_open_theme_summary">Dark mode, palette and text scale</string>
     <string name="main_open_language_summary">Change app language without opening deep settings</string>
+    <string name="main_open_subscription_identity_summary">HWID, clashfest:// scheme and copy buttons</string>
     <string name="main_open_about_summary">Version info, core version and update check</string>
 
     <!-- Routing hub screen -->
@@ -155,7 +156,7 @@ Presets only change <b>where</b> files are downloaded from (CDN / host). It is s
     <string name="per_app_mode_allow">Only selected</string>
     <string name="per_app_mode_deny">Except selected</string>
     <string name="per_app_counter">%1$d / %2$d</string>
-    <string name="effective_rules_title">Routing rules</string>
+    <string name="effective_rules_title">Routing Rules</string>
     <string name="effective_rules_intro">Rules from the active profile (YAML order). In Rule mode, Clash walks this list top to bottom. This screen does not show live traffic.</string>
     <string name="effective_rules_count">%d rules in config</string>
     <string name="effective_rules_filter_all">All rules</string>
@@ -296,7 +297,7 @@ Presets only change <b>where</b> files are downloaded from (CDN / host). It is s
     <string name="rule_provider_behavior">Behavior</string>
     <string name="rule_existing_providers">Existing Providers</string>
     <string name="rule_existing_providers_empty">No providers in active profile yet.</string>
-    <string name="rule_existing_provider_toggle_hint">To turn a ruleset off, open Routing (manual rules) and disable the RULE-SET line — do not disable the provider here.</string>
+    <string name="rule_existing_provider_toggle_hint">Providers here are read-only. To disable a ruleset, open Rules -> Manual rules and turn off the matching RULE-SET line.</string>
     <string name="rule_draft_provider_title">Draft provider (not saved yet)</string>
     <string name="rule_quick_wizard">Quick Wizard</string>
     <string name="rule_quick_wizard_apply">Apply selected preset</string>
@@ -568,6 +569,24 @@ Presets only change <b>where</b> files are downloaded from (CDN / host). It is s
 
     <string name="dark_mode">Dark Mode</string>
     <string name="app_language">App language</string>
+    <string name="subscription_identity">Schemes &amp; HWID</string>
+    <string name="subscription_hwid_title">Current device HWID</string>
+    <string name="subscription_copy_hwid">Copy HWID</string>
+    <string name="subscription_scheme_title">Supported install URL schemes</string>
+    <string name="subscription_copy_schemes">Copy URL schemes</string>
+    <string name="subscription_hwid_diagnostics_title">HWID diagnostics</string>
+    <string name="subscription_copy_hwid_diagnostics">Copy diagnostics</string>
+    <string name="subscription_user_agent_override">Subscription User-Agent override</string>
+    <string name="subscription_user_agent_custom">Custom User-Agent</string>
+    <string name="subscription_user_agent_preset_default">Default (ClashFest)</string>
+    <string name="subscription_user_agent_preset_happ_ios">Happ iOS</string>
+    <string name="subscription_user_agent_preset_happ_android">Happ Android</string>
+    <string name="subscription_user_agent_preset_v2raytun_ios">v2raytun iOS</string>
+    <string name="subscription_user_agent_preset_v2raytun_android">v2raytun Android</string>
+    <string name="subscription_user_agent_preset_custom">Custom</string>
+    <string name="subscription_user_agent_override_summary">Optional. Applied only to this subscription (fetch/update/metadata). Leave empty to use default ClashFest UA.</string>
+    <string name="subscription_user_agent_strict">Strict custom User-Agent</string>
+    <string name="subscription_user_agent_strict_summary">On: fail immediately if this User-Agent returns invalid format. Off: auto-retry with default core User-Agent.</string>
     <string name="app_language_system">System default</string>
     <string name="app_language_en">English</string>
     <string name="app_language_ru">Russian</string>
@@ -767,9 +786,9 @@ Presets only change <b>where</b> files are downloaded from (CDN / host). It is s
 
     <string name="proxy_chain_menu">Proxy chain…</string>
     <string name="proxy_chain_title">Proxy chain</string>
-    <string name="proxy_chain_intro">Traffic path is Dialer → Outbound → Internet. Pick dialer first (first hop from the app), then outbound (exit node whose region sites see). Writes dialer-proxy into config or provider YAML. Subscription refresh may replace provider files — re-apply if needed.</string>
-    <string name="proxy_chain_transport_hint">Use nodes with compatible transports (e.g. both TCP/TLS). Mixing unlike stacks (QUIC vs TCP-only, different TLS expectations, etc.) often breaks the chain — match inbound types when unsure.</string>
-    <string name="proxy_chain_usage_hint">Use chain: saves dialer-proxy, switches to Global, and selects this outbound — like desktop “Connect”. Save only: writes YAML without changing mode/selector. Rule mode still follows your rules; use Global (or rules that point to this outbound) so traffic uses the chained node.</string>
+    <string name="proxy_chain_intro">Path: Dialer → Outbound → Internet. Pick dialer first, then outbound. The app writes dialer-proxy into profile/provider YAML.</string>
+    <string name="proxy_chain_transport_hint">Use compatible transports (e.g. TCP/TLS with TCP/TLS). Mixing incompatible stacks often breaks the chain.</string>
+    <string name="proxy_chain_usage_hint">Use chain: save dialer-proxy + switch to Global + select outbound. Save only: write YAML only.</string>
     <string name="proxy_chain_dialer_label">Step 1 — Dialer (first hop)</string>
     <string name="proxy_chain_outbound_label">Step 2 — Outbound (exit node)</string>
     <string name="proxy_chain_connect">Use chain</string>

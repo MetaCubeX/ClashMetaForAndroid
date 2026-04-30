@@ -18,7 +18,8 @@ import com.github.kr328.clash.service.util.importedDir
 import com.github.kr328.clash.service.util.pendingDir
 import com.github.kr328.clash.service.util.processingDir
 import com.github.kr328.clash.common.util.ShareImportSupport
-import com.github.kr328.clash.common.util.SubscriptionDeviceHeaders
+import com.github.kr328.clash.common.util.SubscriptionOverrides
+import com.github.kr328.clash.common.util.SubscriptionRequestHeaders
 import com.github.kr328.clash.service.util.sendProfileChanged
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
@@ -56,15 +57,41 @@ object ProfileProcessor {
                 val force = snapshot.type != Profile.Type.File
                 var cb = callback
 
-                Clash.fetchAndValid(context.processingDir, snapshot.source, force) {
-                    try {
-                        cb?.updateStatus(it)
-                    } catch (e: Exception) {
-                        cb = null
+                val userAgentOverride = SubscriptionOverrides.getUserAgent(context, snapshot.uuid)
+                val strictUserAgent = SubscriptionOverrides.isStrictUserAgent(context, snapshot.uuid)
+                try {
+                    Clash.fetchAndValid(
+                        context.processingDir,
+                        snapshot.source,
+                        force,
+                        SubscriptionRequestHeaders.toNativeFetchJson(context, userAgentOverride),
+                    ) {
+                        try {
+                            cb?.updateStatus(it)
+                        } catch (e: Exception) {
+                            cb = null
 
-                        Log.w("Report fetch status callback failed", e)
-                    }
-                }.await()
+                            Log.w("Report fetch status callback failed", e)
+                        }
+                    }.await()
+                } catch (e: Exception) {
+                    if (userAgentOverride.isNullOrBlank() || strictUserAgent) throw e
+
+                    Log.w("Subscription fetch failed with custom User-Agent, retrying default core User-Agent", e)
+                    Clash.fetchAndValid(
+                        context.processingDir,
+                        snapshot.source,
+                        force,
+                        SubscriptionRequestHeaders.toNativeFetchJson(context, null),
+                    ) {
+                        try {
+                            cb?.updateStatus(it)
+                        } catch (e2: Exception) {
+                            cb = null
+                            Log.w("Report fetch status callback failed", e2)
+                        }
+                    }.await()
+                }
 
                 GeoUrlSanitizer.sanitizeProfile(context.processingDir)
 
@@ -84,12 +111,13 @@ object ProfileProcessor {
                         if (snapshot?.type == Profile.Type.Url) {
                             if (snapshot.source.startsWith("https://", true)) {
                                 val client = OkHttpClient()
-                                val versionName = context.packageManager.getPackageInfo(context.packageName, 0).versionName
                                 val request = Request.Builder()
                                     .url(snapshot.source)
-                                    .header("User-Agent", "ClashFest/$versionName")
                                     .apply {
-                                        SubscriptionDeviceHeaders.headerMap(context).forEach { (k, v) ->
+                                        SubscriptionRequestHeaders.build(
+                                            context,
+                                            SubscriptionOverrides.getUserAgent(context, snapshot.uuid),
+                                        ).forEach { (k, v) ->
                                             header(k, v)
                                         }
                                     }
@@ -184,15 +212,41 @@ object ProfileProcessor {
 
                 var cb = callback
 
-                Clash.fetchAndValid(context.processingDir, snapshot.source, true) {
-                    try {
-                        cb?.updateStatus(it)
-                    } catch (e: Exception) {
-                        cb = null
+                val userAgentOverride = SubscriptionOverrides.getUserAgent(context, snapshot.uuid)
+                val strictUserAgent = SubscriptionOverrides.isStrictUserAgent(context, snapshot.uuid)
+                try {
+                    Clash.fetchAndValid(
+                        context.processingDir,
+                        snapshot.source,
+                        true,
+                        SubscriptionRequestHeaders.toNativeFetchJson(context, userAgentOverride),
+                    ) {
+                        try {
+                            cb?.updateStatus(it)
+                        } catch (e: Exception) {
+                            cb = null
 
-                        Log.w("Report fetch status callback failed", e)
-                    }
-                }.await()
+                            Log.w("Report fetch status callback failed", e)
+                        }
+                    }.await()
+                } catch (e: Exception) {
+                    if (userAgentOverride.isNullOrBlank() || strictUserAgent) throw e
+
+                    Log.w("Subscription update failed with custom User-Agent, retrying default core User-Agent", e)
+                    Clash.fetchAndValid(
+                        context.processingDir,
+                        snapshot.source,
+                        true,
+                        SubscriptionRequestHeaders.toNativeFetchJson(context, null),
+                    ) {
+                        try {
+                            cb?.updateStatus(it)
+                        } catch (e2: Exception) {
+                            cb = null
+                            Log.w("Report fetch status callback failed", e2)
+                        }
+                    }.await()
+                }
 
                 if (!preserved.isEmpty() && configFile.isFile) {
                     val merged = SubscriptionUpdateMerge.mergeAfterFetch(configFile.readText(), preserved)
