@@ -33,6 +33,7 @@ class ProfileAdapter(
         { _, _, _ -> },
     private val onVisibleGroupChanged: (Profile, String) -> Unit = { _, _ -> },
     private val expandOnProfileClick: Boolean = false,
+    private val showServerChooserInCard: Boolean = true,
 ) : RecyclerView.Adapter<ProfileAdapter.Holder>() {
     class Holder(val binding: AdapterProfileBinding) : RecyclerView.ViewHolder(binding.root) {
         var ignoreGroupChip: Boolean = false
@@ -65,6 +66,10 @@ class ProfileAdapter(
     private var announcementSupportUrl: String? = null
     private var announcementOnOpenUrl: ((String) -> Unit)? = null
     private var announcementOnSupport: (() -> Unit)? = null
+    private val profileEmojiPool = listOf(
+        "🐱", "🐶", "🦊", "🐼", "🐻", "🐨", "🐯", "🦁",
+        "🐸", "🐵", "🐙", "🦄", "🐧", "🐺", "🐹", "🐰",
+    )
 
     fun setActiveAnnouncement(
         text: String?,
@@ -173,8 +178,14 @@ class ProfileAdapter(
         if (merged == proxyDetails && !hasPendingForDetails) return
         proxyDetails = merged
         active?.let { uuid ->
-            for (group in details.keys) {
-                pendingProxySelections.remove(proxySelectionKey(uuid, group))
+            for ((group, detail) in details) {
+                val key = proxySelectionKey(uuid, group)
+                val pending = pendingProxySelections[key] ?: continue
+                val pendingApplied = detail.now == pending
+                val pendingInvalid = detail.proxies.none { it.name == pending }
+                if (pendingApplied || pendingInvalid) {
+                    pendingProxySelections.remove(key)
+                }
             }
         }
         active ?: return
@@ -490,7 +501,7 @@ class ProfileAdapter(
         val expanded = current.uuid in expandedUuids && current.imported
 
         binding.pingSlot.visibility = View.GONE
-        val showServerChooser = !compactHomeCard && current.imported
+        val showServerChooser = !compactHomeCard && showServerChooserInCard && current.imported
         binding.chevronSlot.visibility = if (showServerChooser) View.VISIBLE else View.GONE
         binding.chevronView.visibility = if (showServerChooser) View.VISIBLE else View.GONE
         binding.chevronView.rotation = -90f
@@ -514,8 +525,9 @@ class ProfileAdapter(
             }
         } else {
             binding.profileTitle.text = current.name
-            binding.profileIconEmoji.visibility = View.GONE
-            binding.profileIcon.visibility = View.VISIBLE
+            binding.profileIconEmoji.visibility = View.VISIBLE
+            binding.profileIcon.visibility = View.GONE
+            binding.profileIconEmoji.text = profileEmoji(current)
         }
 
         val selectedGroup = selectedGroupForSummary(current)
@@ -672,13 +684,14 @@ class ProfileAdapter(
         val pg = proxyGroupForRow(profile, groupName) ?: return
         val inflater = list.context.layoutInflater
         val context = list.context
+        val proxies = pg.proxies.filterNot { shouldHideProxyOption(groupName, it) }
 
-        if (pg.proxies.isEmpty()) {
+        if (proxies.isEmpty()) {
             addEmptyProxyHint(list, context)
             return
         }
 
-        for (p in pg.proxies) {
+        for (p in proxies) {
             val row = inflater.inflate(R.layout.adapter_home_proxy_node, list, false)
 
             val title = p.title.ifBlank { p.name }
@@ -735,9 +748,21 @@ class ProfileAdapter(
             mainHit.setOnClickListener {
                 if (clashRunning && useEngineFor(profile)) {
                     setPendingProxySelection(profile.uuid, groupName, p.name)
+                    for (i in 0 until list.childCount) {
+                        list.getChildAt(i)
+                            .findViewById<View>(R.id.selected_bar)
+                            ?.visibility = View.INVISIBLE
+                    }
+                    row.findViewById<View>(R.id.selected_bar).visibility = View.VISIBLE
                     onProxyNodeSelected(profile, groupName, p.name)
                 } else if (profile.imported && profile.uuid == activeProfileUuid) {
                     setPendingProxySelection(profile.uuid, groupName, p.name)
+                    for (i in 0 until list.childCount) {
+                        list.getChildAt(i)
+                            .findViewById<View>(R.id.selected_bar)
+                            ?.visibility = View.INVISIBLE
+                    }
+                    row.findViewById<View>(R.id.selected_bar).visibility = View.VISIBLE
                     onProxyNodeSelected(profile, groupName, p.name)
                 } else {
                     onProxyYamlDetail(profile, groupName, p.name)
@@ -759,6 +784,19 @@ class ProfileAdapter(
         } else {
             view.visibility = View.GONE
         }
+    }
+
+    private fun shouldHideProxyOption(groupName: String, proxy: Proxy): Boolean {
+        if (!groupName.equals("GLOBAL", ignoreCase = true)) return false
+        if (proxy.type == Proxy.Type.Direct || proxy.type == Proxy.Type.Reject) return true
+        return proxy.name.equals("DIRECT", ignoreCase = true) ||
+            proxy.name.equals("REJECT", ignoreCase = true)
+    }
+
+    private fun shouldHideProxyName(groupName: String, proxyName: String): Boolean {
+        if (!groupName.equals("GLOBAL", ignoreCase = true)) return false
+        return proxyName.equals("DIRECT", ignoreCase = true) ||
+            proxyName.equals("REJECT", ignoreCase = true)
     }
 
     private fun addEmptyProxyHint(list: ViewGroup, context: Context) {
@@ -876,6 +914,7 @@ class ProfileAdapter(
             ?.now
             ?.takeIf { it.isNotBlank() }
             ?: return null
+        if (shouldHideProxyName(groupName, first)) return null
         val nested = if (useEngineFor(profile)) {
             proxyDetails[first]
         } else {
@@ -924,6 +963,11 @@ class ProfileAdapter(
         codePoint in 0x1F300..0x1FAFF ||
             codePoint in 0x2600..0x27BF ||
             codePoint in 0x2300..0x23FF
+
+    private fun profileEmoji(profile: Profile): String {
+        val index = (profile.uuid.hashCode() and Int.MAX_VALUE) % profileEmojiPool.size
+        return profileEmojiPool[index]
+    }
 
     override fun getItemCount(): Int = profiles.size
 }

@@ -49,7 +49,7 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:paddingStart="16dp"
-                android:paddingTop="@{self.surface.insets.top}"
+                android:paddingTop="0dp"
                 android:paddingEnd="16dp"
                 android:paddingBottom="12dp">
 

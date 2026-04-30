@@ -70,12 +70,14 @@ class AppBottomSheetDialog(
             if (fitContentHeight) {
                 behavior.apply {
                     isFitToContents = true
-                    skipCollapsed = false
+                    skipCollapsed = true
                     state = BottomSheetBehavior.STATE_EXPANDED
                 }
             } else {
-                behavior.halfExpandedRatio = 0.99f
-                behavior.state = BottomSheetBehavior.STATE_EXPANDED
+                behavior.apply {
+                    skipCollapsed = true
+                    state = BottomSheetBehavior.STATE_EXPANDED
+                }
             }
         }
     }

@@ -4,6 +4,7 @@ import android.content.Context
 import android.view.View
 import android.widget.ArrayAdapter
 import android.widget.AutoCompleteTextView
+import androidx.core.widget.NestedScrollView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -40,6 +41,7 @@ class ProxyChainDesign(
     )
 
     private val toolbar: MaterialToolbar = rootView.findViewById(R.id.toolbar)
+    private val scroll: NestedScrollView = rootView.findViewById(R.id.proxy_chain_scroll)
     private val diskChainsDetail: TextView = rootView.findViewById(R.id.disk_chains_detail)
     private val diskChainSpinner: AutoCompleteTextView = rootView.findViewById(R.id.disk_chain_spinner)
     private val runtimeOfflineNotice: TextView = rootView.findViewById(R.id.runtime_offline_notice)
@@ -61,9 +63,11 @@ class ProxyChainDesign(
         get() = rootView
 
     init {
-        ViewCompat.setOnApplyWindowInsetsListener(toolbar) { v, insets ->
-            val top = insets.getInsets(WindowInsetsCompat.Type.statusBars()).top
-            v.setPadding(v.paddingLeft, top, v.paddingRight, v.paddingBottom)
+        ViewCompat.setOnApplyWindowInsetsListener(rootView) { v, insets ->
+            val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            toolbar.setPadding(toolbar.paddingLeft, bars.top, toolbar.paddingRight, toolbar.paddingBottom)
+            v.setPaddingRelative(bars.left, 0, bars.right, 0)
+            scroll.setPadding(scroll.paddingLeft, scroll.paddingTop, scroll.paddingRight, bars.bottom + 16)
             insets
         }
         rootView.post { ViewCompat.requestApplyInsets(rootView) }

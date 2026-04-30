@@ -4,7 +4,9 @@ import android.app.Dialog
 import android.content.Context
 import android.view.View
 import android.view.ViewGroup
+import androidx.databinding.Observable
 import com.github.kr328.clash.design.adapter.ProfileAdapter
+import com.github.kr328.clash.design.BR
 import com.github.kr328.clash.design.databinding.DesignProfilesBinding
 import com.github.kr328.clash.design.databinding.DialogProfilesMenuBinding
 import com.github.kr328.clash.design.dialog.AppBottomSheetDialog
@@ -28,7 +30,11 @@ class ProfilesDesign(context: Context) : Design<ProfilesDesign.Request>(context)
 
     private val binding = DesignProfilesBinding
         .inflate(context.layoutInflater, context.root, false)
-    private val adapter = ProfileAdapter(this::requestActive, this::showMenu)
+    private val adapter = ProfileAdapter(
+        this::requestActive,
+        this::showMenu,
+        showServerChooserInCard = false,
+    )
 
     private var allUpdating: Boolean = false
 
@@ -49,12 +55,14 @@ class ProfilesDesign(context: Context) : Design<ProfilesDesign.Request>(context)
 
         withContext(Dispatchers.Main) {
             binding.headerUpdateButton.visibility = if (updatable) View.VISIBLE else View.GONE
+            binding.headerTitle.visibility = View.GONE
             binding.headerCount.text = context.getString(R.string.profiles_header_total_fmt, profiles.size)
             binding.headerActive.text = context.getString(R.string.profiles_header_active_fmt, activeCount)
             binding.headerSubtitle.text = context.getString(
                 if (profiles.isEmpty()) R.string.profiles_header_subtitle_empty else R.string.profiles_header_subtitle_ready
             )
             val empty = profiles.isEmpty()
+            binding.profilesHeaderCard.visibility = if (empty) View.GONE else View.VISIBLE
             binding.emptyState.visibility = if (empty) View.VISIBLE else View.GONE
             binding.recyclerList.visibility = if (empty) View.INVISIBLE else View.VISIBLE
             changeUpdateAllButtonStatus()
@@ -78,6 +86,22 @@ class ProfilesDesign(context: Context) : Design<ProfilesDesign.Request>(context)
         binding.toolbar.title = context.getString(R.string.nav_subscriptions)
 
         binding.recyclerList.applyLinearAdapter(context, adapter)
+        surface.addOnPropertyChangedCallback(object : Observable.OnPropertyChangedCallback() {
+            override fun onPropertyChanged(sender: Observable?, propertyId: Int) {
+                if (propertyId == BR.insets) {
+                    applyHeaderTopInset()
+                }
+            }
+        })
+        applyHeaderTopInset()
+    }
+
+    private fun applyHeaderTopInset() {
+        val lp = binding.profilesHeaderCard.layoutParams as? ViewGroup.MarginLayoutParams ?: return
+        val target = context.getPixels(R.dimen.toolbar_height) + surface.insets.top
+        if (lp.topMargin == target) return
+        lp.topMargin = target
+        binding.profilesHeaderCard.layoutParams = lp
     }
 
     private fun showMenu(profile: Profile, @Suppress("UNUSED_PARAMETER") anchor: View) {

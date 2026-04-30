@@ -31,19 +31,11 @@
                 android:paddingTop="10dp"
                 android:paddingBottom="10dp">
 
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/nav_connections"
-                    android:textAppearance="@style/TextAppearance.App.HeadlineSmall"
-                    android:textColor="?attr/colorOnSurface"
-                    android:textStyle="bold" />
-
                 <com.google.android.material.card.MaterialCardView
                     style="@style/AppCard.Filled"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
+                    android:layout_marginTop="2dp"
                     app:cardBackgroundColor="?attr/colorSurfaceContainer"
                     app:cardCornerRadius="24dp"
                     app:cardElevation="0dp"
@@ -55,9 +47,18 @@
                         android:orientation="vertical"
                         android:padding="16dp">
 
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/connections_title"
+                            android:textAppearance="@style/TextAppearance.App.TitleMedium"
+                            android:textColor="?attr/colorOnSurface"
+                            android:textStyle="bold" />
+
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
                             android:gravity="center_vertical"
                             android:orientation="horizontal">
 

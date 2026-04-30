@@ -75,11 +75,18 @@ class ProxyChainActivity : BaseActivity<ProxyChainDesign>() {
 
         refreshDiskUi()
 
-        val groups = try {
-            withClash { queryProxyGroupNames(false) }
-        } catch (_: Exception) {
-            emptyList()
+        suspend fun loadRuntimeGroupsWithRetry(): List<String> {
+            repeat(8) { attempt ->
+                val groups = runCatching {
+                    withClash { queryProxyGroupNames(false) }
+                }.getOrDefault(emptyList())
+                if (groups.isNotEmpty()) return groups
+                if (attempt < 7) delay(220L)
+            }
+            return emptyList()
         }
+
+        val groups = loadRuntimeGroupsWithRetry()
 
         val proxiesByGroup = LinkedHashMap<String, List<String>>()
         val sort = uiStore.proxySort

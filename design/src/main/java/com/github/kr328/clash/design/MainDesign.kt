@@ -32,6 +32,7 @@ import com.github.kr328.clash.design.util.patchDataSet
 import com.github.kr328.clash.design.util.resolveThemedColor
 import com.github.kr328.clash.design.util.resolveThemedResourceId
 import com.github.kr328.clash.design.util.root
+import com.github.kr328.clash.design.util.toBytesString
 import com.github.kr328.clash.design.R
 import com.github.kr328.clash.service.model.Profile
 import kotlinx.coroutines.Dispatchers
@@ -55,8 +56,12 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         CycleTheme,
         OpenLogs,
         OpenConnections,
-        /** Hub screen combining YAML rules, routing rules and per-app routing. */
+        /** Routing rules list screen. */
         OpenRouting,
+        /** Rule snippets / editor screen. */
+        OpenRules,
+        /** Proxy chain screen. */
+        OpenProxyChain,
         /** Direct entry to per-app routing for quick access from the routing tab. */
         OpenPerAppRouting,
         /** Subscriptions / profiles list. */
@@ -440,10 +445,10 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
     private fun usageLabel(profile: Profile): String {
         val headerUsage = activeSubscriptionUsage.takeIf { profile.type == Profile.Type.Url }
         val used = headerUsage?.used ?: (profile.upload + profile.download)
-        val usedText = used.trafficTotal()
+        val usedText = used.toBytesString()
         val total = headerUsage?.total ?: profile.total
         if (total < 2L) return "$usedText / ${context.getString(R.string.sub_announcement_unlimited)}"
-        return "$usedText / ${total.trafficTotal()}"
+        return "$usedText / ${total.toBytesString()}"
     }
 
     suspend fun patchProxyGroups(
