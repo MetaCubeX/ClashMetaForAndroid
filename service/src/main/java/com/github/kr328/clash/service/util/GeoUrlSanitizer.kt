@@ -2,6 +2,7 @@ package com.github.kr328.clash.service.util
 
 import com.github.kr328.clash.common.log.Log
 import java.io.File
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * Rewrites broken `geox-url` entries inside a profile's `config.yaml` (and
@@ -10,22 +11,46 @@ import java.io.File
  * `mirror.ghproxy.com`.
  *
  * The sanitizer is idempotent: running it twice in a row produces no extra
- * disk writes when the file is already clean.
+ * disk writes when the file is already clean. A small in-memory mtime+size
+ * cache also lets repeated [sanitizeProfile] calls (e.g. on every override
+ * patch) skip the YAML read+parse entirely when the file has not changed
+ * since the last clean pass.
  */
 object GeoUrlSanitizer {
     private val dumpYaml = YamlFormatting.blockYaml()
+
+    /** Last-known clean signature per absolute config.yaml path. */
+    private val cleanSignature = ConcurrentHashMap<String, Long>()
+
+    private fun signatureOf(file: File): Long =
+        // Pack mtime (high 40 bits) and size (low 24 bits) into a single Long. Collisions
+        // are harmless: a stale hit only means we re-run sanitize on identical content.
+        (file.lastModified() shl 24) xor (file.length() and 0xFFFFFFL)
 
     /** Rewrite broken `geox-url` mirrors in [profileDir]/config.yaml. */
     fun sanitizeProfile(profileDir: File): Boolean {
         val configFile = File(profileDir, "config.yaml")
         if (!configFile.isFile) return false
+        val path = configFile.absolutePath
+        val sig = signatureOf(configFile)
+        if (cleanSignature[path] == sig) {
+            // Already known clean; skip read + YAML parse entirely.
+            return false
+        }
         return try {
             val text = configFile.readText()
-            val sanitized = sanitizeYaml(text) ?: return false
-            if (sanitized == text) return false
-            configFile.writeText(sanitized)
-            Log.i("GeoUrlSanitizer: rewrote broken geox-url mirrors in ${configFile.name}")
-            true
+            val sanitized = sanitizeYaml(text)
+            if (sanitized == null) {
+                false
+            } else if (sanitized == text) {
+                cleanSignature[path] = sig
+                false
+            } else {
+                configFile.writeText(sanitized)
+                cleanSignature[path] = signatureOf(configFile)
+                Log.i("GeoUrlSanitizer: rewrote broken geox-url mirrors in ${configFile.name}")
+                true
+            }
         } catch (e: Exception) {
             Log.w("GeoUrlSanitizer: failed to sanitize ${configFile.absolutePath}: ${e.message}", e)
             false

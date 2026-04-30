@@ -99,7 +99,9 @@ class LogcatActivity : BaseActivity<LogcatDesign>() {
         startForegroundServiceCompat(LogcatService::class.intent)
 
         val logcat = bindLogcatService()
-        val ticker = ticker(500)
+        // Was 500ms (2 fps) which forced a RecyclerView patch even when no new lines arrived.
+        // 1500ms keeps log tailing visibly responsive while cutting the wakeup rate by 3x.
+        val ticker = ticker(1500)
 
         var initial = true
 

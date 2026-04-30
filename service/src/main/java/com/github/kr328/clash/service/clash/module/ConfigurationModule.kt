@@ -11,10 +11,12 @@ import com.github.kr328.clash.service.store.ServiceStore
 import com.github.kr328.clash.service.util.GeoUrlSanitizer
 import com.github.kr328.clash.service.util.ProxyDialerYamlEdit
 import com.github.kr328.clash.service.util.ProxyHardener
+import com.github.kr328.clash.service.util.ensureBundledGeoAssets
 import com.github.kr328.clash.service.util.importedDir
 import com.github.kr328.clash.service.util.sendProfileLoaded
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.selects.select
+import kotlinx.coroutines.withTimeoutOrNull
 import java.util.*
 
 class ConfigurationModule(service: Service) : Module<ConfigurationModule.LoadException>(service) {
@@ -48,7 +50,7 @@ class ConfigurationModule(service: Service) : Module<ConfigurationModule.LoadExc
         reload.trySend(Unit)
 
         while (true) {
-            val changed: UUID? = select {
+            var changed: UUID? = select {
                 broadcasts.onReceive {
                     if (it.action == Intents.ACTION_PROFILE_CHANGED)
                         UUID.fromString(it.getStringExtra(Intents.EXTRA_UUID))
@@ -58,6 +60,23 @@ class ConfigurationModule(service: Service) : Module<ConfigurationModule.LoadExc
                 reload.onReceive {
                     null
                 }
+            }
+
+            // Coalesce a burst of profile/override broadcasts within ~500ms without
+            // unconditionally sleeping the full window - sleeps efficiently and exits early
+            // once the storm settles, instead of `delay(500)` + busy `tryReceive`.
+            val deadline = System.currentTimeMillis() + 500
+            while (true) {
+                val remaining = deadline - System.currentTimeMillis()
+                if (remaining <= 0) break
+                val pending = withTimeoutOrNull(remaining) { broadcasts.receive() } ?: break
+                changed = if (pending.action == Intents.ACTION_PROFILE_CHANGED)
+                    UUID.fromString(pending.getStringExtra(Intents.EXTRA_UUID))
+                else
+                    null
+            }
+            while (reload.tryReceive().isSuccess) {
+                changed = null
             }
 
             try {
@@ -105,6 +124,7 @@ class ConfigurationModule(service: Service) : Module<ConfigurationModule.LoadExc
 
                 try {
                     GeoUrlSanitizer.sanitizeProfile(profileDir)
+                    service.ensureBundledGeoAssets()
                     Clash.load(profileDir).await()
                     applyPostLoad()
                 } catch (e: Exception) {

@@ -3,6 +3,7 @@ package com.github.kr328.clash.design.adapter
 import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
+import android.util.LruCache
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
@@ -17,6 +18,7 @@ import com.github.kr328.clash.design.util.toBytesString
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 
 /** Lists policy hops only; dialer-proxy used inside the leaf is not reported as a chain hop. */
@@ -46,11 +48,15 @@ class ConnectionsAdapter(
 
     private var rows: List<ConnectionTracker> = emptyList()
     private val expandedIds = linkedSetOf<String>()
-    private val appCache = linkedMapOf<String, AppDisplay>()
+    // Bounded cache: app icons (Drawable) are heavy; an unbounded LinkedHashMap could
+    // hold thousands of entries on long sessions with many unique processes/UIDs.
+    private val appCache = LruCache<String, AppDisplay>(APP_CACHE_MAX)
     private val pendingAppKeys = linkedSetOf<String>()
     private val cacheLock = Any()
-    private val ioScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-    private val mainScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+    // ioScope/mainScope are created lazily when the adapter is attached to a RecyclerView
+    // and cancelled in onDetached so background icon-resolution does not outlive the UI.
+    private var ioScope: CoroutineScope? = null
+    private var mainScope: CoroutineScope? = null
 
     fun submit(items: List<ConnectionTracker>) {
         expandedIds.retainAll(items.mapTo(mutableSetOf(), ConnectionTracker::id))
@@ -131,6 +137,25 @@ class ConnectionsAdapter(
 
     override fun getItemCount(): Int = rows.size
 
+    override fun onAttachedToRecyclerView(recyclerView: RecyclerView) {
+        super.onAttachedToRecyclerView(recyclerView)
+        if (ioScope == null) {
+            ioScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+            mainScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+        }
+    }
+
+    override fun onDetachedFromRecyclerView(recyclerView: RecyclerView) {
+        super.onDetachedFromRecyclerView(recyclerView)
+        ioScope?.cancel()
+        mainScope?.cancel()
+        ioScope = null
+        mainScope = null
+        synchronized(cacheLock) {
+            pendingAppKeys.clear()
+        }
+    }
+
     private fun formatDetails(context: Context, c: ConnectionTracker, app: AppDisplay): String {
         val m = c.metadata
         val lines = mutableListOf<String>()
@@ -170,9 +195,10 @@ class ConnectionsAdapter(
     private fun resolveApp(context: Context, c: ConnectionTracker): AppDisplay {
         val key = appCacheKey(c)
         synchronized(cacheLock) {
-            appCache[key]?.let { return it }
-            if (pendingAppKeys.add(key)) {
-                ioScope.launch {
+            appCache.get(key)?.let { return it }
+            val scope = ioScope
+            if (scope != null && pendingAppKeys.add(key)) {
+                scope.launch {
                     val resolved = runCatching {
                         resolveAppBlocking(context, c)
                     }.getOrElse {
@@ -186,9 +212,9 @@ class ConnectionsAdapter(
                     }
                     synchronized(cacheLock) {
                         pendingAppKeys.remove(key)
-                        appCache[key] = resolved
+                        appCache.put(key, resolved)
                     }
-                    mainScope.launch {
+                    mainScope?.launch {
                         notifyRowsForKey(key)
                     }
                 }
@@ -283,5 +309,9 @@ class ConnectionsAdapter(
         }
         if (ch.isNotEmpty()) return ch.joinToString(" › ")
         return pd.joinToString(" › ")
+    }
+
+    private companion object {
+        const val APP_CACHE_MAX = 256
     }
 }

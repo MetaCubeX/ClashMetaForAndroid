@@ -11,12 +11,15 @@ import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.selects.select
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import java.net.InetAddress
 import java.util.concurrent.ConcurrentHashMap
 
 class NetworkObserveModule(service: Service) : Module<Network>(service) {
     private val connectivity = service.getSystemService<ConnectivityManager>()!!
-    private val networks: Channel<Network> = Channel(Channel.UNLIMITED)
+    private val networks: Channel<Network> = Channel(Channel.CONFLATED)
+    private val shouldEmitParentNetwork =
+        service is VpnService && Build.VERSION.SDK_INT in 22..28
     private val request = NetworkRequest.Builder().apply {
         addCapability(NetworkCapabilities.NET_CAPABILITY_NOT_VPN)
         addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
@@ -47,7 +50,6 @@ class NetworkObserveModule(service: Service) : Module<Network>(service) {
         override fun onLosing(network: Network, maxMsToLive: Int) {
             Log.i("NetworkObserve onLosing")
             networkInfos[network]?.losingMs = System.currentTimeMillis() + maxMsToLive
-            notifyDnsChange()
 
             networks.trySend(network)
         }
@@ -55,7 +57,6 @@ class NetworkObserveModule(service: Service) : Module<Network>(service) {
         override fun onLost(network: Network) {
             Log.i("NetworkObserve onLost")
             networkInfos.remove(network)
-            notifyDnsChange()
 
             networks.trySend(network)
         }
@@ -63,7 +64,6 @@ class NetworkObserveModule(service: Service) : Module<Network>(service) {
         override fun onLinkPropertiesChanged(network: Network, linkProperties: LinkProperties) {
             Log.i("NetworkObserve onLinkPropertiesChanged")
             networkInfos[network]?.dnsList = linkProperties.dnsServers
-            notifyDnsChange()
 
             networks.trySend(network)
         }
@@ -134,7 +134,11 @@ class NetworkObserveModule(service: Service) : Module<Network>(service) {
             while (true) {
                 val quit = select {
                     networks.onReceive {
-                        enqueueEvent(it)
+                        val network = coalesceNetworkEvents(it)
+                        notifyDnsChange()
+                        if (shouldEmitParentNetwork) {
+                            enqueueEvent(network)
+                        }
 
                         false
                     }
@@ -150,6 +154,23 @@ class NetworkObserveModule(service: Service) : Module<Network>(service) {
                 Log.i("NetworkObserve dns = []")
                 Clash.notifyDnsChanged(emptyList())
             }
+        }
+    }
+
+    /**
+     * Wait up to ~500ms for additional network events so we batch a quick "available -> losing
+     * -> link-properties" burst into a single notification. Sleeps efficiently and exits early
+     * once events stop arriving - the previous version did a hard `delay(500)` on every single
+     * event, which was wasted CPU when nothing else was happening.
+     */
+    private suspend fun coalesceNetworkEvents(first: Network): Network {
+        var latest = first
+        val deadline = System.currentTimeMillis() + 500
+        while (true) {
+            val remaining = deadline - System.currentTimeMillis()
+            if (remaining <= 0) return latest
+            val next = withTimeoutOrNull(remaining) { networks.receive() } ?: return latest
+            latest = next
         }
     }
 }

@@ -98,9 +98,19 @@ class ProfileAdapter(
     }
 
     fun setPingingUuid(uuid: UUID?) {
-        if (states.pingingUuid == uuid) return
+        val prev = states.pingingUuid
+        if (prev == uuid) return
         states.pingingUuid = uuid
-        notifyDataSetChanged()
+        // Targeted notify instead of full-list rebind: ping spinners only affect at most
+        // two cards (the one that was pinging and the one that just started).
+        prev?.let { id ->
+            val i = profiles.indexOfFirst { it.uuid == id }
+            if (i >= 0) notifyItemChanged(i)
+        }
+        uuid?.let { id ->
+            val i = profiles.indexOfFirst { it.uuid == id }
+            if (i >= 0) notifyItemChanged(i)
+        }
     }
 
     override fun onViewRecycled(holder: Holder) {
@@ -276,9 +286,7 @@ class ProfileAdapter(
         groupName: String,
     ): String {
         val groupDisplay = displayGroupName(groupName)
-        val selectedProxy = proxyGroupForRow(profile, groupName)
-            ?.now
-            ?.takeIf { it.isNotBlank() }
+        val selectedProxy = resolvedSelectedProxyName(profile, groupName)
             ?.let(::displayGroupName)
         return if (selectedProxy.isNullOrBlank()) {
             context.getString(R.string.main_selected_group_fmt, groupDisplay)
@@ -726,8 +734,10 @@ class ProfileAdapter(
             val mainHit = row.findViewById<View>(R.id.proxy_row_main_hit)
             mainHit.setOnClickListener {
                 if (clashRunning && useEngineFor(profile)) {
+                    setPendingProxySelection(profile.uuid, groupName, p.name)
                     onProxyNodeSelected(profile, groupName, p.name)
                 } else if (profile.imported && profile.uuid == activeProfileUuid) {
+                    setPendingProxySelection(profile.uuid, groupName, p.name)
                     onProxyNodeSelected(profile, groupName, p.name)
                 } else {
                     onProxyYamlDetail(profile, groupName, p.name)
@@ -847,9 +857,7 @@ class ProfileAdapter(
         }
 
         for (group in orderedGroups) {
-            val selected = proxyGroupForRow(profile, group)
-                ?.now
-                ?.takeIf { it.isNotBlank() }
+            val selected = resolvedSelectedProxyName(profile, group)
                 ?.let(::displayGroupName)
             if (!selected.isNullOrBlank()) return selected
         }
@@ -861,6 +869,19 @@ class ProfileAdapter(
         if (!offlineSelected.isNullOrBlank()) return offlineSelected
 
         return null
+    }
+
+    private fun resolvedSelectedProxyName(profile: Profile, groupName: String): String? {
+        val first = proxyGroupForRow(profile, groupName)
+            ?.now
+            ?.takeIf { it.isNotBlank() }
+            ?: return null
+        val nested = if (useEngineFor(profile)) {
+            proxyDetails[first]
+        } else {
+            null
+        }
+        return nested?.now?.takeIf { it.isNotBlank() } ?: first
     }
 
     private fun formatNodeHeadline(raw: String, context: Context): Pair<String, String?> {

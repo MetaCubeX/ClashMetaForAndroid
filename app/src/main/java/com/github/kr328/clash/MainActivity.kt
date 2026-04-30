@@ -33,6 +33,7 @@ import com.github.kr328.clash.common.util.setUUID
 import com.github.kr328.clash.common.util.ticker
 import com.github.kr328.clash.core.Clash
 import com.github.kr328.clash.core.bridge.*
+import com.github.kr328.clash.core.model.Proxy
 import com.github.kr328.clash.core.model.ProxyGroup
 import com.github.kr328.clash.core.model.TunnelState
 import com.github.kr328.clash.design.MainDesign
@@ -67,6 +68,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.select
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -162,6 +164,62 @@ class MainActivity : BaseActivity<MainDesign>() {
         }
     }
 
+    private fun isAutoProxyGroup(name: String, group: ProxyGroup): Boolean {
+        if (group.type == Proxy.Type.URLTest ||
+            group.type == Proxy.Type.Fallback ||
+            group.type == Proxy.Type.LoadBalance
+        ) {
+            return true
+        }
+
+        val normalized = name.lowercase(Locale.ROOT)
+        return normalized.contains("auto") ||
+            normalized.contains("url-test") ||
+            normalized.contains("best") ||
+            normalized.contains("fast") ||
+            normalized.contains("авто") ||
+            normalized.contains("лучш") ||
+            normalized.contains("быстр")
+    }
+
+    private suspend fun warmUpAutoProxyGroups() = coroutineScope {
+        waitForProxyEngineReady()
+
+        val groupNames = runCatching {
+            withClash { queryProxyGroupNames(false) }
+        }.getOrDefault(emptyList())
+        if (groupNames.isEmpty()) return@coroutineScope
+
+        val groupNameSet = groupNames.toSet()
+        val autoGroups = linkedSetOf<String>()
+        for (groupName in groupNames) {
+            val group = runCatching {
+                withClash { queryProxyGroup(groupName, com.github.kr328.clash.core.model.ProxySort.Default) }
+            }.getOrNull() ?: continue
+            if (isAutoProxyGroup(groupName, group)) {
+                autoGroups += groupName
+            }
+            for (proxy in group.proxies) {
+                if (proxy.name in groupNameSet &&
+                    (proxy.type == Proxy.Type.URLTest ||
+                        proxy.type == Proxy.Type.Fallback ||
+                        proxy.type == Proxy.Type.LoadBalance)
+                ) {
+                    autoGroups += proxy.name
+                }
+            }
+        }
+        if (autoGroups.isEmpty()) return@coroutineScope
+
+        autoGroups.map { group ->
+            launch {
+                runCatching {
+                    withClash { healthCheck(group) }
+                }
+            }
+        }.joinAll()
+    }
+
     private fun showHomeImportSheet(design: MainDesign) {
         val dialog = AppBottomSheetDialog(this, fitContentHeight = false)
         val view = layoutInflater.inflate(R.layout.bottom_sheet_home_import, null)
@@ -212,7 +270,10 @@ class MainActivity : BaseActivity<MainDesign>() {
         refreshAnnouncement(design)
 
         val tickerInteractive = ticker(TimeUnit.SECONDS.toMillis(2))
-        val tickerIdle = ticker(TimeUnit.SECONDS.toMillis(8))
+        // Bumped from 8s -> 30s. While the screen is off (or activity is in background),
+        // the dashboard is invisible; we only need infrequent updates so totals stay
+        // roughly accurate when the user comes back.
+        val tickerIdle = ticker(TimeUnit.SECONDS.toMillis(30))
         val profileTicker = ticker(TimeUnit.MINUTES.toMillis(2))
         val refreshRequests = kotlinx.coroutines.channels.Channel<Unit>(kotlinx.coroutines.channels.Channel.CONFLATED)
         val proxyDetailRequests =
@@ -558,6 +619,9 @@ class MainActivity : BaseActivity<MainDesign>() {
 
                 if (clashRunning && activityStarted) {
                     val interactive = getSystemService<PowerManager>()?.isInteractive ?: true
+                    // Pick the ticker BEFORE registering the select branch so that the idle
+                    // ticker (and only it) wakes us when the screen is off, instead of both
+                    // tickers competing.
                     val trafficTicker = if (interactive) tickerInteractive else tickerIdle
                     trafficTicker.onReceive {
                         launch { design.fetchTraffic() }
@@ -870,9 +934,11 @@ class MainActivity : BaseActivity<MainDesign>() {
             return
         }
 
-        val detail = withClash { queryProxyGroup(group, uiStore.proxySort) }
+        val groupsToFetch = collectRuntimeGroupTree(group)
+            .ifEmpty { linkedSetOf(group).filter { it.isNotBlank() }.toSet() }
+        val details = refreshRuntimeGroupDetails(groupsToFetch)
         if (withProfile { queryActive()?.uuid } == profile.uuid) {
-            patchProxyDetails(mapOf(group to detail))
+            patchProxyDetails(details)
         }
     }
 
@@ -904,6 +970,17 @@ class MainActivity : BaseActivity<MainDesign>() {
                 } else {
                     setTunnelStarting(false)
                     showToast(R.string.vpn_permission_denied, ToastDuration.Long)
+                    return
+                }
+            }
+            launch {
+                val d = design
+                try {
+                    d?.setPingingProfile(active.uuid)
+                    warmUpAutoProxyGroups()
+                    d?.fetch()
+                } finally {
+                    d?.setPingingProfile(null)
                 }
             }
         } catch (e: Exception) {
@@ -1336,7 +1413,11 @@ class MainActivity : BaseActivity<MainDesign>() {
 
         val now = System.currentTimeMillis() / 1000L
         val cooldown = 6L * 3600L
-        if (now - uiStore.subscriptionMetadataLastFetch < cooldown) return
+        if (uiStore.subscriptionUserinfo.isNotBlank() &&
+            now - uiStore.subscriptionMetadataLastFetch < cooldown
+        ) {
+            return
+        }
 
         val meta = com.github.kr328.clash.common.util.SubscriptionMetadataFetcher.fetch(
             this,

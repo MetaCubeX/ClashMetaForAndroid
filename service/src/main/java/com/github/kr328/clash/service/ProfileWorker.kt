@@ -20,13 +20,13 @@ import com.github.kr328.clash.service.util.sendProfileUpdateCompleted
 import com.github.kr328.clash.service.util.sendProfileUpdateFailed
 import kotlinx.coroutines.*
 import java.util.*
-import java.util.concurrent.TimeUnit
 
 class ProfileWorker : BaseService() {
     private val service: ProfileWorker
         get() = this
 
     private val jobs = mutableListOf<Job>()
+    private var stopJob: Job? = null
 
     override fun onCreate() {
         super.onCreate()
@@ -34,16 +34,7 @@ class ProfileWorker : BaseService() {
         createChannels()
 
         foreground()
-
-        launch {
-            delay(TimeUnit.SECONDS.toMillis(10))
-
-            while (true) {
-                jobs.removeFirstOrNull()?.join() ?: break
-            }
-
-            stopSelf()
-        }
+        stopWhenIdle()
     }
 
     override fun onDestroy() {
@@ -62,21 +53,40 @@ class ProfileWorker : BaseService() {
                         run(it)
                     }
 
-                    jobs.add(job)
+                    enqueue(job)
                 }
             }
             Intents.ACTION_PROFILE_SCHEDULE_UPDATES -> {
                 val job = launch {
                     ProfileReceiver.rescheduleAll(service)
-
-                    delay(TimeUnit.SECONDS.toMillis(30))
                 }
 
-                jobs.add(job)
+                enqueue(job)
             }
         }
 
         return START_NOT_STICKY
+    }
+
+    private fun enqueue(job: Job) {
+        stopJob?.cancel()
+        jobs.add(job)
+        job.invokeOnCompletion {
+            stopWhenIdle()
+        }
+    }
+
+    private fun stopWhenIdle() {
+        stopJob?.cancel()
+        stopJob = launch {
+            // Was 500ms; reduced to 150ms so the foreground service shuts itself down
+            // sooner when no more profile-update jobs are queued.
+            delay(150)
+            jobs.removeAll { it.isCompleted }
+            if (jobs.isEmpty()) {
+                stopSelf()
+            }
+        }
     }
 
     private suspend fun run(uuid: UUID) {

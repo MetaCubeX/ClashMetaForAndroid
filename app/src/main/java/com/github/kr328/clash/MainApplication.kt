@@ -15,11 +15,9 @@ import com.github.kr328.clash.common.log.Log
 import com.github.kr328.clash.design.store.UiStore
 import com.github.kr328.clash.remote.Remote
 import com.github.kr328.clash.service.store.ServiceStore
+import com.github.kr328.clash.service.util.ensureBundledGeoAssets
 import com.github.kr328.clash.service.util.sendServiceRecreated
 import com.github.kr328.clash.util.AppUpdateChecker
-import com.github.kr328.clash.util.clashDir
-import java.io.File
-import java.io.FileOutputStream
 import com.github.kr328.clash.design.R as DesignR
 
 
@@ -35,7 +33,7 @@ class MainApplication : Application() {
         super.onCreate()
 
         val processName = currentProcessName
-        extractGeoFiles()
+        ensureBundledGeoAssets()
 
         Log.d("Process $processName started")
 
@@ -105,30 +103,4 @@ class MainApplication : Application() {
         ShortcutManagerCompat.setDynamicShortcuts(this, listOf(toggle, start, stop))
     }
 
-    private fun extractGeoFiles() {
-        clashDir.mkdirs()
-
-        val updateDate = packageManager.getPackageInfo(packageName, 0).lastUpdateTime
-        ensureAssetFresh("geoip.metadb", "geoip.metadb", updateDate)
-        ensureAssetFresh("geoip.dat", "geoip.dat", updateDate)
-        ensureAssetFresh("geosite.dat", "geosite.dat", updateDate)
-        ensureAssetFresh("Country.mmdb", "Country.mmdb", updateDate)
-        ensureAssetFresh("ASN.mmdb", "ASN.mmdb", updateDate)
-    }
-
-    private fun ensureAssetFresh(assetName: String, targetName: String, updateDate: Long) {
-        val target = File(clashDir, targetName)
-        if (target.exists() && target.lastModified() < updateDate) {
-            target.delete()
-        }
-        if (!target.exists()) {
-            try {
-                FileOutputStream(target).use {
-                    assets.open(assetName).copyTo(it)
-                }
-            } catch (e: Exception) {
-                Log.w("Asset $assetName not bundled, skipping ($e)")
-            }
-        }
-    }
 }

@@ -113,21 +113,37 @@
                         android:id="@+id/header_add_button"
                         style="@style/AppButton"
                         android:layout_width="0dp"
-                        android:layout_height="40dp"
-                        android:layout_weight="1"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1.25"
+                        android:minHeight="44dp"
                         android:onClick="@{() -> self.requestCreate()}"
-                        android:text="@string/main_add_subscription" />
+                        android:text="@string/main_add_subscription"
+                        android:textAllCaps="false"
+                        android:maxLines="1"
+                        android:ellipsize="end"
+                        app:icon="@drawable/ic_baseline_add"
+                        app:iconGravity="textStart"
+                        app:iconPadding="6dp"
+                        app:iconSize="18dp" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/header_update_button"
                         style="@style/AppButton.Outlined"
                         android:layout_width="0dp"
-                        android:layout_height="40dp"
+                        android:layout_height="wrap_content"
                         android:layout_marginStart="8dp"
                         android:layout_weight="1"
+                        android:minHeight="44dp"
                         android:onClick="@{() -> self.requestUpdateAll()}"
                         android:text="@string/update"
-                        android:visibility="gone" />
+                        android:textAllCaps="false"
+                        android:maxLines="1"
+                        android:ellipsize="end"
+                        android:visibility="gone"
+                        app:icon="@drawable/ic_baseline_sync"
+                        app:iconGravity="textStart"
+                        app:iconPadding="6dp"
+                        app:iconSize="18dp" />
                 </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
