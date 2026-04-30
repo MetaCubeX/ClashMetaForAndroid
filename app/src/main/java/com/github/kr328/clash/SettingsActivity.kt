@@ -27,6 +27,8 @@ class SettingsActivity : BaseActivity<SettingsDesign>() {
                     when (it) {
                         SettingsDesign.Request.StartApp ->
                             startActivity(AppSettingsActivity::class.intent)
+                        SettingsDesign.Request.StartLanguage ->
+                            startActivity(LanguageSettingsActivity::class.intent)
                         SettingsDesign.Request.StartTheme ->
                             startActivity(ThemeSettingsActivity::class.intent)
                         SettingsDesign.Request.StartNetwork ->

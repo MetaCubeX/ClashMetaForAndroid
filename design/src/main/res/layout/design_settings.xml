@@ -48,6 +48,13 @@
                 <com.github.kr328.clash.design.view.ActionLabel
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:onClick="@{() -> self.request(Request.StartLanguage)}"
+                    app:icon="@drawable/ic_baseline_language"
+                    app:text="@string/app_language" />
+
+                <com.github.kr328.clash.design.view.ActionLabel
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
                     android:onClick="@{() -> self.request(Request.StartTheme)}"
                     app:icon="@drawable/ic_baseline_brightness_4"
                     app:text="@string/theme_settings" />
