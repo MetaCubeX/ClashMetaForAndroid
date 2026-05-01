@@ -18,49 +18,52 @@ private const val REMOTE_MAX_RETRIES = 10
 private const val REMOTE_BACKOFF_BASE_MS = 50L
 private const val REMOTE_BACKOFF_MAX_MS = 1000L
 
-class RemoteServiceUnavailableException(cause: Throwable) :
-    RuntimeException("Remote service unavailable after retries", cause)
-
 suspend fun <T> withClash(
     context: CoroutineContext = Dispatchers.IO,
     block: suspend IClashManager.() -> T
 ): T {
-    var lastError: DeadObjectException? = null
-    repeat(REMOTE_MAX_RETRIES) { attempt ->
+    var attempt = 0
+    while (true) {
         val remote = Remote.service.remote.get()
         val client = remote.clash()
 
         try {
             return withContext(context) { client.block() }
         } catch (e: DeadObjectException) {
-            lastError = e
-            Log.w("Remote services panic (clash, attempt ${attempt + 1}/$REMOTE_MAX_RETRIES)")
+            attempt += 1
+            Log.w("Remote services panic (clash, attempt $attempt)")
             Remote.service.remote.reset(remote)
-            val backoff = (REMOTE_BACKOFF_BASE_MS shl attempt).coerceAtMost(REMOTE_BACKOFF_MAX_MS)
+            val backoff = if (attempt <= REMOTE_MAX_RETRIES) {
+                (REMOTE_BACKOFF_BASE_MS shl (attempt - 1)).coerceAtMost(REMOTE_BACKOFF_MAX_MS)
+            } else {
+                REMOTE_BACKOFF_MAX_MS
+            }
             delay(backoff)
         }
     }
-    throw RemoteServiceUnavailableException(lastError ?: DeadObjectException())
 }
 
 suspend fun <T> withProfile(
     context: CoroutineContext = Dispatchers.IO,
     block: suspend IProfileManager.() -> T
 ): T {
-    var lastError: DeadObjectException? = null
-    repeat(REMOTE_MAX_RETRIES) { attempt ->
+    var attempt = 0
+    while (true) {
         val remote = Remote.service.remote.get()
         val client = remote.profile()
 
         try {
             return withContext(context) { client.block() }
         } catch (e: DeadObjectException) {
-            lastError = e
-            Log.w("Remote services panic (profile, attempt ${attempt + 1}/$REMOTE_MAX_RETRIES)")
+            attempt += 1
+            Log.w("Remote services panic (profile, attempt $attempt)")
             Remote.service.remote.reset(remote)
-            val backoff = (REMOTE_BACKOFF_BASE_MS shl attempt).coerceAtMost(REMOTE_BACKOFF_MAX_MS)
+            val backoff = if (attempt <= REMOTE_MAX_RETRIES) {
+                (REMOTE_BACKOFF_BASE_MS shl (attempt - 1)).coerceAtMost(REMOTE_BACKOFF_MAX_MS)
+            } else {
+                REMOTE_BACKOFF_MAX_MS
+            }
             delay(backoff)
         }
     }
-    throw RemoteServiceUnavailableException(lastError ?: DeadObjectException())
 }

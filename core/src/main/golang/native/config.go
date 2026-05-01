@@ -5,11 +5,14 @@ import "C"
 
 import (
 	"runtime"
+	"sync"
 	"unsafe"
 
 	"cfa/native/app"
 	"cfa/native/config"
 )
+
+var subscriptionFetchSessionMu sync.Mutex
 
 type remoteValidCallback struct {
 	callback unsafe.Pointer
@@ -22,6 +25,9 @@ func (r *remoteValidCallback) reportStatus(json string) {
 //export fetchAndValid
 func fetchAndValid(callback unsafe.Pointer, path, url C.c_string, force C.int, headersJson C.c_string) {
 	go func(path, url, headers string, callback unsafe.Pointer) {
+		subscriptionFetchSessionMu.Lock()
+		defer subscriptionFetchSessionMu.Unlock()
+
 		app.SetSubscriptionFetchHeadersJSON(headers)
 		defer app.ClearSubscriptionFetchHeaders()
 
