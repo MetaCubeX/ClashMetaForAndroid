@@ -24,9 +24,7 @@ fun MaterialCardView.setCardStrokeWidthBound(dimensionPx: Float) {
 @BindingAdapter("bottomNavInset")
 fun View.bindBottomNavInset(insetPx: Int) {
     val lp = layoutParams as? ViewGroup.MarginLayoutParams ?: return
-    val minNavBarInset = (40f * context.resources.displayMetrics.density).roundToInt()
-    val effectiveInset = if (insetPx >= minNavBarInset) insetPx else 0
-    val target = context.resources.getDimensionPixelSize(R.dimen.main_bottom_nav_bottom_margin) + effectiveInset
+    val target = context.resources.getDimensionPixelSize(R.dimen.main_bottom_nav_bottom_margin) + insetPx.coerceAtLeast(0)
     if (lp.bottomMargin == target) return
     lp.bottomMargin = target
     layoutParams = lp
