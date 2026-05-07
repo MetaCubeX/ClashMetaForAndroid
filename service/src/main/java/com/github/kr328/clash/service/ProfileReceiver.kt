@@ -37,9 +37,31 @@ class ProfileReceiver : BroadcastReceiver() {
                 }
             }
             Intents.ACTION_PROFILE_REQUEST_UPDATE -> {
-                val redirect = intent.setComponent(ProfileWorker::class.componentName)
-
-                context.startForegroundServiceCompat(redirect)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    try {
+                        val redirect = intent.setComponent(ProfileWorker::class.componentName)
+                        context.startForegroundServiceCompat(redirect)
+                    } catch (e: IllegalStateException) {
+                        // Android 12+ forbids starting foreground service from background via AlarmManager
+                        Global.launch {
+                            intent.uuid?.also { uuid ->
+                                try {
+                                    ProfileProcessor.update(context, uuid, null)
+                                    val imported = ImportedDao().queryByUUID(uuid)
+                                    if (imported != null) {
+                                        scheduleNext(context, imported)
+                                    }
+                                    Log.i("ProfileReceiver: background update completed for $uuid")
+                                } catch (e: Exception) {
+                                    Log.e("ProfileReceiver: fallback background update failed", e)
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    val redirect = intent.setComponent(ProfileWorker::class.componentName)
+                    context.startForegroundServiceCompat(redirect)
+                }
             }
         }
     }
