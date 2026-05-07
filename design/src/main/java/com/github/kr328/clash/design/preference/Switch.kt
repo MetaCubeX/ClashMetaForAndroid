@@ -61,6 +61,8 @@ fun PreferenceScreen.switch(
 
     if (icon != null) {
         impl.icon = context.getDrawableCompat(icon)
+    } else {
+        binding.iconView.visibility = View.GONE
     }
 
     if (title != null) {

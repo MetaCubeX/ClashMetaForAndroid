@@ -1,23 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android">
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:paddingVertical="@dimen/item_padding_vertical">
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
-        <View
-            android:layout_width="@dimen/tips_icon_size"
-            android:layout_height="@dimen/tips_icon_size"
-            android:layout_marginHorizontal="@dimen/tips_icon_margin"
-            android:background="@drawable/ic_outline_info" />
+    <com.google.android.material.card.MaterialCardView
+        style="@style/AppCard.Filled"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="12dp"
+        app:cardBackgroundColor="?attr/colorSurfaceContainer"
+        app:cardCornerRadius="20dp"
+        app:cardElevation="0dp"
+        app:strokeWidth="0dp">
 
         <TextView
             android:id="@+id/tips"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="@dimen/item_tailing_margin"
-            android:textAppearance="@style/TextAppearance.App.BodyMedium" />
-    </LinearLayout>
+            android:paddingHorizontal="16dp"
+            android:paddingVertical="14dp"
+            android:textAppearance="@style/TextAppearance.App.BodyMedium"
+            android:textColor="?attr/colorOnSurfaceVariant" />
+    </com.google.android.material.card.MaterialCardView>
 </layout>
