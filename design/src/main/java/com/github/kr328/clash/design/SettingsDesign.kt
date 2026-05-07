@@ -10,14 +10,9 @@ import com.github.kr328.clash.design.util.root
 class SettingsDesign(context: Context) : Design<SettingsDesign.Request>(context) {
     enum class Request {
         StartApp,
-        StartLanguage,
-        StartTheme,
+        StartGeo,
         StartNetwork,
-        StartAppRouting,
-        StartFeatures,
-        StartAdvanced,
-        StartLogs,
-        StartAbout,
+        StartMetaFeatures,
     }
 
     private val binding = DesignSettingsBinding
@@ -28,7 +23,7 @@ class SettingsDesign(context: Context) : Design<SettingsDesign.Request>(context)
 
     init {
         binding.self = this
-        binding.toolbar.title = context.getString(R.string.settings)
+        binding.toolbar.title = context.getString(R.string.main_advanced_settings)
         binding.toolbar.setNavigationOnClickListener {
             (context as? AppCompatActivity)?.onBackPressedDispatcher?.onBackPressed()
         }

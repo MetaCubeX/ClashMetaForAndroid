@@ -1,8 +1,8 @@
 package com.github.kr328.clash.design
 
+import android.app.Activity
 import android.content.Context
 import android.view.View
-import android.app.Activity
 import androidx.appcompat.app.AppCompatActivity
 import com.github.kr328.clash.core.model.ConfigurationOverride
 import com.github.kr328.clash.design.databinding.DesignSettingsCommonBinding
@@ -13,13 +13,11 @@ import com.github.kr328.clash.design.preference.tips
 import com.github.kr328.clash.design.util.layoutInflater
 import com.github.kr328.clash.design.util.root
 
-class FeaturesSettingsDesign(
+class GeoSettingsDesign(
     context: Context,
     configuration: ConfigurationOverride,
-) : Design<FeaturesSettingsDesign.Request>(context) {
+) : Design<GeoSettingsDesign.Request>(context) {
     enum class Request {
-        StartMetaFeatures,
-        StartNetwork,
         StartGeoDataSource,
     }
 
@@ -49,25 +47,6 @@ class FeaturesSettingsDesign(
 
         val screen = preferenceScreen(context) {
             tips(R.string.features_intro)
-
-            clickable(
-                icon = R.drawable.ic_baseline_extension,
-                title = R.string.meta_features,
-                summary = R.string.advanced_meta_features_summary,
-            ) {
-                clicked {
-                    requests.trySend(Request.StartMetaFeatures)
-                }
-            }
-
-            clickable(
-                icon = R.drawable.ic_baseline_vpn_lock,
-                title = R.string.network,
-            ) {
-                clicked {
-                    requests.trySend(Request.StartNetwork)
-                }
-            }
 
             clickable(
                 icon = R.drawable.ic_baseline_language,

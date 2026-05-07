@@ -118,7 +118,7 @@
             android:name=".ProfilesActivity"
             android:configChanges="uiMode"
             android:exported="false"
-            android:label="@string/profiles" />
+            android:label="@string/main_open_profiles" />
         <activity
             android:name=".NewProfileActivity"
             android:configChanges="uiMode"
@@ -148,7 +148,7 @@
             android:name=".SettingsActivity"
             android:configChanges="uiMode"
             android:exported="false"
-            android:label="@string/settings" />
+            android:label="@string/main_advanced_settings" />
         <activity
             android:name=".NetworkSettingsActivity"
             android:configChanges="uiMode"
@@ -175,10 +175,10 @@
             android:exported="false"
             android:label="@string/theme_settings" />
         <activity
-            android:name=".FeaturesSettingsActivity"
+            android:name=".GeoSettingsActivity"
             android:configChanges="uiMode"
             android:exported="false"
-            android:label="@string/features" />
+            android:label="@string/settings_geo" />
         <activity
             android:name=".GeoDataSourceSettingsActivity"
             android:configChanges="uiMode"

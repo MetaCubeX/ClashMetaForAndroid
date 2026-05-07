@@ -2,12 +2,12 @@ package com.github.kr328.clash
 
 import com.github.kr328.clash.core.Clash
 import com.github.kr328.clash.common.util.intent
-import com.github.kr328.clash.design.FeaturesSettingsDesign
+import com.github.kr328.clash.design.GeoSettingsDesign
 import com.github.kr328.clash.util.withClash
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.selects.select
 
-class FeaturesSettingsActivity : BaseActivity<FeaturesSettingsDesign>() {
+class GeoSettingsActivity : BaseActivity<GeoSettingsDesign>() {
     override suspend fun main() {
         val configuration = withClash { queryOverride(Clash.OverrideSlot.Persist) }
 
@@ -17,7 +17,7 @@ class FeaturesSettingsActivity : BaseActivity<FeaturesSettingsDesign>() {
             }
         }
 
-        val design = FeaturesSettingsDesign(
+        val design = GeoSettingsDesign(
             this,
             configuration
         )
@@ -27,15 +27,10 @@ class FeaturesSettingsActivity : BaseActivity<FeaturesSettingsDesign>() {
         while (isActive) {
             select<Unit> {
                 events.onReceive {
-                    // no-op; keep design alive until activity finishes
                 }
                 design.requests.onReceive {
                     when (it) {
-                        FeaturesSettingsDesign.Request.StartMetaFeatures ->
-                            startActivity(MetaFeatureSettingsActivity::class.intent)
-                        FeaturesSettingsDesign.Request.StartNetwork ->
-                            startActivity(NetworkSettingsActivity::class.intent)
-                        FeaturesSettingsDesign.Request.StartGeoDataSource ->
+                        GeoSettingsDesign.Request.StartGeoDataSource ->
                             startActivity(GeoDataSourceSettingsActivity::class.intent)
                     }
                 }

@@ -7,6 +7,7 @@
             type="com.github.kr328.clash.design.SettingsDesign" />
 
         <import type="com.github.kr328.clash.design.SettingsDesign.Request" />
+        <import type="com.github.kr328.clash.design.util.BindingExpressions" />
     </data>
 
     <androidx.coordinatorlayout.widget.CoordinatorLayout
@@ -27,59 +28,237 @@
             android:id="@+id/scroll_root"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginTop="@dimen/toolbar_height"
-            android:paddingTop="@{self.surface.insets.top}"
+            android:clipToPadding="false"
+            app:marginTopPx="@{BindingExpressions.marginBelowToolbarPx(context, self.surface.insets.top)}"
+            android:paddingBottom="@{self.surface.insets.bottom}"
             android:scrollbars="none">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:paddingTop="4dp"
-                android:paddingBottom="@{self.surface.insets.bottom}">
+                android:paddingHorizontal="16dp"
+                android:paddingTop="12dp"
+                android:paddingBottom="24dp">
 
-                <com.github.kr328.clash.design.view.ActionLabel
+                <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:text="@string/advanced_hub_subtitle"
+                    android:textAppearance="@style/TextAppearance.App.BodyMedium"
+                    android:textColor="?attr/colorOnSurfaceVariant" />
+
+                <com.google.android.material.card.MaterialCardView
+                    style="@style/AppCard.Filled"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="18dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground"
                     android:onClick="@{() -> self.request(Request.StartApp)}"
-                    app:icon="@drawable/ic_baseline_settings"
-                    app:text="@string/app" />
+                    app:cardBackgroundColor="?attr/colorPrimaryContainer"
+                    app:cardCornerRadius="24dp"
+                    app:cardElevation="0dp">
 
-                <com.github.kr328.clash.design.view.ActionLabel
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:padding="18dp">
+
+                        <ImageView
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
+                            android:contentDescription="@string/app"
+                            android:src="@drawable/ic_baseline_settings"
+                            app:tint="?attr/colorOnPrimaryContainer" />
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="16dp"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="@string/app"
+                                android:textAppearance="@style/TextAppearance.App.TitleMedium"
+                                android:textColor="?attr/colorOnPrimaryContainer"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="4dp"
+                                android:text="@string/advanced_hub_app_summary"
+                                android:textAppearance="@style/TextAppearance.App.BodySmall"
+                                android:textColor="?attr/colorOnPrimaryContainer" />
+                        </LinearLayout>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <com.google.android.material.card.MaterialCardView
+                    style="@style/AppCard.Filled"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:onClick="@{() -> self.request(Request.StartLanguage)}"
-                    app:icon="@drawable/ic_baseline_language"
-                    app:text="@string/app_language" />
+                    android:layout_marginTop="12dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground"
+                    android:onClick="@{() -> self.request(Request.StartGeo)}"
+                    app:cardBackgroundColor="?attr/colorSurfaceContainer"
+                    app:cardCornerRadius="22dp"
+                    app:cardElevation="0dp">
 
-                <com.github.kr328.clash.design.view.ActionLabel
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:padding="16dp">
+
+                        <ImageView
+                            android:layout_width="30dp"
+                            android:layout_height="30dp"
+                            android:contentDescription="@string/settings_geo"
+                            android:src="@drawable/ic_baseline_language"
+                            app:tint="?attr/colorPrimary" />
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="14dp"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="@string/settings_geo"
+                                android:textAppearance="@style/TextAppearance.App.TitleSmall"
+                                android:textColor="?attr/colorOnSurface"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="3dp"
+                                android:text="@string/advanced_hub_geo_summary"
+                                android:textAppearance="@style/TextAppearance.App.BodySmall"
+                                android:textColor="?attr/colorOnSurfaceVariant" />
+                        </LinearLayout>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <com.google.android.material.card.MaterialCardView
+                    style="@style/AppCard.Filled"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:onClick="@{() -> self.request(Request.StartTheme)}"
-                    app:icon="@drawable/ic_baseline_brightness_4"
-                    app:text="@string/theme_settings" />
+                    android:layout_marginTop="12dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground"
+                    android:onClick="@{() -> self.request(Request.StartNetwork)}"
+                    app:cardBackgroundColor="?attr/colorSurfaceContainer"
+                    app:cardCornerRadius="22dp"
+                    app:cardElevation="0dp">
 
-                <com.github.kr328.clash.design.view.ActionLabel
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:padding="16dp">
+
+                        <ImageView
+                            android:layout_width="30dp"
+                            android:layout_height="30dp"
+                            android:contentDescription="@string/network"
+                            android:src="@drawable/ic_baseline_vpn_lock"
+                            app:tint="?attr/colorPrimary" />
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="14dp"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="@string/network"
+                                android:textAppearance="@style/TextAppearance.App.TitleSmall"
+                                android:textColor="?attr/colorOnSurface"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="3dp"
+                                android:text="@string/advanced_hub_network_summary"
+                                android:textAppearance="@style/TextAppearance.App.BodySmall"
+                                android:textColor="?attr/colorOnSurfaceVariant" />
+                        </LinearLayout>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <com.google.android.material.card.MaterialCardView
+                    style="@style/AppCard.Filled"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:onClick="@{() -> self.request(Request.StartAdvanced)}"
-                    app:icon="@drawable/ic_baseline_extension"
-                    app:text="@string/advanced_settings" />
+                    android:layout_marginTop="12dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground"
+                    android:onClick="@{() -> self.request(Request.StartMetaFeatures)}"
+                    app:cardBackgroundColor="?attr/colorSurfaceContainer"
+                    app:cardCornerRadius="22dp"
+                    app:cardElevation="0dp">
 
-                <com.github.kr328.clash.design.view.ActionLabel
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:onClick="@{() -> self.request(Request.StartLogs)}"
-                    app:icon="@drawable/ic_baseline_article"
-                    app:text="@string/logs" />
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:padding="16dp">
 
-                <com.github.kr328.clash.design.view.ActionLabel
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:onClick="@{() -> self.request(Request.StartAbout)}"
-                    app:icon="@drawable/ic_baseline_info"
-                    app:text="@string/about" />
+                        <ImageView
+                            android:layout_width="30dp"
+                            android:layout_height="30dp"
+                            android:contentDescription="@string/meta_features"
+                            android:src="@drawable/ic_baseline_extension"
+                            app:tint="?attr/colorPrimary" />
 
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="14dp"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="@string/meta_features"
+                                android:textAppearance="@style/TextAppearance.App.TitleSmall"
+                                android:textColor="?attr/colorOnSurface"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="3dp"
+                                android:text="@string/advanced_meta_features_summary"
+                                android:textAppearance="@style/TextAppearance.App.BodySmall"
+                                android:textColor="?attr/colorOnSurfaceVariant" />
+                        </LinearLayout>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
             </LinearLayout>
         </com.github.kr328.clash.design.view.ObservableScrollView>
 
