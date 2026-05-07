@@ -212,6 +212,10 @@ abstract class BaseActivity<D : Design<*>> : AppCompatActivity(),
         }
     }
 
+    fun applyThemeFromUiStore(config: Configuration = resources.configuration) {
+        applyDayNight(config)
+    }
+
     private fun applyDayNight(config: Configuration = resources.configuration) {
         val dayNight = queryDayNight(config)
         when (dayNight) {

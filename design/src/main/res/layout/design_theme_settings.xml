@@ -6,6 +6,7 @@
         <variable
             name="surface"
             type="com.github.kr328.clash.design.ui.Surface" />
+        <import type="com.github.kr328.clash.design.util.BindingExpressions" />
     </data>
 
     <androidx.coordinatorlayout.widget.CoordinatorLayout
@@ -26,8 +27,8 @@
             android:id="@+id/scroll_root"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginTop="@dimen/toolbar_height"
-            android:paddingTop="@{surface.insets.top}"
+            android:clipToPadding="false"
+            app:marginTopPx="@{BindingExpressions.marginBelowToolbarPx(context, surface.insets.top)}"
             android:scrollbars="none">
 
             <LinearLayout
@@ -36,7 +37,7 @@
                 android:orientation="vertical"
                 android:paddingHorizontal="16dp"
                 android:paddingTop="@dimen/theme_screen_top_extra"
-                android:paddingBottom="@{(float) surface.insets.bottom + @dimen/theme_screen_bottom_extra}">
+                android:paddingBottom="@{surface.insets.bottom + context.resources.getDimensionPixelSize(com.github.kr328.clash.design.R.dimen.theme_screen_bottom_extra)}">
 
                 <com.google.android.material.button.MaterialButtonToggleGroup
                     android:id="@+id/theme_mode_group"

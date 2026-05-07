@@ -19,12 +19,17 @@ import com.github.kr328.clash.design.util.layoutInflater
 import com.github.kr328.clash.design.util.root
 import com.github.kr328.clash.design.view.ThemePaletteView
 import com.google.android.material.card.MaterialCardView
+import kotlinx.coroutines.cancel
 
 class ThemeSettingsDesign(
     context: Context,
     private val uiStore: UiStore,
+    private val applyUiStoreThemeNow: () -> Unit,
 ) : Design<ThemeSettingsDesign.Request>(context) {
     enum class Request {
+        /** Reinflate Theme screen + stagger-recreate other activities (no Activity.recreate for Theme). */
+        ReCreateOtherActivities,
+        /** Full staggered recreate including Theme (font scale / reset need attachBaseContext). */
         ReCreateAllActivities,
     }
 
@@ -36,8 +41,14 @@ class ThemeSettingsDesign(
 
     private val paletteCards = mutableMapOf<ThemePalette, MaterialCardView>()
     private val recreateHandler = Handler(Looper.getMainLooper())
+    private var pendingRecreateIncludesHost = false
     private val recreateRunnable = Runnable {
-        requests.trySend(Request.ReCreateAllActivities)
+        val includeHost = pendingRecreateIncludesHost
+        pendingRecreateIncludesHost = false
+        requests.trySend(
+            if (includeHost) Request.ReCreateAllActivities
+            else Request.ReCreateOtherActivities,
+        )
     }
 
     init {
@@ -56,10 +67,18 @@ class ThemeSettingsDesign(
         setupReset()
     }
 
-    private fun recreateAll() {
+    fun disposeForReplace() {
         recreateHandler.removeCallbacks(recreateRunnable)
-        // Batch several quick toggles (palette + dynamic + true black) into one recreate.
-        recreateHandler.postDelayed(recreateRunnable, 120L)
+        cancel()
+    }
+
+    private fun recreateAll(includeHostActivityInMassRecreate: Boolean = false) {
+        applyUiStoreThemeNow()
+        pendingRecreateIncludesHost = pendingRecreateIncludesHost || includeHostActivityInMassRecreate
+        recreateHandler.removeCallbacks(recreateRunnable)
+        // Activity applies theme synchronously in recreateAll; Theme screen content is swapped
+        // without Activity.recreate when possible (see ThemeSettingsActivity).
+        recreateHandler.postDelayed(recreateRunnable, 240L)
     }
 
     private fun dp(value: Int): Int {
@@ -81,7 +100,7 @@ class ThemeSettingsDesign(
                 R.id.theme_mode_dark -> DarkMode.ForceDark
                 else -> DarkMode.Auto
             }
-            recreateAll()
+            recreateAll(false)
         }
     }
 
@@ -90,7 +109,7 @@ class ThemeSettingsDesign(
         binding.dynamicColorSwitch.setOnCheckedChangeListener { _, checked ->
             uiStore.dynamicColors = checked
             updatePaletteEnabled()
-            recreateAll()
+            recreateAll(false)
         }
     }
 
@@ -149,7 +168,7 @@ class ThemeSettingsDesign(
                 uiStore.themePalette = palette
                 updatePaletteEnabled()
                 updatePaletteSelection()
-                recreateAll()
+                recreateAll(false)
             }
         }
     }
@@ -175,7 +194,7 @@ class ThemeSettingsDesign(
         binding.trueBlackSwitch.isChecked = uiStore.trueBlack
         binding.trueBlackSwitch.setOnCheckedChangeListener { _, checked ->
             uiStore.trueBlack = checked
-            recreateAll()
+            recreateAll(false)
         }
     }
 
@@ -196,7 +215,7 @@ class ThemeSettingsDesign(
                 R.id.text_scale_extra -> ThemeTextScale.ExtraLarge
                 else -> ThemeTextScale.Default
             }
-            recreateAll()
+            recreateAll(true)
         }
     }
 
@@ -215,7 +234,7 @@ class ThemeSettingsDesign(
                 R.id.home_background_plain -> HomeBackgroundStyle.Plain
                 else -> HomeBackgroundStyle.Preview
             }
-            recreateAll()
+            recreateAll(false)
         }
     }
 
@@ -227,7 +246,7 @@ class ThemeSettingsDesign(
             uiStore.trueBlack = false
             uiStore.themeTextScale = ThemeTextScale.Default
             uiStore.homeBackgroundStyle = HomeBackgroundStyle.Preview
-            recreateAll()
+            recreateAll(true)
         }
     }
 
