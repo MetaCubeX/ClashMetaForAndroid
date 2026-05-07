@@ -95,6 +95,13 @@
     <string name="rule_mode">规则模式</string>
     <string name="running">运行中</string>
     <string name="settings">设置</string>
+    <string name="main_advanced_settings">高级设置</string>
+    <string name="main_advanced_settings_summary">应用、地理数据库与网络</string>
+    <string name="advanced_hub_subtitle">选择分类</string>
+    <string name="advanced_hub_app_summary">语言、行为与通知</string>
+    <string name="advanced_hub_geo_summary">数据库、Meta 与核心开关</string>
+    <string name="advanced_hub_network_summary">VPN、安全与 DNS</string>
+    <string name="settings_geo">地理与规则数据</string>
     <string name="features">功能</string>
     <string name="features_intro"><![CDATA[
 <b>统一延迟</b> — 按真实请求测延迟，不仅是 TCP。<br/>
@@ -394,10 +401,14 @@
     <string name="effective_rules_open_logcat">打开核心日志</string>
     <string name="effective_rules_title">路由规则</string>
     <string name="external_controller_tls">外部控制器（TLS）</string>
-    <string name="home_import_clipboard_row">📋  从剪贴板</string>
-    <string name="home_import_qr_row">📷  扫描二维码</string>
-    <string name="home_import_sheet_title">添加配置</string>
-    <string name="home_import_url_row">🔗  从 URL</string>
+    <string name="home_import_clipboard_row">从剪贴板</string>
+    <string name="home_import_clipboard_sub">使用剪贴板中已复制的订阅链接创建配置。</string>
+    <string name="home_import_qr_row">扫描二维码</string>
+    <string name="home_import_qr_sub">使用相机读取订阅二维码。</string>
+    <string name="home_import_sheet_title">添加订阅</string>
+    <string name="home_import_sheet_summary">选择导入方式：剪贴板、链接或二维码。</string>
+    <string name="home_import_url_row">输入 URL</string>
+    <string name="home_import_url_sub">打开可手动输入或粘贴订阅链接的页面。</string>
     <string name="import_done_named">已导入为「%s」</string>
     <string name="import_failed_title">无法导入订阅</string>
     <string name="import_failed_open_editor">编辑订阅</string>
@@ -420,6 +431,7 @@
     <string name="profile_force_update">从 URL 更新订阅</string>
     <string name="profile_menu_set_active">设为活动</string>
     <string name="profile_menu_subscription_sources">订阅源</string>
+    <string name="profile_menu_sheet_subtitle">为此配置选择操作</string>
     <string name="profile_ping_all">延迟测试（全部节点）</string>
     <string name="profile_ping_ms_result">延迟约 %d ms（直连）</string>
     <string name="profile_ping_need_url">Ping 需要带订阅 URL 的配置</string>
@@ -427,11 +439,13 @@
     <string name="profile_proxy_group">代理组</string>
     <string name="profile_update_scheduled">已开始更新订阅</string>
     <string name="properties_interval_helper">留空或 0 为禁用；启用时最小 15</string>
+    <string name="properties_url_helper">订阅链接（HTTPS 或 Clash）</string>
     <string name="properties_proxy_providers">HTTP 订阅源</string>
     <string name="properties_proxy_providers_summary">多个 proxy-providers（sub1、sub2…）无需编辑 YAML</string>
     <string name="properties_section_about">关于本页</string>
     <string name="properties_section_configuration">配置</string>
     <string name="properties_section_subscription">订阅</string>
+    <string name="properties_editor_intro">粘贴订阅链接，设置名称与更新间隔，然后保存。</string>
     <string name="proxy_chain_clear_all">移除全部 dialer-proxy</string>
     <string name="proxy_chain_clear_selected">移除所选行的 dialer</string>
     <string name="proxy_chain_cleared_all">已移除全部 dialer-proxy，配置将重新加载。</string>

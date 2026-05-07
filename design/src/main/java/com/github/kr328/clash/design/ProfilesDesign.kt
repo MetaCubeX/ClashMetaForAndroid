@@ -88,7 +88,7 @@ class ProfilesDesign(context: Context) : Design<ProfilesDesign.Request>(context)
 
     init {
         binding.self = this
-        binding.toolbar.title = context.getString(R.string.nav_subscriptions)
+        binding.toolbar.title = context.getString(R.string.main_open_profiles)
 
         binding.recyclerList.applyLinearAdapter(context, adapter)
         surface.addOnPropertyChangedCallback(object : Observable.OnPropertyChangedCallback() {

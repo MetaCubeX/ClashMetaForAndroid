@@ -5,7 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.ClipboardManager
-import android.widget.TextView
+import android.view.View
 import com.github.kr328.clash.common.util.ShareImportSupport
 import com.github.kr328.clash.common.util.SubscriptionNameGuesser
 import com.github.kr328.clash.common.util.intent
@@ -18,6 +18,7 @@ import com.github.kr328.clash.design.dialog.AppBottomSheetDialog
 import com.github.kr328.clash.design.ui.ToastDuration
 import com.github.kr328.clash.design.util.showExceptionToast
 import com.github.kr328.clash.service.model.Profile
+import com.github.kr328.clash.util.createEmptyUrlProfileAndOpenEditor
 import com.github.kr328.clash.util.withClash
 import com.github.kr328.clash.util.withProfile
 import kotlinx.coroutines.Dispatchers
@@ -108,15 +109,15 @@ class ProfilesActivity : BaseActivity<ProfilesDesign>() {
         val dialog = AppBottomSheetDialog(this, fitContentHeight = false)
         val view = layoutInflater.inflate(DesignR.layout.bottom_sheet_home_import, null)
         dialog.setContentView(view)
-        view.findViewById<TextView>(DesignR.id.opt_clipboard).setOnClickListener {
+        view.findViewById<View>(DesignR.id.opt_clipboard).setOnClickListener {
             dialog.dismiss()
             launch { importFromClipboard() }
         }
-        view.findViewById<TextView>(DesignR.id.opt_url).setOnClickListener {
+        view.findViewById<View>(DesignR.id.opt_url).setOnClickListener {
             dialog.dismiss()
-            startActivity(NewProfileActivity::class.intent)
+            launch { createEmptyUrlProfileAndOpenEditor() }
         }
-        view.findViewById<TextView>(DesignR.id.opt_qr).setOnClickListener {
+        view.findViewById<View>(DesignR.id.opt_qr).setOnClickListener {
             dialog.dismiss()
             startActivity(NewProfileActivity::class.intent)
         }

@@ -2,6 +2,7 @@ package com.github.kr328.clash.design
 
 import android.content.Context
 import android.view.View
+import android.view.inputmethod.InputMethodManager
 import android.widget.ArrayAdapter
 import androidx.core.widget.doAfterTextChanged
 import com.github.kr328.clash.core.model.FetchStatus
@@ -10,7 +11,6 @@ import com.github.kr328.clash.design.dialog.ModelProgressBarConfigure
 import com.github.kr328.clash.design.dialog.withModelProgressBar
 import com.github.kr328.clash.design.util.applyFrom
 import com.github.kr328.clash.design.util.bindAppBarElevation
-import com.github.kr328.clash.design.util.getHtml
 import com.github.kr328.clash.design.util.layoutInflater
 import com.github.kr328.clash.design.util.root
 import com.github.kr328.clash.service.model.Profile
@@ -154,8 +154,6 @@ class PropertiesDesign(context: Context) : Design<PropertiesDesign.Request>(cont
 
         binding.activityBarLayout.applyFrom(context)
 
-        binding.tips.text = context.getHtml(R.string.tips_properties)
-
         binding.scrollRoot.bindAppBarElevation(binding.activityBarLayout)
         binding.editUserAgentPreset.setAdapter(
             ArrayAdapter(
@@ -270,6 +268,17 @@ class PropertiesDesign(context: Context) : Design<PropertiesDesign.Request>(cont
 
     fun requestProxyProviders() {
         requests.trySend(Request.BrowseProxyProviders)
+    }
+
+    fun focusSubscriptionUrlIfEmpty() {
+        val p = profile
+        if (p.type != Profile.Type.Url || p.source.isNotBlank()) return
+        binding.editUrl.post {
+            binding.editUrl.requestFocus()
+            val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
+                ?: return@post
+            imm.showSoftInput(binding.editUrl, InputMethodManager.SHOW_IMPLICIT)
+        }
     }
 
     private fun ModelProgressBarConfigure.applyFrom(status: FetchStatus) {

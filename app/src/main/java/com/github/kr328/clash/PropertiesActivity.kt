@@ -47,6 +47,8 @@ class PropertiesActivity : BaseActivity<PropertiesDesign>() {
 
         setContentDesign(design)
 
+        design.focusSubscriptionUrlIfEmpty()
+
         defer {
             canceled = true
 

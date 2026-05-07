@@ -57,7 +57,9 @@
     <style name="AppSwitch" parent="Widget.MaterialComponents.CompoundButton.Switch" />
 
     <!-- ========== Material 3 Toolbar Style ========== -->
-    <style name="AppToolbar" parent="Widget.Material3.Toolbar" />
+    <style name="AppToolbar" parent="Widget.Material3.Toolbar">
+        <item name="titleTextEllipsize">end</item>
+    </style>
 
     <!-- ========== Material 3 Progress Indicator Style ========== -->
     <style name="AppProgressIndicator" parent="Widget.Material3.LinearProgressIndicator" />

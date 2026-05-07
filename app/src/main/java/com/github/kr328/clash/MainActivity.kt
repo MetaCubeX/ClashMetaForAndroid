@@ -27,6 +27,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.getSystemService
 import com.github.kr328.clash.common.util.ShareImportSupport
 import com.github.kr328.clash.util.SubscriptionMetaCache
+import com.github.kr328.clash.util.createEmptyUrlProfileAndOpenEditor
 import com.github.kr328.clash.common.util.StandalonePing
 import com.github.kr328.clash.common.util.SubscriptionNameGuesser
 import com.github.kr328.clash.common.util.SubscriptionOverrides
@@ -296,7 +297,7 @@ class MainActivity : BaseActivity<MainDesign>() {
         }
         view.findViewById<View>(R.id.opt_url).setOnClickListener {
             dialog.dismiss()
-            startActivity(NewProfileActivity::class.intent)
+            launch { createEmptyUrlProfileAndOpenEditor() }
         }
         view.findViewById<View>(R.id.opt_qr).setOnClickListener {
             dialog.dismiss()

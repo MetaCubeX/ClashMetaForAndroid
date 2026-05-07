@@ -81,6 +81,8 @@
     <dimen name="main_card_margin_vertical">5dp</dimen>
     <dimen name="main_label_margin_vertical">2dp</dimen>
     <dimen name="main_padding_horizontal">12dp</dimen>
+    <dimen name="properties_editor_padding_extra_top">12dp</dimen>
+    <dimen name="properties_editor_padding_extra_bottom">8dp</dimen>
     <dimen name="main_bottom_nav_horizontal_margin">12dp</dimen>
     <dimen name="main_bottom_nav_top_margin">8dp</dimen>
     <dimen name="main_bottom_nav_bottom_margin">12dp</dimen>
