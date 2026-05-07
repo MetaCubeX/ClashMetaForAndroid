@@ -1,6 +1,7 @@
 package com.github.kr328.clash.service.util
 
 import org.yaml.snakeyaml.Yaml
+import java.io.File
 
 /**
  * Append proxy-groups entries. Provider keys (sub1, sub2) use the use field, not the proxies field.
@@ -12,6 +13,49 @@ import org.yaml.snakeyaml.Yaml
 object ProxyGroupsYamlEdit {
     private val parseYaml = Yaml()
     private val dumpYaml = YamlFormatting.blockYaml()
+
+    /**
+     * Removes one stale [staleName] from every `proxy-groups` entry’s `proxies` and `use` lists in
+     * [profileDir]/config.yaml. Used when Mihomo fails load with `proxy group[n]: …: '…' not found`
+     * after subscription nodes were dropped but merged groups still reference old names.
+     *
+     * @return true if config.yaml was modified
+     */
+    fun removeStaleNameFromAllProxyGroups(profileDir: File, staleName: String): Boolean {
+        val trimmed = staleName.trim()
+        if (trimmed.isEmpty()) return false
+        val configFile = File(profileDir, "config.yaml")
+        if (!configFile.isFile) return false
+        val root = YamlFormatting.parseRootMap(configFile.readText()) ?: return false
+        @Suppress("UNCHECKED_CAST")
+        val groups = root["proxy-groups"] as? MutableList<Any?> ?: return false
+        var changed = false
+        for (raw in groups) {
+            val g = raw as? MutableMap<String, Any?> ?: continue
+            for (key in listOf("proxies", "use")) {
+                val listRaw = g[key] as? List<*> ?: continue
+                val names = listRaw.mapNotNull { it?.toString() }
+                val filtered = names.filter { it != trimmed }
+                if (filtered.size == names.size) continue
+                changed = true
+                if (filtered.isEmpty()) {
+                    g.remove(key)
+                } else {
+                    g[key] = filtered.toMutableList()
+                }
+            }
+            val proxiesLeft = (g["proxies"] as? List<*>)?.mapNotNull { it?.toString() }.orEmpty()
+            val useLeft = (g["use"] as? List<*>)?.mapNotNull { it?.toString() }.orEmpty()
+            if (proxiesLeft.isEmpty() && useLeft.isEmpty()) {
+                g["proxies"] = mutableListOf("DIRECT")
+                changed = true
+            }
+        }
+        if (!changed) return false
+        root["proxy-groups"] = groups
+        configFile.writeText(dumpYaml.dump(root))
+        return true
+    }
 
     /**
      * Appends a **select** group with `use: [providerKeys]` (manual pick; delays may stay unset until tested).

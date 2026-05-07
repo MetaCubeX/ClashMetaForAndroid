@@ -10,6 +10,7 @@ import com.github.kr328.clash.service.data.SelectionDao
 import com.github.kr328.clash.service.store.ServiceStore
 import com.github.kr328.clash.service.util.GeoUrlSanitizer
 import com.github.kr328.clash.service.util.ProxyDialerYamlEdit
+import com.github.kr328.clash.service.util.ProxyGroupsYamlEdit
 import com.github.kr328.clash.service.util.ProxyHardener
 import com.github.kr328.clash.service.util.ensureBundledGeoAssets
 import com.github.kr328.clash.service.util.importedDir
@@ -22,18 +23,35 @@ import java.util.*
 class ConfigurationModule(service: Service) : Module<ConfigurationModule.LoadException>(service) {
     data class LoadException(val message: String)
 
+    private fun fullThrowableMessage(e: Throwable): String = buildString {
+        var x: Throwable? = e
+        while (x != null) {
+            append(x.message)
+            append('\n')
+            x = x.cause
+        }
+    }
+
     /** Mihomo [validateDialerProxies] — stale names after subscription / merged-group edits break [Clash.load]. */
     private fun isDialerProxyValidationFailure(e: Throwable): Boolean {
-        val msg = buildString {
-            var x: Throwable? = e
-            while (x != null) {
-                append(x.message)
-                append('\n')
-                x = x.cause
-            }
-        }.lowercase()
+        val msg = fullThrowableMessage(e).lowercase()
         if (!msg.contains("dialer-proxy")) return false
         return msg.contains("not found") || msg.contains("circular")
+    }
+
+    /**
+     * [outboundgroup.getProxies]/getProviders — stale member names in merged `proxy-groups` after
+     * subscription update ([SubscriptionUpdateMerge]).
+     */
+    private fun extractQuotedNotFoundName(e: Throwable): String? {
+        val re = Regex("'([^']*)'\\s+not\\s+found", RegexOption.IGNORE_CASE)
+        return re.find(fullThrowableMessage(e))?.groupValues?.getOrNull(1)?.trim()?.takeIf { it.isNotEmpty() }
+    }
+
+    private fun isProxyGroupStaleReferenceFailure(e: Throwable): Boolean {
+        val msg = fullThrowableMessage(e).lowercase()
+        if (!msg.contains("proxy group[")) return false
+        return extractQuotedNotFoundName(e) != null
     }
 
     private val store = ServiceStore(service)
@@ -122,29 +140,56 @@ class ConfigurationModule(service: Service) : Module<ConfigurationModule.LoadExc
                     Log.d("Active profile loaded")
                 }
 
-                try {
-                    GeoUrlSanitizer.sanitizeProfile(profileDir)
-                    service.ensureBundledGeoAssets()
-                    Clash.load(profileDir).await()
-                    applyPostLoad()
-                } catch (e: Exception) {
-                    if (loaded == null && isDialerProxyValidationFailure(e) &&
-                        ProxyDialerYamlEdit.clearAllDialerProxies(profileDir)
-                    ) {
-                        Log.w(
-                            "Invalid dialer-proxy in YAML (e.g. renamed nodes); stripped all dialer-proxy and retrying load",
-                        )
-                        try {
-                            Clash.load(profileDir).await()
-                            applyPostLoad()
-                        } catch (e2: Exception) {
-                            Log.e("Failed to load profile after dialer-proxy recovery", e2)
-                            return enqueueEvent(LoadException(e2.message ?: "Unknown"))
+                var dialerRecoveryAttempted = false
+                var loadFailures = 0
+                while (true) {
+                    try {
+                        GeoUrlSanitizer.sanitizeProfile(profileDir)
+                        service.ensureBundledGeoAssets()
+                        Clash.load(profileDir).await()
+                        applyPostLoad()
+                        break
+                    } catch (e: Exception) {
+                        loadFailures++
+                        if (loadFailures > 48) {
+                            Log.e("Profile load: recovery limit exceeded", e)
+                            if (loaded == null) {
+                                return enqueueEvent(LoadException(e.message ?: "Unknown"))
+                            }
+                            break
                         }
-                    } else {
-                        Log.e("Failed to load active profile, keeping runtime alive", e)
-                        if (loaded == null) {
-                            return enqueueEvent(LoadException(e.message ?: "Unknown"))
+                        when {
+                            !dialerRecoveryAttempted &&
+                                isDialerProxyValidationFailure(e) &&
+                                ProxyDialerYamlEdit.clearAllDialerProxies(profileDir) -> {
+                                dialerRecoveryAttempted = true
+                                Log.w(
+                                    "Invalid dialer-proxy in YAML (e.g. renamed nodes); stripped all dialer-proxy and retrying load",
+                                )
+                            }
+                            isProxyGroupStaleReferenceFailure(e) -> {
+                                val stale = extractQuotedNotFoundName(e)
+                                if (stale != null &&
+                                    ProxyGroupsYamlEdit.removeStaleNameFromAllProxyGroups(profileDir, stale)
+                                ) {
+                                    Log.w(
+                                        "Stale proxy-group reference removed from config.yaml; retrying load (name omitted)",
+                                    )
+                                } else {
+                                    Log.e("Failed to load active profile, keeping runtime alive", e)
+                                    if (loaded == null) {
+                                        return enqueueEvent(LoadException(e.message ?: "Unknown"))
+                                    }
+                                    break
+                                }
+                            }
+                            else -> {
+                                Log.e("Failed to load active profile, keeping runtime alive", e)
+                                if (loaded == null) {
+                                    return enqueueEvent(LoadException(e.message ?: "Unknown"))
+                                }
+                                break
+                            }
                         }
                     }
                 }
