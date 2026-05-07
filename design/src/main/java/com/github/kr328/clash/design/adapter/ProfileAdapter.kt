@@ -142,11 +142,15 @@ class ProfileAdapter(
         ) {
             return
         }
-        val runtimeChanged =
-            names != proxyGroupNames ||
-                running != clashRunning ||
-                activeProfileUuid != this.activeProfileUuid
-        if (runtimeChanged) {
+        // Only reset runtime proxies when identity actually changes. The core may return the
+        // same selector list in a different order after patchSelector; treating that like a
+        // full reset cleared pending selections and made the home card look like the tap lost.
+        val groupSetChanged = names.toSet() != proxyGroupNames.toSet()
+        val shouldResetRuntimeProxyState =
+            running != clashRunning ||
+                activeProfileUuid != this.activeProfileUuid ||
+                groupSetChanged
+        if (shouldResetRuntimeProxyState) {
             lastReportedVisibleGroup.clear()
             proxyDetails = emptyMap()
             pendingProxySelections.clear()
