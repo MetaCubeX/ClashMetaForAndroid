@@ -37,11 +37,10 @@ class ThemeSettingsActivity : BaseActivity<ThemeSettingsDesign>() {
                             staggerRecreate(
                                 ApplicationObserver.createdActivities.filter { it !is ThemeSettingsActivity },
                             )
-                            current.disposeForReplace()
+                            val old = current
                             current = newDesign()
-                            window.decorView.post {
-                                design = current
-                            }
+                            design = current
+                            old.disposeForReplace()
                         }
                         ThemeSettingsDesign.Request.ReCreateAllActivities -> {
                             staggerRecreate(ApplicationObserver.createdActivities.toList())

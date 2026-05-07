@@ -5,6 +5,7 @@ import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import com.github.kr328.clash.design.ui.Surface
 import com.github.kr328.clash.design.ui.ToastDuration
+import com.github.kr328.clash.design.util.currentWindowInsetsSnapshot
 import com.github.kr328.clash.design.util.setOnInsertsChangedListener
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.CoroutineScope
@@ -48,7 +49,13 @@ abstract class Design<R>(val context: Context) :
     init {
         when (context) {
             is AppCompatActivity -> {
-                context.window.decorView.setOnInsertsChangedListener {
+                val decor = context.window.decorView
+                decor.currentWindowInsetsSnapshot()?.let {
+                    if (surface.insets != it) {
+                        surface.insets = it
+                    }
+                }
+                decor.setOnInsertsChangedListener {
                     if (surface.insets != it) {
                         surface.insets = it
                     }
