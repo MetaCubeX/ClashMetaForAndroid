@@ -99,6 +99,7 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
     private var activeSubscriptionUsage: SubscriptionUsage? = null
     private var activeAnnouncementOnOpenUrl: ((String) -> Unit)? = null
     private var activeAnnouncementOnSupport: (() -> Unit)? = null
+    private var announcementCardCoversSupport: Boolean = false
 
     private class StaticPageAdapter(
         private val pages: List<View>,
@@ -191,9 +192,10 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         usage: SubscriptionUsage? = null,
         supportUrl: String? = null,
         onOpenUrl: ((String) -> Unit)? = null,
-        onDismiss: (() -> Unit)? = null,
         onRefresh: (() -> Unit)? = null,
         onSupport: (() -> Unit)? = null,
+        announcementCollapsed: Boolean = false,
+        onToggleCollapsed: (() -> Unit)? = null,
     ) {
         withContext(Dispatchers.Main) {
             val message = text
@@ -203,53 +205,92 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
             val announcementUrl = url?.takeIf { it.isNotBlank() }
             val support = supportUrl?.takeIf { it.isNotBlank() }
             val hasAnnouncement = message.isNotBlank()
+            val useAnnouncementCard = hasAnnouncement && uiStore.announcementCardEnabled
             activeAnnouncementSupportUrl = support
             activeSubscriptionUsage = usage
             activeAnnouncementOnOpenUrl = onOpenUrl
             activeAnnouncementOnSupport = onSupport
 
-            binding.mainHeaderTitle.text = context.getString(
-                if (hasAnnouncement) R.string.announcement_settings else R.string.launch_name_meta,
-            )
-            binding.mainHeaderSummary.visibility = if (hasAnnouncement) View.VISIBLE else View.GONE
-            binding.mainHeaderSummary.text = message
-            binding.mainHeaderSummary.setOnClickListener {
-                val target = announcementUrl ?: return@setOnClickListener
-                onOpenUrl?.invoke(target)
+            if (useAnnouncementCard) {
+                binding.mainHeaderTitle.text = context.getString(R.string.launch_name_meta)
+                binding.mainHeaderSummary.visibility = View.GONE
+                binding.mainHeaderSummary.text = ""
+                binding.mainHeaderSummary.setOnClickListener(null)
+                binding.mainHeaderSummary.isClickable = false
+            } else {
+                binding.mainHeaderTitle.text = context.getString(
+                    if (hasAnnouncement) R.string.announcement_settings else R.string.launch_name_meta,
+                )
+                binding.mainHeaderSummary.visibility = if (hasAnnouncement) View.VISIBLE else View.GONE
+                binding.mainHeaderSummary.text = message
+                binding.mainHeaderSummary.setOnClickListener {
+                    val target = announcementUrl ?: return@setOnClickListener
+                    onOpenUrl?.invoke(target)
+                }
+                binding.mainHeaderSummary.isClickable = announcementUrl != null
             }
-            binding.mainHeaderSummary.isClickable = announcementUrl != null
             binding.mainHeaderSupport.visibility = View.GONE
             binding.mainHeaderSupport.setOnClickListener(null)
 
-            binding.mainAnnouncementCard.visibility = View.GONE
-            binding.mainAnnouncementText.visibility = if (message.isNotBlank()) View.VISIBLE else View.GONE
+            binding.mainHeaderSupport.visibility = View.GONE
+            binding.mainHeaderSupport.setOnClickListener(null)
+
+            val bodyCollapsed = useAnnouncementCard && announcementCollapsed
+            announcementCardCoversSupport = useAnnouncementCard && hasAnnouncement && support != null
+
+            binding.mainAnnouncementCard.visibility =
+                if (useAnnouncementCard) View.VISIBLE else View.GONE
+            binding.mainAnnouncementBody.visibility =
+                if (useAnnouncementCard && !bodyCollapsed) View.VISIBLE else View.GONE
+
+            binding.mainAnnouncementText.visibility =
+                if (useAnnouncementCard && !bodyCollapsed && message.isNotBlank()) View.VISIBLE else View.GONE
             binding.mainAnnouncementText.text = message
 
             binding.mainAnnouncementStatsRow.visibility = View.GONE
             binding.mainAnnouncementUsageBar.visibility = View.GONE
             binding.mainAnnouncementUsageText.visibility = View.GONE
             binding.mainAnnouncementUnavailableRow.visibility =
-                if (announcementUrl != null) View.VISIBLE else View.GONE
+                if (useAnnouncementCard && !bodyCollapsed && announcementUrl != null) View.VISIBLE else View.GONE
 
-            binding.mainAnnouncementOpenLink.visibility = if (announcementUrl != null) View.VISIBLE else View.GONE
+            binding.mainAnnouncementOpenLink.visibility =
+                if (useAnnouncementCard && !bodyCollapsed && announcementUrl != null) View.VISIBLE else View.GONE
             binding.mainAnnouncementOpenLink.setOnClickListener {
                 val target = announcementUrl ?: return@setOnClickListener
                 onOpenUrl?.invoke(target)
             }
 
-            binding.mainAnnouncementSupport.visibility = if (support != null) View.VISIBLE else View.GONE
+            binding.mainAnnouncementSupport.visibility =
+                if (useAnnouncementCard && !bodyCollapsed && support != null) View.VISIBLE else View.GONE
             binding.mainAnnouncementSupport.setOnClickListener {
                 val target = support ?: return@setOnClickListener
                 onOpenUrl?.invoke(target) ?: onSupport?.invoke()
             }
 
-            binding.mainAnnouncementRefresh.visibility = if (onRefresh != null) View.VISIBLE else View.GONE
+            binding.mainAnnouncementRefresh.visibility =
+                if (useAnnouncementCard && onRefresh != null) View.VISIBLE else View.GONE
             binding.mainAnnouncementRefresh.setOnClickListener { onRefresh?.invoke() }
 
-            binding.mainAnnouncementDismiss.visibility = if (onDismiss != null) View.VISIBLE else View.GONE
+            val showCollapseControl = useAnnouncementCard && onToggleCollapsed != null
+            binding.mainAnnouncementDismiss.visibility =
+                if (showCollapseControl) View.VISIBLE else View.GONE
+            if (bodyCollapsed) {
+                binding.mainAnnouncementDismiss.setImageResource(R.drawable.ic_baseline_expand_more)
+                binding.mainAnnouncementDismiss.contentDescription =
+                    context.getString(R.string.announcement_expand)
+            } else {
+                binding.mainAnnouncementDismiss.setImageResource(R.drawable.ic_baseline_expand_less)
+                binding.mainAnnouncementDismiss.contentDescription =
+                    context.getString(R.string.announcement_collapse)
+            }
             binding.mainAnnouncementDismiss.setOnClickListener {
-                binding.mainAnnouncementCard.visibility = View.GONE
-                onDismiss?.invoke()
+                onToggleCollapsed?.invoke()
+            }
+
+            binding.mainAnnouncementCard.isClickable = bodyCollapsed
+            binding.mainAnnouncementCard.isFocusable = bodyCollapsed
+            binding.mainAnnouncementCard.setOnClickListener {
+                if (bodyCollapsed) onToggleCollapsed?.invoke()
             }
 
             profileAdapter.setActiveAnnouncement(
@@ -413,7 +454,7 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         binding.mainActiveProfileUsage.visibility = if (p != null) View.VISIBLE else View.GONE
         val showUpdate = p?.imported == true && p.type != Profile.Type.File
         binding.mainActiveProfileUpdate.visibility = if (showUpdate) View.VISIBLE else View.GONE
-        val showSupport = !resolveSupportUrl().isNullOrBlank()
+        val showSupport = !resolveSupportUrl().isNullOrBlank() && !announcementCardCoversSupport
         binding.mainActiveProfileSupport.visibility = if (showSupport) View.VISIBLE else View.GONE
     }
 

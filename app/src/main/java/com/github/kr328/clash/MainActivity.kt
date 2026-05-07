@@ -26,6 +26,7 @@ import androidx.activity.result.contract.ActivityResultContracts.RequestPermissi
 import androidx.core.content.ContextCompat
 import androidx.core.content.getSystemService
 import com.github.kr328.clash.common.util.ShareImportSupport
+import com.github.kr328.clash.util.SubscriptionMetaCache
 import com.github.kr328.clash.common.util.StandalonePing
 import com.github.kr328.clash.common.util.SubscriptionNameGuesser
 import com.github.kr328.clash.common.util.SubscriptionOverrides
@@ -289,15 +290,15 @@ class MainActivity : BaseActivity<MainDesign>() {
         val dialog = AppBottomSheetDialog(this, fitContentHeight = false)
         val view = layoutInflater.inflate(R.layout.bottom_sheet_home_import, null)
         dialog.setContentView(view)
-        view.findViewById<TextView>(R.id.opt_clipboard).setOnClickListener {
+        view.findViewById<View>(R.id.opt_clipboard).setOnClickListener {
             dialog.dismiss()
             launch { importFromClipboard(design) }
         }
-        view.findViewById<TextView>(R.id.opt_url).setOnClickListener {
+        view.findViewById<View>(R.id.opt_url).setOnClickListener {
             dialog.dismiss()
             startActivity(NewProfileActivity::class.intent)
         }
-        view.findViewById<TextView>(R.id.opt_qr).setOnClickListener {
+        view.findViewById<View>(R.id.opt_qr).setOnClickListener {
             dialog.dismiss()
             scanLauncher.launch(null)
         }
@@ -411,7 +412,8 @@ class MainActivity : BaseActivity<MainDesign>() {
                                 it == Event.ClashStart ||
                                 it == Event.ServiceRecreated
                             scheduleDashboardRefresh(
-                                includeAnnouncement = it == Event.ActivityStart,
+                                includeAnnouncement = it == Event.ActivityStart ||
+                                    it == Event.ProfileChanged,
                                 force = serviceStateEvent,
                             )
                             if (it == Event.ProfileLoaded || it == Event.ProfileChanged) {
@@ -1367,6 +1369,9 @@ class MainActivity : BaseActivity<MainDesign>() {
     }
 
     private suspend fun renderAnnouncementFromStore(design: com.github.kr328.clash.design.MainDesign) {
+        val active = runCatching { withProfile { queryActive() } }.getOrNull()
+        com.github.kr328.clash.util.SubscriptionMetaCache.hydrateUiStoreForProfile(uiStore, active)
+
         val text = uiStore.announcement
         val url = uiStore.announcementUrl
         val supportUrl = uiStore.supportUrl
@@ -1374,8 +1379,13 @@ class MainActivity : BaseActivity<MainDesign>() {
         if (uiStore.announcementSeenHash != hash) {
             uiStore.announcementSeenHash = hash
             uiStore.announcementDismissed = false
+            uiStore.announcementCollapsed = false
         }
-        val textVisible = text.isNotBlank() && !uiStore.announcementDismissed
+        val textVisible = if (uiStore.announcementCardEnabled) {
+            text.isNotBlank()
+        } else {
+            text.isNotBlank() && !uiStore.announcementDismissed
+        }
         val usage = com.github.kr328.clash.common.util.SubscriptionUsage.parse(
             uiStore.subscriptionUserinfo.takeIf { it.isNotBlank() }
         )
@@ -1386,9 +1396,7 @@ class MainActivity : BaseActivity<MainDesign>() {
             usage = usage,
             supportUrl = supportUrl.takeIf { it.isNotBlank() },
             onOpenUrl = { openExternalUrl(it) },
-            onDismiss = if (text.isNotBlank()) ({ uiStore.announcementDismissed = true }) else null,
             onRefresh = {
-                // Force cooldown bypass by resetting timestamp, then re-fetch.
                 launch(Dispatchers.IO) {
                     uiStore.subscriptionMetadataLastFetch = 0L
                     runCatching { syncSubscriptionMetadata() }
@@ -1397,6 +1405,15 @@ class MainActivity : BaseActivity<MainDesign>() {
             },
             onSupport = {
                 supportUrl.takeIf { it.isNotBlank() }?.let { openExternalUrl(it) }
+            },
+            announcementCollapsed = uiStore.announcementCollapsed,
+            onToggleCollapsed = if (textVisible && uiStore.announcementCardEnabled) {
+                {
+                    uiStore.announcementCollapsed = !uiStore.announcementCollapsed
+                    launch { renderAnnouncementFromStore(design) }
+                }
+            } else {
+                null
             },
         )
     }
@@ -1533,6 +1550,16 @@ class MainActivity : BaseActivity<MainDesign>() {
             meta.announcement?.let { uiStore.announcement = it }
             meta.announcementUrl?.let { uiStore.announcementUrl = it }
         }
+        SubscriptionMetaCache.put(
+            uiStore,
+            active.uuid,
+            SubscriptionMetaCache.Entry(
+                announcement = meta.announcement.orEmpty(),
+                announcementUrl = meta.announcementUrl.orEmpty(),
+                supportUrl = meta.supportUrl.orEmpty(),
+                userinfo = meta.subscriptionUserinfo.orEmpty(),
+            ),
+        )
     }
 
     private fun openExternalUrl(url: String) {

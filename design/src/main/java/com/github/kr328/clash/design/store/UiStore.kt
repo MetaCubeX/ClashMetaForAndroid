@@ -144,7 +144,7 @@ class UiStore(context: Context) {
     /** Master toggle for showing the announcement card on the main screen. */
     var announcementCardEnabled: Boolean by store.boolean(
         key = "announcement_card_enabled",
-        defaultValue = false,
+        defaultValue = true,
     )
 
     /** When true, hide the announcement card on the main screen until text changes. */
@@ -153,9 +153,24 @@ class UiStore(context: Context) {
         defaultValue = false,
     )
 
+    /** When true, announcement card shows only the title row until expanded again. */
+    var announcementCollapsed: Boolean by store.boolean(
+        key = "announcement_collapsed",
+        defaultValue = false,
+    )
+
     /** Hash of last seen announcement; reset of [announcementDismissed] when text changes. */
     var announcementSeenHash: String by store.string(
         key = "announcement_seen_hash",
+        defaultValue = "",
+    )
+
+    /**
+     * JSON object: profile UUID string → { a, au, s, u } (announcement, announcement URL,
+     * support URL, subscription-userinfo) from the last successful metadata fetch for that profile.
+     */
+    var subscriptionMetaCacheJson: String by store.string(
+        key = "sub_meta_profile_cache_v1",
         defaultValue = "",
     )
 
