@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.ClipboardManager
 import android.view.View
+import androidx.lifecycle.lifecycleScope
 import com.github.kr328.clash.common.util.ShareImportSupport
 import com.github.kr328.clash.common.util.SubscriptionNameGuesser
 import com.github.kr328.clash.common.util.intent
@@ -21,6 +22,13 @@ import com.github.kr328.clash.service.model.Profile
 import com.github.kr328.clash.util.createEmptyUrlProfileAndOpenEditor
 import com.github.kr328.clash.util.withClash
 import com.github.kr328.clash.util.withProfile
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import io.github.g00fy2.quickie.QRResult
+import io.github.g00fy2.quickie.QRResult.QRError
+import io.github.g00fy2.quickie.QRResult.QRMissingPermission
+import io.github.g00fy2.quickie.QRResult.QRSuccess
+import io.github.g00fy2.quickie.QRResult.QRUserCanceled
+import io.github.g00fy2.quickie.ScanQRCode
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -32,6 +40,8 @@ import java.util.*
 import java.util.concurrent.TimeUnit
 
 class ProfilesActivity : BaseActivity<ProfilesDesign>() {
+    private val scanLauncher = registerForActivityResult(ScanQRCode(), ::onScanQrResult)
+
     override suspend fun main() {
         val design = ProfilesDesign(this)
 
@@ -119,9 +129,74 @@ class ProfilesActivity : BaseActivity<ProfilesDesign>() {
         }
         view.findViewById<View>(DesignR.id.opt_qr).setOnClickListener {
             dialog.dismiss()
-            startActivity(NewProfileActivity::class.intent)
+            scanLauncher.launch(null)
         }
         dialog.show()
+    }
+
+    private fun onScanQrResult(result: QRResult) {
+        lifecycleScope.launch {
+            val d = design ?: return@launch
+            when (result) {
+                is QRSuccess -> {
+                    val url = result.content.rawValue
+                        ?: result.content.rawBytes?.let { String(it) }.orEmpty()
+                    if (url.isNotBlank()) {
+                        createProfileFromQrUrl(d, url)
+                    }
+                }
+                QRUserCanceled -> Unit
+                QRMissingPermission ->
+                    d.showExceptionToast(getString(DesignR.string.import_from_qr_no_permission))
+                is QRError ->
+                    d.showExceptionToast(getString(DesignR.string.import_from_qr_exception))
+            }
+        }
+    }
+
+    private suspend fun createProfileFromQrUrl(design: ProfilesDesign, url: String) {
+        val trimmed = url.trim()
+        if (!ShareImportSupport.isAllowedUrlProfileSource(trimmed)) {
+            design.showToast(DesignR.string.invalid_url, ToastDuration.Long)
+            return
+        }
+        design.showToast(DesignR.string.import_resolving, ToastDuration.Short)
+        val name = withTimeoutOrNull(4500L) {
+            SubscriptionNameGuesser.guess(this@ProfilesActivity, trimmed)
+        } ?: SubscriptionNameGuesser.guessFast(trimmed)
+        val uuid = withProfile {
+            create(Profile.Type.Url, name, trimmed)
+        }
+        try {
+            withProfile { commit(uuid) }
+        } catch (e: Exception) {
+            showImportCommitFailureDialog(uuid, e)
+            return
+        }
+        val profile = withProfile { queryByUUID(uuid) }
+        if (profile?.imported == true) {
+            withProfile { setActive(profile) }
+            ensureGlobalSelectionSafeAfterImport()
+            design.showToast(getString(DesignR.string.import_done_named, name), ToastDuration.Long)
+            design.fetch()
+        } else {
+            startActivity(PropertiesActivity::class.intent.setUUID(uuid))
+        }
+    }
+
+    private suspend fun showImportCommitFailureDialog(uuid: UUID, e: Throwable) {
+        withContext(Dispatchers.Main) {
+            val raw = e.message?.trim().orEmpty().ifBlank { e.javaClass.simpleName }
+            val msg = if (raw.length > 6000) raw.take(6000) + "…" else raw
+            MaterialAlertDialogBuilder(this@ProfilesActivity)
+                .setTitle(getString(DesignR.string.import_failed_title))
+                .setMessage(msg)
+                .setNegativeButton(android.R.string.cancel, null)
+                .setPositiveButton(getString(DesignR.string.import_failed_open_editor)) { _, _ ->
+                    startActivity(PropertiesActivity::class.intent.setUUID(uuid))
+                }
+                .show()
+        }
     }
 
     private suspend fun importFromClipboard() {
