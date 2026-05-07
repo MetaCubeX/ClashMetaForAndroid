@@ -33,6 +33,11 @@ class ProfilesDesign(context: Context) : Design<ProfilesDesign.Request>(context)
     private val adapter = ProfileAdapter(
         this::requestActive,
         this::showMenu,
+        onForceUpdate = { profile ->
+            if (profile.imported && profile.type != Profile.Type.File) {
+                requests.trySend(Request.Update(profile))
+            }
+        },
         showServerChooserInCard = false,
     )
 
