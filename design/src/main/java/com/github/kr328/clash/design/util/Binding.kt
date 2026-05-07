@@ -1,5 +1,6 @@
 package com.github.kr328.clash.design.util
 
+import android.content.Context
 import android.view.View
 import android.view.ViewGroup
 import androidx.databinding.BindingAdapter
@@ -28,4 +29,19 @@ fun View.bindBottomNavInset(insetPx: Int) {
     if (lp.bottomMargin == target) return
     lp.bottomMargin = target
     layoutParams = lp
+}
+
+@BindingAdapter("marginTopPx")
+fun View.bindMarginTopPx(px: Int) {
+    val lp = layoutParams as? ViewGroup.MarginLayoutParams ?: return
+    if (lp.topMargin == px) return
+    lp.topMargin = px
+    layoutParams = lp
+}
+
+object BindingExpressions {
+
+    @JvmStatic
+    fun marginBelowToolbarPx(context: Context, insetTop: Int): Int =
+        insetTop + context.resources.getDimensionPixelSize(R.dimen.toolbar_height)
 }

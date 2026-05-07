@@ -5,6 +5,7 @@
         <variable
             name="self"
             type="com.github.kr328.clash.design.SubscriptionIdentityDesign" />
+        <import type="com.github.kr328.clash.design.util.BindingExpressions" />
     </data>
 
     <androidx.coordinatorlayout.widget.CoordinatorLayout
@@ -24,9 +25,8 @@
         <androidx.core.widget.NestedScrollView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginTop="@dimen/toolbar_height"
+            app:marginTopPx="@{BindingExpressions.marginBelowToolbarPx(context, self.surface.insets.top)}"
             android:clipToPadding="false"
-            android:paddingTop="@{self.surface.insets.top}"
             android:paddingBottom="@{self.surface.insets.bottom}">
 
             <LinearLayout

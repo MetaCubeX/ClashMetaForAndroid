@@ -7,6 +7,7 @@
         <variable
             name="self"
             type="com.github.kr328.clash.design.EffectiveRulesDesign" />
+        <import type="com.github.kr328.clash.design.util.BindingExpressions" />
     </data>
 
     <androidx.coordinatorlayout.widget.CoordinatorLayout
@@ -27,8 +28,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical"
-            android:layout_marginTop="@dimen/toolbar_height"
-            android:paddingTop="@{self.surface.insets.top}"
+            app:marginTopPx="@{BindingExpressions.marginBelowToolbarPx(context, self.surface.insets.top)}"
             android:paddingBottom="@{self.surface.insets.bottom}">
 
             <LinearLayout

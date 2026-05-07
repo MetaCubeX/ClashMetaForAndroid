@@ -11,6 +11,6 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:clipToPadding="false"
-        android:paddingTop="@{(float) insets.top + @dimen/toolbar_height}"
+        android:paddingTop="@{insets.top + context.resources.getDimensionPixelSize(com.github.kr328.clash.design.R.dimen.toolbar_height)}"
         android:paddingBottom="@{insets.bottom}" />
 </layout>

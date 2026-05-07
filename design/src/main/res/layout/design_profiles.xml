@@ -29,7 +29,7 @@
             android:layout_height="match_parent"
             android:clipToPadding="false"
             android:paddingHorizontal="4dp"
-            android:paddingTop="@{(float) self.surface.insets.top + @dimen/toolbar_height + @dimen/profiles_header_height}"
+            android:paddingTop="@{self.surface.insets.top + context.resources.getDimensionPixelSize(com.github.kr328.clash.design.R.dimen.toolbar_height) + context.resources.getDimensionPixelSize(com.github.kr328.clash.design.R.dimen.profiles_header_height)}"
             android:paddingBottom="@{self.surface.insets.bottom}" />
 
         <com.google.android.material.card.MaterialCardView
@@ -155,7 +155,7 @@
             android:gravity="top|center_horizontal"
             android:orientation="vertical"
             android:paddingHorizontal="28dp"
-            android:paddingTop="@{(float) self.surface.insets.top + @dimen/toolbar_height}"
+            android:paddingTop="@{self.surface.insets.top + context.resources.getDimensionPixelSize(com.github.kr328.clash.design.R.dimen.toolbar_height)}"
             android:visibility="gone">
 
             <com.google.android.material.card.MaterialCardView

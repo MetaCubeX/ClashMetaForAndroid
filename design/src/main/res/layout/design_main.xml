@@ -53,7 +53,7 @@
             android:fillViewport="false"
             android:overScrollMode="never"
             android:paddingTop="@{self.surface.insets.top}"
-            android:paddingBottom="@{(float) self.surface.insets.bottom + @dimen/main_bottom_nav_reserved_space}">
+            android:paddingBottom="@{self.surface.insets.bottom + context.resources.getDimensionPixelSize(com.github.kr328.clash.design.R.dimen.main_bottom_nav_reserved_space)}">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -713,7 +713,7 @@
             android:fillViewport="false"
             android:overScrollMode="never"
             android:paddingTop="@{self.surface.insets.top}"
-            android:paddingBottom="@{(float) self.surface.insets.bottom + @dimen/main_bottom_nav_reserved_space}"
+            android:paddingBottom="@{self.surface.insets.bottom + context.resources.getDimensionPixelSize(com.github.kr328.clash.design.R.dimen.main_bottom_nav_reserved_space)}"
             android:visibility="gone">
 
             <LinearLayout
@@ -860,7 +860,7 @@
             android:fillViewport="false"
             android:overScrollMode="never"
             android:paddingTop="@{self.surface.insets.top}"
-            android:paddingBottom="@{(float) self.surface.insets.bottom + @dimen/main_bottom_nav_reserved_space}"
+            android:paddingBottom="@{self.surface.insets.bottom + context.resources.getDimensionPixelSize(com.github.kr328.clash.design.R.dimen.main_bottom_nav_reserved_space)}"
             android:visibility="gone">
 
             <LinearLayout
@@ -1111,7 +1111,7 @@
             android:fillViewport="false"
             android:overScrollMode="never"
             android:paddingTop="@{self.surface.insets.top}"
-            android:paddingBottom="@{(float) self.surface.insets.bottom + @dimen/main_bottom_nav_reserved_space}"
+            android:paddingBottom="@{self.surface.insets.bottom + context.resources.getDimensionPixelSize(com.github.kr328.clash.design.R.dimen.main_bottom_nav_reserved_space)}"
             android:visibility="gone">
 
             <LinearLayout
@@ -1161,7 +1161,7 @@
                         <ImageView
                             android:layout_width="34dp"
                             android:layout_height="34dp"
-                            android:contentDescription="@string/settings"
+                            android:contentDescription="@string/main_advanced_settings"
                             android:src="@drawable/ic_baseline_settings"
                             app:tint="?attr/colorOnPrimaryContainer" />
 
@@ -1175,7 +1175,7 @@
                             <TextView
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:text="@string/settings"
+                                android:text="@string/main_advanced_settings"
                                 android:textAppearance="@style/TextAppearance.App.TitleMedium"
                                 android:textColor="?attr/colorOnPrimaryContainer"
                                 android:textStyle="bold" />
@@ -1184,7 +1184,7 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="4dp"
-                                android:text="@string/main_open_settings_summary"
+                                android:text="@string/main_advanced_settings_summary"
                                 android:textAppearance="@style/TextAppearance.App.BodySmall"
                                 android:textColor="?attr/colorOnPrimaryContainer" />
                         </LinearLayout>

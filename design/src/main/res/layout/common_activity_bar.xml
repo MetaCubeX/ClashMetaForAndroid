@@ -25,5 +25,5 @@
         android:layout_weight="1"
         android:ellipsize="end"
         android:maxLines="1"
-        android:textAppearance="@style/TextAppearance.App.TitleLarge" />
+        android:textAppearance="@style/TextAppearance.App.TitleMedium" />
 </LinearLayout>

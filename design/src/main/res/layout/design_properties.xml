@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools">
+    xmlns:app="http://schemas.android.com/apk/res-auto">
     <data>
         <variable
             name="self"
@@ -19,6 +18,7 @@
     <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:background="?attr/colorSurface"
         android:paddingStart="@{self.surface.insets.start}"
         android:paddingEnd="@{self.surface.insets.end}">
 
@@ -26,92 +26,77 @@
             android:id="@+id/scroll_root"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:clipToPadding="false"
             android:scrollbars="none">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:paddingHorizontal="@dimen/main_padding_horizontal"
-                android:paddingTop="@{(float) self.surface.insets.top + @dimen/toolbar_height}"
-                android:paddingBottom="@{self.surface.insets.bottom}">
+                android:paddingHorizontal="16dp"
+                android:paddingTop="@{self.surface.insets.top + context.resources.getDimensionPixelSize(com.github.kr328.clash.design.R.dimen.toolbar_height) + context.resources.getDimensionPixelSize(com.github.kr328.clash.design.R.dimen.properties_editor_padding_extra_top)}"
+                android:paddingBottom="@{self.surface.insets.bottom + context.resources.getDimensionPixelSize(com.github.kr328.clash.design.R.dimen.properties_editor_padding_extra_bottom)}">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="14dp"
+                    android:text="@string/properties_editor_intro"
+                    android:textAppearance="@style/TextAppearance.App.BodyMedium"
+                    android:textColor="?attr/colorOnSurfaceVariant" />
 
                 <com.google.android.material.card.MaterialCardView
+                    style="@style/AppCard.Filled"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="12dp"
-                    app:cardCornerRadius="16dp"
-                    app:cardElevation="2dp"
+                    app:cardBackgroundColor="?attr/colorSurfaceContainer"
+                    app:cardCornerRadius="24dp"
+                    app:cardElevation="0dp"
                     app:strokeWidth="0dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
-                        android:padding="14dp">
+                        android:paddingTop="14dp"
+                        android:paddingBottom="8dp">
 
                         <TextView
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:paddingBottom="8dp"
-                            android:text="@string/properties_section_about"
-                            android:textAppearance="@style/TextAppearance.Material3.TitleSmall"
-                            android:textColor="?attr/colorOnSurface" />
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:gravity="center_vertical"
-                            android:orientation="horizontal">
-
-                            <View
-                                android:layout_width="@dimen/tips_icon_size"
-                                android:layout_height="@dimen/tips_icon_size"
-                                android:layout_marginEnd="@dimen/tips_icon_margin"
-                                android:background="@drawable/ic_outline_info" />
-
-                            <TextView
-                                android:id="@+id/tips"
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
-                                android:textColor="?attr/colorOnSurfaceVariant"
-                                tools:text="@string/tips_properties" />
-                        </LinearLayout>
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
-
-                <com.google.android.material.card.MaterialCardView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="12dp"
-                    app:cardCornerRadius="16dp"
-                    app:cardElevation="2dp"
-                    app:strokeWidth="0dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:paddingTop="12dp"
-                        android:paddingBottom="4dp">
-
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:paddingHorizontal="14dp"
-                            android:paddingBottom="4dp"
+                            android:paddingHorizontal="16dp"
+                            android:paddingBottom="10dp"
                             android:text="@string/properties_section_subscription"
-                            android:textAppearance="@style/TextAppearance.Material3.TitleSmall"
-                            android:textColor="?attr/colorOnSurface" />
+                            android:textAppearance="@style/TextAppearance.App.TitleSmall"
+                            android:textColor="?attr/colorOnSurface"
+                            android:textStyle="bold" />
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/layout_url"
+                            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginHorizontal="16dp"
+                            android:layout_marginVertical="@dimen/properties_element_margin_vertical"
+                            android:hint="@string/url"
+                            app:endIconMode="clear_text"
+                            app:helperText="@string/properties_url_helper"
+                            app:startIconDrawable="@drawable/ic_baseline_language">
+
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/edit_url"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:inputType="textUri" />
+                        </com.google.android.material.textfield.TextInputLayout>
 
                         <com.google.android.material.textfield.TextInputLayout
                             android:id="@+id/layout_name"
                             style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginHorizontal="14dp"
+                            android:layout_marginHorizontal="16dp"
                             android:layout_marginVertical="@dimen/properties_element_margin_vertical"
                             android:hint="@string/name">
 
@@ -123,27 +108,11 @@
                         </com.google.android.material.textfield.TextInputLayout>
 
                         <com.google.android.material.textfield.TextInputLayout
-                            android:id="@+id/layout_url"
-                            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginHorizontal="14dp"
-                            android:layout_marginVertical="@dimen/properties_element_margin_vertical"
-                            android:hint="@string/url">
-
-                            <com.google.android.material.textfield.TextInputEditText
-                                android:id="@+id/edit_url"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:inputType="textUri" />
-                        </com.google.android.material.textfield.TextInputLayout>
-
-                        <com.google.android.material.textfield.TextInputLayout
                             android:id="@+id/layout_interval"
                             style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginHorizontal="14dp"
+                            android:layout_marginHorizontal="16dp"
                             android:layout_marginVertical="@dimen/properties_element_margin_vertical"
                             android:hint="@string/auto_update_minutes"
                             app:helperText="@string/properties_interval_helper">
@@ -160,7 +129,7 @@
                             style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginHorizontal="14dp"
+                            android:layout_marginHorizontal="16dp"
                             android:layout_marginVertical="@dimen/properties_element_margin_vertical"
                             android:hint="@string/subscription_user_agent_override">
 
@@ -176,7 +145,7 @@
                             style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginHorizontal="14dp"
+                            android:layout_marginHorizontal="16dp"
                             android:layout_marginVertical="@dimen/properties_element_margin_vertical"
                             android:hint="@string/subscription_user_agent_custom"
                             app:helperText="@string/subscription_user_agent_override_summary">
@@ -192,7 +161,7 @@
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginHorizontal="14dp"
+                            android:layout_marginHorizontal="16dp"
                             android:layout_marginTop="2dp"
                             android:layout_marginBottom="8dp"
                             android:gravity="center_vertical"
@@ -229,28 +198,31 @@
                 </com.google.android.material.card.MaterialCardView>
 
                 <com.google.android.material.card.MaterialCardView
+                    style="@style/AppCard.Filled"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="12dp"
-                    app:cardCornerRadius="16dp"
-                    app:cardElevation="2dp"
+                    app:cardBackgroundColor="?attr/colorSurfaceContainer"
+                    app:cardCornerRadius="24dp"
+                    app:cardElevation="0dp"
                     app:strokeWidth="0dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
-                        android:paddingTop="12dp"
-                        android:paddingBottom="4dp">
+                        android:paddingTop="14dp"
+                        android:paddingBottom="8dp">
 
                         <TextView
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:paddingHorizontal="14dp"
-                            android:paddingBottom="4dp"
+                            android:paddingHorizontal="16dp"
+                            android:paddingBottom="10dp"
                             android:text="@string/properties_section_configuration"
-                            android:textAppearance="@style/TextAppearance.Material3.TitleSmall"
-                            android:textColor="?attr/colorOnSurface" />
+                            android:textAppearance="@style/TextAppearance.App.TitleSmall"
+                            android:textColor="?attr/colorOnSurface"
+                            android:textStyle="bold" />
 
                         <com.github.kr328.clash.design.view.ActionLabel
                             android:layout_width="match_parent"
