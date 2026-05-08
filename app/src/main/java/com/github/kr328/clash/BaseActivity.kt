@@ -182,7 +182,7 @@ abstract class BaseActivity<D : Design<*>> : AppCompatActivity(),
         events.trySend(Event.ProfileUpdateFailed)
     }
 
-    override fun onProfileLoaded() {
+    open override fun onProfileLoaded() {
         events.trySend(Event.ProfileLoaded)
     }
 

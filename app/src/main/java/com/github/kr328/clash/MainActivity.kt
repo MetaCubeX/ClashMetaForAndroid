@@ -80,6 +80,7 @@ import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.withContext
 import java.util.*
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicInteger
 
 class MainActivity : BaseActivity<MainDesign>() {
     private data class HomeRuntimeSnapshot(
@@ -96,6 +97,9 @@ class MainActivity : BaseActivity<MainDesign>() {
     private var pendingApkDownloadId: Long = -1L
     private var downloadReceiverRegistered: Boolean = false
     private val updatePrefs by lazy { getSharedPreferences("app_update", MODE_PRIVATE) }
+    /** Incremented on each [onProfileLoaded] — used to await post-load selector patches. */
+    private val profileLoadEpoch = AtomicInteger(0)
+
     private fun clearPendingDownloadState() {
         pendingApkDownloadId = -1L
         updatePrefs.edit().remove("pending_download_id").apply()
@@ -188,6 +192,21 @@ class MainActivity : BaseActivity<MainDesign>() {
         }
     }
 
+    /**
+     * [com.github.kr328.clash.service.clash.module.ConfigurationModule] runs
+     * [Clash.patchSelector] in applyPostLoad then sends PROFILE_LOADED, which increments
+     * [profileLoadEpoch]. The JNI snapshot can still show the YAML-default `now` right after
+     * [waitForProxyEngineReady]; we wait for that post-load hop before the first dashboard fetch.
+     */
+    private suspend fun waitForProfileLoadEpochAfter(snapshot: Int, timeoutMs: Long = 3000L) {
+        if (profileLoadEpoch.get() > snapshot) return
+        withTimeoutOrNull(timeoutMs) {
+            while (profileLoadEpoch.get() <= snapshot) {
+                delay(15L)
+            }
+        }
+    }
+
     private fun isAutoProxyGroup(name: String, group: ProxyGroup): Boolean {
         if (group.type == Proxy.Type.URLTest ||
             group.type == Proxy.Type.Fallback ||
@@ -247,6 +266,19 @@ class MainActivity : BaseActivity<MainDesign>() {
             if (done) return
             if (index < attempts - 1) delay(delayMs)
         }
+    }
+
+    /**
+     * Runs [healthCheck] on auto proxy groups. Only used in **Global** mode on connect: in **Rule**
+     * mode it would fight [ConfigurationModule] applying [SelectionDao] and flashes the first
+     * url-test/fallback hop before the user’s pick appears.
+     */
+    private suspend fun warmUpAutoProxyGroupsForGlobalOnly() {
+        val mode = runCatching {
+            withClash { normalizeTunnelMode(queryTunnelState().mode) }
+        }.getOrNull() ?: return
+        if (mode != TunnelState.Mode.Global) return
+        warmUpAutoProxyGroups()
     }
 
     private suspend fun warmUpAutoProxyGroups() = coroutineScope {
@@ -1056,6 +1088,7 @@ class MainActivity : BaseActivity<MainDesign>() {
 
         if (active == null) return
 
+        val loadEpochSnapshot = profileLoadEpoch.get()
         try {
             val vpnRequest = startClashService()
             if (vpnRequest != null) {
@@ -1076,7 +1109,10 @@ class MainActivity : BaseActivity<MainDesign>() {
                 val d = design
                 try {
                     d?.setPingingProfile(active.uuid)
-                    warmUpAutoProxyGroups()
+                    waitForProxyEngineReady()
+                    waitForProfileLoadEpochAfter(loadEpochSnapshot)
+                    d?.fetch()
+                    warmUpAutoProxyGroupsForGlobalOnly()
                     d?.fetch()
                 } finally {
                     d?.setPingingProfile(null)
@@ -1474,6 +1510,11 @@ class MainActivity : BaseActivity<MainDesign>() {
                 .show()
             cont.invokeOnCancellation { runCatching { dialog.dismiss() } }
         }
+    }
+
+    override fun onProfileLoaded() {
+        profileLoadEpoch.incrementAndGet()
+        super.onProfileLoaded()
     }
 
     override fun onProfileUpdateCompleted(uuid: UUID?) {

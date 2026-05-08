@@ -146,14 +146,18 @@ class ProfileAdapter(
         // same selector list in a different order after patchSelector; treating that like a
         // full reset cleared pending selections and made the home card look like the tap lost.
         val groupSetChanged = names.toSet() != proxyGroupNames.toSet()
-        val shouldResetRuntimeProxyState =
-            running != clashRunning ||
-                activeProfileUuid != this.activeProfileUuid ||
-                groupSetChanged
+        val identityChanged =
+            activeProfileUuid != this.activeProfileUuid || groupSetChanged
+        val runningChanged = running != clashRunning
+        val shouldResetRuntimeProxyState = runningChanged || identityChanged
         if (shouldResetRuntimeProxyState) {
             lastReportedVisibleGroup.clear()
             proxyDetails = emptyMap()
-            pendingProxySelections.clear()
+            // Keep pending across VPN off→on: engine `now` is wrong until applyPostLoad
+            // finishes; pending matches the user's choice and avoids a first-frame flash.
+            if (identityChanged) {
+                pendingProxySelections.clear()
+            }
         }
         proxyGroupNames = names
         if (offlinePreviewByProfile.isNotEmpty()) {
@@ -177,18 +181,34 @@ class ProfileAdapter(
             putAll(details)
         }
         val active = activeProfileUuid
-        val hasPendingForDetails = active != null &&
-            details.keys.any { group -> proxySelectionKey(active, group) in pendingProxySelections }
-        if (merged == proxyDetails && !hasPendingForDetails) return
+        val hasFuzzyPending = active != null &&
+            details.keys.any { group -> pendingMapValueForGroup(active, group) != null }
+        val needsDiskOverlay = active != null && details.keys.any { group ->
+            val d = merged[group] ?: return@any false
+            val disk = offlineSelectedForGroup(active, group)
+            disk.isNotBlank() && disk != d.now &&
+                (d.proxies.isEmpty() || d.proxies.any { it.name == disk })
+        }
+        if (merged == proxyDetails && !hasFuzzyPending && !needsDiskOverlay) return
         proxyDetails = merged
         active?.let { uuid ->
             for ((group, detail) in details) {
-                val key = proxySelectionKey(uuid, group)
-                val pending = pendingProxySelections[key] ?: continue
-                val pendingApplied = detail.now == pending
-                val pendingInvalid = detail.proxies.none { it.name == pending }
-                if (pendingApplied || pendingInvalid) {
-                    pendingProxySelections.remove(key)
+                val prefix = "${uuid}|"
+                val removeKeys = mutableListOf<String>()
+                for (key in pendingProxySelections.keys) {
+                    if (!key.startsWith(prefix)) continue
+                    val g = key.substring(prefix.length)
+                    if (!groupsMatchKey(group, g)) continue
+                    val pending = pendingProxySelections[key] ?: continue
+                    val pendingApplied = detail.now == pending
+                    val pendingInvalid = detail.proxies.isNotEmpty() &&
+                        detail.proxies.none { it.name == pending }
+                    if (pendingApplied || pendingInvalid) {
+                        removeKeys.add(key)
+                    }
+                }
+                for (k in removeKeys) {
+                    pendingProxySelections.remove(k)
                 }
             }
         }
@@ -284,13 +304,10 @@ class ProfileAdapter(
     private fun selectedGroupForSummary(profile: Profile): String? {
         val groups = groupsForSelectionSummary(profile)
         if (groups.isEmpty()) return null
-        val preferred = lastGroupHint?.takeIf { groups.contains(it) }
-        var index = selectedGroupIndex[profile.uuid]
-            ?: preferred?.let { groups.indexOf(it).takeIf { i -> i >= 0 } }
-            ?: 0
-        if (index >= groups.size) index = 0
-        selectedGroupIndex[profile.uuid] = index
-        return groups[index]
+        val picked = resolvePreferredGroupFromList(profile, groups)
+        val index = groups.indexOf(picked).takeIf { it >= 0 } ?: 0
+        selectedGroupIndex[profile.uuid] = index.coerceIn(0, groups.lastIndex)
+        return groups[selectedGroupIndex[profile.uuid]!!]
     }
 
     private fun formatSelectionSummaryForHome(groupName: String): String = displayGroupName(groupName)
@@ -312,27 +329,80 @@ class ProfileAdapter(
 
     private fun proxyGroupForRow(profile: Profile, groupName: String): ProxyGroup? {
         if (useEngineFor(profile)) {
-            proxyDetails[groupName]?.let { return it.withPendingSelection(profile.uuid, groupName) }
+            proxyDetails[groupName]?.let { return it.withSelectionOverlay(profile.uuid, groupName) }
         }
         val offline = offlinePreviewByProfile[profile.uuid] ?: return null
-        val names = offline[groupName] ?: return null
-        val now = offlineSelectionsByProfile[profile.uuid]?.get(groupName).orEmpty()
+        val names = offline[groupName]
+            ?: offline.entries.firstOrNull { (k, _) -> groupsMatchKey(groupName, k) }?.value
+            ?: return null
+        val now = offlineSelectedForGroup(profile.uuid, groupName)
         return ProxyGroup(
             Proxy.Type.Selector,
             names.map { n ->
                 Proxy(n, n, "", Proxy.Type.Unknown, -1)
             },
             now,
-        ).withPendingSelection(profile.uuid, groupName)
+        ).withSelectionOverlay(profile.uuid, groupName)
     }
 
     private fun proxySelectionKey(uuid: UUID, groupName: String): String =
         "${uuid}|${groupName}"
 
-    private fun ProxyGroup.withPendingSelection(uuid: UUID, groupName: String): ProxyGroup {
-        val pending = pendingProxySelections[proxySelectionKey(uuid, groupName)] ?: return this
-        if (pending == now || proxies.none { it.name == pending }) return this
-        return copy(now = pending)
+    private fun groupsMatchKey(engineName: String, storedName: String): Boolean {
+        if (engineName == storedName) return true
+        return displayGroupName(engineName) == displayGroupName(storedName)
+    }
+
+    private fun resolvePreferredGroupFromList(profile: Profile, groupNames: List<String>): String {
+        if (groupNames.isEmpty()) return ""
+        lastGroupHint?.let { hint ->
+            groupNames.firstOrNull { groupsMatchKey(it, hint) }?.let { return it }
+        }
+        offlineSelectionsByProfile[profile.uuid]?.forEach { (g, sel) ->
+            if (sel.isBlank()) return@forEach
+            groupNames.firstOrNull { groupsMatchKey(it, g) }?.let { return it }
+        }
+        val prefix = "${profile.uuid}|"
+        for (key in pendingProxySelections.keys) {
+            if (!key.startsWith(prefix)) continue
+            val g = key.substring(prefix.length)
+            if (g.isBlank()) continue
+            groupNames.firstOrNull { groupsMatchKey(it, g) }?.let { return it }
+        }
+        return groupNames.first()
+    }
+
+    private fun offlineSelectedForGroup(uuid: UUID, engineGroupName: String): String {
+        val m = offlineSelectionsByProfile[uuid] ?: return ""
+        m[engineGroupName]?.takeIf { it.isNotBlank() }?.let { return it }
+        return m.entries.firstOrNull { (g, _) -> groupsMatchKey(engineGroupName, g) }
+            ?.value.orEmpty()
+    }
+
+    private fun pendingMapValueForGroup(uuid: UUID, engineGroupName: String): String? {
+        val exact = proxySelectionKey(uuid, engineGroupName)
+        pendingProxySelections[exact]?.takeIf { it.isNotBlank() }?.let { return it }
+        val prefix = "${uuid}|"
+        for ((k, v) in pendingProxySelections) {
+            if (!k.startsWith(prefix)) continue
+            if (v.isBlank()) continue
+            val g = k.substring(prefix.length)
+            if (groupsMatchKey(engineGroupName, g)) return v
+        }
+        return null
+    }
+
+    private fun desiredUiSelection(uuid: UUID, engineGroupName: String): String? {
+        pendingMapValueForGroup(uuid, engineGroupName)?.let { return it }
+        offlineSelectedForGroup(uuid, engineGroupName).takeIf { it.isNotBlank() }?.let { return it }
+        return null
+    }
+
+    private fun ProxyGroup.withSelectionOverlay(uuid: UUID, engineGroupName: String): ProxyGroup {
+        val target = desiredUiSelection(uuid, engineGroupName) ?: return this
+        if (target == now) return this
+        if (proxies.isNotEmpty() && proxies.none { it.name == target }) return this
+        return copy(now = target)
     }
 
     private fun applyActiveVisuals(holder: Holder, profile: Profile) {
@@ -372,9 +442,9 @@ class ProfileAdapter(
             sheet.proxySheetPingSlot.visibility = View.GONE
             addEmptyProxyHint(sheet.proxySheetNodesList, context)
         } else {
-            val preferred = lastGroupHint?.takeIf { groupNames.contains(it) }
+            val picked = resolvePreferredGroupFromList(profile, groupNames)
             var idx = selectedGroupIndex[profile.uuid]
-                ?: preferred?.let { groupNames.indexOf(it).takeIf { i -> i >= 0 } }
+                ?: groupNames.indexOf(picked).takeIf { i -> i >= 0 }
                 ?: 0
             if (idx >= groupNames.size) idx = 0
             selectedGroupIndex[profile.uuid] = idx
@@ -595,9 +665,9 @@ class ProfileAdapter(
         }
         binding.proxyGroupChips.visibility = View.VISIBLE
 
-        val preferred = lastGroupHint?.takeIf { groupNames.contains(it) }
+        val picked = resolvePreferredGroupFromList(current, groupNames)
         var idx = selectedGroupIndex[current.uuid]
-            ?: preferred?.let { groupNames.indexOf(it).takeIf { i -> i >= 0 } }
+            ?: groupNames.indexOf(picked).takeIf { i -> i >= 0 }
             ?: 0
         if (idx >= groupNames.size) idx = 0
         selectedGroupIndex[current.uuid] = idx
