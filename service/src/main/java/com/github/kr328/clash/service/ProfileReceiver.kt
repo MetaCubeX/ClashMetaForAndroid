@@ -5,6 +5,7 @@ import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import androidx.core.content.getSystemService
 import com.github.kr328.clash.common.Global
 import com.github.kr328.clash.common.compat.pendingIntentFlags
@@ -37,9 +38,10 @@ class ProfileReceiver : BroadcastReceiver() {
                 }
             }
             Intents.ACTION_PROFILE_REQUEST_UPDATE -> {
+                val redirect = intent.setComponent(ProfileWorker::class.componentName)
+
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                     try {
-                        val redirect = intent.setComponent(ProfileWorker::class.componentName)
                         context.startForegroundServiceCompat(redirect)
                     } catch (e: IllegalStateException) {
                         // Android 12+ forbids starting foreground service from background via AlarmManager
@@ -59,7 +61,6 @@ class ProfileReceiver : BroadcastReceiver() {
                         }
                     }
                 } else {
-                    val redirect = intent.setComponent(ProfileWorker::class.componentName)
                     context.startForegroundServiceCompat(redirect)
                 }
             }
