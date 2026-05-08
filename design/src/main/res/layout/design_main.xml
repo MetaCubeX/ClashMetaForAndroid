@@ -561,11 +561,11 @@
                 style="@style/AppCard.Outlined"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginHorizontal="20dp"
-                android:layout_marginTop="10dp"
+                android:layout_marginHorizontal="16dp"
+                android:layout_marginTop="6dp"
                 android:visibility="gone"
-                app:cardBackgroundColor="?attr/colorSurfaceContainerHigh"
-                app:cardCornerRadius="22dp"
+                app:cardBackgroundColor="?attr/colorSurfaceContainer"
+                app:cardCornerRadius="14dp"
                 app:cardElevation="0dp"
                 app:strokeColor="?attr/colorOutlineVariant"
                 app:strokeWidth="1dp">
@@ -574,7 +574,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="12dp">
+                    android:paddingHorizontal="8dp"
+                    android:paddingVertical="6dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -583,39 +584,38 @@
                         android:orientation="horizontal">
 
                         <ImageView
-                            android:layout_width="22dp"
-                            android:layout_height="22dp"
+                            android:layout_width="18dp"
+                            android:layout_height="18dp"
                             android:contentDescription="@string/announcement_text"
                             android:src="@drawable/ic_baseline_campaign"
-                            app:tint="?attr/colorPrimary" />
+                            app:tint="?attr/colorOnSurfaceVariant" />
 
                         <TextView
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:layout_marginStart="10dp"
+                            android:layout_marginStart="8dp"
                             android:layout_weight="1"
                             android:text="@string/announcement_settings"
-                            android:textAppearance="@style/TextAppearance.App.TitleSmall"
-                            android:textColor="?attr/colorOnSurface"
-                            android:textStyle="bold" />
+                            android:textAppearance="@style/TextAppearance.App.LabelMedium"
+                            android:textColor="?attr/colorOnSurfaceVariant" />
 
                         <ImageButton
                             android:id="@+id/main_announcement_refresh"
-                            android:layout_width="34dp"
-                            android:layout_height="34dp"
+                            android:layout_width="30dp"
+                            android:layout_height="30dp"
                             android:background="?attr/selectableItemBackgroundBorderless"
                             android:contentDescription="@string/sub_announcement_refresh"
-                            android:padding="8dp"
+                            android:padding="6dp"
                             android:src="@drawable/ic_baseline_sync"
                             app:tint="?attr/colorOnSurfaceVariant" />
 
                         <ImageButton
                             android:id="@+id/main_announcement_dismiss"
-                            android:layout_width="34dp"
-                            android:layout_height="34dp"
+                            android:layout_width="30dp"
+                            android:layout_height="30dp"
                             android:background="?attr/selectableItemBackgroundBorderless"
                             android:contentDescription="@string/announcement_collapse"
-                            android:padding="8dp"
+                            android:padding="6dp"
                             android:src="@drawable/ic_baseline_expand_less"
                             app:tint="?attr/colorOnSurfaceVariant" />
                     </LinearLayout>
@@ -630,9 +630,10 @@
                         android:id="@+id/main_announcement_text"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:textAppearance="@style/TextAppearance.App.BodyMedium"
-                        android:textColor="?attr/colorOnSurface"
+                        android:layout_marginTop="4dp"
+                        android:lineSpacingMultiplier="1.0"
+                        android:textAppearance="@style/TextAppearance.App.BodySmall"
+                        android:textColor="?attr/colorOnSurfaceVariant"
                         android:visibility="gone"
                         tools:text="Announcement message" />
 
@@ -640,7 +641,7 @@
                         android:id="@+id/main_announcement_unavailable_row"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
+                        android:layout_marginTop="4dp"
                         android:gravity="center_vertical"
                         android:orientation="horizontal"
                         android:visibility="gone">
@@ -649,21 +650,22 @@
                             android:id="@+id/main_announcement_open_link"
                             style="@style/AppButton.Text"
                             android:layout_width="wrap_content"
-                            android:layout_height="40dp"
+                            android:layout_height="36dp"
                             android:minWidth="0dp"
-                            android:paddingHorizontal="10dp"
+                            android:paddingHorizontal="8dp"
                             android:text="@string/sub_announcement_open_link"
                             android:textAllCaps="false"
                             app:icon="@drawable/ic_baseline_update"
                             app:iconGravity="textStart"
-                            app:iconPadding="6dp" />
+                            app:iconPadding="4dp"
+                            app:iconSize="18dp" />
                     </LinearLayout>
 
                     <LinearLayout
                         android:id="@+id/main_announcement_stats_row"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
+                        android:layout_marginTop="4dp"
                         android:orientation="horizontal"
                         android:visibility="gone" />
 
@@ -671,16 +673,16 @@
                         android:id="@+id/main_announcement_usage_bar"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
+                        android:layout_marginTop="4dp"
                         android:visibility="gone"
-                        app:trackCornerRadius="3dp"
-                        app:trackThickness="4dp" />
+                        app:trackCornerRadius="2dp"
+                        app:trackThickness="3dp" />
 
                     <TextView
                         android:id="@+id/main_announcement_usage_text"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
+                        android:layout_marginTop="2dp"
                         android:textAppearance="@style/TextAppearance.App.BodySmall"
                         android:textColor="?attr/colorOnSurfaceVariant"
                         android:visibility="gone" />
@@ -690,14 +692,16 @@
                         style="@style/AppButton.Tonal"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
+                        android:layout_marginTop="6dp"
+                        android:minHeight="40dp"
                         android:text="@string/sub_announcement_support"
                         android:textAllCaps="false"
                         android:visibility="gone"
-                        app:cornerRadius="16dp"
+                        app:cornerRadius="12dp"
                         app:icon="@drawable/ic_baseline_headset_mic"
                         app:iconGravity="textStart"
-                        app:iconPadding="8dp" />
+                        app:iconPadding="6dp"
+                        app:iconSize="18dp" />
                     </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
