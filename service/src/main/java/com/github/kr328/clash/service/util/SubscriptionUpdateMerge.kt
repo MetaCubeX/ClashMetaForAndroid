@@ -1,5 +1,7 @@
 package com.github.kr328.clash.service.util
 
+import java.io.File
+
 /**
  * After a subscription fetch, native code replaces [config.yaml] with the remote file.
  * Local additions under [rule-providers], [rules], [proxy-providers], and extra [proxy-groups]
@@ -39,7 +41,11 @@ object SubscriptionUpdateMerge {
         return PreservedOverlay(rp, rules, pp, pg)
     }
 
-    fun mergeAfterFetch(fetchedYaml: String, preserved: PreservedOverlay): String {
+    /**
+     * @param profileDir directory with [config.yaml] and provider paths after fetch; used to collect
+     * proxy `name` entries from provider YAML on disk (not only inline `proxies:`).
+     */
+    fun mergeAfterFetch(fetchedYaml: String, preserved: PreservedOverlay, profileDir: File? = null): String {
         if (preserved.isEmpty()) return fetchedYaml
         val root = YamlFormatting.parseRootMap(fetchedYaml) ?: return fetchedYaml
         if (preserved.ruleProviders != null) {
@@ -53,7 +59,7 @@ object SubscriptionUpdateMerge {
                 mergeProxyProviderMaps(root["proxy-providers"], preserved.proxyProviders)
         }
         if (preserved.proxyGroups != null) {
-            root["proxy-groups"] = mergeProxyGroupsLists(root, preserved)
+            root["proxy-groups"] = mergeProxyGroupsLists(root, preserved, profileDir)
         }
         return YamlFormatting.blockYaml().dump(root)
     }
@@ -89,6 +95,7 @@ object SubscriptionUpdateMerge {
     private fun mergeProxyGroupsLists(
         root: MutableMap<String, Any?>,
         preserved: PreservedOverlay,
+        profileDir: File?,
     ): Any? {
         val fetched = root["proxy-groups"]
         val out = mutableListOf<Any?>()
@@ -101,7 +108,7 @@ object SubscriptionUpdateMerge {
             is List<*> -> preserved.proxyGroups
             else -> emptyList<Any?>()
         }
-        val knownNames = collectKnownProxyNames(root, preserved.proxyProviders)
+        val knownNames = collectKnownProxyNames(root, preserved.proxyProviders, profileDir)
         val pendingGroups = preservedList
             .mapNotNull { it as? Map<*, *> }
             .filter { (it["name"]?.toString()).isNullOrEmpty().not() }
@@ -137,6 +144,7 @@ object SubscriptionUpdateMerge {
     private fun collectKnownProxyNames(
         root: Map<String, Any?>,
         preservedProxyProviders: Any?,
+        profileDir: File?,
     ): MutableSet<String> {
         val names = linkedSetOf("DIRECT", "REJECT", "REJECT-DROP", "PASS", "COMPATIBLE", "GLOBAL")
         (root["proxies"] as? List<*>)?.mapNotNullTo(names) {
@@ -147,6 +155,18 @@ object SubscriptionUpdateMerge {
         }
         (root["proxy-providers"] as? Map<*, *>)?.keys?.mapNotNullTo(names) { it?.toString() }
         (preservedProxyProviders as? Map<*, *>)?.keys?.mapNotNullTo(names) { it?.toString() }
+        val dir = profileDir ?: return names
+        val pp = root["proxy-providers"] as? Map<*, *> ?: return names
+        for ((_, v) in pp) {
+            val prov = v as? Map<*, *> ?: continue
+            val pathStr = prov["path"] as? String ?: continue
+            val f = ProxyDialerYamlEdit.resolveProviderPath(dir, pathStr)
+            if (!f.isFile) continue
+            val pRoot = runCatching { YamlFormatting.parseRootMap(f.readText()) }.getOrNull() ?: continue
+            (pRoot["proxies"] as? List<*>)?.mapNotNullTo(names) {
+                (it as? Map<*, *>)?.get("name")?.toString()
+            }
+        }
         return names
     }
 

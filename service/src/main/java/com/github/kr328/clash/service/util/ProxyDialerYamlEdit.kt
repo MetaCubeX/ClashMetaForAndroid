@@ -154,7 +154,8 @@ object ProxyDialerYamlEdit {
         return false
     }
 
-    private fun resolveProviderPath(profileDir: File, path: String): File {
+    /** [proxy-providers] entry `path` relative to [profileDir]. */
+    internal fun resolveProviderPath(profileDir: File, path: String): File {
         val n = path.trim().removePrefix("./")
         return File(profileDir, n)
     }
