@@ -155,6 +155,8 @@ func PatchSelector(selector, name string) bool {
 
 	if err := s.Set(name); err != nil {
 		log.Warnln("Patch selector `%s`: %s", selector, err.Error())
+
+		return false
 	}
 
 	log.Infoln("Patch selector %s -> %s", selector, name)

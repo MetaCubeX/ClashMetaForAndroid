@@ -563,10 +563,12 @@ class MainActivity : BaseActivity<MainDesign>() {
                             return@launch
                         }
                         design.markProxySelectionPending(profile, group, name)
-                        withClash {
+                        val patched = withClash {
                             patchSelector(group, name)
                         }
-                        uiStore.proxyLastGroup = group
+                        if (patched) {
+                            uiStore.proxyLastGroup = group
+                        }
                         scheduleProxyDetailsRefresh(profile, group)
                     }
                 }

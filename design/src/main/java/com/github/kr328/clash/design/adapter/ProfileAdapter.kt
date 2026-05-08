@@ -913,18 +913,40 @@ class ProfileAdapter(
         return null
     }
 
-    private fun resolvedSelectedProxyName(profile: Profile, groupName: String): String? {
-        val first = proxyGroupForRow(profile, groupName)
+    private fun resolvedSelectedProxyName(profile: Profile, groupName: String): String? =
+        resolvedSelectedProxyName(profile, groupName, linkedSetOf())
+
+    private fun resolvedSelectedProxyName(
+        profile: Profile,
+        groupName: String,
+        seen: MutableSet<String>,
+    ): String? {
+        if (!seen.add(groupName)) return null
+
+        val selected = proxyGroupForRow(profile, groupName)
             ?.now
             ?.takeIf { it.isNotBlank() }
             ?: return null
-        if (shouldHideProxyName(groupName, first)) return null
-        val nested = if (useEngineFor(profile)) {
-            proxyDetails[first]
-        } else {
-            null
+        if (shouldHideProxyName(groupName, selected)) return null
+
+        if (selectedLooksLikeGroup(profile, groupName, selected)) {
+            resolvedSelectedProxyName(profile, selected, seen)
+                ?.takeIf { it.isNotBlank() }
+                ?.let { return it }
         }
-        return nested?.now?.takeIf { it.isNotBlank() } ?: first
+
+        return selected
+    }
+
+    private fun selectedLooksLikeGroup(profile: Profile, groupName: String, selected: String): Boolean {
+        val selectedProxy = proxyGroupForRow(profile, groupName)
+            ?.proxies
+            ?.firstOrNull { it.name == selected }
+        return if (useEngineFor(profile)) {
+            selectedProxy?.type?.group == true || selected in proxyDetails
+        } else {
+            selected in offlinePreviewByProfile[profile.uuid].orEmpty()
+        }
     }
 
     private fun formatNodeHeadline(raw: String, context: Context): Pair<String, String?> {
