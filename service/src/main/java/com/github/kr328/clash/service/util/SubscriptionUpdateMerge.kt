@@ -53,8 +53,7 @@ object SubscriptionUpdateMerge {
                 mergeProxyProviderMaps(root["proxy-providers"], preserved.proxyProviders)
         }
         if (preserved.proxyGroups != null) {
-            root["proxy-groups"] =
-                mergeProxyGroupsLists(root["proxy-groups"], preserved.proxyGroups)
+            root["proxy-groups"] = mergeProxyGroupsLists(root, preserved)
         }
         return YamlFormatting.blockYaml().dump(root)
     }
@@ -77,49 +76,96 @@ object SubscriptionUpdateMerge {
     }
 
     /**
-     * Start from [fetched] proxy-groups list; append groups from [preserved] whose **name**
-     * is not already present in the fetched list (keeps local relay / custom groups).
+     * Start from the fetched `proxy-groups` list; append preserved local/custom groups only when
+     * every referenced proxy, provider, or child group still resolves after the subscription refresh.
+     * This prevents deleted subscription groups from being resurrected with stale members, e.g.
+     * `proxy group[n]: ...: 'old country group' not found`.
      *
      * **GLOBAL:** the remote profile almost always defines its own `GLOBAL` entry. We must merge
      * `proxies` with the preserved copy: locally added merged groups (e.g. `MainGroup` appended by
      * [com.github.kr328.clash.service.util.ProxyGroupsYamlEdit]) only exist in the old `GLOBAL`
      * list; without this union, Global mode cannot select them and traffic never uses that group.
      */
-    private fun mergeProxyGroupsLists(fetched: Any?, preserved: Any?): Any? {
-        if (preserved == null) return fetched
+    private fun mergeProxyGroupsLists(
+        root: MutableMap<String, Any?>,
+        preserved: PreservedOverlay,
+    ): Any? {
+        val fetched = root["proxy-groups"]
         val out = mutableListOf<Any?>()
         when (fetched) {
             is List<*> -> out.addAll(fetched)
             null -> Unit
             else -> out.add(fetched)
         }
-        val preservedList: List<*> = when (preserved) {
-            is List<*> -> preserved
+        val preservedList: List<*> = when (preserved.proxyGroups) {
+            is List<*> -> preserved.proxyGroups
             else -> emptyList<Any?>()
         }
+        val knownNames = collectKnownProxyNames(root, preserved.proxyProviders)
+        val pendingGroups = preservedList
+            .mapNotNull { it as? Map<*, *> }
+            .filter { (it["name"]?.toString()).isNullOrEmpty().not() }
+            .filterNot { it["name"]?.toString() in knownNames }
+            .toMutableList()
+
+        var changed = true
+        while (changed) {
+            changed = false
+            val iter = pendingGroups.iterator()
+            while (iter.hasNext()) {
+                val group = iter.next()
+                val name = group["name"]?.toString() ?: continue
+                if (isProxyGroupResolvable(group, knownNames)) {
+                    out.add(group)
+                    knownNames.add(name)
+                    iter.remove()
+                    changed = true
+                }
+            }
+        }
+
         val preservedGlobalProxies = preservedList
             .mapNotNull { it as? Map<*, *> }
             .firstOrNull { it["name"]?.toString() == "GLOBAL" }
             ?.get("proxies") as? List<*>
         if (preservedGlobalProxies != null) {
-            mergeExtraProxiesIntoGlobalGroup(out, preservedGlobalProxies)
-        }
-        val fetchedNames = out.mapNotNull { (it as? Map<*, *>)?.get("name")?.toString() }.toSet()
-        for (item in preservedList) {
-            val g = item as? Map<*, *> ?: continue
-            val name = g["name"]?.toString() ?: continue
-            if (name !in fetchedNames) {
-                out.add(item)
-            }
+            mergeExtraProxiesIntoGlobalGroup(out, preservedGlobalProxies, knownNames)
         }
         return out
+    }
+
+    private fun collectKnownProxyNames(
+        root: Map<String, Any?>,
+        preservedProxyProviders: Any?,
+    ): MutableSet<String> {
+        val names = linkedSetOf("DIRECT", "REJECT", "REJECT-DROP", "PASS", "COMPATIBLE", "GLOBAL")
+        (root["proxies"] as? List<*>)?.mapNotNullTo(names) {
+            (it as? Map<*, *>)?.get("name")?.toString()
+        }
+        (root["proxy-groups"] as? List<*>)?.mapNotNullTo(names) {
+            (it as? Map<*, *>)?.get("name")?.toString()
+        }
+        (root["proxy-providers"] as? Map<*, *>)?.keys?.mapNotNullTo(names) { it?.toString() }
+        (preservedProxyProviders as? Map<*, *>)?.keys?.mapNotNullTo(names) { it?.toString() }
+        return names
+    }
+
+    private fun isProxyGroupResolvable(group: Map<*, *>, knownNames: Set<String>): Boolean {
+        val proxies = (group["proxies"] as? List<*>).orEmpty().mapNotNull { it?.toString() }
+        val providers = (group["use"] as? List<*>).orEmpty().mapNotNull { it?.toString() }
+        if (proxies.isEmpty() && providers.isEmpty()) return true
+        return proxies.all { it in knownNames } && providers.all { it in knownNames }
     }
 
     /**
      * Appends proxy names from the pre-fetch GLOBAL group that are missing from the current GLOBAL
      * entry (subscription order preserved; extras keep preserved order after the last fetched name).
      */
-    private fun mergeExtraProxiesIntoGlobalGroup(out: MutableList<Any?>, preservedProxies: List<*>) {
+    private fun mergeExtraProxiesIntoGlobalGroup(
+        out: MutableList<Any?>,
+        preservedProxies: List<*>,
+        knownNames: Set<String>,
+    ) {
         val globalIdx = out.indexOfFirst { (it as? Map<*, *>)?.get("name")?.toString() == "GLOBAL" }
         if (globalIdx < 0) return
         val global = out[globalIdx] as? Map<*, *> ?: return
@@ -130,7 +176,7 @@ object SubscriptionUpdateMerge {
         val existing = current.toSet()
         for (p in preservedProxies) {
             val name = p?.toString() ?: continue
-            if (name !in existing) {
+            if (name !in existing && name in knownNames) {
                 current.add(name)
             }
         }
