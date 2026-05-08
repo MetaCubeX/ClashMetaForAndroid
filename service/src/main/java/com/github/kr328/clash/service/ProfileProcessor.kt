@@ -249,7 +249,11 @@ object ProfileProcessor {
                 }
 
                 if (!preserved.isEmpty() && configFile.isFile) {
-                    val merged = SubscriptionUpdateMerge.mergeAfterFetch(configFile.readText(), preserved)
+                    val merged = SubscriptionUpdateMerge.mergeAfterFetch(
+                        configFile.readText(),
+                        preserved,
+                        context.processingDir,
+                    )
                     configFile.writeText(merged)
                     Log.d("Subscription merge preserved local overlays: rules/rule-providers/proxy-providers reapplied for ${snapshot.uuid}")
                 }
