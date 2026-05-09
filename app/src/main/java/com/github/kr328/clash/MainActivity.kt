@@ -169,7 +169,6 @@ class MainActivity : BaseActivity<MainDesign>() {
         // Skip dynamic shortcut setup when the app icon is hidden.
         if (uiStore.hideAppIcon) return
 
-        val icon = IconCompat.createWithResource(this, R.mipmap.ic_launcher)
         val flags = Intent.FLAG_ACTIVITY_NEW_TASK or
             Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS or
             Intent.FLAG_ACTIVITY_NO_ANIMATION
@@ -177,7 +176,7 @@ class MainActivity : BaseActivity<MainDesign>() {
         val toggle = ShortcutInfoCompat.Builder(this, "toggle_clash")
             .setShortLabel(getString(DesignR.string.shortcut_toggle_short))
             .setLongLabel(getString(DesignR.string.shortcut_toggle_long))
-            .setIcon(icon)
+            .setIcon(IconCompat.createWithResource(this, R.drawable.ic_toggle_all))
             .setIntent(
                 Intent(Intents.ACTION_TOGGLE_CLASH)
                     .setClassName(this, ExternalControlActivity::class.java.name)
@@ -189,7 +188,7 @@ class MainActivity : BaseActivity<MainDesign>() {
         val start = ShortcutInfoCompat.Builder(this, "start_clash")
             .setShortLabel(getString(DesignR.string.shortcut_start_short))
             .setLongLabel(getString(DesignR.string.shortcut_start_long))
-            .setIcon(icon)
+            .setIcon(IconCompat.createWithResource(this, R.drawable.ic_toggle_on))
             .setIntent(
                 Intent(Intents.ACTION_START_CLASH)
                     .setClassName(this, ExternalControlActivity::class.java.name)
@@ -201,7 +200,7 @@ class MainActivity : BaseActivity<MainDesign>() {
         val stop = ShortcutInfoCompat.Builder(this, "stop_clash")
             .setShortLabel(getString(DesignR.string.shortcut_stop_short))
             .setLongLabel(getString(DesignR.string.shortcut_stop_long))
-            .setIcon(icon)
+            .setIcon(IconCompat.createWithResource(this, R.drawable.ic_toggle_off))
             .setIntent(
                 Intent(Intents.ACTION_STOP_CLASH)
                     .setClassName(this, ExternalControlActivity::class.java.name)
