@@ -1,5 +1,6 @@
 package com.github.kr328.clash
 
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -9,6 +10,10 @@ import androidx.activity.result.contract.ActivityResultContracts.RequestPermissi
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.core.content.pm.ShortcutInfoCompat
+import androidx.core.content.pm.ShortcutManagerCompat
+import androidx.core.graphics.drawable.IconCompat
+import com.github.kr328.clash.common.constants.Intents
 import com.github.kr328.clash.common.util.intent
 import com.github.kr328.clash.common.util.ticker
 import com.github.kr328.clash.design.MainDesign
@@ -23,7 +28,7 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.selects.select
 import kotlinx.coroutines.withContext
 import java.util.concurrent.TimeUnit
-import com.github.kr328.clash.design.R
+import com.github.kr328.clash.design.R as DesignR
 
 class MainActivity : BaseActivity<MainDesign>() {
     override suspend fun main() {
@@ -112,8 +117,8 @@ class MainActivity : BaseActivity<MainDesign>() {
         val active = withProfile { queryActive() }
 
         if (active == null || !active.imported) {
-            showToast(R.string.no_profile_selected, ToastDuration.Long) {
-                setAction(R.string.profiles) {
+            showToast(DesignR.string.no_profile_selected, ToastDuration.Long) {
+                setAction(DesignR.string.profiles) {
                     startActivity(ProfilesActivity::class.intent)
                 }
             }
@@ -134,7 +139,7 @@ class MainActivity : BaseActivity<MainDesign>() {
                     startClashService()
             }
         } catch (e: Exception) {
-            design?.showToast(R.string.unable_to_start_vpn, ToastDuration.Long)
+            design?.showToast(DesignR.string.unable_to_start_vpn, ToastDuration.Long)
         }
     }
 
@@ -160,5 +165,54 @@ class MainActivity : BaseActivity<MainDesign>() {
                 requestPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
             }
         }
+        setupShortcuts()
+    }
+
+    private fun setupShortcuts() {
+        // Skip dynamic shortcut setup when the app icon is hidden.
+        if (uiStore.hideAppIcon) return
+
+        val icon = IconCompat.createWithResource(this, R.mipmap.ic_launcher)
+        val flags = Intent.FLAG_ACTIVITY_NEW_TASK or
+            Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS or
+            Intent.FLAG_ACTIVITY_NO_ANIMATION
+
+        val toggle = ShortcutInfoCompat.Builder(this, "toggle_clash")
+            .setShortLabel(getString(DesignR.string.shortcut_toggle_short))
+            .setLongLabel(getString(DesignR.string.shortcut_toggle_long))
+            .setIcon(icon)
+            .setIntent(
+                Intent(Intents.ACTION_TOGGLE_CLASH)
+                    .setClassName(this, ExternalControlActivity::class.java.name)
+                    .addFlags(flags)
+            )
+            .setRank(0)
+            .build()
+
+        val start = ShortcutInfoCompat.Builder(this, "start_clash")
+            .setShortLabel(getString(DesignR.string.shortcut_start_short))
+            .setLongLabel(getString(DesignR.string.shortcut_start_long))
+            .setIcon(icon)
+            .setIntent(
+                Intent(Intents.ACTION_START_CLASH)
+                    .setClassName(this, ExternalControlActivity::class.java.name)
+                    .addFlags(flags)
+            )
+            .setRank(1)
+            .build()
+
+        val stop = ShortcutInfoCompat.Builder(this, "stop_clash")
+            .setShortLabel(getString(DesignR.string.shortcut_stop_short))
+            .setLongLabel(getString(DesignR.string.shortcut_stop_long))
+            .setIcon(icon)
+            .setIntent(
+                Intent(Intents.ACTION_STOP_CLASH)
+                    .setClassName(this, ExternalControlActivity::class.java.name)
+                    .addFlags(flags)
+            )
+            .setRank(2)
+            .build()
+
+        ShortcutManagerCompat.setDynamicShortcuts(this, listOf(toggle, start, stop))
     }
 }
