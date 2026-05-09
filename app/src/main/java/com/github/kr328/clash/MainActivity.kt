@@ -23,8 +23,16 @@ import kotlinx.coroutines.selects.select
 import kotlinx.coroutines.withContext
 import java.util.concurrent.TimeUnit
 import com.github.kr328.clash.design.R
+import com.github.kr328.clash.core.model.TunnelState
+import com.github.kr328.clash.core.Clash
 
 class MainActivity : BaseActivity<MainDesign>() {
+    private val modeMap = mapOf(
+        MainDesign.Request.ToggleDirectMode to TunnelState.Mode.Direct,
+        MainDesign.Request.ToggleGlobalMode to TunnelState.Mode.Global,
+        MainDesign.Request.ToggleRuleMode to TunnelState.Mode.Rule
+    )
+
     override suspend fun main() {
         val design = MainDesign(this)
 
@@ -53,6 +61,16 @@ class MainActivity : BaseActivity<MainDesign>() {
                             else
                                 design.startClash()
                         }
+                        in modeMap.keys -> {
+                            design.showModeSwitchTips()
+                            withClash {
+                                val o = queryOverride(Clash.OverrideSlot.Session)
+
+                                o.mode = modeMap[it]!!
+
+                                patchOverride(Clash.OverrideSlot.Session, o)
+                            }
+                        }
                         MainDesign.Request.OpenProxy ->
                             startActivity(ProxyActivity::class.intent)
                         MainDesign.Request.OpenProfiles ->
@@ -72,6 +90,8 @@ class MainActivity : BaseActivity<MainDesign>() {
                             startActivity(HelpActivity::class.intent)
                         MainDesign.Request.OpenAbout ->
                             design.showAbout(queryAppVersionName())
+
+                        else -> {}
                     }
                 }
                 if (clashRunning) {
