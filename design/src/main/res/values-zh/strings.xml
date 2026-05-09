@@ -68,6 +68,10 @@
     <string name="settings">设置</string>
     <string name="show_traffic">显示流量</string>
     <string name="show_traffic_summary">在通知中自动刷新流量</string>
+    <string name="auto_connect_vpn_on_wifi_disconnect">WiFi 断开时自动连接 VPN</string>
+    <string name="auto_connect_vpn_on_wifi_disconnect_summary">WiFi 断开连接时自动连接到 VPN</string>
+    <string name="wifi_ssid_for_vpn">WiFi SSID 名称</string>
+    <string name="wifi_ssid_placeholder">输入 WiFi SSID（可选）</string>
     <string name="allow_clash_auto_restart">允许 Clash 自动重启</string>
     <string name="auto_restart">自动重启</string>
     <string name="stopped">已停止</string>

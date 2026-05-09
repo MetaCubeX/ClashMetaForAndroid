@@ -114,6 +114,11 @@
     <string name="auto_restart">Auto Restart</string>
     <string name="allow_clash_auto_restart">Allow clash auto restart</string>
 
+    <string name="auto_connect_vpn_on_wifi_disconnect">Auto Connect VPN on WiFi Disconnect</string>
+    <string name="auto_connect_vpn_on_wifi_disconnect_summary">Automatically connect to VPN when WiFi is disconnected</string>
+    <string name="wifi_ssid_for_vpn">WiFi SSID for VPN</string>
+    <string name="wifi_ssid_placeholder">Enter WiFi SSID (optional)</string>
+
     <string name="route_system_traffic">Route System Traffic</string>
     <string name="routing_via_vpn_service">Auto routing all system traffic via VpnService</string>
 
