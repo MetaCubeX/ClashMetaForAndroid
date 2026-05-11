@@ -214,6 +214,7 @@ object ProfileProcessor {
 
                 val userAgentOverride = SubscriptionOverrides.getUserAgent(context, snapshot.uuid)
                 val strictUserAgent = SubscriptionOverrides.isStrictUserAgent(context, snapshot.uuid)
+                var effectiveUserAgentOverride = userAgentOverride
                 try {
                     Clash.fetchAndValid(
                         context.processingDir,
@@ -246,6 +247,7 @@ object ProfileProcessor {
                             Log.w("Report fetch status callback failed", e2)
                         }
                     }.await()
+                    effectiveUserAgentOverride = null
                 }
 
                 if (!preserved.isEmpty() && configFile.isFile) {
@@ -256,6 +258,22 @@ object ProfileProcessor {
                     )
                     configFile.writeText(merged)
                     Log.d("Subscription merge preserved local overlays: rules/rule-providers/proxy-providers reapplied for ${snapshot.uuid}")
+
+                    // Subscription providers are already on disk from the fetch above;
+                    // this second pass only downloads local-only providers reintroduced
+                    // by the merge step (force=false → skip files that already exist).
+                    Clash.fetchProvidersAndValid(
+                        context.processingDir,
+                        false,
+                        SubscriptionRequestHeaders.toNativeFetchJson(context, effectiveUserAgentOverride),
+                    ) {
+                        try {
+                            cb?.updateStatus(it)
+                        } catch (e: Exception) {
+                            cb = null
+                            Log.w("Report provider refresh status callback failed", e)
+                        }
+                    }.await()
                 }
 
                 GeoUrlSanitizer.sanitizeProfile(context.processingDir)

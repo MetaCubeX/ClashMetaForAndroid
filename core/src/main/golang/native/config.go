@@ -43,6 +43,27 @@ func fetchAndValid(callback unsafe.Pointer, path, url C.c_string, force C.int, h
 	}(C.GoString(path), C.GoString(url), C.GoString(headersJson), callback)
 }
 
+//export fetchProvidersAndValid
+func fetchProvidersAndValid(callback unsafe.Pointer, path C.c_string, force C.int, headersJson C.c_string) {
+	go func(path, headers string, callback unsafe.Pointer) {
+		subscriptionFetchSessionMu.Lock()
+		defer subscriptionFetchSessionMu.Unlock()
+
+		app.SetSubscriptionFetchHeadersJSON(headers)
+		defer app.ClearSubscriptionFetchHeaders()
+
+		cb := &remoteValidCallback{callback: callback}
+
+		err := config.FetchProvidersAndValid(path, force != 0, cb.reportStatus)
+
+		C.fetch_complete(callback, marshalString(err))
+
+		C.release_object(callback)
+
+		runtime.GC()
+	}(C.GoString(path), C.GoString(headersJson), callback)
+}
+
 //export load
 func load(completable unsafe.Pointer, path C.c_string) {
 	go func(path string) {

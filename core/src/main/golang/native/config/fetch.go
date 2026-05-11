@@ -16,6 +16,7 @@ import (
 	"cfa/native/app"
 
 	clashHttp "github.com/metacubex/mihomo/component/http"
+	"github.com/metacubex/mihomo/config"
 )
 
 type Status struct {
@@ -135,6 +136,68 @@ func FetchAndValid(
 		return err
 	}
 
+	// Provider files re-fetch is driven separately via FetchProvidersAndValid;
+	// here we only pick up providers that have no cached file on disk yet,
+	// regardless of the config-level force flag.
+	if err := fetchProviders(rawCfg, false, reportStatus); err != nil {
+		return err
+	}
+
+	bytes, _ := json.Marshal(&Status{
+		Action:      "Verifying",
+		Args:        []string{},
+		Progress:    0xffff,
+		MaxProgress: 0xffff,
+	})
+
+	reportStatus(string(bytes))
+
+	cfg, err := Parse(rawCfg)
+	if err != nil {
+		return err
+	}
+
+	destroyProviders(cfg)
+
+	return nil
+}
+
+func FetchProvidersAndValid(
+	path string,
+	force bool,
+	reportStatus func(string),
+) error {
+	defer runtime.GC()
+
+	rawCfg, err := UnmarshalAndPatch(path)
+	if err != nil {
+		return err
+	}
+
+	if err := fetchProviders(rawCfg, force, reportStatus); err != nil {
+		return err
+	}
+
+	bytes, _ := json.Marshal(&Status{
+		Action:      "Verifying",
+		Args:        []string{},
+		Progress:    0xffff,
+		MaxProgress: 0xffff,
+	})
+
+	reportStatus(string(bytes))
+
+	cfg, err := Parse(rawCfg)
+	if err != nil {
+		return err
+	}
+
+	destroyProviders(cfg)
+
+	return nil
+}
+
+func fetchProviders(rawCfg *config.RawConfig, force bool, reportStatus func(string)) error {
 	providerFetchTasks := make([]providerFetchTask, 0)
 	forEachProviders(rawCfg, func(index int, total int, name string, provider map[string]any, prefix string) {
 		u, uok := provider["url"]
@@ -151,8 +214,10 @@ func FetchAndValid(
 			return
 		}
 
-		if _, err := os.Stat(ps); err == nil {
-			return
+		if !force {
+			if _, err := os.Stat(ps); err == nil {
+				return
+			}
 		}
 
 		url, err := U.Parse(us)
@@ -179,22 +244,6 @@ func FetchAndValid(
 
 		_ = fetch(task.url, task.path)
 	}
-
-	bytes, _ := json.Marshal(&Status{
-		Action:      "Verifying",
-		Args:        []string{},
-		Progress:    0xffff,
-		MaxProgress: 0xffff,
-	})
-
-	reportStatus(string(bytes))
-
-	cfg, err := Parse(rawCfg)
-	if err != nil {
-		return err
-	}
-
-	destroyProviders(cfg)
 
 	return nil
 }

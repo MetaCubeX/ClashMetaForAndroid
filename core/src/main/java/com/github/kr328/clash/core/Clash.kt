@@ -167,6 +167,38 @@ object Clash {
         }
     }
 
+    fun fetchProvidersAndValid(
+        path: File,
+        force: Boolean,
+        subscriptionHeadersJson: String = SubscriptionDeviceHeaders.toJson(Global.application),
+        reportStatus: (FetchStatus) -> Unit,
+    ): CompletableDeferred<Unit> {
+        return CompletableDeferred<Unit>().apply {
+            Bridge.nativeFetchProvidersAndValid(
+                object : FetchCallback {
+                    override fun report(statusJson: String) {
+                        reportStatus(
+                            Json.Default.decodeFromString(
+                                FetchStatus.serializer(),
+                                statusJson
+                            )
+                        )
+                    }
+
+                    override fun complete(error: String?) {
+                        if (error != null)
+                            completeExceptionally(ClashException(error))
+                        else
+                            complete(Unit)
+                    }
+                },
+                path.absolutePath,
+                force,
+                subscriptionHeadersJson,
+            )
+        }
+    }
+
     fun load(path: File): CompletableDeferred<Unit> {
         return CompletableDeferred<Unit>().apply {
             Bridge.nativeLoad(this, path.absolutePath)

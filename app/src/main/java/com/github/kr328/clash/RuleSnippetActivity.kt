@@ -16,6 +16,7 @@ import com.github.kr328.clash.design.ui.ToastDuration
 import com.github.kr328.clash.service.model.RuleItem
 import com.github.kr328.clash.service.model.RuleProviderItem
 import com.github.kr328.clash.service.model.RuleState
+import com.github.kr328.clash.service.util.importedDir
 import com.github.kr328.clash.util.clashDir
 import com.github.kr328.clash.service.util.ProxyGroupsYamlPreview
 import com.github.kr328.clash.util.withClash
@@ -23,9 +24,11 @@ import com.github.kr328.clash.util.withProfile
 import com.google.android.material.switchmaterial.SwitchMaterial
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.select
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import java.io.File
 import java.util.UUID
@@ -47,7 +50,8 @@ class RuleSnippetActivity : BaseActivity<RuleSnippetDesign>() {
                         RuleSnippetDesign.Request.OpenCreateSheet -> launch { showCreateSheet(design) }
                         RuleSnippetDesign.Request.OpenManualRules ->
                             startActivity(EffectiveRulesActivity::class.intent)
-                        RuleSnippetDesign.Request.UpdateAllRuleSets -> launch { updateAllRuleSets(design) }
+                        RuleSnippetDesign.Request.UpdateAllRuleSets -> launch { updateRuleProviders(design, null) }
+                        is RuleSnippetDesign.Request.UpdateProvider -> launch { updateRuleProviders(design, it.name) }
                     }
                 }
             }
@@ -59,17 +63,52 @@ class RuleSnippetActivity : BaseActivity<RuleSnippetDesign>() {
         val state = withProfile { readRuleState(uuid) }
             ?.let { runCatching { json.decodeFromString(RuleState.serializer(), it) }.getOrNull() }
             ?: return
-        design.patchExistingProviders(state.providers)
+        val counts = withContext(Dispatchers.IO) {
+            state.providers.mapNotNull { provider ->
+                countProviderEntries(uuid, provider)?.let { provider.name to it }
+            }.toMap()
+        }
+        design.patchExistingProviders(state.providers, counts)
     }
 
-    private suspend fun updateAllRuleSets(design: RuleSnippetDesign) {
+    /**
+     * Counts `- entry` lines under the `payload:` block of a downloaded provider file.
+     * Returns null when the file does not exist yet (provider was never fetched) or is not
+     * in a readable YAML rule-set format.
+     */
+    private fun countProviderEntries(profileUuid: UUID, provider: RuleProviderItem): Int? {
+        val rel = provider.path.removePrefix("./").ifBlank { "ruleset/${provider.name}.yaml" }
+        val file = File(this.importedDir, "$profileUuid/$rel")
+        if (!file.isFile || file.length() == 0L) return null
+        return runCatching {
+            var inPayload = false
+            var count = 0
+            file.bufferedReader().useLines { lines ->
+                for (raw in lines) {
+                    val leading = raw.takeWhile { it == ' ' || it == '\t' }.length
+                    val trimmed = raw.substring(leading)
+                    if (!inPayload) {
+                        if (trimmed.startsWith("payload:")) inPayload = true
+                    } else {
+                        if (trimmed.startsWith("- ")) count++
+                        else if (trimmed.isNotEmpty() && leading == 0) break
+                    }
+                }
+            }
+            count.takeIf { it > 0 }
+        }.getOrNull()
+    }
+
+    private suspend fun updateRuleProviders(design: RuleSnippetDesign, name: String?) {
         if (!clashRunning) {
             design.showToast(DesignR.string.rule_rule_sets_need_vpn, ToastDuration.Long)
             return
         }
         try {
             withClash {
-                val ruleProviders = queryProviders().filter { it.type == Provider.Type.Rule }
+                val ruleProviders = queryProviders()
+                    .filter { it.type == Provider.Type.Rule }
+                    .filter { name == null || it.name == name }
                 if (ruleProviders.isEmpty()) {
                     design.showToast(DesignR.string.rule_rule_sets_none_loaded, ToastDuration.Short)
                     return@withClash
