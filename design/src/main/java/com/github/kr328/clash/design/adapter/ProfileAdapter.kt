@@ -36,9 +36,7 @@ class ProfileAdapter(
     private val expandOnProfileClick: Boolean = false,
     private val showServerChooserInCard: Boolean = true,
 ) : RecyclerView.Adapter<ProfileAdapter.Holder>() {
-    class Holder(val binding: AdapterProfileBinding) : RecyclerView.ViewHolder(binding.root) {
-        var ignoreGroupChip: Boolean = false
-    }
+    class Holder(val binding: AdapterProfileBinding) : RecyclerView.ViewHolder(binding.root)
 
     var profiles: List<Profile> = emptyList()
     val states = ProfilePageState()
@@ -345,9 +343,16 @@ class ProfileAdapter(
                 ?: offlineMap?.entries?.firstOrNull { groupsMatchKey(groupName, it.key) }?.value
             val now = offlineSelectedForGroup(profile.uuid, groupName)
             val type = row?.type ?: Proxy.Type.Selector
+            // Engine cache may not yet hold a sibling group the user just tapped (the prior
+            // fetch only walked the tree rooted at the previously visible group). Render the
+            // subscription's member names as a placeholder so the row is usable immediately;
+            // live engine data overwrites it on the next setProxyDetails tick.
+            val placeholderMembers = row?.members.orEmpty().map { n ->
+                Proxy(n, n, "", Proxy.Type.Unknown, -1)
+            }
             return ProxyGroup(
                 type,
-                emptyList(),
+                placeholderMembers,
                 now,
             ).withSelectionOverlay(profile.uuid, groupName)
         }
@@ -701,13 +706,9 @@ class ProfileAdapter(
 
         bindGroupType(binding.proxyGroupTypeLabel, current, groupNames.getOrNull(idx).orEmpty())
 
-        holder.ignoreGroupChip = true
         renderGroupChips(holder, current, groupNames, idx)
         fillProxyRows(holder, current, groupNames, idx)
         reportVisibleGroup(current, groupNames[idx])
-        binding.proxyGroupChips.post {
-            holder.ignoreGroupChip = false
-        }
     }
 
     private fun renderGroupChips(
@@ -717,7 +718,6 @@ class ProfileAdapter(
         selectedIndex: Int,
     ) {
         renderGroupChipsInto(holder.binding.proxyGroupChips, profile, groupNames, selectedIndex) { index, groupName ->
-            if (holder.ignoreGroupChip) return@renderGroupChipsInto
             selectedGroupIndex[profile.uuid] = index
             fillProxyRows(holder, profile, groupNames, index)
             reportVisibleGroup(profile, groupName, force = true)
@@ -749,11 +749,19 @@ class ProfileAdapter(
                 isSingleLine = true
                 ellipsize = android.text.TextUtils.TruncateAt.END
                 setTextAppearance(R.style.TextAppearance_App_LabelMedium)
-                setOnClickListener {
-                    onSelected(index, groupName)
-                }
             }
             container.addView(chip)
+        }
+        for (i in 0 until container.childCount) {
+            val chip = container.getChildAt(i) as Chip
+            val index = i
+            val groupName = groupNames[index]
+            chip.setOnClickListener {
+                for (j in 0 until container.childCount) {
+                    (container.getChildAt(j) as Chip).isChecked = j == index
+                }
+                onSelected(index, groupName)
+            }
         }
     }
 

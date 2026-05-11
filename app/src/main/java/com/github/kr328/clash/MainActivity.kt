@@ -380,6 +380,7 @@ class MainActivity : BaseActivity<MainDesign>() {
             kotlinx.coroutines.channels.Channel<Pair<Profile, String>>(kotlinx.coroutines.channels.Channel.CONFLATED)
         var announcementRefreshPending = false
         var proxyDetailJob: Job? = null
+        var homeProxyPatchJob: Job? = null
         var lastDashboardRefreshRequestAt = 0L
 
         fun scheduleDashboardRefresh(includeAnnouncement: Boolean = false, force: Boolean = false) {
@@ -577,32 +578,40 @@ class MainActivity : BaseActivity<MainDesign>() {
                 }
 
                 design.patchHomeProxyRequests.onReceive { (profile, group, name) ->
-                    launch {
-                        val runningNow = withContext(Dispatchers.IO) {
-                            resolveStatusSnapshot().serviceRunning
-                        }
-                        Remote.broadcasts.clashRunning = runningNow
-                        if (!runningNow) {
-                            if (isProxyProviderKeyName(name)) {
+                    homeProxyPatchJob?.cancel()
+                    homeProxyPatchJob = launch {
+                        try {
+                            val runningNow = withContext(Dispatchers.IO) {
+                                resolveStatusSnapshot().serviceRunning
+                            }
+                            Remote.broadcasts.clashRunning = runningNow
+                            if (!runningNow) {
+                                if (isProxyProviderKeyName(name)) {
+                                    scheduleDashboardRefresh()
+                                    return@launch
+                                }
+                                design.markProxySelectionPending(profile, group, name)
+                                withProfile {
+                                    rememberProxySelection(profile.uuid, group, name)
+                                }
+                                uiStore.proxyLastGroup = group
                                 scheduleDashboardRefresh()
                                 return@launch
                             }
                             design.markProxySelectionPending(profile, group, name)
-                            withProfile {
-                                rememberProxySelection(profile.uuid, group, name)
+                            val patched = withClash {
+                                patchSelector(group, name)
                             }
-                            uiStore.proxyLastGroup = group
-                            scheduleDashboardRefresh()
-                            return@launch
+                            if (patched) {
+                                uiStore.proxyLastGroup = group
+                                withProfile {
+                                    rememberProxySelection(profile.uuid, group, name)
+                                }
+                            }
+                            scheduleProxyDetailsRefresh(profile, group)
+                        } catch (e: CancellationException) {
+                            throw e
                         }
-                        design.markProxySelectionPending(profile, group, name)
-                        val patched = withClash {
-                            patchSelector(group, name)
-                        }
-                        if (patched) {
-                            uiStore.proxyLastGroup = group
-                        }
-                        scheduleProxyDetailsRefresh(profile, group)
                     }
                 }
 
