@@ -47,7 +47,10 @@ class RuleSnippetActivity : BaseActivity<RuleSnippetDesign>() {
                         RuleSnippetDesign.Request.OpenCreateSheet -> launch { showCreateSheet(design) }
                         RuleSnippetDesign.Request.OpenManualRules ->
                             startActivity(EffectiveRulesActivity::class.intent)
-                        RuleSnippetDesign.Request.UpdateAllRuleSets -> launch { updateAllRuleSets(design) }
+                        RuleSnippetDesign.Request.RefreshProviders -> launch { refreshExistingProviders(design) }
+                        RuleSnippetDesign.Request.UpdateAllRuleSets -> launch { updateRuleProviders(design, null) }
+                        is RuleSnippetDesign.Request.UpdateProvider -> launch { updateRuleProviders(design, it.name) }
+                        is RuleSnippetDesign.Request.EditProvider -> launch { showCreateSheet(design, it.provider) }
                     }
                 }
             }
@@ -62,14 +65,16 @@ class RuleSnippetActivity : BaseActivity<RuleSnippetDesign>() {
         design.patchExistingProviders(state.providers)
     }
 
-    private suspend fun updateAllRuleSets(design: RuleSnippetDesign) {
+    private suspend fun updateRuleProviders(design: RuleSnippetDesign, name: String?) {
         if (!clashRunning) {
             design.showToast(DesignR.string.rule_rule_sets_need_vpn, ToastDuration.Long)
             return
         }
         try {
             withClash {
-                val ruleProviders = queryProviders().filter { it.type == Provider.Type.Rule }
+                val ruleProviders = queryProviders()
+                    .filter { it.type == Provider.Type.Rule }
+                    .filter { name == null || it.name == name }
                 if (ruleProviders.isEmpty()) {
                     design.showToast(DesignR.string.rule_rule_sets_none_loaded, ToastDuration.Short)
                     return@withClash
@@ -84,7 +89,10 @@ class RuleSnippetActivity : BaseActivity<RuleSnippetDesign>() {
         }
     }
 
-    private suspend fun showCreateSheet(design: RuleSnippetDesign) {
+    private suspend fun showCreateSheet(
+        design: RuleSnippetDesign,
+        editingProvider: RuleProviderItem? = null,
+    ) {
         val uuid = withProfile { queryActive()?.uuid }
         if (uuid == null) {
             design.showToast(DesignR.string.no_profile_selected, ToastDuration.Long)
@@ -176,7 +184,11 @@ class RuleSnippetActivity : BaseActivity<RuleSnippetDesign>() {
         view.findViewById<AutoCompleteTextView>(R.id.spinner_manual_custom_kind).setAdapter(
             ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, customKindOptions))
 
-        title.text = getString(DesignR.string.rule_add_new)
+        title.text = if (editingProvider == null) {
+            getString(DesignR.string.rule_add_new)
+        } else {
+            getString(DesignR.string.edit)
+        }
 
         fun insertModeFromSpinner(s: AutoCompleteTextView): String {
             val pos = (s.adapter as ArrayAdapter<String>).getPosition(s.text.toString())
@@ -285,6 +297,28 @@ class RuleSnippetActivity : BaseActivity<RuleSnippetDesign>() {
             buildPreview()
         }
 
+        if (editingProvider != null) {
+            typeSpinner.setText(typeOptions[1], false)
+            typeSpinner.isEnabled = false
+            providerGroup.visibility = View.VISIBLE
+            presetGroup.visibility = View.GONE
+            manualGroup.visibility = View.GONE
+            view.findViewById<TextInputEditText>(R.id.input_provider_name).setText(editingProvider.name)
+            view.findViewById<TextInputEditText>(R.id.input_provider_url).setText(editingProvider.url)
+            val behaviorView = view.findViewById<AutoCompleteTextView>(R.id.spinner_provider_behavior)
+            behaviorView.setText(editingProvider.behavior.ifBlank { "classical" }, false)
+            val policy = state.rules
+                .firstOrNull {
+                    it.type.equals("RULE-SET", true) &&
+                        (it.providerName.equals(editingProvider.name, true) || it.value.equals(editingProvider.name, true))
+                }
+                ?.policy
+                ?: validPolicy
+            val policyView = view.findViewById<AutoCompleteTextView>(R.id.spinner_provider_policy)
+            policyView.setText(policy, false)
+            view.findViewById<SwitchMaterial>(R.id.switch_provider_enabled).isChecked = editingProvider.enabled
+        }
+
         applyButton.setOnClickListener {
             launch {
                 val typePos = (typeSpinner.adapter as ArrayAdapter<String>).getPosition(typeSpinner.text.toString())
@@ -304,7 +338,7 @@ class RuleSnippetActivity : BaseActivity<RuleSnippetDesign>() {
                         }
                     }
                     1 -> {
-                        applyProviderFromSheet(uuid, state, null, view)
+                        applyProviderFromSheet(uuid, state, editingProvider, view)
                     }
                     else -> {
                         val line = manualLineFromSheet(view) ?: ""
@@ -327,7 +361,11 @@ class RuleSnippetActivity : BaseActivity<RuleSnippetDesign>() {
                 }
             }
         }
-        syncGroups()
+        if (editingProvider == null) {
+            syncGroups()
+        } else {
+            buildPreview()
+        }
         dialog.show()
     }
 

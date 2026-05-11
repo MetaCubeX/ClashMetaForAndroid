@@ -36,6 +36,13 @@ object Bridge {
         subscriptionHeadersJson: String,
     )
 
+    external fun nativeFetchProvidersAndValid(
+        completable: FetchCallback,
+        path: String,
+        force: Boolean,
+        subscriptionHeadersJson: String,
+    )
+
     external fun nativeLoad(completable: CompletableDeferred<Unit>, path: String)
     external fun nativeQueryProviders(): String
     external fun nativeQueryConnectionsSnapshot(): String

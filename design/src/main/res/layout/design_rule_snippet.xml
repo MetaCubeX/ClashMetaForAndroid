@@ -107,13 +107,29 @@
                             android:text="@string/rule_existing_provider_toggle_hint"
                             android:textAppearance="@style/TextAppearance.Material3.BodyMedium" />
 
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btn_update_all_rule_sets"
-                            style="@style/Widget.Material3.Button.OutlinedButton"
+                        <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="12dp"
-                            android:text="@string/rule_rule_sets_update_all" />
+                            android:orientation="horizontal">
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btn_refresh_rule_providers"
+                                style="@style/Widget.Material3.Button"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginEnd="8dp"
+                                android:layout_weight="1"
+                                android:text="@string/rule_providers_refresh" />
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btn_update_all_rule_sets"
+                                style="@style/Widget.Material3.Button.OutlinedButton"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="@string/rule_rule_sets_update_all" />
+                        </LinearLayout>
 
                         <LinearLayout
                             android:id="@+id/provider_items_container"

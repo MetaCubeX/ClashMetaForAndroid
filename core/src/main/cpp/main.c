@@ -247,6 +247,27 @@ Java_com_github_kr328_clash_core_bridge_Bridge_nativeFetchAndValid(JNIEnv *env, 
     fetchAndValid(_completable, _path, _url, force, _headers);
 }
 
+JNIEXPORT void JNICALL
+Java_com_github_kr328_clash_core_bridge_Bridge_nativeFetchProvidersAndValid(JNIEnv *env, jobject thiz,
+                                                                            jobject callback,
+                                                                            jstring path,
+                                                                            jboolean force,
+                                                                            jstring headersJson) {
+    TRACE_METHOD();
+
+    jobject _completable = new_global(callback);
+    scoped_string _path = get_string(path);
+    char *_headers_raw;
+    if (headersJson == NULL) {
+        _headers_raw = strdup("");
+    } else {
+        _headers_raw = get_string(headersJson);
+    }
+    scoped_string _headers = _headers_raw;
+
+    fetchProvidersAndValid(_completable, _path, force, _headers);
+}
+
 JNIEXPORT jstring JNICALL
 Java_com_github_kr328_clash_core_bridge_Bridge_nativeQueryProviders(JNIEnv *env, jobject thiz) {
     TRACE_METHOD();
