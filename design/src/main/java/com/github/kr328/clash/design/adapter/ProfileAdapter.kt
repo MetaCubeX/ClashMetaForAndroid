@@ -305,10 +305,15 @@ class ProfileAdapter(
     private fun selectedGroupForSummary(profile: Profile): String? {
         val groups = groupsForSelectionSummary(profile)
         if (groups.isEmpty()) return null
+        val uuid = profile.uuid
+        val kept = selectedGroupIndex[uuid]?.takeIf { it in groups.indices }?.let { groups[it] }
+        if (kept != null) {
+            return kept
+        }
         val picked = resolvePreferredGroupFromList(profile, groups)
         val index = groups.indexOf(picked).takeIf { it >= 0 } ?: 0
-        selectedGroupIndex[profile.uuid] = index.coerceIn(0, groups.lastIndex)
-        return groups[selectedGroupIndex[profile.uuid]!!]
+        selectedGroupIndex[uuid] = index.coerceIn(0, groups.lastIndex)
+        return groups[selectedGroupIndex[uuid]!!]
     }
 
     private fun formatSelectionSummaryForHome(groupName: String): String = displayGroupName(groupName)
@@ -330,7 +335,21 @@ class ProfileAdapter(
 
     private fun proxyGroupForRow(profile: Profile, groupName: String): ProxyGroup? {
         if (useEngineFor(profile)) {
-            proxyDetails[groupName]?.let { return it.withSelectionOverlay(profile.uuid, groupName) }
+            val live = proxyDetails[groupName]
+                ?: proxyDetails.entries.firstOrNull { groupsMatchKey(groupName, it.key) }?.value
+            if (live != null) {
+                return live.withSelectionOverlay(profile.uuid, groupName)
+            }
+            val offlineMap = offlinePreviewByProfile[profile.uuid]
+            val row = offlineMap?.get(groupName)
+                ?: offlineMap?.entries?.firstOrNull { groupsMatchKey(groupName, it.key) }?.value
+            val now = offlineSelectedForGroup(profile.uuid, groupName)
+            val type = row?.type ?: Proxy.Type.Selector
+            return ProxyGroup(
+                type,
+                emptyList(),
+                now,
+            ).withSelectionOverlay(profile.uuid, groupName)
         }
         val offline = offlinePreviewByProfile[profile.uuid] ?: return null
         val row = offline[groupName]
@@ -353,6 +372,12 @@ class ProfileAdapter(
     private fun groupsMatchKey(engineName: String, storedName: String): Boolean {
         if (engineName == storedName) return true
         return displayGroupName(engineName) == displayGroupName(storedName)
+    }
+
+    private fun hasLiveProxyDetail(profile: Profile, groupName: String): Boolean {
+        if (!useEngineFor(profile)) return false
+        if (proxyDetails.containsKey(groupName)) return true
+        return proxyDetails.keys.any { groupsMatchKey(groupName, it) }
     }
 
     private fun resolvePreferredGroupFromList(profile: Profile, groupNames: List<String>): String {
@@ -763,7 +788,15 @@ class ProfileAdapter(
         val proxies = pg.proxies.filterNot { shouldHideProxyOption(groupName, it) }
 
         if (proxies.isEmpty()) {
-            addEmptyProxyHint(list, context)
+            val hintRes = when {
+                useEngineFor(profile) && !hasLiveProxyDetail(profile, groupName) ->
+                    R.string.proxy_nodes_loading
+                useEngineFor(profile) ->
+                    R.string.proxy_group_empty_runtime
+                else ->
+                    R.string.proxy_nodes_empty_connect_vpn
+            }
+            addEmptyProxyHint(list, context, hintRes)
             return
         }
 
@@ -875,9 +908,13 @@ class ProfileAdapter(
             proxyName.equals("REJECT", ignoreCase = true)
     }
 
-    private fun addEmptyProxyHint(list: ViewGroup, context: Context) {
+    private fun addEmptyProxyHint(
+        list: ViewGroup,
+        context: Context,
+        messageRes: Int = R.string.proxy_nodes_empty_connect_vpn,
+    ) {
         val tv = TextView(context).apply {
-            text = context.getString(R.string.proxy_nodes_empty_connect_vpn)
+            text = context.getString(messageRes)
             setPadding(context.dp(8), context.dp(8), context.dp(8), context.dp(8))
             setTextColor(ContextCompat.getColor(context, R.color.delay_timeout))
         }

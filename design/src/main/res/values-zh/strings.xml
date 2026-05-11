@@ -457,6 +457,8 @@
     <string name="proxy_chain_saved_title">已保存在配置中（YAML）</string>
     <string name="proxy_chain_usage_hint">使用链：保存 dialer-proxy、切换到全局并选中该出站（类似桌面「连接」）。仅保存：只写 YAML，不切换模式/选择器。规则模式仍按规则分流；要用链请用全局或指向该节点的规则。</string>
     <string name="proxy_nodes_empty_connect_vpn">订阅提供商的节点在 VPN 启动后由核心加载。请先开启 VPN，再选择真实节点（不要选 sub1/sub2 — 那是提供商键名）。</string>
+    <string name="proxy_nodes_loading">正在从核心加载节点列表…</string>
+    <string name="proxy_group_empty_runtime">此组目前没有节点。若使用过滤器，可能是订阅中没有匹配的节点；否则请稍候或再次点击分组标签。</string>
     <string name="proxy_open_yaml">配置中的代理 YAML</string>
     <string name="proxy_providers_add">添加行</string>
     <string name="proxy_providers_add_merged_select">添加合并 select 组</string>

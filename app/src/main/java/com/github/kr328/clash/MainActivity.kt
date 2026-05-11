@@ -1068,9 +1068,22 @@ class MainActivity : BaseActivity<MainDesign>() {
 
         val groupsToFetch = collectRuntimeGroupTree(group)
             .ifEmpty { linkedSetOf(group).filter { it.isNotBlank() }.toSet() }
-        val details = refreshRuntimeGroupDetails(groupsToFetch)
-        if (withProfile { queryActive()?.uuid } == profile.uuid) {
-            patchProxyDetails(details)
+        repeat(12) { attempt ->
+            val details = refreshRuntimeGroupDetails(groupsToFetch)
+            val rootDetail = details[group]
+                ?: details.entries.firstOrNull { it.key.equals(group, ignoreCase = true) }?.value
+            val emptyDynamic = rootDetail != null &&
+                rootDetail.proxies.isEmpty() &&
+                rootDetail.type.group &&
+                rootDetail.type != Proxy.Type.Relay
+            val retry = (details.isEmpty() || emptyDynamic) && attempt < 11
+            if (!retry) {
+                if (details.isNotEmpty() && withProfile { queryActive()?.uuid } == profile.uuid) {
+                    patchProxyDetails(details)
+                }
+                return
+            }
+            delay(200L)
         }
     }
 
@@ -1560,9 +1573,12 @@ class MainActivity : BaseActivity<MainDesign>() {
 
         val now = System.currentTimeMillis() / 1000L
         val cooldown = 6L * 3600L
-        if (uiStore.subscriptionUserinfo.isNotBlank() &&
-            now - uiStore.subscriptionMetadataLastFetch < cooldown
-        ) {
+        val activeId = active.uuid.toString()
+        val sameProfileThrottle =
+            uiStore.subscriptionUserinfo.isNotBlank() &&
+                activeId == uiStore.subscriptionMetadataLastFetchProfileId &&
+                now - uiStore.subscriptionMetadataLastFetch < cooldown
+        if (sameProfileThrottle) {
             return
         }
 
@@ -1580,14 +1596,24 @@ class MainActivity : BaseActivity<MainDesign>() {
         if (meta.isEmpty()) {
             // still mark the attempt to avoid hammering the server every screen-on
             uiStore.subscriptionMetadataLastFetch = now
+            uiStore.subscriptionMetadataLastFetchProfileId = activeId
             return
         }
         uiStore.subscriptionMetadataLastFetch = now
+        uiStore.subscriptionMetadataLastFetchProfileId = activeId
 
         // Always-mirrored fields (cache only):
         meta.subscriptionUserinfo?.let { uiStore.subscriptionUserinfo = it }
         meta.profileWebPageUrl?.let { uiStore.profileWebPageUrl = it }
-        meta.profileUpdateIntervalHours?.let { uiStore.profileUpdateIntervalHours = it }
+        meta.profileUpdateIntervalHours?.let { hours ->
+            uiStore.profileUpdateIntervalHours = hours
+            if (!uiStore.subscriptionMetadataLockUser) {
+                val ms = java.util.concurrent.TimeUnit.HOURS.toMillis(hours.toLong())
+                runCatching {
+                    withProfile { applySubscriptionUpdateInterval(active.uuid, ms) }
+                }
+            }
+        }
 
         // User-overridable fields — skip if user opted out of operator overrides.
         if (!uiStore.subscriptionMetadataLockUser) {

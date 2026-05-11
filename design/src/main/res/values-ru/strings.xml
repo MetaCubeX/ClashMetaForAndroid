@@ -34,6 +34,8 @@
     <string name="proxy_empty_tips">Нет групп для отображения</string>
     <string name="home_proxy">Прокси</string>
     <string name="proxy_nodes_empty_connect_vpn">Узлы из proxy-providers появляются в ядре после запуска VPN. Включите VPN и выберите реальный узел (sub1/sub2 — это ключи провайдеров в YAML, не имена прокси).</string>
+    <string name="proxy_nodes_loading">Загружаем список узлов из ядра…</string>
+    <string name="proxy_group_empty_runtime">В этой группе пока нет узлов. Для групп с фильтром в подписке может не быть совпадений; иначе подождите и снова нажмите на чип группы.</string>
 
     <string name="import_failed_title">Не удалось импортировать подписку</string>
     <string name="import_failed_open_editor">Редактировать подписку</string>

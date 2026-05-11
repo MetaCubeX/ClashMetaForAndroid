@@ -286,6 +286,8 @@ Presets only change <b>where</b> files are downloaded from (CDN / host). It is s
     <string name="proxy_open_yaml">Proxy YAML from config</string>
     <string name="proxy_yaml_missing">This proxy is not listed under proxies: in the saved config (subscription-only name).</string>
     <string name="proxy_nodes_empty_connect_vpn">Nodes from subscription providers load in the engine after VPN starts. Turn the VPN on, then pick a real node here (not sub1/sub2 — those are provider keys).</string>
+    <string name="proxy_nodes_loading">Loading node list from the engine…</string>
+    <string name="proxy_group_empty_runtime">No nodes in this group yet. For groups built with filters, your subscription may have no matching proxies; otherwise wait a moment and tap the group chip again.</string>
     <string name="profile_update_scheduled">Subscription update started</string>
     <string name="profile_menu_set_active">Set active</string>
     <string name="profile_delete_confirm">Delete this profile? This cannot be undone.</string>
