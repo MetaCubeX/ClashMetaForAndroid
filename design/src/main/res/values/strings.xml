@@ -311,6 +311,10 @@ Presets only change <b>where</b> files are downloaded from (CDN / host). It is s
     <string name="rule_existing_providers">Existing Providers</string>
     <string name="rule_existing_providers_empty">No providers in active profile yet.</string>
     <string name="rule_existing_provider_toggle_hint">Providers here are read-only. To disable a ruleset, open Rules -> Manual rules and turn off the matching RULE-SET line.</string>
+    <string name="rule_rule_sets_update_all">Update all rule-sets (core)</string>
+    <string name="rule_rule_sets_need_vpn">Turn the VPN on so the core can refresh rule providers</string>
+    <string name="rule_rule_sets_update_all_ok">Rule provider refresh started</string>
+    <string name="rule_rule_sets_none_loaded">No remote rule providers loaded in the core yet</string>
     <string name="rule_draft_provider_title">Draft provider (not saved yet)</string>
     <string name="rule_quick_wizard">Quick Wizard</string>
     <string name="rule_quick_wizard_apply">Apply selected preset</string>

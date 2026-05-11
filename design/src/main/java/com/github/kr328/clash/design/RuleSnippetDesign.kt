@@ -17,6 +17,7 @@ class RuleSnippetDesign(context: Context) : Design<RuleSnippetDesign.Request>(co
     sealed class Request {
         object OpenCreateSheet : Request()
         object OpenManualRules : Request()
+        object UpdateAllRuleSets : Request()
     }
 
     private val binding = DesignRuleSnippetBinding
@@ -31,6 +32,7 @@ class RuleSnippetDesign(context: Context) : Design<RuleSnippetDesign.Request>(co
         binding.toolbar.title = ""
         binding.btnOpenCreateSheet.setOnClickListener { requests.trySend(Request.OpenCreateSheet) }
         binding.btnOpenManualRules.setOnClickListener { requests.trySend(Request.OpenManualRules) }
+        binding.btnUpdateAllRuleSets.setOnClickListener { requests.trySend(Request.UpdateAllRuleSets) }
     }
 
     fun patchExistingProviders(providers: List<RuleProviderItem>) {

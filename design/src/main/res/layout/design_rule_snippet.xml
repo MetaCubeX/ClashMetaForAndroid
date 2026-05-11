@@ -107,6 +107,14 @@
                             android:text="@string/rule_existing_provider_toggle_hint"
                             android:textAppearance="@style/TextAppearance.Material3.BodyMedium" />
 
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btn_update_all_rule_sets"
+                            style="@style/Widget.Material3.Button.OutlinedButton"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:text="@string/rule_rule_sets_update_all" />
+
                         <LinearLayout
                             android:id="@+id/provider_items_container"
                             android:layout_width="match_parent"

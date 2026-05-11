@@ -689,6 +689,10 @@
     <string name="rule_manual_custom_kind">Тип правила Clash</string>
     <string name="rule_manual_content_payload_hint">Значение (домен, IP/CIDR, порт, …)</string>
     <string name="rule_existing_provider_toggle_hint">Провайдеры здесь только для просмотра. Чтобы отключить ruleset, откройте «Rules -> Manual rules» и выключите соответствующую строку RULE-SET.</string>
+    <string name="rule_rule_sets_update_all">Обновить все rule-sets (ядро)</string>
+    <string name="rule_rule_sets_need_vpn">Включите VPN, чтобы ядро обновило rule providers</string>
+    <string name="rule_rule_sets_update_all_ok">Запущено обновление rule providers</string>
+    <string name="rule_rule_sets_none_loaded">В ядре пока нет загруженных удалённых rule providers</string>
     <string name="theme_settings">Тема</string>
     <string name="theme_mode">Режим темы</string>
     <string name="theme_auto">Авто</string>

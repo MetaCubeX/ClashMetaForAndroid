@@ -512,6 +512,10 @@
     <string name="rule_existing_providers">已有提供商</string>
     <string name="rule_existing_providers_empty">活动配置中尚无提供商。</string>
     <string name="rule_existing_provider_toggle_hint">要关闭规则集，请打开“手动规则”并禁用对应的 RULE-SET 行（请勿在此处关闭提供商）。</string>
+    <string name="rule_rule_sets_update_all">更新全部 rule-sets（核心）</string>
+    <string name="rule_rule_sets_need_vpn">请开启 VPN，以便核心刷新 rule providers</string>
+    <string name="rule_rule_sets_update_all_ok">已开始刷新 rule providers</string>
+    <string name="rule_rule_sets_none_loaded">核心中尚未加载远程 rule providers</string>
     <string name="rule_insert_append">追加到底部</string>
     <string name="rule_insert_mode">新规则插入方式</string>
     <string name="rule_insert_prepend">插入到顶部</string>

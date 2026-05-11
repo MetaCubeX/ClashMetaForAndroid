@@ -7,9 +7,11 @@ import android.widget.LinearLayout
 import android.widget.Spinner
 import android.widget.TextView
 import com.github.kr328.clash.common.util.intent
+import com.github.kr328.clash.core.model.Provider
 import com.github.kr328.clash.design.RuleSnippetDesign
 import com.github.kr328.clash.design.R as DesignR
 import com.github.kr328.clash.design.dialog.AppBottomSheetDialog
+import com.github.kr328.clash.design.util.showExceptionToast
 import com.github.kr328.clash.design.ui.ToastDuration
 import com.github.kr328.clash.service.model.RuleItem
 import com.github.kr328.clash.service.model.RuleProviderItem
@@ -45,6 +47,7 @@ class RuleSnippetActivity : BaseActivity<RuleSnippetDesign>() {
                         RuleSnippetDesign.Request.OpenCreateSheet -> launch { showCreateSheet(design) }
                         RuleSnippetDesign.Request.OpenManualRules ->
                             startActivity(EffectiveRulesActivity::class.intent)
+                        RuleSnippetDesign.Request.UpdateAllRuleSets -> launch { updateAllRuleSets(design) }
                     }
                 }
             }
@@ -57,6 +60,28 @@ class RuleSnippetActivity : BaseActivity<RuleSnippetDesign>() {
             ?.let { runCatching { json.decodeFromString(RuleState.serializer(), it) }.getOrNull() }
             ?: return
         design.patchExistingProviders(state.providers)
+    }
+
+    private suspend fun updateAllRuleSets(design: RuleSnippetDesign) {
+        if (!clashRunning) {
+            design.showToast(DesignR.string.rule_rule_sets_need_vpn, ToastDuration.Long)
+            return
+        }
+        try {
+            withClash {
+                val ruleProviders = queryProviders().filter { it.type == Provider.Type.Rule }
+                if (ruleProviders.isEmpty()) {
+                    design.showToast(DesignR.string.rule_rule_sets_none_loaded, ToastDuration.Short)
+                    return@withClash
+                }
+                for (p in ruleProviders) {
+                    updateProvider(p.type, p.name)
+                }
+            }
+            design.showToast(DesignR.string.rule_rule_sets_update_all_ok, ToastDuration.Long)
+        } catch (e: Exception) {
+            design.showExceptionToast(e)
+        }
     }
 
     private suspend fun showCreateSheet(design: RuleSnippetDesign) {
