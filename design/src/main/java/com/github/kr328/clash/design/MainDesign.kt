@@ -16,6 +16,7 @@ import androidx.viewpager2.widget.ViewPager2
 import com.github.kr328.clash.core.model.ProxyGroup
 import com.github.kr328.clash.core.model.TunnelState
 import com.github.kr328.clash.core.util.trafficTotal
+import com.github.kr328.clash.common.log.Log
 import com.github.kr328.clash.common.util.SubscriptionUsage
 import com.github.kr328.clash.design.adapter.ProfileAdapter
 import com.github.kr328.clash.design.databinding.BottomSheetMainModeBinding
@@ -35,6 +36,7 @@ import com.github.kr328.clash.design.util.root
 import com.github.kr328.clash.design.util.toBytesString
 import com.github.kr328.clash.design.R
 import com.github.kr328.clash.service.model.Profile
+import com.github.kr328.clash.service.model.ProxyGroupPreviewRow
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.withContext
@@ -229,9 +231,6 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
                 }
                 binding.mainHeaderSummary.isClickable = announcementUrl != null
             }
-            binding.mainHeaderSupport.visibility = View.GONE
-            binding.mainHeaderSupport.setOnClickListener(null)
-
             binding.mainHeaderSupport.visibility = View.GONE
             binding.mainHeaderSupport.setOnClickListener(null)
 
@@ -497,7 +496,7 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         running: Boolean,
         mode: TunnelState.Mode?,
         lastGroupHint: String?,
-        offlinePreviewByProfile: Map<UUID, Map<String, List<String>>> = emptyMap(),
+        offlinePreviewByProfile: Map<UUID, Map<String, ProxyGroupPreviewRow>> = emptyMap(),
         activeProfileUuid: UUID? = null,
         offlineSelectionsByProfile: Map<UUID, Map<String, String>> = emptyMap(),
     ) {
@@ -715,6 +714,24 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         })
         binding.mainPager.setCurrentItem(1, false)
         renderMainTab(MainTab.Home)
+        binding.mainPager.post { tweakViewPagerHorizontalSwipeTolerance(binding.mainPager) }
+    }
+
+    /**
+     * Nested home content (announcement + profiles) grows vertically; on narrow or very wide
+     * aspect ratios, small diagonal motion while scrolling can be absorbed as a horizontal
+     * page swipe. Raising RecyclerView touch slop reduces accidental tab changes.
+     */
+    private fun tweakViewPagerHorizontalSwipeTolerance(viewPager: ViewPager2) {
+        runCatching {
+            val recyclerView = viewPager.getChildAt(0) as? RecyclerView ?: return
+            val field = RecyclerView::class.java.getDeclaredField("mTouchSlop")
+            field.isAccessible = true
+            val slop = field.getInt(recyclerView)
+            field.setInt(recyclerView, slop * 3)
+        }.onFailure {
+            Log.w("ViewPager2 touch slop tweak skipped: ${it.message}")
+        }
     }
 
     private fun mainTabForPagerPosition(position: Int): MainTab? {

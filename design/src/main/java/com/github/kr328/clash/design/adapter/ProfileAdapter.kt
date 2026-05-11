@@ -18,6 +18,7 @@ import com.github.kr328.clash.design.dialog.AppBottomSheetDialog
 import com.github.kr328.clash.design.model.ProfilePageState
 import com.github.kr328.clash.design.util.layoutInflater
 import com.github.kr328.clash.service.model.Profile
+import com.github.kr328.clash.service.model.ProxyGroupPreviewRow
 import com.google.android.material.chip.Chip
 import com.google.android.material.color.MaterialColors
 import java.util.UUID
@@ -50,9 +51,9 @@ class ProfileAdapter(
     private var lastGroupHint: String? = null
     private var expandedUuids: Set<UUID> = emptySet()
     /** Offline proxy groups per profile (expanded cards that are not using live engine data). */
-    private var offlinePreviewByProfile: Map<UUID, Map<String, List<String>>> = emptyMap()
+    private var offlinePreviewByProfile: Map<UUID, Map<String, ProxyGroupPreviewRow>> = emptyMap()
     private var offlineSelectionsByProfile: Map<UUID, Map<String, String>> = emptyMap()
-    private val cachedOfflinePreviewByProfile = mutableMapOf<UUID, Map<String, List<String>>>()
+    private val cachedOfflinePreviewByProfile = mutableMapOf<UUID, Map<String, ProxyGroupPreviewRow>>()
     private val cachedOfflineSelectionsByProfile = mutableMapOf<UUID, Map<String, String>>()
     private val selectedGroupIndex = mutableMapOf<UUID, Int>()
     private val lastReportedVisibleGroup = mutableMapOf<UUID, String>()
@@ -130,7 +131,7 @@ class ProfileAdapter(
         running: Boolean,
         mode: TunnelState.Mode?,
         lastGroupHint: String?,
-        offlinePreviewByProfile: Map<UUID, Map<String, List<String>>> = emptyMap(),
+        offlinePreviewByProfile: Map<UUID, Map<String, ProxyGroupPreviewRow>> = emptyMap(),
         activeProfileUuid: UUID? = null,
         offlineSelectionsByProfile: Map<UUID, Map<String, String>> = emptyMap(),
     ) {
@@ -332,12 +333,13 @@ class ProfileAdapter(
             proxyDetails[groupName]?.let { return it.withSelectionOverlay(profile.uuid, groupName) }
         }
         val offline = offlinePreviewByProfile[profile.uuid] ?: return null
-        val names = offline[groupName]
+        val row = offline[groupName]
             ?: offline.entries.firstOrNull { (k, _) -> groupsMatchKey(groupName, k) }?.value
             ?: return null
+        val names = row.members
         val now = offlineSelectedForGroup(profile.uuid, groupName)
         return ProxyGroup(
-            Proxy.Type.Selector,
+            row.type,
             names.map { n ->
                 Proxy(n, n, "", Proxy.Type.Unknown, -1)
             },
@@ -907,7 +909,7 @@ class ProfileAdapter(
             }
 
             val offline = offlinePreviewByProfile[uuid]?.get(groupName) ?: return -1
-            return offline.asSequence()
+            return offline.members.asSequence()
                 .map { name ->
                     val direct = standalonePingDelays["$uuid|$name"]
                     direct ?: resolve(name)

@@ -14,6 +14,7 @@ import com.github.kr328.clash.service.data.PendingDao
 import com.github.kr328.clash.service.data.Selection
 import com.github.kr328.clash.service.data.SelectionDao
 import com.github.kr328.clash.service.model.Profile
+import com.github.kr328.clash.service.model.ProxyGroupPreviewRow
 import com.github.kr328.clash.service.remote.IFetchObserver
 import com.github.kr328.clash.service.remote.IProfileManager
 import com.github.kr328.clash.service.store.ServiceStore
@@ -297,7 +298,7 @@ class ProfileManager(private val context: Context) : IProfileManager,
         }
     }
 
-    override suspend fun readProxyGroupsPreview(uuid: UUID): Map<String, List<String>> {
+    override suspend fun readProxyGroupsPreview(uuid: UUID): Map<String, ProxyGroupPreviewRow> {
         return withContext(Dispatchers.IO) {
             if (ImportedDao().queryByUUID(uuid) == null) {
                 return@withContext emptyMap()
@@ -308,7 +309,7 @@ class ProfileManager(private val context: Context) : IProfileManager,
             }
             try {
                 val configText = file.readText()
-                ProxyGroupsYamlPreview.parseProxyNamesByGroup(configText)
+                ProxyGroupsYamlPreview.parseProxyGroupsPreview(configText)
             } catch (_: Exception) {
                 emptyMap()
             }

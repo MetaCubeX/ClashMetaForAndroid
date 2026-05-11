@@ -1,6 +1,7 @@
 package com.github.kr328.clash.service.remote
 
 import com.github.kr328.clash.service.model.Profile
+import com.github.kr328.clash.service.model.ProxyGroupPreviewRow
 import com.github.kr328.kaidl.BinderInterface
 import java.util.UUID
 
@@ -28,8 +29,8 @@ interface IProfileManager {
         prependRuleLine: String,
     ): Boolean
 
-    /** Proxy group name → member names from [uuid]'s config.yaml (no engine). */
-    suspend fun readProxyGroupsPreview(uuid: UUID): Map<String, List<String>>
+    /** Proxy group name → type + member names from [uuid]'s config.yaml (no engine). Hidden groups omitted. */
+    suspend fun readProxyGroupsPreview(uuid: UUID): Map<String, ProxyGroupPreviewRow>
 
     /** `rule-providers` YAML block or null. */
     suspend fun readRuleProvidersYaml(uuid: UUID): String?

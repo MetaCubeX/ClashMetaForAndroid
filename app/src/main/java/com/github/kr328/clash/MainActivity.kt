@@ -50,6 +50,7 @@ import com.github.kr328.clash.remote.Remote
 import com.github.kr328.clash.remote.StatusClient
 import com.github.kr328.clash.service.model.AccessControlMode
 import com.github.kr328.clash.service.model.Profile
+import com.github.kr328.clash.service.model.ProxyGroupPreviewRow
 import com.github.kr328.clash.service.store.ServiceStore
 import com.github.kr328.clash.util.RussianBypassDefaults
 import com.github.kr328.clash.util.GitHubReleaseUpdate
@@ -1364,14 +1365,14 @@ class MainActivity : BaseActivity<MainDesign>() {
     private fun collectOfflineLeafProxyNames(
         rootGroup: String,
         directNames: List<String>,
-        groups: Map<String, List<String>>,
+        groups: Map<String, ProxyGroupPreviewRow>,
     ): List<String> {
         val leaves = linkedSetOf<String>()
         val seenGroups = linkedSetOf<String>()
 
         fun visitName(name: String) {
             if (name.isBlank()) return
-            val nested = groups[name]
+            val nested = groups[name]?.members
             if (nested == null) {
                 leaves += name
                 return

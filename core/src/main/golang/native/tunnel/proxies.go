@@ -52,6 +52,17 @@ func (s *sortableProxyList) Swap(i, j int) {
 	s.list[i], s.list[j] = s.list[j], s.list[i]
 }
 
+// When excludeNotSelectable is true, hide auto groups (URLTest, load-balance, relay) but keep
+// Selector and Fallback — nested fallback chains are common in subscription layouts.
+func proxyGroupVisibleWithSelectableFilter(adapterType C.AdapterType) bool {
+	switch adapterType {
+	case C.Selector, C.Fallback:
+		return true
+	default:
+		return false
+	}
+}
+
 func QueryProxyGroupNames(excludeNotSelectable bool) []string {
 	mode := tunnel.Mode()
 
@@ -69,7 +80,7 @@ func QueryProxyGroupNames(excludeNotSelectable bool) []string {
 
 	for _, p := range proxies {
 		if g, ok := p.Adapter().(outboundgroup.ProxyGroup); ok {
-			if !excludeNotSelectable || p.Type() == C.Selector {
+			if !excludeNotSelectable || proxyGroupVisibleWithSelectableFilter(p.Type()) {
 				if g.Hidden() {
 					continue
 				}
