@@ -607,6 +607,9 @@ class MainActivity : BaseActivity<MainDesign>() {
                                 withProfile {
                                     rememberProxySelection(profile.uuid, group, name)
                                 }
+                                // Drop existing connections so new node takes effect immediately
+                                // instead of waiting for sockets to close naturally.
+                                runCatching { withClash { closeAllConnections() } }
                             }
                             scheduleProxyDetailsRefresh(profile, group)
                         } catch (e: CancellationException) {
