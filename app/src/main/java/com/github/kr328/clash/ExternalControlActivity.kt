@@ -42,8 +42,12 @@ class ExternalControlActivity : Activity(), CoroutineScope by MainScope() {
                         }
                         val name = uri.getQueryParameter("name") ?: getString(R.string.new_profile)
 
+                        val parsedInterval = uri.getQueryParameter("update-interval")?.toLongOrNull() ?: 0L
+                        val updateInterval = if (parsedInterval > 0) parsedInterval.coerceAtLeast(15L) else 0L
+                        val intervalMs = java.util.concurrent.TimeUnit.MINUTES.toMillis(updateInterval)
+
                         create(type, name).also {
-                            patch(it, name, url, 0)
+                            patch(it, name, url, intervalMs)
                         }
                     }
                     startActivity(PropertiesActivity::class.intent.setUUID(uuid))
