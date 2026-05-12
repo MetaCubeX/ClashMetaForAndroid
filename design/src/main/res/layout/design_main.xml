@@ -625,6 +625,14 @@
                             app:tint="?attr/colorOnSurfaceVariant" />
                     </LinearLayout>
 
+                    <com.github.kr328.clash.design.view.BoundedNestedScrollView
+                        android:id="@+id/main_announcement_body_scroll"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:overScrollMode="ifContentScrolls"
+                        android:scrollbars="none"
+                        app:maxHeight="170dp">
+
                     <LinearLayout
                         android:id="@+id/main_announcement_body"
                         android:layout_width="match_parent"
@@ -720,6 +728,7 @@
                         app:iconPadding="4dp"
                         app:iconSize="16dp" />
                     </LinearLayout>
+                    </com.github.kr328.clash.design.view.BoundedNestedScrollView>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
