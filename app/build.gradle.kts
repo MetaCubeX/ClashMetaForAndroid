@@ -1,6 +1,7 @@
 import java.net.URL
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
+import java.util.Properties
 
 plugins {
     kotlin("android")
@@ -32,7 +33,7 @@ tasks.getByName("clean", type = Delete::class) {
     delete(file("release"))
 }
 
-val geoFilesDownloadDir = "src/main/assets"
+val geoFilesDownloadDir = file("src/main/assets")
 
 task("downloadGeoFiles") {
 
@@ -46,7 +47,7 @@ task("downloadGeoFiles") {
     doLast {
         geoFilesUrls.forEach { (downloadUrl, outputFileName) ->
             val url = URL(downloadUrl)
-            val outputPath = file("$geoFilesDownloadDir/$outputFileName")
+            val outputPath = geoFilesDownloadDir.resolve(outputFileName)
             outputPath.parentFile.mkdirs()
             url.openStream().use { input ->
                 Files.copy(input, outputPath.toPath(), StandardCopyOption.REPLACE_EXISTING)
@@ -54,6 +55,18 @@ task("downloadGeoFiles") {
             }
         }
     }
+
+    val skipDownloadGeoFiles = providers.provider {
+        val propsFile =
+            rootProject.file("local.properties").takeIf { it.exists() }
+                ?: rootProject.file("gradle.properties")
+        val properties = Properties().apply { propsFile.inputStream().use { load(it) } }
+        properties.getProperty("skip.downloadGeoFiles").toBoolean() &&
+                geoFilesDownloadDir.exists() &&
+                geoFilesDownloadDir.listFiles().orEmpty().size == 3
+    }
+    // Skip the task when the flag is set.
+    onlyIf { !skipDownloadGeoFiles.get() }
 }
 
 afterEvaluate {
