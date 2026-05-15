@@ -202,6 +202,15 @@ class UiStore(context: Context) {
         defaultValue = 0L,
     )
 
+    /**
+     * Profile UUID this [subscriptionMetadataLastFetch] cooldown was last tied to.
+     * When the active profile differs, cooldown is ignored so a new subscription still gets headers.
+     */
+    var subscriptionMetadataLastFetchProfileId: String by store.string(
+        key = "sub_meta_last_fetch_profile",
+        defaultValue = "",
+    )
+
     /** Cached `subscription-userinfo` header (used/total/expiry) of active profile. */
     var subscriptionUserinfo: String by store.string(
         key = "sub_userinfo",

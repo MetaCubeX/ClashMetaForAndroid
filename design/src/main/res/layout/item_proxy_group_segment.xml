@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="wrap_content"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_segmented_pill"
+    android:clickable="true"
+    android:focusable="true"
+    android:gravity="center"
+    android:minHeight="34dp"
+    android:orientation="horizontal"
+    android:paddingHorizontal="11dp">
+
+    <TextView
+        android:id="@+id/segment_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:duplicateParentState="true"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:maxWidth="140dp"
+        android:textAppearance="@style/TextAppearance.App.LabelMedium"
+        android:textColor="?attr/colorOnSurface"
+        android:textStyle="bold"
+        tools:text="All" />
+
+    <TextView
+        android:id="@+id/segment_count"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="6dp"
+        android:background="@drawable/bg_segment_count"
+        android:duplicateParentState="true"
+        android:gravity="center"
+        android:minWidth="18dp"
+        android:paddingHorizontal="5dp"
+        android:paddingVertical="1dp"
+        android:textColor="?attr/colorOnSurfaceVariant"
+        android:textSize="10sp"
+        android:textStyle="bold"
+        tools:text="142" />
+</LinearLayout>

@@ -61,4 +61,8 @@
         <attr name="android:background" />
         <attr name="android:foreground" />
     </declare-styleable>
+
+    <declare-styleable name="BoundedNestedScrollView">
+        <attr name="maxHeight" format="dimension" />
+    </declare-styleable>
 </resources>

@@ -157,6 +157,27 @@ class ProfileManager(private val context: Context) : IProfileManager,
         }
     }
 
+    override suspend fun applySubscriptionUpdateInterval(uuid: UUID, intervalMillis: Long) {
+        withContext(Dispatchers.IO) {
+            val min = java.util.concurrent.TimeUnit.MINUTES.toMillis(15)
+            val interval = intervalMillis.coerceAtLeast(min)
+            val imported = ImportedDao().queryByUUID(uuid) ?: return@withContext
+            if (imported.type != Profile.Type.Url) return@withContext
+            if (imported.interval == interval) return@withContext
+
+            val updated = imported.copy(interval = interval)
+            ImportedDao().update(updated)
+
+            PendingDao().queryByUUID(uuid)?.let { pending ->
+                PendingDao().update(pending.copy(interval = interval))
+            }
+
+            ProfileReceiver.cancelNext(context, imported)
+            ProfileReceiver.scheduleNext(context, updated)
+            context.sendProfileChanged(uuid)
+        }
+    }
+
     override suspend fun update(uuid: UUID) {
         scheduleUpdate(uuid, true)
         ImportedDao().queryByUUID(uuid)?.let {
@@ -327,7 +348,7 @@ class ProfileManager(private val context: Context) : IProfileManager,
             }
             try {
                 val configText = file.readText()
-                ProxyGroupsYamlPreview.parseProxyGroupsPreview(configText)
+                ProxyGroupsYamlPreview.parseProxyGroupsPreview(configText, file.parentFile)
             } catch (_: Exception) {
                 emptyMap()
             }

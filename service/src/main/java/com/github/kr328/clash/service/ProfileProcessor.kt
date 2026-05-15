@@ -261,9 +261,12 @@ object ProfileProcessor {
                     configFile.writeText(merged)
                     Log.d("Subscription merge preserved local overlays: rules/rule-providers/proxy-providers reapplied for ${snapshot.uuid}")
 
+                    // Subscription providers are already on disk from the fetch above;
+                    // this second pass only downloads local-only providers reintroduced
+                    // by the merge step (force=false → skip files that already exist).
                     Clash.fetchProvidersAndValid(
                         context.processingDir,
-                        true,
+                        false,
                         SubscriptionRequestHeaders.toNativeFetchJson(context, effectiveUserAgentOverride),
                     ) {
                         try {
