@@ -186,6 +186,10 @@ abstract class BaseActivity<D : Design<*>> : AppCompatActivity(),
         events.trySend(Event.ProfileLoaded)
     }
 
+    override fun onConnectionsChanged() {
+        events.trySend(Event.ConnectionsChanged)
+    }
+
     override fun onServiceRecreated() {
         events.trySend(Event.ServiceRecreated)
     }
@@ -273,5 +277,6 @@ abstract class BaseActivity<D : Design<*>> : AppCompatActivity(),
         ProfileChanged,
         ProfileUpdateCompleted,
         ProfileUpdateFailed,
+        ConnectionsChanged,
     }
 }

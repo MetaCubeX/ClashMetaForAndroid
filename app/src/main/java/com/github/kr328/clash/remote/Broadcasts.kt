@@ -20,6 +20,7 @@ class Broadcasts(private val context: Application) {
         fun onProfileUpdateCompleted(uuid: UUID?)
         fun onProfileUpdateFailed(uuid: UUID?, reason: String?)
         fun onProfileLoaded()
+        fun onConnectionsChanged()
     }
 
     var clashRunning: Boolean = false
@@ -73,6 +74,10 @@ class Broadcasts(private val context: Application) {
                         it.onProfileLoaded()
                     }
                 }
+                Intents.ACTION_CONNECTIONS_CHANGED ->
+                    receivers.forEach {
+                        it.onConnectionsChanged()
+                    }
             }
         }
     }
@@ -98,6 +103,7 @@ class Broadcasts(private val context: Application) {
                 addAction(Intents.ACTION_PROFILE_UPDATE_COMPLETED)
                 addAction(Intents.ACTION_PROFILE_UPDATE_FAILED)
                 addAction(Intents.ACTION_PROFILE_LOADED)
+                addAction(Intents.ACTION_CONNECTIONS_CHANGED)
             })
 
             registered = true

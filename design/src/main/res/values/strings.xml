@@ -453,6 +453,10 @@ Presets only change <b>where</b> files are downloaded from (CDN / host). It is s
     <string name="proxy_hardening_off">Off — upstream Clash.Meta defaults (not recommended)</string>
     <string name="seed_default_geo_mirrors">Auto-seed GeoIP / GeoSite mirrors</string>
     <string name="seed_default_geo_mirrors_summary">If the imported subscription does not provide geox-url, ClashFest fills in default mirrors (MetaCubeX/Loyalsoldier). Fixes the «cant download geoip.dat» error.</string>
+    <string name="keep_connections_on_old_proxy">Keep connections on old proxy after switch</string>
+    <string name="keep_connections_on_old_proxy_summary">By default ClashFest closes active connections after a manual proxy switch so new traffic uses the selected proxy immediately. Enable this to keep running connections on the previous proxy — useful for long downloads, video streams, or game sessions you don\'t want to interrupt.</string>
+    <string name="proxy_switch_selector_failed">Could not switch proxy. Existing connections were left untouched.</string>
+    <string name="proxy_switch_close_connections_failed">Proxy switched, but active connections could not be closed.</string>
 
     <string name="bypass_private_network">Bypass Private Network</string>
     <string name="bypass_private_network_summary">Bypass private network addresses</string>

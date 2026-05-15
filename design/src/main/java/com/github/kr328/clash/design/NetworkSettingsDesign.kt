@@ -73,6 +73,12 @@ class NetworkSettingsDesign(
                 summary = R.string.seed_default_geo_mirrors_summary,
             )
 
+            switch(
+                value = srvStore::keepConnectionsOnOldProxy,
+                title = R.string.keep_connections_on_old_proxy,
+                summary = R.string.keep_connections_on_old_proxy_summary,
+            )
+
             category(R.string.vpn_service_options)
 
             switch(

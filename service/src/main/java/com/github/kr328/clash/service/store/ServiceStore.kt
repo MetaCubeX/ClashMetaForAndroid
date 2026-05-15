@@ -107,6 +107,17 @@ class ServiceStore(context: Context) {
         defaultValue = true
     )
 
+    /**
+     * When true, manual proxy selector switches keep active connections on the
+     * previous proxy (useful for long-running downloads/streams). Default false
+     * preserves historical behavior: connections are closed so new traffic
+     * uses the freshly selected proxy.
+     */
+    var keepConnectionsOnOldProxy by store.boolean(
+        key = "keep_connections_on_old_proxy",
+        defaultValue = false
+    )
+
     var geoDataSourcePreset: GeoDataSourcePreset by store.enum(
         key = "geo_data_source_preset",
         defaultValue = GeoDataSourcePreset.Global,
