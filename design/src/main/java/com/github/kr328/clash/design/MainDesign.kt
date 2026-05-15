@@ -239,6 +239,8 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
 
             binding.mainAnnouncementCard.visibility =
                 if (useAnnouncementCard) View.VISIBLE else View.GONE
+            binding.mainAnnouncementBodyScroll.visibility =
+                if (useAnnouncementCard && !bodyCollapsed) View.VISIBLE else View.GONE
             binding.mainAnnouncementBody.visibility =
                 if (useAnnouncementCard && !bodyCollapsed) View.VISIBLE else View.GONE
 

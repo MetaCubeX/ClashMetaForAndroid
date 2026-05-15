@@ -20,15 +20,14 @@ class RuleSnippetDesign(context: Context) : Design<RuleSnippetDesign.Request>(co
     sealed class Request {
         object OpenCreateSheet : Request()
         object OpenManualRules : Request()
-        object RefreshProviders : Request()
         object UpdateAllRuleSets : Request()
         data class UpdateProvider(val name: String) : Request()
-        data class EditProvider(val provider: RuleProviderItem) : Request()
     }
 
     private val binding = DesignRuleSnippetBinding
         .inflate(context.layoutInflater, context.root, false)
     private var existingProviders: List<RuleProviderItem> = emptyList()
+    private var providerEntryCounts: Map<String, Int> = emptyMap()
 
     override val root: View
         get() = binding.root
@@ -38,12 +37,15 @@ class RuleSnippetDesign(context: Context) : Design<RuleSnippetDesign.Request>(co
         binding.toolbar.title = ""
         binding.btnOpenCreateSheet.setOnClickListener { requests.trySend(Request.OpenCreateSheet) }
         binding.btnOpenManualRules.setOnClickListener { requests.trySend(Request.OpenManualRules) }
-        binding.btnRefreshRuleProviders.setOnClickListener { requests.trySend(Request.RefreshProviders) }
         binding.btnUpdateAllRuleSets.setOnClickListener { requests.trySend(Request.UpdateAllRuleSets) }
     }
 
-    fun patchExistingProviders(providers: List<RuleProviderItem>) {
+    fun patchExistingProviders(
+        providers: List<RuleProviderItem>,
+        entryCounts: Map<String, Int> = emptyMap(),
+    ) {
         existingProviders = providers
+        providerEntryCounts = entryCounts
         val container = binding.providerItemsContainer
         container.removeAllViews()
         if (existingProviders.isNotEmpty()) {
@@ -124,18 +126,30 @@ class RuleSnippetDesign(context: Context) : Design<RuleSnippetDesign.Request>(co
                 onClick = { requests.trySend(Request.UpdateProvider(provider.name)) },
             ),
         )
-        header.addView(
-            iconButton(
-                icon = R.drawable.ic_baseline_edit,
-                description = context.getString(R.string.edit),
-                onClick = { requests.trySend(Request.EditProvider(provider)) },
-            ),
-        )
         content.addView(header)
+        if (provider.url.isNotBlank()) {
+            content.addView(
+                TextView(context).apply {
+                    text = provider.url
+                    setPadding(0, 8.dp(), 0, 0)
+                    setTextAppearance(R.style.TextAppearance_App_BodySmall)
+                    setTextColor(MaterialColors.getColor(this, com.google.android.material.R.attr.colorOnSurfaceVariant))
+                    maxLines = 2
+                    ellipsize = TextUtils.TruncateAt.MIDDLE
+                    setTextIsSelectable(true)
+                },
+            )
+        }
         content.addView(
             TextView(context).apply {
-                text = "${provider.behavior.replaceFirstChar { it.uppercaseChar() }} · ${provider.type.uppercase()} · ${provider.interval}"
-                setPadding(0, 10.dp(), 0, 0)
+                val behaviorLabel = provider.behavior.replaceFirstChar { it.uppercaseChar() }
+                val typeLabel = provider.type.uppercase()
+                val parts = mutableListOf(behaviorLabel, typeLabel)
+                providerEntryCounts[provider.name]?.let { count ->
+                    parts += context.getString(R.string.rule_provider_entries_fmt, count.toString())
+                }
+                text = parts.joinToString(" · ")
+                setPadding(0, 8.dp(), 0, 0)
                 setTextAppearance(R.style.TextAppearance_App_BodySmall)
                 setTextColor(MaterialColors.getColor(this, com.google.android.material.R.attr.colorOnSurfaceVariant))
                 maxLines = 1

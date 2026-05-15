@@ -16,6 +16,7 @@ import com.github.kr328.clash.design.ui.ToastDuration
 import com.github.kr328.clash.service.model.RuleItem
 import com.github.kr328.clash.service.model.RuleProviderItem
 import com.github.kr328.clash.service.model.RuleState
+import com.github.kr328.clash.service.util.importedDir
 import com.github.kr328.clash.util.clashDir
 import com.github.kr328.clash.service.util.ProxyGroupsYamlPreview
 import com.github.kr328.clash.util.showYamlPreview
@@ -24,9 +25,11 @@ import com.github.kr328.clash.util.withProfile
 import com.google.android.material.switchmaterial.SwitchMaterial
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.select
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import java.io.File
 import java.util.UUID
@@ -48,10 +51,8 @@ class RuleSnippetActivity : BaseActivity<RuleSnippetDesign>() {
                         RuleSnippetDesign.Request.OpenCreateSheet -> launch { showCreateSheet(design) }
                         RuleSnippetDesign.Request.OpenManualRules ->
                             startActivity(EffectiveRulesActivity::class.intent)
-                        RuleSnippetDesign.Request.RefreshProviders -> launch { refreshExistingProviders(design) }
                         RuleSnippetDesign.Request.UpdateAllRuleSets -> launch { updateRuleProviders(design, null) }
                         is RuleSnippetDesign.Request.UpdateProvider -> launch { updateRuleProviders(design, it.name) }
-                        is RuleSnippetDesign.Request.EditProvider -> launch { showCreateSheet(design, it.provider) }
                     }
                 }
             }
@@ -63,7 +64,40 @@ class RuleSnippetActivity : BaseActivity<RuleSnippetDesign>() {
         val state = withProfile { readRuleState(uuid) }
             ?.let { runCatching { json.decodeFromString(RuleState.serializer(), it) }.getOrNull() }
             ?: return
-        design.patchExistingProviders(state.providers)
+        val counts = withContext(Dispatchers.IO) {
+            state.providers.mapNotNull { provider ->
+                countProviderEntries(uuid, provider)?.let { provider.name to it }
+            }.toMap()
+        }
+        design.patchExistingProviders(state.providers, counts)
+    }
+
+    /**
+     * Counts `- entry` lines under the `payload:` block of a downloaded provider file.
+     * Returns null when the file does not exist yet (provider was never fetched) or is not
+     * in a readable YAML rule-set format.
+     */
+    private fun countProviderEntries(profileUuid: UUID, provider: RuleProviderItem): Int? {
+        val rel = provider.path.removePrefix("./").ifBlank { "ruleset/${provider.name}.yaml" }
+        val file = File(this.importedDir, "$profileUuid/$rel")
+        if (!file.isFile || file.length() == 0L) return null
+        return runCatching {
+            var inPayload = false
+            var count = 0
+            file.bufferedReader().useLines { lines ->
+                for (raw in lines) {
+                    val leading = raw.takeWhile { it == ' ' || it == '\t' }.length
+                    val trimmed = raw.substring(leading)
+                    if (!inPayload) {
+                        if (trimmed.startsWith("payload:")) inPayload = true
+                    } else {
+                        if (trimmed.startsWith("- ")) count++
+                        else if (trimmed.isNotEmpty() && leading == 0) break
+                    }
+                }
+            }
+            count.takeIf { it > 0 }
+        }.getOrNull()
     }
 
     private suspend fun updateRuleProviders(design: RuleSnippetDesign, name: String?) {
@@ -90,10 +124,7 @@ class RuleSnippetActivity : BaseActivity<RuleSnippetDesign>() {
         }
     }
 
-    private suspend fun showCreateSheet(
-        design: RuleSnippetDesign,
-        editingProvider: RuleProviderItem? = null,
-    ) {
+    private suspend fun showCreateSheet(design: RuleSnippetDesign) {
         val uuid = withProfile { queryActive()?.uuid }
         if (uuid == null) {
             design.showToast(DesignR.string.no_profile_selected, ToastDuration.Long)
@@ -185,11 +216,7 @@ class RuleSnippetActivity : BaseActivity<RuleSnippetDesign>() {
         view.findViewById<AutoCompleteTextView>(R.id.spinner_manual_custom_kind).setAdapter(
             ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, customKindOptions))
 
-        title.text = if (editingProvider == null) {
-            getString(DesignR.string.rule_add_new)
-        } else {
-            getString(DesignR.string.edit)
-        }
+        title.text = getString(DesignR.string.rule_add_new)
 
         fun insertModeFromSpinner(s: AutoCompleteTextView): String {
             val pos = (s.adapter as ArrayAdapter<String>).getPosition(s.text.toString())
@@ -298,28 +325,6 @@ class RuleSnippetActivity : BaseActivity<RuleSnippetDesign>() {
             buildPreview()
         }
 
-        if (editingProvider != null) {
-            typeSpinner.setText(typeOptions[1], false)
-            typeSpinner.isEnabled = false
-            providerGroup.visibility = View.VISIBLE
-            presetGroup.visibility = View.GONE
-            manualGroup.visibility = View.GONE
-            view.findViewById<TextInputEditText>(R.id.input_provider_name).setText(editingProvider.name)
-            view.findViewById<TextInputEditText>(R.id.input_provider_url).setText(editingProvider.url)
-            val behaviorView = view.findViewById<AutoCompleteTextView>(R.id.spinner_provider_behavior)
-            behaviorView.setText(editingProvider.behavior.ifBlank { "classical" }, false)
-            val policy = state.rules
-                .firstOrNull {
-                    it.type.equals("RULE-SET", true) &&
-                        (it.providerName.equals(editingProvider.name, true) || it.value.equals(editingProvider.name, true))
-                }
-                ?.policy
-                ?: validPolicy
-            val policyView = view.findViewById<AutoCompleteTextView>(R.id.spinner_provider_policy)
-            policyView.setText(policy, false)
-            view.findViewById<SwitchMaterial>(R.id.switch_provider_enabled).isChecked = editingProvider.enabled
-        }
-
         applyButton.setOnClickListener {
             launch {
                 val typePos = (typeSpinner.adapter as ArrayAdapter<String>).getPosition(typeSpinner.text.toString())
@@ -339,7 +344,7 @@ class RuleSnippetActivity : BaseActivity<RuleSnippetDesign>() {
                         }
                     }
                     1 -> {
-                        val nextJson = providerStateJsonFromSheet(state, editingProvider, view)
+                        val nextJson = providerStateJsonFromSheet(state, null, view)
                         if (nextJson == null) null else withProfile { previewApplyRuleState(uuid, nextJson) }
                     }
                     else -> {
@@ -361,11 +366,7 @@ class RuleSnippetActivity : BaseActivity<RuleSnippetDesign>() {
                 }
             }
         }
-        if (editingProvider == null) {
-            syncGroups()
-        } else {
-            buildPreview()
-        }
+        syncGroups()
         dialog.show()
     }
 
