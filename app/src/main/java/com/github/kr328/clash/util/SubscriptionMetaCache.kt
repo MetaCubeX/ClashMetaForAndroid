@@ -57,6 +57,17 @@ object SubscriptionMetaCache {
             store.announcementUrl = entry.announcementUrl
             store.supportUrl = entry.supportUrl
             store.subscriptionUserinfo = entry.userinfo
+        } else {
+            store.announcement = ""
+            store.announcementUrl = ""
+            store.supportUrl = ""
+            store.subscriptionUserinfo = ""
+            store.profileWebPageUrl = ""
+            store.profileUpdateIntervalHours = 0
+            store.subscriptionHwidActive = ""
+            store.subscriptionHwidNotSupported = ""
+            store.subscriptionHwidMaxDevicesReached = ""
+            store.subscriptionHwidLimit = ""
         }
     }
 }

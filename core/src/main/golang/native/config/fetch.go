@@ -136,7 +136,10 @@ func FetchAndValid(
 		return err
 	}
 
-	if err := fetchProviders(rawCfg, force, reportStatus); err != nil {
+	// Provider files re-fetch is driven separately via FetchProvidersAndValid;
+	// here we only pick up providers that have no cached file on disk yet,
+	// regardless of the config-level force flag.
+	if err := fetchProviders(rawCfg, false, reportStatus); err != nil {
 		return err
 	}
 

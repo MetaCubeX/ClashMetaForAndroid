@@ -13,6 +13,12 @@ interface IProfileManager {
     suspend fun release(uuid: UUID)
     suspend fun delete(uuid: UUID)
     suspend fun patch(uuid: UUID, name: String, source: String, interval: Long)
+    /**
+     * Persists subscription auto-update interval from operator headers (e.g. `Profile-Update-Interval`)
+     * without re-fetching the subscription body. Coerces to at least 15 minutes (same as [ProfileReceiver]).
+     * No-op if the profile is missing or not a URL subscription.
+     */
+    suspend fun applySubscriptionUpdateInterval(uuid: UUID, intervalMillis: Long)
     suspend fun update(uuid: UUID)
     suspend fun queryByUUID(uuid: UUID): Profile?
     suspend fun queryAll(): List<Profile>

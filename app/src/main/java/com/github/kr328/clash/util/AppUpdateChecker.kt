@@ -24,7 +24,24 @@ object AppUpdateChecker {
     private const val INTERVAL_MS = 24L * 60L * 60L * 1000L // 24h
     private const val FIRST_DELAY_MS = 30L * 60L * 1000L // 30 min after app starts
     private const val CHANNEL_ID = "app_update_channel"
-    private const val NOTIFICATION_ID = 1103
+    const val NOTIFICATION_ID = 1103
+
+    fun dismissUpdateNotification(context: Context) {
+        NotificationManagerCompat.from(context.applicationContext).cancel(NOTIFICATION_ID)
+    }
+
+    /** Clears any stored "we notified about tag X" so a future identical version no longer
+     *  suppresses notifications, and dismisses the visible banner. Call after install completes
+     *  or when MainActivity confirms current version >= last-notified tag. */
+    fun resetIfUpdated(context: Context, currentVersion: String) {
+        val prefs = context.applicationContext
+            .getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val lastTag = prefs.getString(KEY_LAST_NOTIFIED_TAG, null) ?: return
+        if (GitHubReleaseUpdate.compareVersions(currentVersion, lastTag) >= 0) {
+            prefs.edit().remove(KEY_LAST_NOTIFIED_TAG).apply()
+            dismissUpdateNotification(context)
+        }
+    }
 
     fun schedulePeriodic(context: Context) {
         val app = context.applicationContext
@@ -104,16 +121,21 @@ object AppUpdateChecker {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
 
+        // Route Download & install through MainActivity instead of a BroadcastReceiver:
+        // Android 8+ blocks manifest-declared receivers for DownloadManager.ACTION_DOWNLOAD_COMPLETE
+        // (implicit broadcast restriction), so a background receiver can't auto-fire the installer.
+        // Opening MainActivity lets it register a runtime receiver and own the download id end-to-end.
         val downloadAndInstallPendingIntent = if (!release.apkUrl.isNullOrBlank()) {
-            PendingIntent.getBroadcast(
+            val installIntent = Intent(context, MainActivity::class.java)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                .setAction(MainActivity.ACTION_DOWNLOAD_AND_INSTALL_UPDATE)
+                .putExtra(MainActivity.EXTRA_UPDATE_TAG, release.tagName)
+                .putExtra(MainActivity.EXTRA_UPDATE_APK_URL, release.apkUrl)
+                .putExtra(MainActivity.EXTRA_UPDATE_APK_NAME, release.apkName)
+            PendingIntent.getActivity(
                 context,
                 ACTION_DOWNLOAD_REQUEST_CODE,
-                Intent(context, UpdateActionReceiver::class.java).apply {
-                    action = UpdateActionReceiver.ACTION_DOWNLOAD_AND_INSTALL
-                    putExtra(UpdateActionReceiver.EXTRA_TAG, release.tagName)
-                    putExtra(UpdateActionReceiver.EXTRA_APK_URL, release.apkUrl)
-                    putExtra(UpdateActionReceiver.EXTRA_APK_NAME, release.apkName)
-                },
+                installIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
             )
         } else {
