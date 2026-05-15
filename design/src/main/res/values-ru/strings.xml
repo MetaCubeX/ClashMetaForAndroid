@@ -34,6 +34,8 @@
     <string name="proxy_empty_tips">Нет групп для отображения</string>
     <string name="home_proxy">Прокси</string>
     <string name="proxy_nodes_empty_connect_vpn">Узлы из proxy-providers появляются в ядре после запуска VPN. Включите VPN и выберите реальный узел (sub1/sub2 — это ключи провайдеров в YAML, не имена прокси).</string>
+    <string name="proxy_nodes_loading">Загружаем список узлов из ядра…</string>
+    <string name="proxy_group_empty_runtime">В этой группе пока нет узлов. Для групп с фильтром в подписке может не быть совпадений; иначе подождите и снова нажмите на чип группы.</string>
 
     <string name="import_failed_title">Не удалось импортировать подписку</string>
     <string name="import_failed_open_editor">Редактировать подписку</string>
@@ -366,6 +368,18 @@
     <string name="profile_proxy_filter_available">Доступные</string>
     <string name="profile_proxy_filter_provider">Источник: %1$s</string>
     <string name="profile_proxy_empty_filtered">Нет подходящих узлов. Очистите поиск или фильтры.</string>
+    <string name="proxy_sheet_active_subscription">Активная подписка</string>
+    <string name="proxy_sheet_group_label">Группа прокси</string>
+    <string name="proxy_sheet_sorted_by_ping">По задержке</string>
+    <string name="proxy_sheet_status_connected">Подключено</string>
+    <string name="proxy_sheet_status_disconnected">Отключено</string>
+    <string name="proxy_sheet_tested_now">Только что проверено</string>
+    <string name="proxy_sheet_tested_seconds_ago">Проверено %dс назад</string>
+    <string name="proxy_sheet_tested_minutes_ago">Проверено %dм назад</string>
+    <string name="proxy_sheet_tested_never">Ещё не проверено</string>
+    <string name="proxy_sheet_expiry_days_hours">Осталось %1$dд %2$dч</string>
+    <string name="proxy_sheet_expiry_hours">Осталось %dч</string>
+    <string name="proxy_sheet_expiry_expired">Истекла</string>
     <string name="profile_start_to_test">Запустите VPN, чтобы проверить задержку</string>
     <string name="profile_update_scheduled">Запущено обновление подписки</string>
     <string name="profile_menu_set_active">Сделать активным</string>
@@ -698,8 +712,8 @@
 
     <string name="rule_manual_custom_kind">Тип правила Clash</string>
     <string name="rule_manual_content_payload_hint">Значение (домен, IP/CIDR, порт, …)</string>
-    <string name="rule_existing_provider_toggle_hint">Здесь можно обновить providers или открыть редактирование, чтобы посмотреть и изменить URL. Чтобы отключить ruleset, откройте «Rules -> Manual rules» и выключите соответствующую строку RULE-SET.</string>
-    <string name="rule_providers_refresh">Обновить список</string>
+    <string name="rule_existing_provider_toggle_hint">Иконка sync обновляет один provider, кнопка ниже — все сразу. Чтобы отключить ruleset, откройте «Rules -> Manual rules» и выключите соответствующую строку RULE-SET.</string>
+    <string name="rule_provider_entries_fmt">%1$s записей</string>
     <string name="rule_rule_sets_update_all">Обновить все rule-sets (ядро)</string>
     <string name="rule_rule_sets_need_vpn">Включите VPN, чтобы ядро обновило rule providers</string>
     <string name="rule_rule_sets_update_all_ok">Запущено обновление rule providers</string>
