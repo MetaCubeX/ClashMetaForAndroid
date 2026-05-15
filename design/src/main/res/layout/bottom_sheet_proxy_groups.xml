@@ -178,6 +178,110 @@
                 android:padding="3dp" />
         </HorizontalScrollView>
 
+        <com.google.android.material.textfield.TextInputLayout
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:hint="@string/profile_proxy_search_hint"
+            app:endIconMode="clear_text"
+            app:startIconDrawable="@drawable/ic_baseline_search">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/proxy_sheet_search"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:imeOptions="actionSearch"
+                android:inputType="text"
+                android:maxLines="1" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:overScrollMode="never"
+            android:scrollbars="none">
+
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/proxy_sheet_sort_chips"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:singleLine="true"
+                app:singleSelection="true"
+                app:selectionRequired="true">
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/proxy_sheet_sort_config"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checked="true"
+                    android:text="@string/profile_proxy_sort_config" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/proxy_sheet_sort_delay"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/profile_proxy_sort_delay" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/proxy_sheet_sort_name"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/profile_proxy_sort_name" />
+            </com.google.android.material.chip.ChipGroup>
+        </HorizontalScrollView>
+
+        <HorizontalScrollView
+            android:id="@+id/proxy_sheet_filter_scroll"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:overScrollMode="never"
+            android:scrollbars="none">
+
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/proxy_sheet_filter_chips"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:singleLine="true"
+                app:singleSelection="true"
+                app:selectionRequired="true">
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/proxy_sheet_filter_all"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/profile_proxy_filter_all" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/proxy_sheet_filter_current"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checked="true"
+                    android:text="@string/profile_proxy_filter_current" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/proxy_sheet_filter_selected"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/profile_proxy_filter_selected" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/proxy_sheet_filter_available"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/profile_proxy_filter_available" />
+            </com.google.android.material.chip.ChipGroup>
+        </HorizontalScrollView>
+
         <!-- Hidden legacy chip group / type label (kept for binding compat) -->
         <com.google.android.material.chip.ChipGroup
             android:id="@+id/proxy_sheet_group_chips"
@@ -221,6 +325,7 @@
 
         <!-- Nodes list -->
         <androidx.core.widget.NestedScrollView
+            android:id="@+id/proxy_sheet_scroll"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_marginTop="6dp"

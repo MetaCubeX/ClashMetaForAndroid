@@ -6,6 +6,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.core.content.ContextCompat
+import androidx.core.view.children
+import androidx.core.widget.addTextChangedListener
 import androidx.recyclerview.widget.RecyclerView
 import com.github.kr328.clash.core.model.Proxy
 import com.github.kr328.clash.core.model.ProxyGroup
@@ -72,6 +74,33 @@ class ProfileAdapter(
         "🐱", "🐶", "🦊", "🐼", "🐻", "🐨", "🐯", "🦁",
         "🐸", "🐵", "🐙", "🦄", "🐧", "🐺", "🐹", "🐰",
     )
+
+    private enum class ProxyPickerSort {
+        Config,
+        Delay,
+        Name,
+    }
+
+    private sealed class ProxyPickerFilter {
+        object All : ProxyPickerFilter()
+        object CurrentGroup : ProxyPickerFilter()
+        object Selected : ProxyPickerFilter()
+        object Available : ProxyPickerFilter()
+        data class Provider(val name: String) : ProxyPickerFilter()
+    }
+
+    private data class ProxyPickerRow(
+        val groupName: String,
+        val groupIndex: Int,
+        val proxy: Proxy,
+        val configIndex: Int,
+        val delayMs: Int,
+        val selected: Boolean,
+        val provider: String?,
+    ) {
+        val available: Boolean
+            get() = delayMs >= 0
+    }
 
     fun setActiveAnnouncement(
         text: String?,
@@ -495,6 +524,65 @@ class ProfileAdapter(
                 ?: 0
             if (idx >= groupNames.size) idx = 0
             selectedGroupIndex[profile.uuid] = idx
+            var query = ""
+            var sort = ProxyPickerSort.Config
+            var filter: ProxyPickerFilter = ProxyPickerFilter.CurrentGroup
+            val providerChipIds = mutableMapOf<Int, String>()
+            var selectedScrolledGroupIndex: Int? = null
+            // Per-sheet row cache: buildProxyPickerRows walks every group of the profile,
+            // which can be hundreds of nodes for big subscriptions. Invalidated whenever
+            // we know live state may have changed (URL-test, ping cycle, group switch).
+            var cachedRows: List<ProxyPickerRow>? = null
+            var cachedRowsGroupIndex: Int = -1
+            var pendingSearch: Runnable? = null
+
+            fun rowsForCurrentGroup(selectedIndex: Int): List<ProxyPickerRow> {
+                val cached = cachedRows
+                if (cached != null && cachedRowsGroupIndex == selectedIndex) return cached
+                val fresh = buildProxyPickerRows(profile, groupNames, selectedIndex)
+                cachedRows = fresh
+                cachedRowsGroupIndex = selectedIndex
+                return fresh
+            }
+
+            fun invalidateRowCache() {
+                cachedRows = null
+                cachedRowsGroupIndex = -1
+            }
+
+            fun renderProviderFilters() {
+                providerChipIds.clear()
+                val existingProviders = rowsForCurrentGroup(idx)
+                    .mapNotNull { it.provider }
+                    .distinct()
+                    .sortedWith(String.CASE_INSENSITIVE_ORDER)
+                val group = sheet.proxySheetFilterChips
+                val staticIds = setOf(
+                    R.id.proxy_sheet_filter_all,
+                    R.id.proxy_sheet_filter_current,
+                    R.id.proxy_sheet_filter_selected,
+                    R.id.proxy_sheet_filter_available,
+                )
+                group.children
+                    .filter { it.id !in staticIds }
+                    .toList()
+                    .forEach(group::removeView)
+                for (provider in existingProviders) {
+                    val id = View.generateViewId()
+                    providerChipIds[id] = provider
+                    group.addView(
+                        Chip(context).apply {
+                            this.id = id
+                            text = context.getString(R.string.profile_proxy_filter_provider, provider)
+                            isCheckable = true
+                            setEnsureMinTouchTargetSize(false)
+                            minHeight = context.dp(32)
+                            chipMinHeight = context.dp(32).toFloat()
+                            setTextAppearance(R.style.TextAppearance_App_LabelSmall)
+                        },
+                    )
+                }
+            }
 
             fun render(selectedIndex: Int) {
                 selectedGroupIndex[profile.uuid] = selectedIndex
@@ -507,13 +595,37 @@ class ProfileAdapter(
                     render(index)
                     reportVisibleGroup(profile, group, force = true)
                 }
-                fillProxyRowsInto(sheet.proxySheetNodesList, profile, groupNames, selectedIndex)
+                bindGroupType(sheet.proxySheetGroupTypeLabel, profile, groupNames.getOrNull(selectedIndex).orEmpty())
+                val rows = applyProxyPickerControls(
+                    rows = rowsForCurrentGroup(selectedIndex),
+                    query = query,
+                    sort = sort,
+                    filter = filter,
+                    currentGroupIndex = selectedIndex,
+                )
+                fillProxyRowsInto(sheet.proxySheetNodesList, profile, rows)
                 bindTestedAgo(sheet, profile, context)
+                if (selectedScrolledGroupIndex != selectedIndex) {
+                    selectedScrolledGroupIndex = selectedIndex
+                    scrollProxyPickerToSelected(sheet, rows)
+                }
+            }
+
+            fun visibleRows(): List<ProxyPickerRow> {
+                val currentIndex = (selectedGroupIndex[profile.uuid] ?: 0).coerceIn(0, groupNames.lastIndex)
+                return applyProxyPickerControls(
+                    rows = rowsForCurrentGroup(currentIndex),
+                    query = query,
+                    sort = sort,
+                    filter = filter,
+                    currentGroupIndex = currentIndex,
+                )
             }
 
             val refreshRunnable = object : Runnable {
                 override fun run() {
                     if (!dialog.isShowing) return
+                    invalidateRowCache()
                     val currentIndex = selectedGroupIndex[profile.uuid] ?: 0
                     render(currentIndex.coerceIn(0, groupNames.lastIndex))
                     bindSubscriptionStatus(sheet, profile, context)
@@ -534,18 +646,60 @@ class ProfileAdapter(
             sheet.proxySheetPingButton.setOnClickListener {
                 val currentIndex = selectedGroupIndex[profile.uuid] ?: 0
                 val groupName = groupNames.getOrNull(currentIndex) ?: return@setOnClickListener
-                val pg = proxyGroupForRow(profile, groupName) ?: return@setOnClickListener
+                val names = visibleRows()
+                    .filter { it.groupIndex == currentIndex }
+                    .map { it.proxy.name }
+                    .ifEmpty {
+                        proxyGroupForRow(profile, groupName)
+                            ?.proxies
+                            ?.filterNot { shouldHideProxyOption(groupName, it) }
+                            ?.map { it.name }
+                            .orEmpty()
+                    }
+                if (names.isEmpty()) return@setOnClickListener
                 lastPingAllAt[profile.uuid] = System.currentTimeMillis()
-                onPingAll(profile, groupName, pg.proxies.map { it.name })
+                onPingAll(profile, groupName, names)
                 sheet.root.post(refreshRunnable)
             }
 
+            sheet.proxySheetSearch.addTextChangedListener { editable ->
+                val newQuery = editable?.toString().orEmpty()
+                pendingSearch?.let(sheet.proxySheetSearch::removeCallbacks)
+                val runnable = Runnable {
+                    query = newQuery
+                    render((selectedGroupIndex[profile.uuid] ?: 0).coerceIn(0, groupNames.lastIndex))
+                }
+                pendingSearch = runnable
+                sheet.proxySheetSearch.postDelayed(runnable, 200L)
+            }
+            sheet.proxySheetSortChips.setOnCheckedStateChangeListener { _, checkedIds ->
+                sort = when (checkedIds.firstOrNull()) {
+                    R.id.proxy_sheet_sort_delay -> ProxyPickerSort.Delay
+                    R.id.proxy_sheet_sort_name -> ProxyPickerSort.Name
+                    else -> ProxyPickerSort.Config
+                }
+                render((selectedGroupIndex[profile.uuid] ?: 0).coerceIn(0, groupNames.lastIndex))
+            }
+            sheet.proxySheetFilterChips.setOnCheckedStateChangeListener { _, checkedIds ->
+                val checked = checkedIds.firstOrNull() ?: R.id.proxy_sheet_filter_all
+                filter = when (checked) {
+                    R.id.proxy_sheet_filter_current -> ProxyPickerFilter.CurrentGroup
+                    R.id.proxy_sheet_filter_selected -> ProxyPickerFilter.Selected
+                    R.id.proxy_sheet_filter_available -> ProxyPickerFilter.Available
+                    else -> providerChipIds[checked]?.let(ProxyPickerFilter::Provider) ?: ProxyPickerFilter.All
+                }
+                render((selectedGroupIndex[profile.uuid] ?: 0).coerceIn(0, groupNames.lastIndex))
+            }
+
+            renderProviderFilters()
             render(idx)
             reportVisibleGroup(profile, groupNames[idx])
 
             sheet.root.post(refreshRunnable)
             dialog.setOnDismissListener {
                 sheet.root.removeCallbacks(refreshRunnable)
+                pendingSearch?.let(sheet.proxySheetSearch::removeCallbacks)
+                pendingSearch = null
             }
         }
 
@@ -944,11 +1098,24 @@ class ProfileAdapter(
 
         val groupName = groupNames.getOrNull(groupIndex) ?: return
         val pg = proxyGroupForRow(profile, groupName) ?: return
-        val inflater = list.context.layoutInflater
         val context = list.context
-        val proxies = pg.proxies.filterNot { shouldHideProxyOption(groupName, it) }
+        val pendingChoice = pendingMapValueForGroup(profile.uuid, groupName)?.takeIf { it.isNotBlank() }
+        val effectiveNow = pendingChoice ?: pg.now
+        val rows = pg.proxies
+            .mapIndexedNotNull { index, proxy ->
+                if (shouldHideProxyOption(groupName, proxy)) return@mapIndexedNotNull null
+                ProxyPickerRow(
+                    groupName = groupName,
+                    groupIndex = groupIndex,
+                    proxy = proxy,
+                    configIndex = index,
+                    delayMs = resolveProxyDelay(profile.uuid, proxy),
+                    selected = proxy.name.isNotEmpty() && proxy.name == effectiveNow,
+                    provider = providerNameForProxy(proxy.name),
+                )
+            }
 
-        if (proxies.isEmpty()) {
+        if (rows.isEmpty()) {
             val hintRes = when {
                 useEngineFor(profile) && !hasLiveProxyDetail(profile, groupName) ->
                     R.string.proxy_nodes_loading
@@ -961,7 +1128,29 @@ class ProfileAdapter(
             return
         }
 
-        for (p in proxies) {
+        fillProxyRowsInto(list, profile, rows)
+    }
+
+    private fun fillProxyRowsInto(
+        list: ViewGroup,
+        profile: Profile,
+        rows: List<ProxyPickerRow>,
+    ) {
+        list.removeAllViews()
+
+        val inflater = list.context.layoutInflater
+        val context = list.context
+
+        if (rows.isEmpty()) {
+            addEmptyProxyHint(list, context, R.string.profile_proxy_empty_filtered)
+            return
+        }
+
+        val showGroupInSubtitle = rows.map { it.groupName }.distinct().size > 1
+
+        for (pickerRow in rows) {
+            val p = pickerRow.proxy
+            val groupName = pickerRow.groupName
             val row = inflater.inflate(R.layout.adapter_home_proxy_node, list, false)
 
             val title = p.title.ifBlank { p.name }
@@ -1003,24 +1192,20 @@ class ProfileAdapter(
                 typeBadge.visibility = View.GONE
             }
 
-            val subtitleText = p.subtitle
+            val rawSubtitle = p.subtitle
                 .takeIf { it.isNotBlank() && !it.equals(typeName, ignoreCase = true) }
+            val subtitle = buildList {
+                rawSubtitle?.let(::add)
+                if (showGroupInSubtitle) add(displayGroupName(groupName))
+            }.joinToString(" · ").takeIf { it.isNotBlank() }
             row.findViewById<TextView>(R.id.proxy_subtitle).apply {
-                visibility = if (subtitleText == null) View.GONE else View.VISIBLE
-                text = subtitleText.orEmpty()
+                visibility = if (subtitle == null) View.GONE else View.VISIBLE
+                text = subtitle.orEmpty()
             }
             row.findViewById<View>(R.id.proxy_subtitle_sep).visibility =
-                if (showBadge && subtitleText != null) View.VISIBLE else View.GONE
+                if (showBadge && subtitle != null) View.VISIBLE else View.GONE
 
-            val key = "${profile.uuid}|${p.name}"
-            val standalone = standalonePingDelays[key]
-            val nested = nestedGroupDelay(profile.uuid, p.name)
-            val delayMs = when {
-                p.delay >= 0 -> p.delay
-                nested >= 0 -> nested
-                standalone != null -> standalone
-                else -> p.delay
-            }
+            val delayMs = pickerRow.delayMs
 
             val capsule = row.findViewById<View>(R.id.latency_capsule)
             val dot = row.findViewById<View>(R.id.latency_dot)
@@ -1028,13 +1213,7 @@ class ProfileAdapter(
             delayView.text = formatDelay(delayMs)
             applyDelayStyle(capsule, dot, delayView, delayMs, context)
 
-            // Pending choice (user just tapped, patchSelector still propagating) wins over
-            // pg.now so the highlight doesn't bounce back to the old node during the few-hundred-ms
-            // window before live state catches up.
-            val pendingChoice = pendingMapValueForGroup(profile.uuid, groupName)
-                ?.takeIf { it.isNotBlank() }
-            val effectiveNow = pendingChoice ?: pg.now
-            val selected = p.name.isNotEmpty() && p.name == effectiveNow
+            val selected = pickerRow.selected
             row.isSelected = selected
             row.findViewById<View>(R.id.selected_bar).visibility =
                 if (selected) View.VISIBLE else View.INVISIBLE
@@ -1064,6 +1243,101 @@ class ProfileAdapter(
             }
             list.addView(row)
         }
+    }
+
+    private fun buildProxyPickerRows(
+        profile: Profile,
+        groupNames: List<String>,
+        currentGroupIndex: Int,
+    ): List<ProxyPickerRow> {
+        val selectedIndex = currentGroupIndex.coerceIn(0, groupNames.lastIndex)
+        return groupNames.flatMapIndexed { groupIndex, groupName ->
+            val pg = proxyGroupForRow(profile, groupName) ?: return@flatMapIndexed emptyList()
+            val pendingChoice = pendingMapValueForGroup(profile.uuid, groupName)
+                ?.takeIf { it.isNotBlank() }
+            val effectiveNow = pendingChoice ?: pg.now
+            pg.proxies.mapIndexedNotNull { proxyIndex, proxy ->
+                if (shouldHideProxyOption(groupName, proxy)) return@mapIndexedNotNull null
+                ProxyPickerRow(
+                    groupName = groupName,
+                    groupIndex = groupIndex,
+                    proxy = proxy,
+                    configIndex = groupIndex * 100_000 + proxyIndex,
+                    delayMs = resolveProxyDelay(profile.uuid, proxy),
+                    selected = proxy.name.isNotEmpty() && proxy.name == effectiveNow,
+                    provider = providerNameForProxy(proxy.name),
+                )
+            }
+        }.let { rows ->
+            val selectedGroupRows = rows.filter { it.groupIndex == selectedIndex }
+            rows.filterNot { it.groupIndex == selectedIndex } + selectedGroupRows
+        }.sortedBy { it.configIndex }
+    }
+
+    private fun applyProxyPickerControls(
+        rows: List<ProxyPickerRow>,
+        query: String,
+        sort: ProxyPickerSort,
+        filter: ProxyPickerFilter,
+        currentGroupIndex: Int,
+    ): List<ProxyPickerRow> {
+        val normalizedQuery = query.trim()
+        val filtered = rows.asSequence()
+            .filter { row ->
+                normalizedQuery.isBlank() ||
+                    row.proxy.name.contains(normalizedQuery, ignoreCase = true) ||
+                    row.proxy.title.contains(normalizedQuery, ignoreCase = true) ||
+                    row.groupName.contains(normalizedQuery, ignoreCase = true) ||
+                    displayGroupName(row.groupName).contains(normalizedQuery, ignoreCase = true) ||
+                    row.provider?.contains(normalizedQuery, ignoreCase = true) == true
+            }
+            .filter { row ->
+                when (filter) {
+                    ProxyPickerFilter.All -> true
+                    ProxyPickerFilter.CurrentGroup -> row.groupIndex == currentGroupIndex
+                    ProxyPickerFilter.Selected -> row.selected
+                    ProxyPickerFilter.Available -> row.available
+                    is ProxyPickerFilter.Provider -> row.provider == filter.name
+                }
+            }
+            .toList()
+
+        return when (sort) {
+            ProxyPickerSort.Config -> filtered.sortedBy { it.configIndex }
+            ProxyPickerSort.Delay -> filtered.sortedWith(
+                compareBy<ProxyPickerRow> { if (it.delayMs >= 0) 0 else 1 }
+                    .thenBy { if (it.delayMs >= 0) it.delayMs else Int.MAX_VALUE }
+                    .thenBy(String.CASE_INSENSITIVE_ORDER) { displayGroupName(it.groupName) }
+                    .thenBy(String.CASE_INSENSITIVE_ORDER) { it.proxy.title.ifBlank { it.proxy.name } },
+            )
+            ProxyPickerSort.Name -> filtered.sortedWith(
+                compareBy<ProxyPickerRow, String>(String.CASE_INSENSITIVE_ORDER) { row ->
+                    row.proxy.title.ifBlank { row.proxy.name }
+                }
+                    .thenBy(String.CASE_INSENSITIVE_ORDER) { displayGroupName(it.groupName) }
+                    .thenBy { it.configIndex },
+            )
+        }
+    }
+
+    private fun resolveProxyDelay(uuid: UUID, proxy: Proxy): Int {
+        val key = "${uuid}|${proxy.name}"
+        val standalone = standalonePingDelays[key]
+        val nested = nestedGroupDelay(uuid, proxy.name)
+        return when {
+            proxy.delay >= 0 -> proxy.delay
+            nested >= 0 -> nested
+            standalone != null -> standalone
+            else -> proxy.delay
+        }
+    }
+
+    private fun providerNameForProxy(proxyName: String): String? {
+        val trimmed = proxyName.trimStart()
+        if (!trimmed.startsWith("[")) return null
+        val end = trimmed.indexOf(']')
+        if (end <= 1) return null
+        return trimmed.substring(1, end).takeIf { it.isNotBlank() }
     }
 
     /** Clear all rows' selected-state ornaments, then mark [target] as selected. */
@@ -1100,6 +1374,19 @@ class ProfileAdapter(
         if (!groupName.equals("GLOBAL", ignoreCase = true)) return false
         return proxyName.equals("DIRECT", ignoreCase = true) ||
             proxyName.equals("REJECT", ignoreCase = true)
+    }
+
+    private fun scrollProxyPickerToSelected(
+        sheet: BottomSheetProxyGroupsBinding,
+        rows: List<ProxyPickerRow>,
+    ) {
+        if (rows.none { it.selected }) return
+        sheet.proxySheetNodesList.post {
+            val row = sheet.proxySheetNodesList.children.firstOrNull { child ->
+                child.findViewById<View>(R.id.selected_bar)?.visibility == View.VISIBLE
+            } ?: return@post
+            sheet.proxySheetScroll.smoothScrollTo(0, row.top)
+        }
     }
 
     private fun addEmptyProxyHint(
