@@ -255,8 +255,17 @@ object SubscriptionUpdateMerge {
     }
 
     /**
-     * Prepends rules that existed locally but are missing from the fetched list (string match),
-     * then appends the full fetched rules list to preserve subscription order for the rest.
+     * Prepends rules that existed locally but are missing from the fetched list, then appends
+     * the full fetched rules list to preserve subscription order for the rest.
+     *
+     * Two refinements over a naive string diff:
+     * 1. Comparison normalizes surrounding quotes and per-token whitespace so a rule that
+     *    survived a YAML re-dump under different quoting doesn't get treated as missing.
+     * 2. Subscription-owned rule types (RULE-SET / GEOSITE / GEOIP / MATCH / SUB-RULE /
+     *    AND / OR / NOT) are never carried over. They are tied to providers/policies the
+     *    new subscription controls — if the user updates the subscription and removes a
+     *    RULE-SET reference, we must not resurrect it. Manual host/IP entries
+     *    (DOMAIN / DOMAIN-SUFFIX / IP-CIDR / ...) are still preserved.
      */
     private fun mergeRulesLists(preservedRules: Any?, fetchedRules: Any?): List<Any?> {
         val newList: List<Any?> = when (fetchedRules) {
@@ -269,11 +278,43 @@ object SubscriptionUpdateMerge {
             null -> emptyList()
             else -> listOf(preservedRules)
         }
-        val newTrimmed = newList.map { it?.toString()?.trim() }.toSet()
+        val newNormalized = newList
+            .map { normalizeRuleLine(it) }
+            .filter { it.isNotEmpty() }
+            .toSet()
         val prefix = oldList.filter {
-            val t = it?.toString()?.trim()
-            !t.isNullOrEmpty() && t !in newTrimmed
+            val normalized = normalizeRuleLine(it)
+            if (normalized.isEmpty()) return@filter false
+            if (isSubscriptionOwnedRuleType(normalized)) return@filter false
+            normalized !in newNormalized
         }
         return prefix + newList
     }
+
+    private fun normalizeRuleLine(value: Any?): String {
+        val raw = value?.toString()?.trim().orEmpty()
+        if (raw.isEmpty()) return ""
+        val unquoted = when {
+            raw.length >= 2 && raw.first() == '\'' && raw.last() == '\'' -> raw.substring(1, raw.length - 1)
+            raw.length >= 2 && raw.first() == '"' && raw.last() == '"' -> raw.substring(1, raw.length - 1)
+            else -> raw
+        }
+        return unquoted.split(',').joinToString(",") { it.trim() }
+    }
+
+    private fun isSubscriptionOwnedRuleType(normalized: String): Boolean {
+        val head = normalized.substringBefore(',').trim().uppercase()
+        return head in SUBSCRIPTION_OWNED_RULE_TYPES
+    }
+
+    private val SUBSCRIPTION_OWNED_RULE_TYPES = setOf(
+        "RULE-SET",
+        "GEOSITE",
+        "GEOIP",
+        "MATCH",
+        "SUB-RULE",
+        "AND",
+        "OR",
+        "NOT",
+    )
 }

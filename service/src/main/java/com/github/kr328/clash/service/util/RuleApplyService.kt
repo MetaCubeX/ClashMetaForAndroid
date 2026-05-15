@@ -6,6 +6,7 @@ import com.github.kr328.clash.service.model.RuleItem
 import com.github.kr328.clash.service.model.RuleState
 import com.github.kr328.clash.service.model.RuleSource
 import com.github.kr328.clash.service.store.ServiceStore
+import kotlinx.serialization.json.Json
 import java.io.File
 import java.util.UUID
 
@@ -20,6 +21,11 @@ class RuleApplyService(
     )
 
     private val serviceStore = ServiceStore(context)
+    private val stateJsonForReconcile = Json {
+        ignoreUnknownKeys = true
+        encodeDefaults = true
+        prettyPrint = true
+    }
 
     fun readStateJson(uuid: UUID): String? {
         val config = configFile(uuid) ?: return null
@@ -191,6 +197,82 @@ class RuleApplyService(
         RuleValidator.validate(normalized, proxyGroups)
         validateMergedYaml(mergedYaml)
         return RuleDryRun(currentYaml, mergedYaml, normalized)
+    }
+
+    /**
+     * Reconcile after a subscription refresh. Reads MANUAL rules from the saved state file
+     * (anything the user added through the UI), reads PROVIDER rules from the freshly fetched
+     * config, and re-applies them through the same merge code path used by applyState. This
+     * is the structured complement to [SubscriptionUpdateMerge]'s string-based merge: if a
+     * state file exists, MANUAL vs PROVIDER classification beats heuristic line matching.
+     *
+     * Files are passed in explicitly because the caller runs against `processingDir`, not the
+     * usual `importedDir/<uuid>`.
+     *
+     * @return true if reconciliation rewrote the config; false on any failure (caller should
+     *         leave whatever [SubscriptionUpdateMerge] produced alone in that case).
+     */
+    fun reconcileWithStoredState(configFile: File, stateFile: File): Boolean {
+        if (!configFile.isFile) return false
+        if (!stateFile.isFile) return false
+        return runCatching {
+            val configText = configFile.readText()
+            val parsed = RuleMapper.parseStateFromConfig(configText)
+            val stored = stateJsonForReconcile.decodeFromString(
+                RuleState.serializer(),
+                stateFile.readText(),
+            )
+            val merged = syncStoredWithParsed(stored, parsed)
+            val normalized = merged.copy(rules = normalizeRuleOrder(merged.rules))
+            val geoDataUrls = GeoDataSources.resolve(
+                preset = serviceStore.geoDataSourcePreset,
+                customGeoIp = serviceStore.geoDataCustomGeoIp,
+                customGeoSite = serviceStore.geoDataCustomGeoSite,
+                customMmdb = serviceStore.geoDataCustomMmdb,
+                customAsn = serviceStore.geoDataCustomAsn,
+            )
+            val mergedYaml = RuleMapper.mergeStateIntoConfig(configText, normalized, geoDataUrls)
+            validateMergedYaml(mergedYaml)
+            configFile.writeText(mergedYaml)
+            stateFile.writeText(stateJsonForReconcile.encodeToString(RuleState.serializer(), normalized))
+            Log.d("Reconcile after subscription update applied ${normalized.rules.count { !it.deleted && it.enabled }} active rule(s)")
+            true
+        }.getOrElse {
+            Log.w("Reconcile after subscription update failed; keeping mergeAfterFetch output", it)
+            false
+        }
+    }
+
+    // Mirrors RuleRepository.syncProviderRules so reconcile uses the same classification
+    // logic as RuleRepository.load. Duplicated rather than reused to avoid making the
+    // repository helper public and tying it to file paths that don't apply here.
+    private fun syncStoredWithParsed(stored: RuleState, incoming: RuleState): RuleState {
+        fun key(r: RuleItem) =
+            "${r.type.uppercase()},${r.value.uppercase()},${r.policy.uppercase()}"
+
+        val byKey = stored.rules.associateBy(::key)
+        val mergedRules = incoming.rules.mapIndexed { index, rule ->
+            val old = byKey[key(rule)]
+            if (old != null) {
+                rule.copy(
+                    id = old.id,
+                    enabled = old.enabled,
+                    deleted = old.deleted,
+                    isRestorable = old.isRestorable || rule.isRestorable,
+                    order = index,
+                )
+            } else {
+                rule.copy(order = index)
+            }
+        }.toMutableList()
+
+        val incomingKeys = incoming.rules.map(::key).toSet()
+        val retained = stored.rules.filter { rule ->
+            key(rule) !in incomingKeys &&
+                (rule.deleted || !rule.enabled || rule.source == RuleSource.MANUAL)
+        }
+        retained.forEach { mergedRules += it.copy(order = mergedRules.size) }
+        return stored.copy(providers = incoming.providers, rules = mergedRules)
     }
 
     private fun normalizeRuleOrder(rules: List<RuleItem>): List<RuleItem> {

@@ -13,6 +13,7 @@ import com.github.kr328.clash.service.model.Profile
 import com.github.kr328.clash.service.remote.IFetchObserver
 import com.github.kr328.clash.service.store.ServiceStore
 import com.github.kr328.clash.service.util.GeoUrlSanitizer
+import com.github.kr328.clash.service.util.RuleApplyService
 import com.github.kr328.clash.service.util.SubscriptionUpdateMerge
 import com.github.kr328.clash.service.util.importedDir
 import com.github.kr328.clash.service.util.pendingDir
@@ -276,6 +277,16 @@ object ProfileProcessor {
                             Log.w("Report provider refresh status callback failed", e)
                         }
                     }.await()
+                }
+
+                // Tier-2 rules reconciliation: if a structured state file survived from the
+                // previous import, re-merge MANUAL vs PROVIDER rules using the same logic
+                // RuleApplyService uses for UI-driven edits. This overrides any incorrect
+                // prefixing done by the string-based SubscriptionUpdateMerge above when a
+                // RULE-SET / GEOSITE / MATCH entry was deleted in the new subscription.
+                val processingStateFile = File(context.processingDir, "rules_state.json")
+                if (configFile.isFile && processingStateFile.isFile) {
+                    RuleApplyService(context).reconcileWithStoredState(configFile, processingStateFile)
                 }
 
                 GeoUrlSanitizer.sanitizeProfile(context.processingDir)
