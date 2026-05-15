@@ -109,7 +109,25 @@ func QueryProxyGroup(name string, sortMode SortMode, uiSubtitlePattern *regexp2.
 	}
 
 	proxies := convertProxies(g.Proxies(), uiSubtitlePattern)
-	// 	proxies := collectProviders(g.Providers(), uiSubtitlePattern)
+	// Include provider-backed proxies (`use:` references and dynamic flags such as
+	// include-all-providers / include-all-proxies / include-all). mihomo expands those
+	// at routing time but g.Proxies() only returns the statically declared members.
+	// Without the merge, the picker shows three sub-groups even for subscriptions whose
+	// real node set lives in proxy-providers.
+	providerProxies := collectProviders(g.Providers(), uiSubtitlePattern)
+	if len(providerProxies) > 0 {
+		existing := make(map[string]struct{}, len(proxies)+len(providerProxies))
+		for _, p := range proxies {
+			existing[p.Name] = struct{}{}
+		}
+		for _, p := range providerProxies {
+			if _, ok := existing[p.Name]; ok {
+				continue
+			}
+			existing[p.Name] = struct{}{}
+			proxies = append(proxies, p)
+		}
+	}
 
 	switch sortMode {
 	case Title:

@@ -385,6 +385,32 @@ class ProfileAdapter(
             val live = proxyDetails[groupName]
                 ?: proxyDetails.entries.firstOrNull { groupsMatchKey(groupName, it.key) }?.value
             if (live != null) {
+                // mihomo expands `include-all-providers` / `include-all-proxies` / `include-all`
+                // groups at routing time but Clash.queryGroup() only returns the statically
+                // declared `proxies:` list. If our offline YAML parse shows a wider member set,
+                // it's almost certainly one of those dynamic flags — merge the offline names
+                // into the live group while preserving the live Proxy entries (delay, type,
+                // current selection) for any names that overlap.
+                val offlineRow = offlinePreviewByProfile[profile.uuid]?.let { map ->
+                    map[groupName] ?: map.entries.firstOrNull { groupsMatchKey(groupName, it.key) }?.value
+                }
+                if (offlineRow != null && offlineRow.members.size > live.proxies.size) {
+                    val liveByName = live.proxies.associateBy { it.name }
+                    val seen = HashSet<String>(offlineRow.members.size + live.proxies.size)
+                    val merged = buildList {
+                        offlineRow.members.forEach { name ->
+                            if (seen.add(name)) {
+                                add(liveByName[name] ?: Proxy(name, name, "", Proxy.Type.Unknown, -1))
+                            }
+                        }
+                        // Trailing live-only proxies (DIRECT/REJECT/etc. that aren't in the
+                        // subscription's leaf set but mihomo still injects) stay where they were.
+                        live.proxies.forEach { p ->
+                            if (seen.add(p.name)) add(p)
+                        }
+                    }
+                    return ProxyGroup(live.type, merged, live.now).withSelectionOverlay(profile.uuid, groupName)
+                }
                 return live.withSelectionOverlay(profile.uuid, groupName)
             }
             val offlineMap = offlinePreviewByProfile[profile.uuid]

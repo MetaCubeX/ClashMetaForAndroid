@@ -7,13 +7,6 @@ import java.io.File
 
 /** Reads [proxy-groups] from a Clash config.yaml without loading the engine. */
 object ProxyGroupsYamlPreview {
-    @Volatile
-    private var lastTextRef: String? = null
-    @Volatile
-    private var lastProfileDirKey: String? = null
-    @Volatile
-    private var lastResult: Map<String, ProxyGroupPreviewRow> = emptyMap()
-
     private fun truthyHidden(value: Any?): Boolean {
         return when (value) {
             is Boolean -> value
@@ -36,9 +29,9 @@ object ProxyGroupsYamlPreview {
     }
 
     /**
-     * Same notion as mihomo [github.com/metacubex/mihomo/config.parseProxies] `AllProxies`:
-     * inline `proxies:` names plus, when [profileDir] is set, leaf names from each
-     * `proxy-providers` file on disk (matches include-all-proxies filter semantics at parse time).
+     * Inline `proxies:` names plus, when [profileDir] points at the profile root,
+     * leaf names from each proxy-provider file on disk. Matches what mihomo would
+     * resolve for `include-all-providers` / `include-all-proxies` / `include-all`.
      */
     private fun collectAllLeafProxyNames(root: Map<String, Any?>, profileDir: File?): LinkedHashSet<String> {
         val names = LinkedHashSet<String>()
@@ -50,10 +43,16 @@ object ProxyGroupsYamlPreview {
         val pp = root["proxy-providers"] as? Map<*, *> ?: return names
         for ((_, v) in pp) {
             val prov = v as? Map<*, *> ?: continue
-            val pathStr = prov["path"] as? String ?: continue
-            val f = ProxyDialerYamlEdit.resolveProviderPath(dir, pathStr)
-            if (!f.isFile) continue
-            val pRoot = runCatching { YamlFormatting.parseRootMap(f.readText()) }.getOrNull() ?: continue
+            val pathStr = prov["path"] as? String
+            val providerUrl = prov["url"] as? String
+            val providerFile = if (!pathStr.isNullOrBlank()) {
+                ProxyDialerYamlEdit.resolveProviderPath(dir, pathStr)
+            } else {
+                resolveDefaultProviderFile(dir, providerUrl) ?: continue
+            }
+            if (!providerFile.isFile) continue
+            val pRoot = runCatching { YamlFormatting.parseRootMap(providerFile.readText()) }
+                .getOrNull() ?: continue
             (pRoot["proxies"] as? List<*>)?.forEach { pr ->
                 val n = (pr as? Map<*, *>)?.get("name")?.toString()?.trim()?.takeIf { it.isNotEmpty() }
                 if (n != null) names.add(n)
@@ -62,9 +61,41 @@ object ProxyGroupsYamlPreview {
         return names
     }
 
-    /** [include-all-proxies] or YAML [include-all] (mihomo expands both into the inline proxy set). */
+    /**
+     * When a proxy-provider entry has no `path:` field, ClashFest's native config
+     * pipeline rewrites it to `<profileDir>/providers/proxies/<md5(URL)>` before
+     * mihomo loads the config (see core/src/main/golang/native/config/process.go).
+     * Reproduce that path here so the offline parse finds the same file.
+     */
+    private fun resolveDefaultProviderFile(profileDir: File, providerUrl: String?): File? {
+        if (providerUrl.isNullOrBlank()) return null
+        return File(profileDir, "providers/proxies/${md5Hex(providerUrl)}")
+    }
+
+    private fun md5Hex(input: String): String {
+        val digest = java.security.MessageDigest.getInstance("MD5")
+        val bytes = digest.digest(input.toByteArray(Charsets.UTF_8))
+        return buildString(bytes.size * 2) {
+            for (b in bytes) {
+                val v = b.toInt() and 0xFF
+                append(HEX_CHARS[v ushr 4])
+                append(HEX_CHARS[v and 0x0F])
+            }
+        }
+    }
+
+    private val HEX_CHARS = "0123456789abcdef".toCharArray()
+
+    /**
+     * `include-all-proxies` / `include-all` / `include-all-providers` all ask mihomo
+     * to expand the group to the full leaf-node universe at runtime. We treat all
+     * three the same way at preview time — distinguishing them isn't useful for the
+     * UI list, the actual routing semantics stay with the engine.
+     */
     private fun expandsInlineProxyUniverseForFilter(g: Map<*, *>): Boolean {
-        return truthyHidden(g["include-all-proxies"]) || truthyHidden(g["include-all"])
+        return truthyHidden(g["include-all-proxies"]) ||
+            truthyHidden(g["include-all"]) ||
+            truthyHidden(g["include-all-providers"])
     }
 
     /**
@@ -105,20 +136,14 @@ object ProxyGroupsYamlPreview {
     /**
      * Group name → type + members for UI preview (offline / non-active profile).
      * - Skips `hidden: true` (matches mihomo UI list).
-     * - Static members come from [proxies].
-     * - `include-all-proxies` / `include-all`: member names are derived from inline `proxies:` plus
-     *   optional [profileDir] proxy-provider files, then [filter] (same rules as mihomo parse).
-     * - `include-all-providers` only (no include-all / include-all-proxies): still **empty** members
-     *   (provider keys are not dialable proxy names in the UI).
-     * - Provider-backed groups (`use` only) return an **empty** member list: keys like sub1 are
-     *   **not** leaf proxy names. Listing them made users tap “sub2”, then [patchSelector] failed and
-     *   [Selector] fell back to the first real node (often the first subscription).
+     * - Combines declared `proxies:` with the leaf-node universe when a group
+     *   enables `include-all-proxies` / `include-all-providers` / `include-all`,
+     *   so the picker matches what mihomo actually routes through.
+     * - Provider-backed groups (`use:` only, no include-all-*) keep an empty
+     *   member list — provider keys like `sub1` are not dialable proxy names;
+     *   live engine data fills these in on the engine path.
      */
     fun parseProxyGroupsPreview(text: String, profileDir: File? = null): Map<String, ProxyGroupPreviewRow> {
-        val dirKey = runCatching { profileDir?.canonicalPath }.getOrNull()
-            ?: profileDir?.absolutePath
-        if (text == lastTextRef && dirKey == lastProfileDirKey) return lastResult
-
         val root = try {
             Yaml().load<Map<String, Any?>>(text) ?: return emptyMap()
         } catch (_: Exception) {
@@ -140,19 +165,24 @@ object ProxyGroupsYamlPreview {
                 }
             }.orEmpty()
             val useList = use?.mapNotNull { u -> u?.toString()?.trim()?.takeIf { it.isNotEmpty() } }.orEmpty()
+            // mihomo treats declared `proxies:` and include-all-* as additive, so a
+            // group with both should expose every leaf node alongside the static
+            // members. Union via LinkedHashSet to keep declared order first.
+            val dynamicMembers = if (hasDynamicMembershipFromYaml(g)) {
+                membersForIncludeAllProxiesPreview(root, g, profileDir)
+            } else {
+                emptyList()
+            }
+            val combined = LinkedHashSet<String>().apply {
+                addAll(fromProxies)
+                addAll(dynamicMembers)
+            }.toList()
             when {
-                fromProxies.isNotEmpty() -> out[name] = ProxyGroupPreviewRow(type, fromProxies)
+                combined.isNotEmpty() -> out[name] = ProxyGroupPreviewRow(type, combined)
                 useList.isNotEmpty() -> out[name] = ProxyGroupPreviewRow(type, emptyList())
-                hasDynamicMembershipFromYaml(g) -> {
-                    val members = membersForIncludeAllProxiesPreview(root, g, profileDir)
-                    out[name] = ProxyGroupPreviewRow(type, members)
-                }
                 else -> Unit
             }
         }
-        lastTextRef = text
-        lastProfileDirKey = dirKey
-        lastResult = out
         return out
     }
 
