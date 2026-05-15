@@ -77,6 +77,9 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         Settings,
     }
 
+    /** Set by MainActivity to react to taps on the in-header update badge. */
+    var onUpdateBadgeTap: (() -> Unit)? = null
+
     val profileActivateRequests = Channel<Profile>(Channel.UNLIMITED)
     val profileMenuRequests = Channel<Pair<Profile, View>>(Channel.UNLIMITED)
     val profileEditRequests = Channel<Profile>(Channel.UNLIMITED)
@@ -747,6 +750,15 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         return tabs.getOrNull(logical)
     }
 
+    /**
+     * Toggle the in-header update indicator. MainActivity polls
+     * [AppUpdateChecker.isUpdateAvailable] from onResume and from background
+     * opportunistic checks, then calls this to reflect the result.
+     */
+    fun setUpdateBadgeVisible(visible: Boolean) {
+        binding.mainHeaderUpdateBadge.visibility = if (visible) View.VISIBLE else View.GONE
+    }
+
     private fun selectMainTab(tab: MainTab) {
         val targetItem = tab.ordinal + 1
         if (binding.mainPager.currentItem == targetItem) {
@@ -823,6 +835,7 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         binding.mainNavProfiles.setOnClickListener { selectMainTab(MainTab.Profiles) }
         binding.mainNavRouting.setOnClickListener { selectMainTab(MainTab.Routing) }
         binding.mainNavSettings.setOnClickListener { selectMainTab(MainTab.Settings) }
+        binding.mainHeaderUpdateBadge.setOnClickListener { onUpdateBadgeTap?.invoke() }
         binding.mainModeRow.setOnClickListener { showModeSheet() }
         binding.mainActiveProfileUpdate.setOnClickListener {
             activeProfileForQuickActions?.let { profile ->

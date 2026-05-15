@@ -370,6 +370,9 @@ class MainActivity : BaseActivity<MainDesign>() {
         design.fetch()
         refreshAnnouncement(design)
 
+        design.onUpdateBadgeTap = { showUpdateAvailableDialog() }
+        refreshUpdateBadge(design)
+
         val tickerInteractive = ticker(TimeUnit.SECONDS.toMillis(2))
         // Bumped from 8s -> 30s. While the screen is off (or activity is in background),
         // the dashboard is invisible; we only need infrequent updates so totals stay
@@ -457,6 +460,9 @@ class MainActivity : BaseActivity<MainDesign>() {
                                     delay(260L)
                                     ensureGlobalSelectionSafeWithRetry()
                                 }
+                            }
+                            if (it == Event.ActivityStart) {
+                                refreshUpdateBadge(design)
                             }
                         }
 
@@ -1384,6 +1390,62 @@ class MainActivity : BaseActivity<MainDesign>() {
             pendingApkDownloadId = pending
             checkDownloadedApkAndInstall(pending)
         }
+    }
+
+    /**
+     * Read the cached release snapshot and reflect it in the header badge. Also kicks off
+     * a throttled background fetch so a release published since the last AlarmManager tick
+     * surfaces while the activity is in the foreground.
+     */
+    private fun refreshUpdateBadge(design: MainDesign) {
+        design.setUpdateBadgeVisible(AppUpdateChecker.isUpdateAvailable(this))
+        launch {
+            runCatching { AppUpdateChecker.maybeOpportunisticCheck(this@MainActivity) }
+            design.setUpdateBadgeVisible(AppUpdateChecker.isUpdateAvailable(this@MainActivity))
+        }
+    }
+
+    /**
+     * In-app counterpart of the system update notification. Reads the cached release from
+     * SharedPreferences so it opens instantly; the Download & install button feeds into the
+     * same [ACTION_DOWNLOAD_AND_INSTALL_UPDATE] flow the notification action uses.
+     */
+    private fun showUpdateAvailableDialog() {
+        val info = AppUpdateChecker.peekCachedRelease(this) ?: return
+        val body = info.body.takeIf { it.isNotBlank() }
+            ?: getString(R.string.update_dialog_message_fallback)
+        val dialog = MaterialAlertDialogBuilder(this)
+            .setTitle(getString(R.string.update_dialog_title_fmt, info.tagName))
+            .setMessage(body)
+            .setNegativeButton(R.string.update_dialog_button_later, null)
+        if (!info.apkUrl.isNullOrBlank()) {
+            dialog.setPositiveButton(R.string.update_dialog_button_download) { _, _ ->
+                AppUpdateChecker.dismissUpdateNotification(this)
+                runCatching {
+                    val id = GitHubReleaseUpdate.enqueueApkDownload(
+                        context = this,
+                        tagName = info.tagName.ifBlank { "update" },
+                        apkUrl = info.apkUrl,
+                        apkName = info.apkName,
+                    )
+                    if (id > 0L) {
+                        pendingApkDownloadId = id
+                        updatePrefs.edit().putLong("pending_download_id", id).apply()
+                        Toast.makeText(this, R.string.about_download_started, Toast.LENGTH_SHORT).show()
+                    }
+                }.onFailure {
+                    Toast.makeText(this, R.string.about_download_failed, Toast.LENGTH_SHORT).show()
+                }
+            }
+        } else if (info.htmlUrl.isNotBlank()) {
+            // No prebuilt APK on this release — fall back to opening the release page.
+            dialog.setPositiveButton(R.string.about_open_release) { _, _ ->
+                runCatching {
+                    startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(info.htmlUrl)))
+                }
+            }
+        }
+        dialog.show()
     }
 
     override fun onDestroy() {

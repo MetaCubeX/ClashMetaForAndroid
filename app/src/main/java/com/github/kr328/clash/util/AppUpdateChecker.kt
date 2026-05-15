@@ -17,12 +17,22 @@ import com.github.kr328.clash.service.R as ServiceR
 object AppUpdateChecker {
     private const val PREFS_NAME = "app_update"
     private const val KEY_LAST_NOTIFIED_TAG = "last_notified_tag"
+    // Latest release snapshot — populated every time checkAndNotify sees an update,
+    // even if we have already notified for that tag. Used by the in-UI badge so the
+    // tap-to-install dialog can render release notes without re-fetching from GitHub.
+    private const val KEY_LATEST_TAG = "latest_tag"
+    private const val KEY_LATEST_BODY = "latest_body"
+    private const val KEY_LATEST_HTML_URL = "latest_html_url"
+    private const val KEY_LATEST_APK_URL = "latest_apk_url"
+    private const val KEY_LATEST_APK_NAME = "latest_apk_name"
+    private const val KEY_LAST_CHECK_AT = "last_check_at"
     private const val PERIODIC_REQUEST_CODE = 1101
     private const val OPEN_APP_REQUEST_CODE = 1102
     private const val ACTION_DOWNLOAD_REQUEST_CODE = 1104
     private const val ACTION_OPEN_RELEASE_REQUEST_CODE = 1105
     private const val INTERVAL_MS = 24L * 60L * 60L * 1000L // 24h
     private const val FIRST_DELAY_MS = 30L * 60L * 1000L // 30 min after app starts
+    private const val OPPORTUNISTIC_THROTTLE_MS = 6L * 60L * 60L * 1000L // 6h
     private const val CHANNEL_ID = "app_update_channel"
     const val NOTIFICATION_ID = 1103
 
@@ -36,11 +46,65 @@ object AppUpdateChecker {
     fun resetIfUpdated(context: Context, currentVersion: String) {
         val prefs = context.applicationContext
             .getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        val lastTag = prefs.getString(KEY_LAST_NOTIFIED_TAG, null) ?: return
-        if (GitHubReleaseUpdate.compareVersions(currentVersion, lastTag) >= 0) {
+        val lastTag = prefs.getString(KEY_LAST_NOTIFIED_TAG, null)
+        val cachedTag = prefs.getString(KEY_LATEST_TAG, null)
+        if (lastTag != null && GitHubReleaseUpdate.compareVersions(currentVersion, lastTag) >= 0) {
             prefs.edit().remove(KEY_LAST_NOTIFIED_TAG).apply()
             dismissUpdateNotification(context)
         }
+        // Also clear the in-UI badge cache once we are running the version it was advertising.
+        if (cachedTag != null && GitHubReleaseUpdate.compareVersions(currentVersion, cachedTag) >= 0) {
+            prefs.edit()
+                .remove(KEY_LATEST_TAG)
+                .remove(KEY_LATEST_BODY)
+                .remove(KEY_LATEST_HTML_URL)
+                .remove(KEY_LATEST_APK_URL)
+                .remove(KEY_LATEST_APK_NAME)
+                .apply()
+        }
+    }
+
+    /**
+     * Cheap, synchronous check used by [MainActivity.onResume] to toggle the
+     * in-header update badge. Reads SharedPreferences only — no network.
+     */
+    fun isUpdateAvailable(context: Context): Boolean {
+        return peekCachedRelease(context) != null
+    }
+
+    /**
+     * Returns the most recently observed release info that is still newer than the
+     * installed version, or null. The tap-to-install dialog reads from here so it
+     * can render release notes instantly. Updated by [checkAndNotify].
+     */
+    fun peekCachedRelease(context: Context): GitHubReleaseUpdate.Info? {
+        val app = context.applicationContext
+        val prefs = app.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val tag = prefs.getString(KEY_LATEST_TAG, null)?.takeIf { it.isNotBlank() } ?: return null
+        val current = runCatching {
+            app.packageManager.getPackageInfo(app.packageName, 0).versionName ?: "0.0.0"
+        }.getOrDefault("0.0.0")
+        if (GitHubReleaseUpdate.compareVersions(tag, current) <= 0) return null
+        return GitHubReleaseUpdate.Info(
+            tagName = tag,
+            body = prefs.getString(KEY_LATEST_BODY, "").orEmpty(),
+            htmlUrl = prefs.getString(KEY_LATEST_HTML_URL, "").orEmpty(),
+            apkUrl = prefs.getString(KEY_LATEST_APK_URL, null)?.takeIf { it.isNotBlank() },
+            apkName = prefs.getString(KEY_LATEST_APK_NAME, null)?.takeIf { it.isNotBlank() },
+        )
+    }
+
+    /**
+     * Run [checkAndNotify] at most once every [OPPORTUNISTIC_THROTTLE_MS]. Used from
+     * MainActivity.onResume so the badge picks up new releases that landed between
+     * AlarmManager ticks, without burning battery on every screen entry.
+     */
+    suspend fun maybeOpportunisticCheck(context: Context) {
+        val prefs = context.applicationContext
+            .getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val lastAt = prefs.getLong(KEY_LAST_CHECK_AT, 0L)
+        if (System.currentTimeMillis() - lastAt < OPPORTUNISTIC_THROTTLE_MS) return
+        checkAndNotify(context)
     }
 
     fun schedulePeriodic(context: Context) {
@@ -58,7 +122,13 @@ object AppUpdateChecker {
 
     suspend fun checkAndNotify(context: Context) {
         val app = context.applicationContext
-        val latest = GitHubReleaseUpdate.fetchLatest() ?: return
+        val prefs = app.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val latest = GitHubReleaseUpdate.fetchLatest() ?: run {
+            // Still record that we tried so opportunistic throttle doesn't keep retrying.
+            prefs.edit().putLong(KEY_LAST_CHECK_AT, System.currentTimeMillis()).apply()
+            return
+        }
+        prefs.edit().putLong(KEY_LAST_CHECK_AT, System.currentTimeMillis()).apply()
         if (latest.tagName.isBlank()) return
 
         val current = runCatching {
@@ -67,7 +137,16 @@ object AppUpdateChecker {
         val hasUpdate = GitHubReleaseUpdate.compareVersions(latest.tagName, current) > 0
         if (!hasUpdate) return
 
-        val prefs = app.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        // Cache full release info every time we see an update (even if Android notification
+        // was already shown for this tag). The in-UI badge relies on this snapshot.
+        prefs.edit()
+            .putString(KEY_LATEST_TAG, latest.tagName)
+            .putString(KEY_LATEST_BODY, latest.body)
+            .putString(KEY_LATEST_HTML_URL, latest.htmlUrl)
+            .putString(KEY_LATEST_APK_URL, latest.apkUrl.orEmpty())
+            .putString(KEY_LATEST_APK_NAME, latest.apkName.orEmpty())
+            .apply()
+
         if (prefs.getString(KEY_LAST_NOTIFIED_TAG, null) == latest.tagName) return
 
         notifyUpdateAvailable(app, latest)

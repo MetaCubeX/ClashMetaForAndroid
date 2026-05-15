@@ -167,6 +167,12 @@
     <string name="update_notification_channel_description">Периодическая проверка обновлений ClashFest</string>
     <string name="update_notification_title">Доступно обновление ClashFest</string>
     <string name="update_notification_text">Новая версия: %1$s</string>
+    <string name="update_badge_description">Доступно обновление — нажмите для установки</string>
+    <string name="update_dialog_title_fmt">Доступно обновление %1$s</string>
+    <string name="update_dialog_message_fallback">Доступна новая версия. Скачать и установить?</string>
+    <string name="update_dialog_button_download">Скачать и установить</string>
+    <string name="update_dialog_button_later">Позже</string>
+    <string name="about_update_check_failed">Не удалось проверить обновления</string>
     <string name="sub_announcement_traffic_left">Трафика осталось:</string>
     <string name="sub_announcement_days_left">Дней осталось:</string>
     <string name="sub_announcement_expires">Истекает:</string>

@@ -370,6 +370,11 @@
     <string name="update_notification_channel_description">周期检查 ClashFest 更新</string>
     <string name="update_notification_title">ClashFest 有新版本</string>
     <string name="update_notification_text">新版本：%1$s</string>
+    <string name="update_badge_description">有可用更新 — 点击安装</string>
+    <string name="update_dialog_title_fmt">有可用更新 %1$s</string>
+    <string name="update_dialog_message_fallback">新版本可用。是否立即下载并安装？</string>
+    <string name="update_dialog_button_download">下载并安装</string>
+    <string name="update_dialog_button_later">稍后</string>
     <string name="about_checking_updates">正在检查…</string>
     <string name="about_core_version_label">核心版本</string>
     <string name="about_download_failed">下载失败</string>

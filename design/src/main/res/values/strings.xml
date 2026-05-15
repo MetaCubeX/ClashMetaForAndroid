@@ -602,6 +602,11 @@ Presets only change <b>where</b> files are downloaded from (CDN / host). It is s
     <string name="update_notification_channel_description">Periodic ClashFest update checks</string>
     <string name="update_notification_title">ClashFest update available</string>
     <string name="update_notification_text">New version: %1$s</string>
+    <string name="update_badge_description">Update available — tap to install</string>
+    <string name="update_dialog_title_fmt">Update %1$s available</string>
+    <string name="update_dialog_message_fallback">A new version is available. Download and install it now?</string>
+    <string name="update_dialog_button_download">Download &amp; install</string>
+    <string name="update_dialog_button_later">Later</string>
     <string name="about_checking_updates">Checking updates…</string>
     <string name="about_update_available">Update available: %1$s</string>
     <string name="about_update_latest">You already have the latest version</string>
