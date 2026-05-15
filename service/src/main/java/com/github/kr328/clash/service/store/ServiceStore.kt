@@ -107,8 +107,14 @@ class ServiceStore(context: Context) {
         defaultValue = true
     )
 
-    var closeConnectionsAfterProxySwitch by store.boolean(
-        key = "close_connections_after_proxy_switch",
+    /**
+     * When true, manual proxy selector switches keep active connections on the
+     * previous proxy (useful for long-running downloads/streams). Default false
+     * preserves historical behavior: connections are closed so new traffic
+     * uses the freshly selected proxy.
+     */
+    var keepConnectionsOnOldProxy by store.boolean(
+        key = "keep_connections_on_old_proxy",
         defaultValue = false
     )
 

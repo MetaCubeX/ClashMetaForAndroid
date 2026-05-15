@@ -9,15 +9,17 @@ import com.github.kr328.clash.service.util.sendConnectionsChanged
 suspend fun Context.closeConnectionsAfterUserProxySwitchIfEnabled(
     showFeedback: suspend (String, ToastDuration) -> Unit,
 ) {
-    if (!ServiceStore(this).closeConnectionsAfterProxySwitch) return
+    if (ServiceStore(this).keepConnectionsOnOldProxy) return
 
     runCatching {
         withClash { closeAllConnections() }
     }.onSuccess { closed ->
-        showFeedback(
-            getString(R.string.connections_closed_many, closed),
-            ToastDuration.Short,
-        )
+        if (closed > 0) {
+            showFeedback(
+                getString(R.string.connections_closed_many, closed),
+                ToastDuration.Short,
+            )
+        }
         sendConnectionsChanged()
     }.onFailure {
         showFeedback(

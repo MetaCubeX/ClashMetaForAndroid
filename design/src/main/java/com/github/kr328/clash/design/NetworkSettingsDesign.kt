@@ -74,9 +74,9 @@ class NetworkSettingsDesign(
             )
 
             switch(
-                value = srvStore::closeConnectionsAfterProxySwitch,
-                title = R.string.close_connections_after_proxy_switch,
-                summary = R.string.close_connections_after_proxy_switch_summary,
+                value = srvStore::keepConnectionsOnOldProxy,
+                title = R.string.keep_connections_on_old_proxy,
+                summary = R.string.keep_connections_on_old_proxy_summary,
             )
 
             category(R.string.vpn_service_options)

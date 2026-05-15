@@ -330,8 +330,8 @@
     <string name="proxy_hardening_off">Выкл — поведение Clash.Meta по умолчанию (не рекомендуется)</string>
     <string name="seed_default_geo_mirrors">Подставлять GeoIP/GeoSite зеркала</string>
     <string name="seed_default_geo_mirrors_summary">Если в импортированной подписке нет geox-url, ClashFest подставит зеркала (MetaCubeX/Loyalsoldier). Исправляет ошибку «cant download geoip.dat».</string>
-    <string name="close_connections_after_proxy_switch">Закрывать соединения после смены прокси</string>
-    <string name="close_connections_after_proxy_switch_summary">После успешной ручной смены селектора прокси закрывает текущие соединения ядра, чтобы новый трафик пошёл через выбранный прокси. VPN не перезапускается.</string>
+    <string name="keep_connections_on_old_proxy">Сохранять соединения на старом прокси при смене</string>
+    <string name="keep_connections_on_old_proxy_summary">По умолчанию ClashFest закрывает активные соединения после ручной смены прокси, чтобы новый трафик сразу пошёл через выбранный сервер. Включите эту опцию, чтобы оставлять текущие соединения на старом прокси — полезно для долгих загрузок, видеостримов или игровых сессий, которые не хочется обрывать.</string>
     <string name="proxy_switch_selector_failed">Не удалось сменить прокси. Текущие соединения не тронуты.</string>
     <string name="proxy_switch_close_connections_failed">Прокси сменён, но активные соединения закрыть не удалось.</string>
 
