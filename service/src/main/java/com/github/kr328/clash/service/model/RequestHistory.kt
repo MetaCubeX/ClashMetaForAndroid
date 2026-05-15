@@ -1,8 +1,19 @@
 package com.github.kr328.clash.service.model
 
+import com.github.kr328.clash.common.log.Log
+import com.github.kr328.clash.core.Clash
 import com.github.kr328.clash.core.model.ConnectionMetadata
 import com.github.kr328.clash.core.model.ConnectionTracker
+import com.github.kr328.clash.core.model.ConnectionsSnapshot
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -56,7 +67,12 @@ class RequestHistoryStore(private val limit: Int = DEFAULT_LIMIT) {
         require(limit > 0) { "limit must be positive" }
     }
 
-    private val entries = ArrayDeque<RequestHistoryEntry>(limit)
+    // LinkedHashMap gives O(1) lookup/update/remove while preserving insertion order.
+    // The previous ArrayDeque-based implementation copied the whole deque on every
+    // status flip — at 512 entries × ~50 active connections that was ~25k ops per
+    // ingest cycle. put() on an existing key updates the value in place without
+    // disturbing iteration order, which is exactly what we want for status updates.
+    private val entries = LinkedHashMap<String, RequestHistoryEntry>()
     private val activeIds = linkedSetOf<String>()
 
     @Synchronized
@@ -65,7 +81,7 @@ class RequestHistoryStore(private val limit: Int = DEFAULT_LIMIT) {
         val closedIds = activeIds - currentIds
 
         closedIds.forEach { id ->
-            replace(id) { it.copy(status = RequestHistoryEntry.STATUS_CLOSED) }
+            entries[id]?.let { entries[id] = it.copy(status = RequestHistoryEntry.STATUS_CLOSED) }
         }
         activeIds.clear()
         activeIds.addAll(currentIds)
@@ -74,17 +90,20 @@ class RequestHistoryStore(private val limit: Int = DEFAULT_LIMIT) {
             val id = connection.id
             if (id.isBlank()) return@forEach
 
-            val existing = entries.firstOrNull { it.id == id }
+            val existing = entries[id]
             val entry = connection.toRequestHistoryEntry(
                 timestamp = existing?.timestamp ?: now,
                 status = RequestHistoryEntry.STATUS_ACTIVE,
             )
 
             if (existing == null) {
-                append(entry)
-            } else {
-                replace(id) { entry }
+                while (entries.size >= limit) {
+                    val oldestId = entries.keys.iterator().next()
+                    entries.remove(oldestId)
+                    activeIds.remove(oldestId)
+                }
             }
+            entries[id] = entry
         }
     }
 
@@ -92,7 +111,7 @@ class RequestHistoryStore(private val limit: Int = DEFAULT_LIMIT) {
     fun snapshot(): RequestHistorySnapshot {
         return RequestHistorySnapshot(
             limit = limit,
-            requests = entries.toList(),
+            requests = entries.values.toList(),
         )
     }
 
@@ -102,22 +121,6 @@ class RequestHistoryStore(private val limit: Int = DEFAULT_LIMIT) {
         activeIds.clear()
     }
 
-    private fun append(entry: RequestHistoryEntry) {
-        while (entries.size >= limit) {
-            val removed = entries.removeFirst()
-            activeIds.remove(removed.id)
-        }
-        entries.addLast(entry)
-    }
-
-    private fun replace(id: String, transform: (RequestHistoryEntry) -> RequestHistoryEntry) {
-        val current = entries.toList()
-        entries.clear()
-        current.forEach { entry ->
-            entries.addLast(if (entry.id == id) transform(entry) else entry)
-        }
-    }
-
     companion object {
         const val DEFAULT_LIMIT = 512
     }
@@ -125,18 +128,65 @@ class RequestHistoryStore(private val limit: Int = DEFAULT_LIMIT) {
 
 object RequestHistoryRepository {
     private val store = RequestHistoryStore()
+    private val trackerScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private val trackerLock = Any()
+    private val ingestJson = Json {
+        ignoreUnknownKeys = true
+        isLenient = true
+    }
+    private var trackerJob: Job? = null
+    private var trackerRefCount = 0
 
-    fun ingest(connections: List<ConnectionTracker>) {
-        store.ingest(connections)
+    fun ingest(connections: List<ConnectionTracker>) = store.ingest(connections)
+
+    fun snapshot(): RequestHistorySnapshot = store.snapshot()
+
+    fun clear() = store.clear()
+
+    /**
+     * Begin sampling connection snapshots. Reference-counted: multiple consumers
+     * can call startTracking and only the last stopTracking actually cancels the
+     * ingest loop. Lets us keep the snapshot-poll work confined to the time a
+     * UI surface is actually watching it instead of running on every TUN tick.
+     */
+    fun startTracking() {
+        synchronized(trackerLock) {
+            trackerRefCount++
+            if (trackerJob?.isActive == true) return
+            trackerJob = trackerScope.launch {
+                while (isActive) {
+                    ingestSnapshot()
+                    delay(SAMPLE_INTERVAL_MS)
+                }
+            }
+        }
     }
 
-    fun snapshot(): RequestHistorySnapshot {
-        return store.snapshot()
+    fun stopTracking() {
+        synchronized(trackerLock) {
+            trackerRefCount = (trackerRefCount - 1).coerceAtLeast(0)
+            if (trackerRefCount == 0) {
+                trackerJob?.cancel()
+                trackerJob = null
+            }
+        }
     }
 
-    fun clear() {
-        store.clear()
+    private fun ingestSnapshot() {
+        val raw = runCatching { Clash.queryConnectionsSnapshot() }.getOrElse {
+            Log.w("Request history snapshot query failed", it)
+            return
+        }
+        val snap = runCatching {
+            ingestJson.decodeFromString(ConnectionsSnapshot.serializer(), raw)
+        }.getOrElse {
+            Log.w("Request history snapshot decode failed; raw size=${raw.length}", it)
+            return
+        }
+        store.ingest(snap.connections)
     }
+
+    private const val SAMPLE_INTERVAL_MS = 2_000L
 }
 
 fun ConnectionTracker.toRequestHistoryEntry(

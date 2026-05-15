@@ -63,6 +63,14 @@ class ClashManager(private val context: Context) : IClashManager,
         RequestHistoryRepository.clear()
     }
 
+    override fun startRequestHistoryTracking() {
+        RequestHistoryRepository.startTracking()
+    }
+
+    override fun stopRequestHistoryTracking() {
+        RequestHistoryRepository.stopTracking()
+    }
+
     override fun closeConnection(id: String): Boolean {
         return Clash.closeConnection(id)
     }

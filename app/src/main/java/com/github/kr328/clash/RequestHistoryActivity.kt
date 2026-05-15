@@ -56,6 +56,8 @@ class RequestHistoryActivity : BaseActivity<RequestHistoryDesign>() {
             }
         }
 
+        runCatching { withClash { startRequestHistoryTracking() } }
+
         try {
             refresh()
 
@@ -92,6 +94,7 @@ class RequestHistoryActivity : BaseActivity<RequestHistoryDesign>() {
             }
         } finally {
             refreshJob.cancel()
+            runCatching { withClash { stopRequestHistoryTracking() } }
         }
     }
 
