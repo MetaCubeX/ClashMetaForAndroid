@@ -232,6 +232,19 @@
     <string name="connections_rule_fmt">Правило: %1$s %2$s</string>
     <string name="connections_inbound_fmt">Вход: %1$s</string>
     <string name="connections_id_fmt">ID: %1$s</string>
+    <string name="request_history_title">История запросов</string>
+    <string name="request_history_short_title">Запросы</string>
+    <string name="request_history_count_fmt">%1$d / %2$d последних запросов</string>
+    <string name="request_history_search_hint">Поиск по хосту, адресу, правилу, прокси, приложению…</string>
+    <string name="request_history_empty_state">Истории запросов пока нет — включите VPN и создайте трафик.</string>
+    <string name="request_history_clear">Очистить</string>
+    <string name="request_history_clear_confirm">Очистить недавнюю историю запросов?</string>
+    <string name="request_history_cleared">История запросов очищена</string>
+    <string name="request_history_export">Экспорт</string>
+    <string name="request_history_auto_scroll">Автопрокрутка</string>
+    <string name="request_history_status_active">Активные</string>
+    <string name="request_history_status_closed">Закрытые</string>
+    <string name="request_history_route_fmt">Правило: %1$s %2$s · Прокси: %3$s</string>
     <string name="theme_toggle">Сменить тему (светлая / тёмная)</string>
 
     <string name="copied">Скопировано</string>
