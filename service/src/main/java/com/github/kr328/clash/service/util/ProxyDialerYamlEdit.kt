@@ -13,6 +13,12 @@ import java.io.File
 object ProxyDialerYamlEdit {
     private val dumpYaml = YamlFormatting.blockYaml()
 
+    data class FilePatch(
+        val relativePath: String,
+        val currentYaml: String,
+        val proposedYaml: String,
+    )
+
     /** One row from `proxies:` on disk that has `dialer-proxy` set. */
     data class DialerChainRow(
         /** `name:` in YAML (no UI prefix). */
@@ -51,27 +57,36 @@ object ProxyDialerYamlEdit {
      * Use when stale dialer names break the core (wrong subscription / renamed nodes).
      */
     fun clearAllDialerProxies(profileDir: File): Boolean {
-        val configFile = File(profileDir, "config.yaml")
-        if (!configFile.isFile) return false
-        var any = false
-        val root = YamlFormatting.parseRootMap(configFile.readText()) ?: return false
-        if (stripDialerFromProxiesInRoot(root)) {
-            configFile.writeText(dumpYaml.dump(root))
-            any = true
+        val patches = previewClearAllDialerProxies(profileDir)
+        for (patch in patches) {
+            resolveProviderPath(profileDir, patch.relativePath).writeText(patch.proposedYaml)
         }
-        val pp = root["proxy-providers"] as? Map<*, *> ?: return any
+        return patches.isNotEmpty()
+    }
+
+    fun previewClearAllDialerProxies(profileDir: File): List<FilePatch> {
+        val configFile = File(profileDir, "config.yaml")
+        if (!configFile.isFile) return emptyList()
+        val patches = ArrayList<FilePatch>()
+        val configText = configFile.readText()
+        val root = YamlFormatting.parseRootMap(configText) ?: return emptyList()
+        if (stripDialerFromProxiesInRoot(root)) {
+            patches.add(FilePatch("config.yaml", configText, dumpYaml.dump(root)))
+        }
+        val pp = root["proxy-providers"] as? Map<*, *> ?: return patches
         for ((_, v) in pp) {
             val prov = v as? Map<*, *> ?: continue
             val pathStr = prov["path"] as? String ?: continue
             val f = resolveProviderPath(profileDir, pathStr)
             if (!f.isFile) continue
-            val pRoot = YamlFormatting.parseRootMap(f.readText()) ?: continue
+            val rel = pathStr.trim().removePrefix("./")
+            val pText = f.readText()
+            val pRoot = YamlFormatting.parseRootMap(pText) ?: continue
             if (stripDialerFromProxiesInRoot(pRoot)) {
-                f.writeText(dumpYaml.dump(pRoot))
-                any = true
+                patches.add(FilePatch(rel, pText, dumpYaml.dump(pRoot)))
             }
         }
-        return any
+        return patches
     }
 
     private fun collectDialerChainsFromRoot(root: Map<*, *>, relativePath: String, out: MutableList<DialerChainRow>) {
@@ -119,22 +134,27 @@ object ProxyDialerYamlEdit {
      * @return true if a file was updated
      */
     fun applyDialerProxy(profileDir: File, targetProxyName: String, dialerProxyName: String?): Boolean {
+        val patch = previewDialerProxy(profileDir, targetProxyName, dialerProxyName) ?: return false
+        resolveProviderPath(profileDir, patch.relativePath).writeText(patch.proposedYaml)
+        return true
+    }
+
+    fun previewDialerProxy(profileDir: File, targetProxyName: String, dialerProxyName: String?): FilePatch? {
         val trimmedTarget = targetProxyName.trim()
-        if (trimmedTarget.isEmpty()) return false
+        if (trimmedTarget.isEmpty()) return null
         val configFile = File(profileDir, "config.yaml")
-        if (!configFile.isFile) return false
+        if (!configFile.isFile) return null
         val configText = try {
             configFile.readText()
         } catch (_: Exception) {
-            return false
+            return null
         }
-        val root = YamlFormatting.parseRootMap(configText) ?: return false
+        val root = YamlFormatting.parseRootMap(configText) ?: return null
         if (patchProxiesList(root, trimmedTarget, dialerProxyName)) {
-            configFile.writeText(dumpYaml.dump(root))
-            return true
+            return FilePatch("config.yaml", configText, dumpYaml.dump(root))
         }
 
-        val pp = root["proxy-providers"] as? Map<*, *> ?: return false
+        val pp = root["proxy-providers"] as? Map<*, *> ?: return null
         for ((_, v) in pp) {
             val prov = v as? Map<*, *> ?: continue
             val pathStr = prov["path"] as? String ?: continue
@@ -147,11 +167,10 @@ object ProxyDialerYamlEdit {
             }
             val pRoot = YamlFormatting.parseRootMap(pText) ?: continue
             if (patchProxiesList(pRoot, trimmedTarget, dialerProxyName)) {
-                f.writeText(dumpYaml.dump(pRoot))
-                return true
+                return FilePatch(pathStr.trim().removePrefix("./"), pText, dumpYaml.dump(pRoot))
             }
         }
-        return false
+        return null
     }
 
     /** [proxy-providers] entry `path` relative to [profileDir]. */

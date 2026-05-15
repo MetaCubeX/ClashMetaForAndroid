@@ -26,6 +26,7 @@ dependencies {
     implementation("com.squareup.okhttp3:logging-interceptor")
     implementation("org.yaml:snakeyaml:2.2")
 
+    testImplementation("junit:junit:4.13.2")
     testImplementation(kotlin("test"))
 }
 

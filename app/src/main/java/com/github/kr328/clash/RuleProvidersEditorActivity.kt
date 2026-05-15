@@ -4,6 +4,7 @@ import com.github.kr328.clash.common.util.uuid
 import com.github.kr328.clash.design.RuleProvidersEditorDesign
 import com.github.kr328.clash.design.R
 import com.github.kr328.clash.design.ui.ToastDuration
+import com.github.kr328.clash.util.showYamlPreview
 import com.github.kr328.clash.util.withProfile
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -31,14 +32,12 @@ class RuleProvidersEditorActivity : BaseActivity<RuleProvidersEditorDesign>() {
                 design.requests.onReceive { req ->
                     when (req) {
                         RuleProvidersEditorDesign.Request.Save -> launch {
-                            val ok = withProfile {
-                                replaceRuleProvidersYaml(uuid, design.getYaml())
+                            val preview = withProfile {
+                                previewReplaceRuleProvidersYaml(uuid, design.getYaml())
                             }
-                            if (ok) {
+                            showYamlPreview(preview) {
                                 design.showToast(R.string.rule_snippet_apply_ok, ToastDuration.Long)
                                 finish()
-                            } else {
-                                design.showToast(R.string.rule_snippet_apply_failed, ToastDuration.Long)
                             }
                         }
                     }

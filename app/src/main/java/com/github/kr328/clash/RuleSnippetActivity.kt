@@ -19,6 +19,7 @@ import com.github.kr328.clash.service.model.RuleState
 import com.github.kr328.clash.service.util.importedDir
 import com.github.kr328.clash.util.clashDir
 import com.github.kr328.clash.service.util.ProxyGroupsYamlPreview
+import com.github.kr328.clash.util.showYamlPreview
 import com.github.kr328.clash.util.withClash
 import com.github.kr328.clash.util.withProfile
 import com.google.android.material.switchmaterial.SwitchMaterial
@@ -327,7 +328,7 @@ class RuleSnippetActivity : BaseActivity<RuleSnippetDesign>() {
         applyButton.setOnClickListener {
             launch {
                 val typePos = (typeSpinner.adapter as ArrayAdapter<String>).getPosition(typeSpinner.text.toString())
-                val ok = when (typePos) {
+                val previewJson = when (typePos) {
                     0 -> {
                         val chosen = selected(view.findViewById(R.id.spinner_preset_policy))
                         val policy = if (chosen == getString(DesignR.string.rule_policy_auto)) {
@@ -339,16 +340,17 @@ class RuleSnippetActivity : BaseActivity<RuleSnippetDesign>() {
                         runPresetSoftChecks(design, presetPos)
                         val rules = presetLines(presetPos, policy)
                         withProfile {
-                            addRules(uuid, rules, addMode = true, insertMode = "append")
+                            previewAddRules(uuid, rules, addMode = true, insertMode = "append")
                         }
                     }
                     1 -> {
-                        applyProviderFromSheet(uuid, state, null, view)
+                        val nextJson = providerStateJsonFromSheet(state, null, view)
+                        if (nextJson == null) null else withProfile { previewApplyRuleState(uuid, nextJson) }
                     }
                     else -> {
                         val line = manualLineFromSheet(view) ?: ""
-                        if (line.isBlank()) false else withProfile {
-                            addRules(
+                        if (line.isBlank()) null else withProfile {
+                            previewAddRules(
                                 uuid = uuid,
                                 rawRules = listOf(line),
                                 addMode = true,
@@ -357,12 +359,10 @@ class RuleSnippetActivity : BaseActivity<RuleSnippetDesign>() {
                         }
                     }
                 }
-                if (ok) {
+                showYamlPreview(previewJson) {
                     design.showToast(DesignR.string.rule_snippet_apply_ok, ToastDuration.Long)
                     refreshExistingProviders(design)
                     dialog.dismiss()
-                } else {
-                    design.showToast(DesignR.string.rule_snippet_apply_failed, ToastDuration.Long)
                 }
             }
         }
@@ -370,15 +370,14 @@ class RuleSnippetActivity : BaseActivity<RuleSnippetDesign>() {
         dialog.show()
     }
 
-    private suspend fun applyProviderFromSheet(
-        uuid: UUID,
+    private fun providerStateJsonFromSheet(
         state: RuleState,
         editingProvider: RuleProviderItem?,
         view: View
-    ): Boolean {
+    ): String? {
         val name = view.findViewById<TextInputEditText>(R.id.input_provider_name).text?.toString()?.trim().orEmpty()
         val url = view.findViewById<TextInputEditText>(R.id.input_provider_url).text?.toString()?.trim().orEmpty()
-        if (name.isBlank() || url.isBlank()) return false
+        if (name.isBlank() || url.isBlank()) return null
         val behavior = selected(view.findViewById<AutoCompleteTextView>(R.id.spinner_provider_behavior)).ifBlank { "classical" }
         val policy = selected(view.findViewById<AutoCompleteTextView>(R.id.spinner_provider_policy)).ifBlank { "DIRECT" }
         val enabled = view.findViewById<SwitchMaterial>(R.id.switch_provider_enabled).isChecked
@@ -421,7 +420,7 @@ class RuleSnippetActivity : BaseActivity<RuleSnippetDesign>() {
             providers = updatedProviders,
             rules = updatedRules.mapIndexed { index, item -> item.copy(order = index) },
         )
-        return withProfile { applyRuleState(uuid, json.encodeToString(RuleState.serializer(), next)) }
+        return json.encodeToString(RuleState.serializer(), next)
     }
 
     private fun manualLineFromSheet(view: View): String? {

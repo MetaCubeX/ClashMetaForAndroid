@@ -16,6 +16,7 @@ import com.github.kr328.clash.service.util.ProxyProviderUiRow
 import com.github.kr328.clash.service.util.ProxyProvidersUi
 import com.github.kr328.clash.util.withClash
 import com.github.kr328.clash.util.withProfile
+import com.github.kr328.clash.util.showYamlPreview
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.select
@@ -110,14 +111,12 @@ class ProxyProvidersEditorActivity : BaseActivity<ProxyProvidersEditorDesign>() 
             val doc = ProxyProvidersUi.buildProxyProvidersDocument(valid)
             val labels = ProxyProvidersUi.buildLabels(valid)
             val labelsJson = ProxyProvidersUi.labelsToJson(labels)
-            val ok = withProfile { replaceProxyProvidersYaml(uuid, doc) }
-            if (!ok) {
-                design.showToast(R.string.proxy_providers_toast_failed, ToastDuration.Long)
-                return
+            val preview = withProfile { previewReplaceProxyProvidersYaml(uuid, doc) }
+            showYamlPreview(preview) {
+                withProfile { writeProxyProviderLabelsJson(uuid, labelsJson) }
+                design.showToast(R.string.proxy_providers_toast_saved, ToastDuration.Long)
+                finish()
             }
-            withProfile { writeProxyProviderLabelsJson(uuid, labelsJson) }
-            design.showToast(R.string.proxy_providers_toast_saved, ToastDuration.Long)
-            finish()
         } catch (e: Exception) {
             design.showExceptionToast(e)
         }
