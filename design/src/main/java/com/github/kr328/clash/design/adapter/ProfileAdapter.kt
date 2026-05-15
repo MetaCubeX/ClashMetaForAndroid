@@ -642,10 +642,14 @@ class ProfileAdapter(
                     val pingingNow = states.pingingUuid == profile.uuid
                     sheet.proxySheetPingProgress.visibility = if (pingingNow) View.VISIBLE else View.GONE
                     sheet.proxySheetPingButton.visibility = if (pingingNow) View.INVISIBLE else View.VISIBLE
+                    // 260ms while pinging keeps the live progress chip readable.
+                    // Idle interval is 2500ms — the picker doesn't show anything that
+                    // changes faster than that when the user isn't pinging, and the
+                    // sheet may stay open for a while.
                     if (pingingNow) {
                         sheet.root.postDelayed(this, 260L)
                     } else {
-                        sheet.root.postDelayed(this, 1000L)
+                        sheet.root.postDelayed(this, 2500L)
                     }
                 }
             }

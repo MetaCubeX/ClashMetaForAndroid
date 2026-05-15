@@ -136,10 +136,18 @@ object RequestHistoryRepository {
     }
     private var trackerJob: Job? = null
     private var trackerRefCount = 0
+    @Volatile private var lastConsumerActivityAt: Long = 0L
 
     fun ingest(connections: List<ConnectionTracker>) = store.ingest(connections)
 
-    fun snapshot(): RequestHistorySnapshot = store.snapshot()
+    fun snapshot(): RequestHistorySnapshot {
+        // Each snapshot read counts as a live consumer signal. RequestHistoryActivity
+        // polls every 2s while open; if those polls stop for IDLE_TIMEOUT_MS the
+        // tracker assumes the consumer died without a clean stopTracking (process
+        // kill, crash) and self-cancels to avoid a process-scoped battery leak.
+        lastConsumerActivityAt = System.currentTimeMillis()
+        return store.snapshot()
+    }
 
     fun clear() = store.clear()
 
@@ -152,11 +160,21 @@ object RequestHistoryRepository {
     fun startTracking() {
         synchronized(trackerLock) {
             trackerRefCount++
+            lastConsumerActivityAt = System.currentTimeMillis()
             if (trackerJob?.isActive == true) return
             trackerJob = trackerScope.launch {
                 while (isActive) {
                     ingestSnapshot()
                     delay(SAMPLE_INTERVAL_MS)
+                    val idleMs = System.currentTimeMillis() - lastConsumerActivityAt
+                    if (idleMs > IDLE_TIMEOUT_MS) {
+                        Log.w("Request history tracker idle for ${idleMs}ms; auto-stopping")
+                        synchronized(trackerLock) {
+                            trackerRefCount = 0
+                            trackerJob = null
+                        }
+                        break
+                    }
                 }
             }
         }
@@ -187,6 +205,7 @@ object RequestHistoryRepository {
     }
 
     private const val SAMPLE_INTERVAL_MS = 2_000L
+    private const val IDLE_TIMEOUT_MS = 30_000L
 }
 
 fun ConnectionTracker.toRequestHistoryEntry(
