@@ -73,6 +73,12 @@ class NetworkSettingsDesign(
                 summary = R.string.seed_default_geo_mirrors_summary,
             )
 
+            switch(
+                value = srvStore::closeConnectionsAfterProxySwitch,
+                title = R.string.close_connections_after_proxy_switch,
+                summary = R.string.close_connections_after_proxy_switch_summary,
+            )
+
             category(R.string.vpn_service_options)
 
             switch(

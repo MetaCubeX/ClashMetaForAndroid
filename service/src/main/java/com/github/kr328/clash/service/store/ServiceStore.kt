@@ -107,6 +107,11 @@ class ServiceStore(context: Context) {
         defaultValue = true
     )
 
+    var closeConnectionsAfterProxySwitch by store.boolean(
+        key = "close_connections_after_proxy_switch",
+        defaultValue = false
+    )
+
     var geoDataSourcePreset: GeoDataSourcePreset by store.enum(
         key = "geo_data_source_preset",
         defaultValue = GeoDataSourcePreset.Global,

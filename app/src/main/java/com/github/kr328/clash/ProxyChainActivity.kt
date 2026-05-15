@@ -10,6 +10,7 @@ import com.github.kr328.clash.design.ProxyChainDesign
 import com.github.kr328.clash.design.ProxyChainDesign.ChainStatusKind
 import com.github.kr328.clash.design.R
 import com.github.kr328.clash.design.util.showExceptionToast
+import com.github.kr328.clash.util.closeConnectionsAfterUserProxySwitchIfEnabled
 import com.github.kr328.clash.util.withClash
 import com.github.kr328.clash.util.withProfile
 import kotlinx.coroutines.delay
@@ -190,6 +191,9 @@ class ProxyChainActivity : BaseActivity<ProxyChainDesign>() {
                 patchSelector(group, outbound)
             }
             if (patched) {
+                closeConnectionsAfterUserProxySwitchIfEnabled { message, duration ->
+                    design.showToast(message, duration)
+                }
                 design.showChainStatus(
                     ChainStatusKind.Success,
                     getString(R.string.proxy_chain_status_success, outbound, dialer),

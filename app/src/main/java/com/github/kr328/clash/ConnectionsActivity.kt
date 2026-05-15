@@ -86,6 +86,13 @@ class ConnectionsActivity : BaseActivity<ConnectionsDesign>() {
         try {
             while (isActive) {
                 select<Unit> {
+                    events.onReceive {
+                        when (it) {
+                            Event.ConnectionsChanged -> launch { reloadSnapshot() }
+                            else -> Unit
+                        }
+                    }
+
                     design.requests.onReceive {
                         when (it) {
                             ConnectionsDesign.Request.OpenLogcat ->
