@@ -356,6 +356,16 @@
     <string name="profile_use">Использовать</string>
     <string name="profile_selected_group">Выбранная группа</string>
     <string name="profile_nodes">Узлы</string>
+    <string name="profile_proxy_search_hint">Поиск по узлам или группам</string>
+    <string name="profile_proxy_sort_config">Порядок конфига</string>
+    <string name="profile_proxy_sort_delay">Задержка</string>
+    <string name="profile_proxy_sort_name">Имя</string>
+    <string name="profile_proxy_filter_all">Все</string>
+    <string name="profile_proxy_filter_current">Текущая группа</string>
+    <string name="profile_proxy_filter_selected">Выбранные</string>
+    <string name="profile_proxy_filter_available">Доступные</string>
+    <string name="profile_proxy_filter_provider">Источник: %1$s</string>
+    <string name="profile_proxy_empty_filtered">Нет подходящих узлов. Очистите поиск или фильтры.</string>
     <string name="profile_start_to_test">Запустите VPN, чтобы проверить задержку</string>
     <string name="profile_update_scheduled">Запущено обновление подписки</string>
     <string name="profile_menu_set_active">Сделать активным</string>
