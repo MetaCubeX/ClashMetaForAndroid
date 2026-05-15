@@ -706,6 +706,7 @@ Presets only change <b>where</b> files are downloaded from (CDN / host). It is s
     <string name="properties_proxy_providers">HTTP subscription sources</string>
     <string name="properties_proxy_providers_summary">Multiple proxy-providers (sub1, sub2, …) without editing YAML</string>
     <string name="proxy_providers_editor_title">Subscription sources</string>
+    <string name="proxy_providers_editor_hint_title">How sources work</string>
     <string name="proxy_providers_editor_hint">Each row becomes proxy-providers sub1, sub2, … with path ./providers/subN.yaml. If you have two or more rows, each node name is prefixed with [subN] in the engine so the same name from two subscriptions cannot collide (otherwise the first subscription always wins). Health-check is enabled on each HTTP provider so delays show up for merged select groups. Labels are for you; keys in config are subN. This block is kept when the subscription URL refreshes. Use the ⋮ menu for merged groups. With VPN on, open Providers to refresh nodes. After adding a second row, save again and re-pick nodes (names change).</string>
     <string name="proxy_providers_add">Add row</string>
     <string name="proxy_providers_merge_section_title">From your profiles</string>

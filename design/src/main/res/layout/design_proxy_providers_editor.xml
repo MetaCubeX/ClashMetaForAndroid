@@ -14,16 +14,6 @@
         android:minHeight="?attr/actionBarSize"
         app:title="@string/proxy_providers_editor_title" />
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:paddingHorizontal="16dp"
-        android:paddingTop="4dp"
-        android:paddingBottom="12dp"
-        android:text="@string/proxy_providers_editor_hint"
-        android:textAppearance="@style/TextAppearance.App.BodyMedium"
-        android:textColor="?attr/colorOnSurfaceVariant" />
-
     <com.google.android.material.card.MaterialCardView
         style="@style/AppCard.Filled"
         android:layout_width="match_parent"

@@ -14,6 +14,7 @@ import com.github.kr328.clash.design.util.root
 import com.github.kr328.clash.service.util.ProxyProviderUiRow
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.button.MaterialButton
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 
 class ProxyProvidersEditorDesign(
     context: Context,
@@ -54,11 +55,20 @@ class ProxyProvidersEditorDesign(
 
         toolbar.inflateMenu(R.menu.menu_proxy_providers_editor)
         toolbar.setOnMenuItemClickListener { item ->
-            if (item.itemId == R.id.action_merged_proxy_constructor) {
-                requests.trySend(Request.OpenMergedGroupConstructor)
-                true
-            } else {
-                false
+            when (item.itemId) {
+                R.id.action_merged_proxy_constructor -> {
+                    requests.trySend(Request.OpenMergedGroupConstructor)
+                    true
+                }
+                R.id.action_show_hint -> {
+                    MaterialAlertDialogBuilder(context)
+                        .setTitle(R.string.proxy_providers_editor_hint_title)
+                        .setMessage(R.string.proxy_providers_editor_hint)
+                        .setPositiveButton(android.R.string.ok, null)
+                        .show()
+                    true
+                }
+                else -> false
             }
         }
 

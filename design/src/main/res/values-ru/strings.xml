@@ -569,6 +569,7 @@
     <string name="properties_proxy_providers">HTTP-источники подписок</string>
     <string name="properties_proxy_providers_summary">Несколько proxy-providers (sub1, sub2, …) без правки YAML</string>
     <string name="proxy_providers_editor_title">Источники подписок</string>
+    <string name="proxy_providers_editor_hint_title">Как работают источники</string>
     <string name="proxy_providers_editor_hint">Каждая строка — proxy-providers sub1, sub2, … с путём ./providers/subN.yaml. Если строк больше одной, к именам узлов в ядре добавляется префикс [subN], иначе одинаковые имена из двух подписок сливаются и всегда выигрывает первая подписка. На каждом HTTP-провайдере включается health-check, чтобы в объединённой select-группе снова показывались задержки. Блок сохраняется при обновлении подписки. Меню «⋯» — объединённая группа. С VPN откройте «Провайдеры» для обновления узлов. После добавления второй строки сохраните снова и выберите узлы заново (имена меняются).</string>
     <string name="proxy_providers_add">Добавить строку</string>
     <string name="proxy_providers_merge_section_title">Из ваших профилей</string>

@@ -2,6 +2,11 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
+        android:id="@+id/action_show_hint"
+        android:icon="@drawable/ic_outline_info"
+        android:title="@string/proxy_providers_editor_hint_title"
+        app:showAsAction="ifRoom" />
+    <item
         android:id="@+id/action_merged_proxy_constructor"
         android:title="@string/proxy_providers_menu_merged_constructor"
         app:showAsAction="never" />
