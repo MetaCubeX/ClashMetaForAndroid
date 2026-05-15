@@ -90,6 +90,8 @@ class ConnectionsActivity : BaseActivity<ConnectionsDesign>() {
                         when (it) {
                             ConnectionsDesign.Request.OpenLogcat ->
                                 startActivity(LogcatActivity::class.intent)
+                            ConnectionsDesign.Request.OpenRequestHistory ->
+                                startActivity(RequestHistoryActivity::class.intent)
                             is ConnectionsDesign.Request.CloseConnection -> launch {
                                 val closed = withClash { closeConnection(it.id) }
                                 design.showToast(

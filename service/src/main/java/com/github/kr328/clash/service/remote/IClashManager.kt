@@ -16,6 +16,8 @@ interface IClashManager {
     fun queryConnectionsSnapshot(): String
     fun closeConnection(id: String): Boolean
     fun closeAllConnections(): Int
+    fun queryRequestHistory(): String
+    fun clearRequestHistory()
 
     fun patchSelector(group: String, name: String): Boolean
 

@@ -6,6 +6,8 @@ import com.github.kr328.clash.core.Clash
 import com.github.kr328.clash.core.model.*
 import com.github.kr328.clash.service.data.Selection
 import com.github.kr328.clash.service.data.SelectionDao
+import com.github.kr328.clash.service.model.RequestHistoryRepository
+import com.github.kr328.clash.service.model.RequestHistorySnapshot
 import com.github.kr328.clash.service.remote.IClashManager
 import com.github.kr328.clash.service.remote.ILogObserver
 import com.github.kr328.clash.service.store.ServiceStore
@@ -13,11 +15,17 @@ import com.github.kr328.clash.service.util.ProxyHardener
 import com.github.kr328.clash.service.util.sendOverrideChanged
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.ReceiveChannel
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 class ClashManager(private val context: Context) : IClashManager,
     CoroutineScope by CoroutineScope(Dispatchers.IO) {
     private val store = ServiceStore(context)
     private var logReceiver: ReceiveChannel<LogMessage>? = null
+    private val json = Json {
+        ignoreUnknownKeys = true
+        isLenient = true
+    }
 
     override fun queryTunnelState(): TunnelState {
         return Clash.queryTunnelState()
@@ -45,6 +53,14 @@ class ClashManager(private val context: Context) : IClashManager,
 
     override fun queryConnectionsSnapshot(): String {
         return Clash.queryConnectionsSnapshot()
+    }
+
+    override fun queryRequestHistory(): String {
+        return json.encodeToString<RequestHistorySnapshot>(RequestHistoryRepository.snapshot())
+    }
+
+    override fun clearRequestHistory() {
+        RequestHistoryRepository.clear()
     }
 
     override fun closeConnection(id: String): Boolean {

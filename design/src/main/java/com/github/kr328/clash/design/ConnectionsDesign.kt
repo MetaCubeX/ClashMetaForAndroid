@@ -26,6 +26,7 @@ class ConnectionsDesign(context: Context) : Design<ConnectionsDesign.Request>(co
 
     sealed class Request {
         object OpenLogcat : Request()
+        object OpenRequestHistory : Request()
         data class CloseConnection(val id: String) : Request()
         object CloseAllConnections : Request()
     }
@@ -50,6 +51,9 @@ class ConnectionsDesign(context: Context) : Design<ConnectionsDesign.Request>(co
         binding.connectionsList.adapter = adapter
         binding.btnConnectionsOpenLog.setOnClickListener {
             requests.trySend(Request.OpenLogcat)
+        }
+        binding.btnConnectionsOpenRequests.setOnClickListener {
+            requests.trySend(Request.OpenRequestHistory)
         }
         binding.btnConnectionsCloseAll.setOnClickListener {
             MaterialAlertDialogBuilder(context)
