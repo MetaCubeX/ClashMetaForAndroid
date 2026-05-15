@@ -78,6 +78,16 @@
                                 app:iconGravity="textStart" />
 
                             <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btn_connections_open_requests"
+                                style="@style/Widget.Material3.Button.TextButton"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:minWidth="0dp"
+                                android:text="@string/request_history_short_title"
+                                app:icon="@drawable/ic_baseline_dns"
+                                app:iconGravity="textStart" />
+
+                            <com.google.android.material.button.MaterialButton
                                 android:id="@+id/btn_connections_close_all"
                                 style="@style/Widget.Material3.Button.TextButton"
                                 android:layout_width="wrap_content"

@@ -232,6 +232,19 @@ Presets only change <b>where</b> files are downloaded from (CDN / host). It is s
     <string name="connections_rule_fmt">Rule: %1$s %2$s</string>
     <string name="connections_inbound_fmt">Inbound: %1$s</string>
     <string name="connections_id_fmt">ID: %1$s</string>
+    <string name="request_history_title">Request history</string>
+    <string name="request_history_short_title">Requests</string>
+    <string name="request_history_count_fmt">%1$d / %2$d recent requests</string>
+    <string name="request_history_search_hint">Search host, destination, rule, proxy, app…</string>
+    <string name="request_history_empty_state">No request history yet — turn the VPN on and generate traffic.</string>
+    <string name="request_history_clear">Clear</string>
+    <string name="request_history_clear_confirm">Clear recent request history?</string>
+    <string name="request_history_cleared">Request history cleared</string>
+    <string name="request_history_export">Export</string>
+    <string name="request_history_auto_scroll">Auto-scroll</string>
+    <string name="request_history_status_active">Active</string>
+    <string name="request_history_status_closed">Closed</string>
+    <string name="request_history_route_fmt">Rule: %1$s %2$s · Proxy: %3$s</string>
     <string name="usage_unlimited_symbol">∞</string>
     <string name="clipboard_empty">Clipboard is empty</string>
     <string name="clipboard_no_url">No subscription link in clipboard (need http(s), content://, or mierus:// lines)</string>
@@ -282,6 +295,16 @@ Presets only change <b>where</b> files are downloaded from (CDN / host). It is s
     <string name="profile_use">Use</string>
     <string name="profile_selected_group">Selected group</string>
     <string name="profile_nodes">Nodes</string>
+    <string name="profile_proxy_search_hint">Search nodes or groups</string>
+    <string name="profile_proxy_sort_config">Config order</string>
+    <string name="profile_proxy_sort_delay">Delay</string>
+    <string name="profile_proxy_sort_name">Name</string>
+    <string name="profile_proxy_filter_all">All</string>
+    <string name="profile_proxy_filter_current">Current group</string>
+    <string name="profile_proxy_filter_selected">Selected</string>
+    <string name="profile_proxy_filter_available">Available</string>
+    <string name="profile_proxy_filter_provider">Source: %1$s</string>
+    <string name="profile_proxy_empty_filtered">No matching nodes. Clear search or filters.</string>
     <string name="proxy_sheet_active_subscription">Active subscription</string>
     <string name="proxy_sheet_group_label">Proxy group</string>
     <string name="proxy_sheet_sorted_by_ping">Sorted by ping</string>
@@ -453,6 +476,10 @@ Presets only change <b>where</b> files are downloaded from (CDN / host). It is s
     <string name="proxy_hardening_off">Off — upstream Clash.Meta defaults (not recommended)</string>
     <string name="seed_default_geo_mirrors">Auto-seed GeoIP / GeoSite mirrors</string>
     <string name="seed_default_geo_mirrors_summary">If the imported subscription does not provide geox-url, ClashFest fills in default mirrors (MetaCubeX/Loyalsoldier). Fixes the «cant download geoip.dat» error.</string>
+    <string name="keep_connections_on_old_proxy">Keep connections on old proxy after switch</string>
+    <string name="keep_connections_on_old_proxy_summary">By default ClashFest closes active connections after a manual proxy switch so new traffic uses the selected proxy immediately. Enable this to keep running connections on the previous proxy — useful for long downloads, video streams, or game sessions you don\'t want to interrupt.</string>
+    <string name="proxy_switch_selector_failed">Could not switch proxy. Existing connections were left untouched.</string>
+    <string name="proxy_switch_close_connections_failed">Proxy switched, but active connections could not be closed.</string>
 
     <string name="bypass_private_network">Bypass Private Network</string>
     <string name="bypass_private_network_summary">Bypass private network addresses</string>
@@ -594,6 +621,11 @@ Presets only change <b>where</b> files are downloaded from (CDN / host). It is s
     <string name="profiles_header_subtitle_ready">Manage subscriptions, open editor, and sources from one place.</string>
     <string name="profiles_header_total_fmt">%1$d total</string>
     <string name="profiles_header_active_fmt">%1$d active</string>
+    <string name="profiles_sort">Sort profiles</string>
+    <string name="profiles_sort_manual">Manual order</string>
+    <string name="profiles_sort_active_first">Active first</string>
+    <string name="profiles_sort_name">Name</string>
+    <string name="profiles_sort_last_updated">Last updated</string>
     <string name="profiles_updating">Updating…</string>
 
     <string name="app">App</string>

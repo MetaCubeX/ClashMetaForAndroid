@@ -17,9 +17,12 @@ fun Context.showYamlPreviewDialog(
     preview: YamlPreview,
     onApply: () -> Unit,
 ) {
+    val padH = dpToPx(24)
+    val padTop = dpToPx(4)
+    val textPadTop = dpToPx(8)
     val container = LinearLayout(this).apply {
         orientation = LinearLayout.VERTICAL
-        setPadding(48, 8, 48, 0)
+        setPadding(padH, padTop, padH, 0)
     }
     val status = TextView(this).apply {
         visibility = if (preview.valid) View.GONE else View.VISIBLE
@@ -32,7 +35,7 @@ fun Context.showYamlPreviewDialog(
         textSize = 12f
         setTextIsSelectable(true)
         text = preview.proposedYaml
-        setPadding(0, 16, 0, 0)
+        setPadding(0, textPadTop, 0, 0)
     }
     tabs.addTab(tabs.newTab().setText(R.string.yaml_preview_tab_generated))
     tabs.addTab(tabs.newTab().setText(R.string.yaml_preview_tab_diff))
@@ -86,3 +89,6 @@ private fun Context.resolveColor(attr: Int): Int {
     theme.resolveAttribute(attr, typedValue, true)
     return typedValue.data
 }
+
+private fun Context.dpToPx(dp: Int): Int =
+    (dp * resources.displayMetrics.density).toInt()

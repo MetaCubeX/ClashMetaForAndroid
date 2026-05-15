@@ -58,6 +58,11 @@
     <string name="profiles_header_subtitle_ready">Управляйте подписками, редактором и источниками в одном месте.</string>
     <string name="profiles_header_total_fmt">Всего: %1$d</string>
     <string name="profiles_header_active_fmt">Активно: %1$d</string>
+    <string name="profiles_sort">Сортировка профилей</string>
+    <string name="profiles_sort_manual">Вручную</string>
+    <string name="profiles_sort_active_first">Активный сверху</string>
+    <string name="profiles_sort_name">По имени</string>
+    <string name="profiles_sort_last_updated">По обновлению</string>
     <string name="profiles_updating">Обновление…</string>
 
     <string name="logs">Логи</string>
@@ -227,6 +232,19 @@
     <string name="connections_rule_fmt">Правило: %1$s %2$s</string>
     <string name="connections_inbound_fmt">Вход: %1$s</string>
     <string name="connections_id_fmt">ID: %1$s</string>
+    <string name="request_history_title">История запросов</string>
+    <string name="request_history_short_title">Запросы</string>
+    <string name="request_history_count_fmt">%1$d / %2$d последних запросов</string>
+    <string name="request_history_search_hint">Поиск по хосту, адресу, правилу, прокси, приложению…</string>
+    <string name="request_history_empty_state">Истории запросов пока нет — включите VPN и создайте трафик.</string>
+    <string name="request_history_clear">Очистить</string>
+    <string name="request_history_clear_confirm">Очистить недавнюю историю запросов?</string>
+    <string name="request_history_cleared">История запросов очищена</string>
+    <string name="request_history_export">Экспорт</string>
+    <string name="request_history_auto_scroll">Автопрокрутка</string>
+    <string name="request_history_status_active">Активные</string>
+    <string name="request_history_status_closed">Закрытые</string>
+    <string name="request_history_route_fmt">Правило: %1$s %2$s · Прокси: %3$s</string>
     <string name="theme_toggle">Сменить тему (светлая / тёмная)</string>
 
     <string name="copied">Скопировано</string>
@@ -330,6 +348,10 @@
     <string name="proxy_hardening_off">Выкл — поведение Clash.Meta по умолчанию (не рекомендуется)</string>
     <string name="seed_default_geo_mirrors">Подставлять GeoIP/GeoSite зеркала</string>
     <string name="seed_default_geo_mirrors_summary">Если в импортированной подписке нет geox-url, ClashFest подставит зеркала (MetaCubeX/Loyalsoldier). Исправляет ошибку «cant download geoip.dat».</string>
+    <string name="keep_connections_on_old_proxy">Сохранять соединения на старом прокси при смене</string>
+    <string name="keep_connections_on_old_proxy_summary">По умолчанию ClashFest закрывает активные соединения после ручной смены прокси, чтобы новый трафик сразу пошёл через выбранный сервер. Включите эту опцию, чтобы оставлять текущие соединения на старом прокси — полезно для долгих загрузок, видеостримов или игровых сессий, которые не хочется обрывать.</string>
+    <string name="proxy_switch_selector_failed">Не удалось сменить прокси. Текущие соединения не тронуты.</string>
+    <string name="proxy_switch_close_connections_failed">Прокси сменён, но активные соединения закрыть не удалось.</string>
 
     <string name="bypass_private_network">Игнорировать частные сети</string>
     <string name="bypass_private_network_summary">Игнорировать адреса частных сетей</string>
@@ -358,6 +380,16 @@
     <string name="profile_use">Использовать</string>
     <string name="profile_selected_group">Выбранная группа</string>
     <string name="profile_nodes">Узлы</string>
+    <string name="profile_proxy_search_hint">Поиск по узлам или группам</string>
+    <string name="profile_proxy_sort_config">Порядок конфига</string>
+    <string name="profile_proxy_sort_delay">Задержка</string>
+    <string name="profile_proxy_sort_name">Имя</string>
+    <string name="profile_proxy_filter_all">Все</string>
+    <string name="profile_proxy_filter_current">Текущая группа</string>
+    <string name="profile_proxy_filter_selected">Выбранные</string>
+    <string name="profile_proxy_filter_available">Доступные</string>
+    <string name="profile_proxy_filter_provider">Источник: %1$s</string>
+    <string name="profile_proxy_empty_filtered">Нет подходящих узлов. Очистите поиск или фильтры.</string>
     <string name="proxy_sheet_active_subscription">Активная подписка</string>
     <string name="proxy_sheet_group_label">Группа прокси</string>
     <string name="proxy_sheet_sorted_by_ping">По задержке</string>

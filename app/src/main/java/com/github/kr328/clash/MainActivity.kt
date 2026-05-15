@@ -56,6 +56,7 @@ import com.github.kr328.clash.util.RussianBypassDefaults
 import com.github.kr328.clash.util.GitHubReleaseUpdate
 import com.github.kr328.clash.util.AppUpdateChecker
 import com.github.kr328.clash.util.showProfileQuickEditSheet
+import com.github.kr328.clash.util.closeConnectionsAfterUserProxySwitchIfEnabled
 import com.github.kr328.clash.util.startClashService
 import com.github.kr328.clash.util.stopClashService
 import com.github.kr328.clash.util.withClash
@@ -607,9 +608,11 @@ class MainActivity : BaseActivity<MainDesign>() {
                                 withProfile {
                                     rememberProxySelection(profile.uuid, group, name)
                                 }
-                                // Drop existing connections so new node takes effect immediately
-                                // instead of waiting for sockets to close naturally.
-                                runCatching { withClash { closeAllConnections() } }
+                                closeConnectionsAfterUserProxySwitchIfEnabled { message, duration ->
+                                    design.showToast(message, duration)
+                                }
+                            } else {
+                                design.showToast(R.string.proxy_switch_selector_failed, ToastDuration.Long)
                             }
                             scheduleProxyDetailsRefresh(profile, group)
                         } catch (e: CancellationException) {

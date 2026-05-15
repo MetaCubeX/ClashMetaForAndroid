@@ -215,6 +215,11 @@
             android:exported="false"
             android:label="@string/connections_title" />
         <activity
+            android:name=".RequestHistoryActivity"
+            android:configChanges="uiMode"
+            android:exported="false"
+            android:label="@string/request_history_title" />
+        <activity
             android:name=".RuleProvidersEditorActivity"
             android:configChanges="uiMode"
             android:exported="false"

@@ -10,6 +10,7 @@ import com.github.kr328.clash.design.ProxyChainDesign
 import com.github.kr328.clash.design.ProxyChainDesign.ChainStatusKind
 import com.github.kr328.clash.design.R
 import com.github.kr328.clash.design.util.showExceptionToast
+import com.github.kr328.clash.util.closeConnectionsAfterUserProxySwitchIfEnabled
 import com.github.kr328.clash.util.withClash
 import com.github.kr328.clash.util.withProfile
 import com.github.kr328.clash.util.showYamlPreview
@@ -175,9 +176,23 @@ class ProxyChainActivity : BaseActivity<ProxyChainDesign>() {
         }
         design.setChainBusy(true)
         design.showChainStatus(ChainStatusKind.Progress, getString(R.string.proxy_chain_status_working))
-        try {
-            val preview = withProfile { previewSetProxyDialerProxy(uuid, outbound, dialer) }
-            showYamlPreview(preview) {
+        val preview = try {
+            withProfile { previewSetProxyDialerProxy(uuid, outbound, dialer) }
+        } catch (e: Exception) {
+            design.showExceptionToast(e)
+            design.showChainStatus(
+                ChainStatusKind.Error,
+                e.message?.takeIf { it.isNotBlank() } ?: chainErr(R.string.proxy_chain_not_found),
+            )
+            design.setChainBusy(false)
+            return
+        }
+        // Drop busy while the preview dialog is on screen — the user is reviewing,
+        // we are not. The actual apply work re-acquires busy inside the callback.
+        design.setChainBusy(false)
+        showYamlPreview(preview) {
+            design.setChainBusy(true)
+            try {
                 refreshDiskUi()
                 waitForProxyEngineReady()
                 uiStore.tunnelModePreference = TunnelState.Mode.Global.name
@@ -188,6 +203,9 @@ class ProxyChainActivity : BaseActivity<ProxyChainDesign>() {
                     patchSelector(group, outbound)
                 }
                 if (patched) {
+                    closeConnectionsAfterUserProxySwitchIfEnabled { message, duration ->
+                        design.showToast(message, duration)
+                    }
                     design.showChainStatus(
                         ChainStatusKind.Success,
                         getString(R.string.proxy_chain_status_success, outbound, dialer),
@@ -198,15 +216,15 @@ class ProxyChainActivity : BaseActivity<ProxyChainDesign>() {
                         getString(R.string.proxy_chain_connect_selector_failed),
                     )
                 }
+            } catch (e: Exception) {
+                design.showExceptionToast(e)
+                design.showChainStatus(
+                    ChainStatusKind.Error,
+                    e.message?.takeIf { it.isNotBlank() } ?: chainErr(R.string.proxy_chain_not_found),
+                )
+            } finally {
+                design.setChainBusy(false)
             }
-        } catch (e: Exception) {
-            design.showExceptionToast(e)
-            design.showChainStatus(
-                ChainStatusKind.Error,
-                e.message?.takeIf { it.isNotBlank() } ?: chainErr(R.string.proxy_chain_not_found),
-            )
-        } finally {
-            design.setChainBusy(false)
         }
     }
 
