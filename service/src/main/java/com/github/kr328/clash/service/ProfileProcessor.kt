@@ -141,7 +141,8 @@ object ProfileProcessor {
                                 download,
                                 total,
                                 expire,
-                                old?.createdAt ?: System.currentTimeMillis()
+                                old?.createdAt ?: System.currentTimeMillis(),
+                                old?.profileOrder ?: snapshot.profileOrder,
                             )
                             if (old != null) {
                                 ImportedDao().update(new)
@@ -166,7 +167,8 @@ object ProfileProcessor {
                                 download,
                                 total,
                                 expire,
-                                old?.createdAt ?: System.currentTimeMillis()
+                                old?.createdAt ?: System.currentTimeMillis(),
+                                old?.profileOrder ?: snapshot.profileOrder,
                             )
                             if (old != null) {
                                 ImportedDao().update(new)

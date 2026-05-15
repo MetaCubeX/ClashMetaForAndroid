@@ -55,6 +55,7 @@ class ProfileManager(private val context: Context) : IProfileManager,
 
     override suspend fun create(type: Profile.Type, name: String, source: String): UUID {
         val uuid = generateProfileUUID()
+        val profileOrder = nextProfileOrder()
         val pending = Pending(
             uuid = uuid,
             name = name,
@@ -65,6 +66,7 @@ class ProfileManager(private val context: Context) : IProfileManager,
             total = 0,
             download = 0,
             expire = 0,
+            profileOrder = profileOrder,
         )
 
         PendingDao().insert(pending)
@@ -83,6 +85,7 @@ class ProfileManager(private val context: Context) : IProfileManager,
 
     override suspend fun clone(uuid: UUID): UUID {
         val newUUID = generateProfileUUID()
+        val profileOrder = nextProfileOrder()
 
         val imported = ImportedDao().queryByUUID(uuid)
             ?: throw FileNotFoundException("profile $uuid not found")
@@ -97,6 +100,7 @@ class ProfileManager(private val context: Context) : IProfileManager,
             total = imported.total,
             download = imported.download,
             expire = imported.expire,
+            profileOrder = profileOrder,
         )
 
         cloneImportedFiles(uuid, newUUID)
@@ -135,6 +139,7 @@ class ProfileManager(private val context: Context) : IProfileManager,
                     total = 0,
                     download = 0,
                     expire = 0,
+                    profileOrder = imported.profileOrder,
                 )
             )
         } else {
@@ -201,7 +206,8 @@ class ProfileManager(private val context: Context) : IProfileManager,
                     download,
                     total,
                     expire,
-                    old.createdAt
+                    old.createdAt,
+                    old.profileOrder,
                 )
 
                 ImportedDao().update(new)
@@ -265,10 +271,22 @@ class ProfileManager(private val context: Context) : IProfileManager,
 
     override suspend fun queryAll(): List<Profile> {
         val uuids = withContext(Dispatchers.IO) {
-            (ImportedDao().queryAllUUIDs() + PendingDao().queryAllUUIDs()).distinct()
+            ImportedDao().queryAllOrderedUUIDs().map { it.uuid }.distinct()
         }
 
         return uuids.mapNotNull { resolveProfile(it) }
+    }
+
+    override suspend fun reorder(uuids: List<String>) {
+        withContext(Dispatchers.IO) {
+            uuids.mapNotNull { raw ->
+                runCatching { UUID.fromString(raw) }.getOrNull()
+            }.distinct().forEachIndexed { index, uuid ->
+                val order = index.toLong()
+                ImportedDao().updateProfileOrder(uuid, order)
+                PendingDao().updateProfileOrder(uuid, order)
+            }
+        }
     }
 
     override suspend fun queryActive(): Profile? {
@@ -637,6 +655,12 @@ class ProfileManager(private val context: Context) : IProfileManager,
         return context.pendingDir.resolve(uuid.toString()).directoryLastModified
             ?: context.importedDir.resolve(uuid.toString()).directoryLastModified
             ?: -1
+    }
+
+    private suspend fun nextProfileOrder(): Long {
+        val importedMax = ImportedDao().queryMaxProfileOrder() ?: -1L
+        val pendingMax = PendingDao().queryMaxProfileOrder() ?: -1L
+        return maxOf(importedMax, pendingMax) + 1L
     }
 
     private fun cloneImportedFiles(source: UUID, target: UUID = source) {

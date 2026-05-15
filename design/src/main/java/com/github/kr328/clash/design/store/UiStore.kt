@@ -8,6 +8,7 @@ import com.github.kr328.clash.design.model.AppInfoSort
 import com.github.kr328.clash.design.model.AppLanguage
 import com.github.kr328.clash.design.model.DarkMode
 import com.github.kr328.clash.design.model.HomeBackgroundStyle
+import com.github.kr328.clash.design.model.ProfileSortMode
 import com.github.kr328.clash.design.model.ThemePalette
 import com.github.kr328.clash.design.model.ThemeTextScale
 
@@ -93,6 +94,12 @@ class UiStore(context: Context) {
     var proxyLastGroup: String by store.string(
         key = "proxy_last_group",
         defaultValue = ""
+    )
+
+    var profileSortMode: ProfileSortMode by store.enum(
+        key = "profile_sort_mode",
+        defaultValue = ProfileSortMode.Manual,
+        values = ProfileSortMode.values(),
     )
 
     /** Persisted Rule / Global / Direct choice; survives VPN stop/start. Empty = use profile/runtime default. */

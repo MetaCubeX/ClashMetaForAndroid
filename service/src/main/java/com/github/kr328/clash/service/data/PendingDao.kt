@@ -15,8 +15,14 @@ interface PendingDao {
     @Query("SELECT EXISTS(SELECT 1 FROM pending WHERE uuid = :uuid)")
     suspend fun exists(uuid: UUID): Boolean
 
-    @Query("SELECT uuid FROM pending ORDER BY createdAt")
+    @Query("SELECT uuid FROM pending ORDER BY profileOrder, createdAt")
     suspend fun queryAllUUIDs(): List<UUID>
+
+    @Query("SELECT MAX(profileOrder) FROM pending")
+    suspend fun queryMaxProfileOrder(): Long?
+
+    @Query("UPDATE pending SET profileOrder = :profileOrder WHERE uuid = :uuid")
+    suspend fun updateProfileOrder(uuid: UUID, profileOrder: Long)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(pending: Pending)

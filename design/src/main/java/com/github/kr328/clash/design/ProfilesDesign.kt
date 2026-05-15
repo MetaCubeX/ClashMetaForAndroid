@@ -5,11 +5,15 @@ import android.content.Context
 import android.view.View
 import android.view.ViewGroup
 import androidx.databinding.Observable
+import androidx.recyclerview.widget.ItemTouchHelper
+import androidx.recyclerview.widget.RecyclerView
 import com.github.kr328.clash.design.adapter.ProfileAdapter
 import com.github.kr328.clash.design.BR
 import com.github.kr328.clash.design.databinding.DesignProfilesBinding
 import com.github.kr328.clash.design.databinding.DialogProfilesMenuBinding
 import com.github.kr328.clash.design.dialog.AppBottomSheetDialog
+import com.github.kr328.clash.design.model.ProfileSortMode
+import com.github.kr328.clash.design.store.UiStore
 import com.github.kr328.clash.design.ui.ToastDuration
 import com.github.kr328.clash.design.util.*
 import com.github.kr328.clash.service.model.Profile
@@ -17,6 +21,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 class ProfilesDesign(context: Context) : Design<ProfilesDesign.Request>(context) {
+    private companion object {
+        const val SORT_ITEM_ID_BASE = 10_000
+    }
+
     sealed class Request {
         object UpdateAll : Request()
         object Create : Request()
@@ -26,10 +34,12 @@ class ProfilesDesign(context: Context) : Design<ProfilesDesign.Request>(context)
         data class OpenSubscriptionSources(val profile: Profile) : Request()
         data class Duplicate(val profile: Profile) : Request()
         data class Delete(val profile: Profile) : Request()
+        data class Reorder(val profiles: List<Profile>) : Request()
     }
 
     private val binding = DesignProfilesBinding
         .inflate(context.layoutInflater, context.root, false)
+    private val uiStore = UiStore(context)
     private val adapter = ProfileAdapter(
         this::requestActive,
         this::showMenu,
@@ -42,13 +52,48 @@ class ProfilesDesign(context: Context) : Design<ProfilesDesign.Request>(context)
     )
 
     private var allUpdating: Boolean = false
+    private var manualProfiles: List<Profile> = emptyList()
+    private val itemTouchHelper = ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(
+        ItemTouchHelper.UP or ItemTouchHelper.DOWN,
+        0,
+    ) {
+        override fun isLongPressDragEnabled(): Boolean =
+            uiStore.profileSortMode == ProfileSortMode.Manual && adapter.profiles.size > 1
+
+        override fun onMove(
+            recyclerView: RecyclerView,
+            source: RecyclerView.ViewHolder,
+            target: RecyclerView.ViewHolder,
+        ): Boolean {
+            if (uiStore.profileSortMode != ProfileSortMode.Manual) return false
+            return adapter.moveProfile(source.bindingAdapterPosition, target.bindingAdapterPosition)
+        }
+
+        override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) = Unit
+
+        override fun clearView(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder) {
+            super.clearView(recyclerView, viewHolder)
+            if (uiStore.profileSortMode == ProfileSortMode.Manual && manualProfiles != adapter.profiles) {
+                val byId = (manualProfiles + adapter.profiles).associateBy { it.uuid.toString() }
+                val orderedIds = ProfileOrdering.normalizeOrderIds(
+                    orderedIds = adapter.profiles.map { it.uuid.toString() },
+                    knownIds = manualProfiles.map { it.uuid.toString() },
+                )
+                val orderedProfiles = orderedIds.mapNotNull { byId[it] }
+                manualProfiles = orderedProfiles
+                requests.trySend(Request.Reorder(orderedProfiles))
+            }
+        }
+    })
 
     override val root: View
         get() = binding.root
 
     suspend fun patchProfiles(profiles: List<Profile>) {
+        manualProfiles = profiles
+        val displayProfiles = sortProfilesForDisplay(profiles)
         adapter.apply {
-            patchDataSet(this::profiles, profiles, id = { it.uuid })
+            patchDataSet(this::profiles, displayProfiles, detectMove = true, id = { it.uuid })
         }
 
         val updatable = withContext(Dispatchers.Default) {
@@ -89,8 +134,10 @@ class ProfilesDesign(context: Context) : Design<ProfilesDesign.Request>(context)
     init {
         binding.self = this
         binding.toolbar.title = context.getString(R.string.main_open_profiles)
+        configureSortMenu()
 
         binding.recyclerList.applyLinearAdapter(context, adapter)
+        itemTouchHelper.attachToRecyclerView(binding.recyclerList)
         surface.addOnPropertyChangedCallback(object : Observable.OnPropertyChangedCallback() {
             override fun onPropertyChanged(sender: Observable?, propertyId: Int) {
                 if (propertyId == BR.insets) {
@@ -137,6 +184,56 @@ class ProfilesDesign(context: Context) : Design<ProfilesDesign.Request>(context)
     fun requestCreate() {
         requests.trySend(Request.Create)
     }
+
+    private fun configureSortMenu() {
+        val sortMenu = binding.toolbar.menu.addSubMenu(R.string.profiles_sort)
+        ProfileSortMode.values().forEach { mode ->
+            sortMenu.add(0, SORT_ITEM_ID_BASE + mode.ordinal, mode.ordinal, sortModeTitle(mode))
+                .setCheckable(true)
+        }
+        sortMenu.item.setIcon(R.drawable.ic_baseline_swap_vert)
+        sortMenu.item.setShowAsAction(android.view.MenuItem.SHOW_AS_ACTION_ALWAYS)
+        binding.toolbar.setOnMenuItemClickListener { item ->
+            val mode = ProfileSortMode.values().getOrNull(item.itemId - SORT_ITEM_ID_BASE)
+                ?: return@setOnMenuItemClickListener false
+            uiStore.profileSortMode = mode
+            updateSortMenuChecks()
+            adapter.profiles = sortProfilesForDisplay(manualProfiles)
+            adapter.notifyDataSetChanged()
+            true
+        }
+        updateSortMenuChecks()
+    }
+
+    private fun updateSortMenuChecks() {
+        val mode = uiStore.profileSortMode
+        val menu = binding.toolbar.menu
+        for (i in 0 until menu.size()) {
+            val sub = menu.getItem(i).subMenu ?: continue
+            for (j in 0 until sub.size()) {
+                sub.getItem(j).isChecked = sub.getItem(j).itemId == SORT_ITEM_ID_BASE + mode.ordinal
+            }
+        }
+    }
+
+    private fun sortModeTitle(mode: ProfileSortMode): String =
+        context.getString(
+            when (mode) {
+                ProfileSortMode.Manual -> R.string.profiles_sort_manual
+                ProfileSortMode.ActiveFirst -> R.string.profiles_sort_active_first
+                ProfileSortMode.Name -> R.string.profiles_sort_name
+                ProfileSortMode.LastUpdated -> R.string.profiles_sort_last_updated
+            }
+        )
+
+    private fun sortProfilesForDisplay(profiles: List<Profile>): List<Profile> =
+        ProfileOrdering.sortForDisplay(
+            profiles = profiles,
+            mode = uiStore.profileSortMode,
+            active = Profile::active,
+            name = Profile::name,
+            updatedAt = Profile::updatedAt,
+        )
 
     private fun requestActive(profile: Profile) {
         requests.trySend(Request.Active(profile))

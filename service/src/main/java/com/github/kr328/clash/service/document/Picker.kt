@@ -134,7 +134,8 @@ class Picker(private val context: Context) {
                 imported.type,
                 imported.source,
                 imported.interval,
-                0,0,0,0
+                0,0,0,0,
+                profileOrder = imported.profileOrder,
             )
         )
 
