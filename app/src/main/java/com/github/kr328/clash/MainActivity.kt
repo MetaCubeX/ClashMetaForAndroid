@@ -381,6 +381,7 @@ class MainActivity : BaseActivity<MainDesign>() {
             kotlinx.coroutines.channels.Channel<Pair<Profile, String>>(kotlinx.coroutines.channels.Channel.CONFLATED)
         var announcementRefreshPending = false
         var proxyDetailJob: Job? = null
+        var homeProxyPatchJob: Job? = null
         var lastDashboardRefreshRequestAt = 0L
 
         fun scheduleDashboardRefresh(includeAnnouncement: Boolean = false, force: Boolean = false) {
@@ -578,37 +579,45 @@ class MainActivity : BaseActivity<MainDesign>() {
                 }
 
                 design.patchHomeProxyRequests.onReceive { (profile, group, name) ->
-                    launch {
-                        val runningNow = withContext(Dispatchers.IO) {
-                            resolveStatusSnapshot().serviceRunning
-                        }
-                        Remote.broadcasts.clashRunning = runningNow
-                        if (!runningNow) {
-                            if (isProxyProviderKeyName(name)) {
+                    homeProxyPatchJob?.cancel()
+                    homeProxyPatchJob = launch {
+                        try {
+                            val runningNow = withContext(Dispatchers.IO) {
+                                resolveStatusSnapshot().serviceRunning
+                            }
+                            Remote.broadcasts.clashRunning = runningNow
+                            if (!runningNow) {
+                                if (isProxyProviderKeyName(name)) {
+                                    scheduleDashboardRefresh()
+                                    return@launch
+                                }
+                                design.markProxySelectionPending(profile, group, name)
+                                withProfile {
+                                    rememberProxySelection(profile.uuid, group, name)
+                                }
+                                uiStore.proxyLastGroup = group
                                 scheduleDashboardRefresh()
                                 return@launch
                             }
                             design.markProxySelectionPending(profile, group, name)
-                            withProfile {
-                                rememberProxySelection(profile.uuid, group, name)
+                            val patched = withClash {
+                                patchSelector(group, name)
                             }
-                            uiStore.proxyLastGroup = group
-                            scheduleDashboardRefresh()
-                            return@launch
-                        }
-                        design.markProxySelectionPending(profile, group, name)
-                        val patched = withClash {
-                            patchSelector(group, name)
-                        }
-                        if (patched) {
-                            uiStore.proxyLastGroup = group
-                            closeConnectionsAfterUserProxySwitchIfEnabled { message, duration ->
-                                design.showToast(message, duration)
+                            if (patched) {
+                                uiStore.proxyLastGroup = group
+                                withProfile {
+                                    rememberProxySelection(profile.uuid, group, name)
+                                }
+                                closeConnectionsAfterUserProxySwitchIfEnabled { message, duration ->
+                                    design.showToast(message, duration)
+                                }
+                            } else {
+                                design.showToast(R.string.proxy_switch_selector_failed, ToastDuration.Long)
                             }
-                        } else {
-                            design.showToast(R.string.proxy_switch_selector_failed, ToastDuration.Long)
+                            scheduleProxyDetailsRefresh(profile, group)
+                        } catch (e: CancellationException) {
+                            throw e
                         }
-                        scheduleProxyDetailsRefresh(profile, group)
                     }
                 }
 
@@ -1074,9 +1083,22 @@ class MainActivity : BaseActivity<MainDesign>() {
 
         val groupsToFetch = collectRuntimeGroupTree(group)
             .ifEmpty { linkedSetOf(group).filter { it.isNotBlank() }.toSet() }
-        val details = refreshRuntimeGroupDetails(groupsToFetch)
-        if (withProfile { queryActive()?.uuid } == profile.uuid) {
-            patchProxyDetails(details)
+        repeat(12) { attempt ->
+            val details = refreshRuntimeGroupDetails(groupsToFetch)
+            val rootDetail = details[group]
+                ?: details.entries.firstOrNull { it.key.equals(group, ignoreCase = true) }?.value
+            val emptyDynamic = rootDetail != null &&
+                rootDetail.proxies.isEmpty() &&
+                rootDetail.type.group &&
+                rootDetail.type != Proxy.Type.Relay
+            val retry = (details.isEmpty() || emptyDynamic) && attempt < 11
+            if (!retry) {
+                if (details.isNotEmpty() && withProfile { queryActive()?.uuid } == profile.uuid) {
+                    patchProxyDetails(details)
+                }
+                return
+            }
+            delay(200L)
         }
     }
 
@@ -1308,6 +1330,49 @@ class MainActivity : BaseActivity<MainDesign>() {
                 registerReceiver(apkDownloadReceiver, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE))
             }
             downloadReceiverRegistered = true
+        }
+
+        // If the installed version is already at/ahead of whatever we last notified about,
+        // clear the stale "update available" banner so users don't see it after upgrading.
+        runCatching {
+            val current = packageManager.getPackageInfo(packageName, 0).versionName ?: "0.0.0"
+            AppUpdateChecker.resetIfUpdated(this, current)
+        }
+
+        handleUpdateIntent(intent)
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        handleUpdateIntent(intent)
+    }
+
+    /** Triggered when user taps "Download & install" on the update notification.
+     *  Enqueue the APK from inside the Activity so our runtime receiver owns the download id
+     *  end-to-end — manifest receivers for DOWNLOAD_COMPLETE are blocked on Android 8+. */
+    private fun handleUpdateIntent(intent: Intent?) {
+        if (intent?.action != ACTION_DOWNLOAD_AND_INSTALL_UPDATE) return
+        val tag = intent.getStringExtra(EXTRA_UPDATE_TAG).orEmpty()
+        val url = intent.getStringExtra(EXTRA_UPDATE_APK_URL).orEmpty()
+        val name = intent.getStringExtra(EXTRA_UPDATE_APK_NAME)
+        // Consume so a configuration change doesn't re-enqueue.
+        intent.action = null
+        if (url.isBlank()) return
+        AppUpdateChecker.dismissUpdateNotification(this)
+        runCatching {
+            val id = GitHubReleaseUpdate.enqueueApkDownload(
+                context = this,
+                tagName = tag.ifBlank { "update" },
+                apkUrl = url,
+                apkName = name,
+            )
+            if (id > 0L) {
+                pendingApkDownloadId = id
+                updatePrefs.edit().putLong("pending_download_id", id).apply()
+                Toast.makeText(this, R.string.about_download_started, Toast.LENGTH_SHORT).show()
+            }
+        }.onFailure {
+            Toast.makeText(this, R.string.about_download_failed, Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -1566,9 +1631,12 @@ class MainActivity : BaseActivity<MainDesign>() {
 
         val now = System.currentTimeMillis() / 1000L
         val cooldown = 6L * 3600L
-        if (uiStore.subscriptionUserinfo.isNotBlank() &&
-            now - uiStore.subscriptionMetadataLastFetch < cooldown
-        ) {
+        val activeId = active.uuid.toString()
+        val sameProfileThrottle =
+            uiStore.subscriptionUserinfo.isNotBlank() &&
+                activeId == uiStore.subscriptionMetadataLastFetchProfileId &&
+                now - uiStore.subscriptionMetadataLastFetch < cooldown
+        if (sameProfileThrottle) {
             return
         }
 
@@ -1586,14 +1654,24 @@ class MainActivity : BaseActivity<MainDesign>() {
         if (meta.isEmpty()) {
             // still mark the attempt to avoid hammering the server every screen-on
             uiStore.subscriptionMetadataLastFetch = now
+            uiStore.subscriptionMetadataLastFetchProfileId = activeId
             return
         }
         uiStore.subscriptionMetadataLastFetch = now
+        uiStore.subscriptionMetadataLastFetchProfileId = activeId
 
         // Always-mirrored fields (cache only):
         meta.subscriptionUserinfo?.let { uiStore.subscriptionUserinfo = it }
         meta.profileWebPageUrl?.let { uiStore.profileWebPageUrl = it }
-        meta.profileUpdateIntervalHours?.let { uiStore.profileUpdateIntervalHours = it }
+        meta.profileUpdateIntervalHours?.let { hours ->
+            uiStore.profileUpdateIntervalHours = hours
+            if (!uiStore.subscriptionMetadataLockUser) {
+                val ms = java.util.concurrent.TimeUnit.HOURS.toMillis(hours.toLong())
+                runCatching {
+                    withProfile { applySubscriptionUpdateInterval(active.uuid, ms) }
+                }
+            }
+        }
 
         // User-overridable fields — skip if user opted out of operator overrides.
         if (!uiStore.subscriptionMetadataLockUser) {
@@ -1623,5 +1701,13 @@ class MainActivity : BaseActivity<MainDesign>() {
                     .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             )
         }
+    }
+
+    companion object {
+        const val ACTION_DOWNLOAD_AND_INSTALL_UPDATE =
+            "com.github.kr328.clash.action.MAIN_DOWNLOAD_INSTALL_UPDATE"
+        const val EXTRA_UPDATE_TAG = "extra_update_tag"
+        const val EXTRA_UPDATE_APK_URL = "extra_update_apk_url"
+        const val EXTRA_UPDATE_APK_NAME = "extra_update_apk_name"
     }
 }

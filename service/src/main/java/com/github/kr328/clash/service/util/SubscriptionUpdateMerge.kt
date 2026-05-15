@@ -113,6 +113,7 @@ object SubscriptionUpdateMerge {
             .mapNotNull { it as? Map<*, *> }
             .filter { (it["name"]?.toString()).isNullOrEmpty().not() }
             .filterNot { it["name"]?.toString() in knownNames }
+            .filter { preservedProxyGroupMayResurrect(it) }
             .toMutableList()
 
         var changed = true
@@ -138,7 +139,38 @@ object SubscriptionUpdateMerge {
         if (preservedGlobalProxies != null) {
             mergeExtraProxiesIntoGlobalGroup(out, preservedGlobalProxies, knownNames)
         }
+        sanitizeGlobalProxyList(out, knownNames)
         return out
+    }
+
+    /**
+     * Subscription refresh must not bring back removed [proxy-groups] names. Only
+     * provider-backed groups ([use]) or Mihomo dynamic groups ([include-all-*]) are merged from the
+     * pre-fetch file; plain `select`/`url-test` blocks belong to the remote profile.
+     */
+    private fun preservedProxyGroupMayResurrect(group: Map<*, *>): Boolean {
+        if (yamlTruthy(group["include-all-proxies"]) ||
+            yamlTruthy(group["include-all"]) ||
+            yamlTruthy(group["include-all-providers"])
+        ) {
+            return true
+        }
+        val use = (group["use"] as? List<*>).orEmpty()
+        return use.isNotEmpty()
+    }
+
+    /** Drops stale policy targets (e.g. removed `Automatic`) left inside [GLOBAL]. */
+    private fun sanitizeGlobalProxyList(out: MutableList<Any?>, validNames: Set<String>) {
+        val idx = out.indexOfFirst { (it as? Map<*, *>)?.get("name")?.toString() == "GLOBAL" }
+        if (idx < 0) return
+        val global = out[idx] as? Map<*, *> ?: return
+        val mutable = LinkedHashMap<String, Any?>()
+        global.forEach { (k, v) -> mutable[k.toString()] = v }
+        val current = (mutable["proxies"] as? List<*>)?.mapNotNull { it?.toString() } ?: return
+        val filtered = current.filter { it in validNames }
+        if (filtered.size == current.size) return
+        mutable["proxies"] = filtered
+        out[idx] = mutable
     }
 
     private fun collectKnownProxyNames(
@@ -173,8 +205,26 @@ object SubscriptionUpdateMerge {
     private fun isProxyGroupResolvable(group: Map<*, *>, knownNames: Set<String>): Boolean {
         val proxies = (group["proxies"] as? List<*>).orEmpty().mapNotNull { it?.toString() }
         val providers = (group["use"] as? List<*>).orEmpty().mapNotNull { it?.toString() }
-        if (proxies.isEmpty() && providers.isEmpty()) return true
+        if (proxies.isEmpty() && providers.isEmpty()) {
+            return yamlTruthy(group["include-all-proxies"]) ||
+                yamlTruthy(group["include-all"]) ||
+                yamlTruthy(group["include-all-providers"])
+        }
         return proxies.all { it in knownNames } && providers.all { it in knownNames }
+    }
+
+    private fun yamlTruthy(value: Any?): Boolean {
+        return when (value) {
+            is Boolean -> value
+            is Number -> value.toInt() != 0
+            is String -> {
+                val t = value.trim()
+                t.equals("true", ignoreCase = true) ||
+                    t == "1" ||
+                    t.equals("yes", ignoreCase = true)
+            }
+            else -> false
+        }
     }
 
     /**
