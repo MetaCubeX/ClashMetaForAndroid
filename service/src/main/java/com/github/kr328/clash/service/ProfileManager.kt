@@ -33,6 +33,8 @@ import com.github.kr328.clash.service.util.sendProfileChanged
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -44,6 +46,10 @@ class ProfileManager(private val context: Context) : IProfileManager,
     CoroutineScope by CoroutineScope(Dispatchers.IO) {
     private val store = ServiceStore(context)
     private val ruleApplyService = RuleApplyService(context)
+    // Serializes nextProfileOrder() + Pending insert pairs. Without it, two concurrent
+    // imports (e.g. auto-update + manual click) can both read the same MAX(profileOrder)
+    // and produce duplicate ordering values that compare non-deterministically.
+    private val profileOrderLock = Mutex()
 
     init {
         launch {
@@ -55,21 +61,23 @@ class ProfileManager(private val context: Context) : IProfileManager,
 
     override suspend fun create(type: Profile.Type, name: String, source: String): UUID {
         val uuid = generateProfileUUID()
-        val profileOrder = nextProfileOrder()
-        val pending = Pending(
-            uuid = uuid,
-            name = name,
-            type = type,
-            source = source,
-            interval = 0,
-            upload = 0,
-            total = 0,
-            download = 0,
-            expire = 0,
-            profileOrder = profileOrder,
-        )
+        profileOrderLock.withLock {
+            val profileOrder = nextProfileOrder()
+            val pending = Pending(
+                uuid = uuid,
+                name = name,
+                type = type,
+                source = source,
+                interval = 0,
+                upload = 0,
+                total = 0,
+                download = 0,
+                expire = 0,
+                profileOrder = profileOrder,
+            )
 
-        PendingDao().insert(pending)
+            PendingDao().insert(pending)
+        }
 
         context.pendingDir.resolve(uuid.toString()).apply {
             deleteRecursively()
@@ -85,27 +93,29 @@ class ProfileManager(private val context: Context) : IProfileManager,
 
     override suspend fun clone(uuid: UUID): UUID {
         val newUUID = generateProfileUUID()
-        val profileOrder = nextProfileOrder()
 
         val imported = ImportedDao().queryByUUID(uuid)
             ?: throw FileNotFoundException("profile $uuid not found")
 
-        val pending = Pending(
-            uuid = newUUID,
-            name = imported.name,
-            type = Profile.Type.File,
-            source = imported.source,
-            interval = imported.interval,
-            upload = imported.upload,
-            total = imported.total,
-            download = imported.download,
-            expire = imported.expire,
-            profileOrder = profileOrder,
-        )
-
         cloneImportedFiles(uuid, newUUID)
 
-        PendingDao().insert(pending)
+        profileOrderLock.withLock {
+            val profileOrder = nextProfileOrder()
+            val pending = Pending(
+                uuid = newUUID,
+                name = imported.name,
+                type = Profile.Type.File,
+                source = imported.source,
+                interval = imported.interval,
+                upload = imported.upload,
+                total = imported.total,
+                download = imported.download,
+                expire = imported.expire,
+                profileOrder = profileOrder,
+            )
+
+            PendingDao().insert(pending)
+        }
 
         return newUUID
     }
