@@ -133,6 +133,15 @@ class ProfileAdapter(
         notifyDataSetChanged()
     }
 
+    fun moveProfile(from: Int, to: Int): Boolean {
+        if (from !in profiles.indices || to !in profiles.indices || from == to) return false
+        profiles = profiles.toMutableList().apply {
+            add(to, removeAt(from))
+        }
+        notifyItemMoved(from, to)
+        return true
+    }
+
     fun setPingingUuid(uuid: UUID?) {
         val prev = states.pingingUuid
         if (prev == uuid) return
@@ -481,12 +490,13 @@ class ProfileAdapter(
         val chip = holder.binding.activeStatusChip
         val context = chip.context
         holder.binding.profileCard.strokeWidth = context.dp(1)
-        chip.visibility = View.GONE
         if (profile.active) {
+            chip.visibility = View.VISIBLE
             chip.text = context.getString(R.string.profile_active_status)
             chip.setBackgroundResource(R.drawable.bg_m3_status_chip)
             chip.setTextColor(MaterialColors.getColor(chip, com.google.android.material.R.attr.colorOnPrimaryContainer))
         } else {
+            chip.visibility = View.GONE
             chip.text = context.getString(R.string.profile_inactive_status)
             chip.setBackgroundResource(R.drawable.bg_m3_status_chip_neutral)
             chip.setTextColor(MaterialColors.getColor(chip, com.google.android.material.R.attr.colorOnSurfaceVariant))

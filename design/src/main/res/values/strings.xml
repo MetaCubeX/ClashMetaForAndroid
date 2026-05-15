@@ -608,6 +608,11 @@ Presets only change <b>where</b> files are downloaded from (CDN / host). It is s
     <string name="profiles_header_subtitle_ready">Manage subscriptions, open editor, and sources from one place.</string>
     <string name="profiles_header_total_fmt">%1$d total</string>
     <string name="profiles_header_active_fmt">%1$d active</string>
+    <string name="profiles_sort">Sort profiles</string>
+    <string name="profiles_sort_manual">Manual order</string>
+    <string name="profiles_sort_active_first">Active first</string>
+    <string name="profiles_sort_name">Name</string>
+    <string name="profiles_sort_last_updated">Last updated</string>
     <string name="profiles_updating">Updating…</string>
 
     <string name="app">App</string>

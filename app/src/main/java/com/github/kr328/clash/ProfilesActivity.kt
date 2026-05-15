@@ -98,6 +98,8 @@ class ProfilesActivity : BaseActivity<ProfilesDesign>() {
 
                             startActivity(PropertiesActivity::class.intent.setUUID(uuid))
                         }
+                        is ProfilesDesign.Request.Reorder ->
+                            withProfile { reorder(it.profiles.map { profile -> profile.uuid.toString() }) }
                     }
                 }
                 if (activityStarted) {

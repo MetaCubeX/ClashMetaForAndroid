@@ -58,6 +58,11 @@
     <string name="profiles_header_subtitle_ready">Управляйте подписками, редактором и источниками в одном месте.</string>
     <string name="profiles_header_total_fmt">Всего: %1$d</string>
     <string name="profiles_header_active_fmt">Активно: %1$d</string>
+    <string name="profiles_sort">Сортировка профилей</string>
+    <string name="profiles_sort_manual">Вручную</string>
+    <string name="profiles_sort_active_first">Активный сверху</string>
+    <string name="profiles_sort_name">По имени</string>
+    <string name="profiles_sort_last_updated">По обновлению</string>
     <string name="profiles_updating">Обновление…</string>
 
     <string name="logs">Логи</string>
