@@ -529,10 +529,30 @@ class ProfileAdapter(
             var filter: ProxyPickerFilter = ProxyPickerFilter.CurrentGroup
             val providerChipIds = mutableMapOf<Int, String>()
             var selectedScrolledGroupIndex: Int? = null
+            // Per-sheet row cache: buildProxyPickerRows walks every group of the profile,
+            // which can be hundreds of nodes for big subscriptions. Invalidated whenever
+            // we know live state may have changed (URL-test, ping cycle, group switch).
+            var cachedRows: List<ProxyPickerRow>? = null
+            var cachedRowsGroupIndex: Int = -1
+            var pendingSearch: Runnable? = null
+
+            fun rowsForCurrentGroup(selectedIndex: Int): List<ProxyPickerRow> {
+                val cached = cachedRows
+                if (cached != null && cachedRowsGroupIndex == selectedIndex) return cached
+                val fresh = buildProxyPickerRows(profile, groupNames, selectedIndex)
+                cachedRows = fresh
+                cachedRowsGroupIndex = selectedIndex
+                return fresh
+            }
+
+            fun invalidateRowCache() {
+                cachedRows = null
+                cachedRowsGroupIndex = -1
+            }
 
             fun renderProviderFilters() {
                 providerChipIds.clear()
-                val existingProviders = buildProxyPickerRows(profile, groupNames, idx)
+                val existingProviders = rowsForCurrentGroup(idx)
                     .mapNotNull { it.provider }
                     .distinct()
                     .sortedWith(String.CASE_INSENSITIVE_ORDER)
@@ -577,7 +597,7 @@ class ProfileAdapter(
                 }
                 bindGroupType(sheet.proxySheetGroupTypeLabel, profile, groupNames.getOrNull(selectedIndex).orEmpty())
                 val rows = applyProxyPickerControls(
-                    rows = buildProxyPickerRows(profile, groupNames, selectedIndex),
+                    rows = rowsForCurrentGroup(selectedIndex),
                     query = query,
                     sort = sort,
                     filter = filter,
@@ -594,7 +614,7 @@ class ProfileAdapter(
             fun visibleRows(): List<ProxyPickerRow> {
                 val currentIndex = (selectedGroupIndex[profile.uuid] ?: 0).coerceIn(0, groupNames.lastIndex)
                 return applyProxyPickerControls(
-                    rows = buildProxyPickerRows(profile, groupNames, currentIndex),
+                    rows = rowsForCurrentGroup(currentIndex),
                     query = query,
                     sort = sort,
                     filter = filter,
@@ -605,6 +625,7 @@ class ProfileAdapter(
             val refreshRunnable = object : Runnable {
                 override fun run() {
                     if (!dialog.isShowing) return
+                    invalidateRowCache()
                     val currentIndex = selectedGroupIndex[profile.uuid] ?: 0
                     render(currentIndex.coerceIn(0, groupNames.lastIndex))
                     bindSubscriptionStatus(sheet, profile, context)
@@ -641,9 +662,15 @@ class ProfileAdapter(
                 sheet.root.post(refreshRunnable)
             }
 
-            sheet.proxySheetSearch.addTextChangedListener {
-                query = it?.toString().orEmpty()
-                render((selectedGroupIndex[profile.uuid] ?: 0).coerceIn(0, groupNames.lastIndex))
+            sheet.proxySheetSearch.addTextChangedListener { editable ->
+                val newQuery = editable?.toString().orEmpty()
+                pendingSearch?.let(sheet.proxySheetSearch::removeCallbacks)
+                val runnable = Runnable {
+                    query = newQuery
+                    render((selectedGroupIndex[profile.uuid] ?: 0).coerceIn(0, groupNames.lastIndex))
+                }
+                pendingSearch = runnable
+                sheet.proxySheetSearch.postDelayed(runnable, 200L)
             }
             sheet.proxySheetSortChips.setOnCheckedStateChangeListener { _, checkedIds ->
                 sort = when (checkedIds.firstOrNull()) {
@@ -671,6 +698,8 @@ class ProfileAdapter(
             sheet.root.post(refreshRunnable)
             dialog.setOnDismissListener {
                 sheet.root.removeCallbacks(refreshRunnable)
+                pendingSearch?.let(sheet.proxySheetSearch::removeCallbacks)
+                pendingSearch = null
             }
         }
 
