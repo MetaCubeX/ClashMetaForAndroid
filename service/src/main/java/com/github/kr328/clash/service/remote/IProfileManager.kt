@@ -29,6 +29,12 @@ interface IProfileManager {
         prependRuleLine: String,
     ): Boolean
 
+    suspend fun previewMergeRuleProviderYaml(
+        uuid: UUID,
+        ruleProvidersYaml: String,
+        prependRuleLine: String,
+    ): String?
+
     /** Proxy group name → type + member names from [uuid]'s config.yaml (no engine). Hidden groups omitted. */
     suspend fun readProxyGroupsPreview(uuid: UUID): Map<String, ProxyGroupPreviewRow>
 
@@ -37,10 +43,14 @@ interface IProfileManager {
 
     suspend fun replaceRuleProvidersYaml(uuid: UUID, yaml: String): Boolean
 
+    suspend fun previewReplaceRuleProvidersYaml(uuid: UUID, yaml: String): String?
+
     /** `proxy-providers` YAML block or null. */
     suspend fun readProxyProvidersYaml(uuid: UUID): String?
 
     suspend fun replaceProxyProvidersYaml(uuid: UUID, yaml: String): Boolean
+
+    suspend fun previewReplaceProxyProvidersYaml(uuid: UUID, yaml: String): String?
 
     /**
      * Appends a **url-test** [proxy-groups] entry with `use: [providerKeys]` (proxy-provider keys
@@ -48,14 +58,20 @@ interface IProfileManager {
      */
     suspend fun appendRelayProxyGroup(uuid: UUID, groupName: String, providerKeys: List<String>): Boolean
 
+    suspend fun previewAppendRelayProxyGroup(uuid: UUID, groupName: String, providerKeys: List<String>): String?
+
     /** Removes one [proxy-groups] entry by [groupName]. Returns false if missing or not found. */
     suspend fun removeProxyGroup(uuid: UUID, groupName: String): Boolean
+
+    suspend fun previewRemoveProxyGroup(uuid: UUID, groupName: String): String?
 
     /**
      * Sets **dialer-proxy** on a proxy entry in config or provider YAML.
      * [dialerProxyName] null removes the field. Returns false if the proxy was not found.
      */
     suspend fun setProxyDialerProxy(uuid: UUID, targetProxyName: String, dialerProxyName: String?): Boolean
+
+    suspend fun previewSetProxyDialerProxy(uuid: UUID, targetProxyName: String, dialerProxyName: String?): String?
 
     /**
      * Lists saved **dialer-proxy** entries by scanning YAML on disk (no running engine required).
@@ -65,6 +81,8 @@ interface IProfileManager {
 
     /** Removes every **dialer-proxy** from config and provider `proxies:` lists. */
     suspend fun clearAllProxyDialerChains(uuid: UUID): Boolean
+
+    suspend fun previewClearAllProxyDialerChains(uuid: UUID): String?
 
     /** Optional JSON map `{"sub1":"Display name",...}` for proxy-provider UI labels. */
     suspend fun readProxyProviderLabelsJson(uuid: UUID): String?
@@ -77,6 +95,8 @@ interface IProfileManager {
     /** Validates, stores structured state, regenerates YAML, and applies profile change. */
     suspend fun applyRuleState(uuid: UUID, stateJson: String): Boolean
 
+    suspend fun previewApplyRuleState(uuid: UUID, stateJson: String): String?
+
     /** Add raw rules lines with insertion mode: append/prepend/index:<n>. */
     suspend fun addRules(
         uuid: UUID,
@@ -85,8 +105,19 @@ interface IProfileManager {
         insertMode: String = "append",
     ): Boolean
 
+    suspend fun previewAddRules(
+        uuid: UUID,
+        rawRules: List<String>,
+        addMode: Boolean,
+        insertMode: String = "append",
+    ): String?
+
     /** mutate rule by id: toggle/delete/restore. */
     suspend fun mutateRule(uuid: UUID, ruleId: String, action: String, enabled: Boolean): Boolean
+
+    suspend fun previewMutateRule(uuid: UUID, ruleId: String, action: String, enabled: Boolean): String?
+
+    suspend fun applyYamlPreview(previewId: String): Boolean
 
     /** Single entry from `proxies:` as YAML, for display. */
     suspend fun readProxyEntryYaml(uuid: UUID, proxyName: String): String?

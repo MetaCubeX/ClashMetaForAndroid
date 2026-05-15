@@ -11,6 +11,7 @@ import com.github.kr328.clash.design.util.showExceptionToast
 import com.github.kr328.clash.service.util.ProxyGroupsYamlPreview
 import com.github.kr328.clash.service.util.ProxyProvidersUi
 import com.github.kr328.clash.util.withProfile
+import com.github.kr328.clash.util.showYamlPreview
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.isActive
@@ -89,12 +90,10 @@ class ProxyProviderMergedGroupActivity : BaseActivity<ProxyProviderMergedGroupDe
         }
         if (!ok) return
         try {
-            val removed = withProfile { removeProxyGroup(uuid, name) }
-            if (removed) {
+            val preview = withProfile { previewRemoveProxyGroup(uuid, name) }
+            showYamlPreview(preview) {
                 design.showToast(R.string.proxy_providers_merged_removed_ok, ToastDuration.Long)
                 refreshSummary(uuid, design)
-            } else {
-                design.showToast(R.string.proxy_providers_relay_duplicate, ToastDuration.Long)
             }
         } catch (e: Exception) {
             design.showExceptionToast(e)
@@ -145,10 +144,8 @@ class ProxyProviderMergedGroupActivity : BaseActivity<ProxyProviderMergedGroupDe
             return
         }
         try {
-            val ok = withProfile { appendRelayProxyGroup(uuid, name, keys) }
-            if (!ok) {
-                design.showToast(R.string.proxy_providers_relay_duplicate, ToastDuration.Long)
-            } else {
+            val preview = withProfile { previewAppendRelayProxyGroup(uuid, name, keys) }
+            showYamlPreview(preview) {
                 design.showToast(R.string.proxy_providers_merged_select_ok, ToastDuration.Long)
                 refreshSummary(uuid, design)
             }

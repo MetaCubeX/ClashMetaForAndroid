@@ -726,6 +726,13 @@ Presets only change <b>where</b> files are downloaded from (CDN / host). It is s
     <string name="update_all">Update All</string>
 
     <string name="close">Close</string>
+    <string name="yaml_preview_title">YAML preview</string>
+    <string name="yaml_preview_tab_generated">Generated YAML</string>
+    <string name="yaml_preview_tab_diff">Diff</string>
+    <string name="yaml_preview_apply">Apply</string>
+    <string name="yaml_preview_copy">Copy</string>
+    <string name="yaml_preview_invalid">Generated YAML is invalid.</string>
+    <string name="yaml_preview_stale">Config changed after preview generation. Regenerate the preview and try again.</string>
     <string name="keyword">Keyword</string>
 
     <string name="invalid_log_file">Invalid log file</string>

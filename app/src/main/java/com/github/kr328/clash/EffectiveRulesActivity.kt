@@ -6,6 +6,7 @@ import com.github.kr328.clash.design.R
 import com.github.kr328.clash.design.ui.ToastDuration
 import com.github.kr328.clash.service.model.RuleProviderItem
 import com.github.kr328.clash.service.model.RuleState
+import com.github.kr328.clash.util.showYamlPreview
 import com.github.kr328.clash.util.withProfile
 import kotlinx.serialization.json.Json
 import kotlinx.coroutines.isActive
@@ -41,30 +42,24 @@ class EffectiveRulesActivity : BaseActivity<EffectiveRulesDesign>() {
                             startActivity(LogcatActivity::class.intent)
                         is EffectiveRulesDesign.Request.ToggleRule -> launch {
                             val p = withProfile { queryActive() } ?: return@launch
-                            val ok = withProfile { mutateRule(p.uuid, it.ruleId, "toggle", it.enabled) }
-                            if (!ok) {
-                                design.showToast(R.string.rule_snippet_apply_failed, ToastDuration.Long)
-                                return@launch
+                            val preview = withProfile { previewMutateRule(p.uuid, it.ruleId, "toggle", it.enabled) }
+                            showYamlPreview(preview) {
+                                reloadRules(design)
                             }
-                            reloadRules(design)
                         }
                         is EffectiveRulesDesign.Request.DeleteRule -> launch {
                             val p = withProfile { queryActive() } ?: return@launch
-                            val ok = withProfile { mutateRule(p.uuid, it.ruleId, "delete", false) }
-                            if (!ok) {
-                                design.showToast(R.string.rule_snippet_apply_failed, ToastDuration.Long)
-                                return@launch
+                            val preview = withProfile { previewMutateRule(p.uuid, it.ruleId, "delete", false) }
+                            showYamlPreview(preview) {
+                                reloadRules(design)
                             }
-                            reloadRules(design)
                         }
                         is EffectiveRulesDesign.Request.RestoreRule -> launch {
                             val p = withProfile { queryActive() } ?: return@launch
-                            val ok = withProfile { mutateRule(p.uuid, it.ruleId, "restore", true) }
-                            if (!ok) {
-                                design.showToast(R.string.rule_snippet_apply_failed, ToastDuration.Long)
-                                return@launch
+                            val preview = withProfile { previewMutateRule(p.uuid, it.ruleId, "restore", true) }
+                            showYamlPreview(preview) {
+                                reloadRules(design)
                             }
-                            reloadRules(design)
                         }
                     }
                 }

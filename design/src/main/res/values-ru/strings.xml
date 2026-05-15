@@ -588,6 +588,13 @@
     <string name="update_all">Обновить всё</string>
 
     <string name="close">Закрыть</string>
+    <string name="yaml_preview_title">Предпросмотр YAML</string>
+    <string name="yaml_preview_tab_generated">Сгенерированный YAML</string>
+    <string name="yaml_preview_tab_diff">Diff</string>
+    <string name="yaml_preview_apply">Применить</string>
+    <string name="yaml_preview_copy">Копировать</string>
+    <string name="yaml_preview_invalid">Сгенерированный YAML некорректен.</string>
+    <string name="yaml_preview_stale">Конфигурация изменилась после создания предпросмотра. Обновите предпросмотр и попробуйте снова.</string>
     <string name="keyword">Ключевое слово</string>
 
     <string name="invalid_log_file">Недопустимый лог файл</string>

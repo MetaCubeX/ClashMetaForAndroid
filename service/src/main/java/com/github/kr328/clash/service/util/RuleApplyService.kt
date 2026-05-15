@@ -13,6 +13,12 @@ class RuleApplyService(
     private val context: Context,
     private val repository: RuleRepository = RuleRepository(context),
 ) {
+    data class RuleDryRun(
+        val currentYaml: String,
+        val proposedYaml: String,
+        val normalizedState: RuleState,
+    )
+
     private val serviceStore = ServiceStore(context)
 
     fun readStateJson(uuid: UUID): String? {
@@ -28,9 +34,36 @@ class RuleApplyService(
         return applyState(uuid, config, state)
     }
 
+    fun saveStateJson(uuid: UUID, stateJson: String) {
+        repository.save(uuid, repository.parseStateJson(stateJson))
+    }
+
+    fun dryRunStateJson(uuid: UUID, stateJson: String): RuleDryRun? {
+        val config = configFile(uuid) ?: return null
+        val state = repository.parseStateJson(stateJson)
+        return dryRunState(config, state)
+    }
+
     fun mergeProviderShortcut(uuid: UUID, providersYaml: String, prependRuleLine: String): Boolean {
         val config = configFile(uuid) ?: return false
-        val current = repository.load(uuid, config.readText())
+        val currentText = config.readText()
+        val current = repository.load(uuid, currentText)
+        val merged = mergeProviderShortcutState(current, providersYaml, prependRuleLine)
+        return applyState(uuid, config, merged)
+    }
+
+    fun dryRunMergeProviderShortcut(uuid: UUID, providersYaml: String, prependRuleLine: String): RuleDryRun? {
+        val config = configFile(uuid) ?: return null
+        val currentText = config.readText()
+        val current = repository.load(uuid, currentText)
+        return dryRunState(config, mergeProviderShortcutState(current, providersYaml, prependRuleLine))
+    }
+
+    private fun mergeProviderShortcutState(
+        current: RuleState,
+        providersYaml: String,
+        prependRuleLine: String,
+    ): RuleState {
         val incomingProviders = RuleMapper.parseProvidersYaml(providersYaml)
         val incomingRule = parseRuleLine(prependRuleLine, current.rules.size)
         Log.d("Merge provider shortcut incomingProviders=${incomingProviders.size} incomingRule=${incomingRule != null}")
@@ -48,22 +81,33 @@ class RuleApplyService(
             if (incomingRule != null) add(0, incomingRule)
         }.mapIndexed { i, item -> item.copy(order = i) }
 
-        return applyState(
-            uuid,
-            config,
-            current.copy(providers = mergedProviders, rules = mergedRules)
-        )
+        return current.copy(providers = mergedProviders, rules = mergedRules)
     }
 
     fun addRules(uuid: UUID, rawRules: List<String>, addMode: Boolean, insertMode: String): Boolean {
         val config = configFile(uuid) ?: return false
         val current = repository.load(uuid, config.readText())
+        return applyState(uuid, config, addRulesState(current, rawRules, addMode, insertMode))
+    }
+
+    fun dryRunAddRules(uuid: UUID, rawRules: List<String>, addMode: Boolean, insertMode: String): RuleDryRun? {
+        val config = configFile(uuid) ?: return null
+        val current = repository.load(uuid, config.readText())
+        return dryRunState(config, addRulesState(current, rawRules, addMode, insertMode))
+    }
+
+    private fun addRulesState(
+        current: RuleState,
+        rawRules: List<String>,
+        addMode: Boolean,
+        insertMode: String,
+    ): RuleState {
         val incoming = rawRules.mapIndexedNotNull { idx, line ->
             parseRuleLine(line, idx)
         }
-        if (incoming.isEmpty()) return true
+        if (incoming.isEmpty()) return current
 
-        val merged = if (addMode) {
+        return if (addMode) {
             val existing = current.rules.filterNot { it.deleted }.map { ruleLineKey(it) }.toMutableSet()
             val added = incoming.filter { existing.add(ruleLineKey(it)) }
             val base = current.rules.toMutableList()
@@ -82,12 +126,26 @@ class RuleApplyService(
             val rules = incoming.mapIndexed { i, r -> r.copy(order = i) }
             current.copy(rules = rules)
         }
-        return applyState(uuid, config, merged)
     }
 
     fun mutateRule(uuid: UUID, ruleId: String, action: String, enabled: Boolean? = null): Boolean {
         val config = configFile(uuid) ?: return false
         val state = repository.load(uuid, config.readText())
+        return applyState(uuid, config, mutateRuleState(state, ruleId, action, enabled))
+    }
+
+    fun dryRunMutateRule(uuid: UUID, ruleId: String, action: String, enabled: Boolean? = null): RuleDryRun? {
+        val config = configFile(uuid) ?: return null
+        val state = repository.load(uuid, config.readText())
+        return dryRunState(config, mutateRuleState(state, ruleId, action, enabled))
+    }
+
+    private fun mutateRuleState(
+        state: RuleState,
+        ruleId: String,
+        action: String,
+        enabled: Boolean?,
+    ): RuleState {
         val updatedRules = state.rules.mapNotNull { r ->
             if (r.id != ruleId) return@mapNotNull r
             when (action) {
@@ -100,23 +158,14 @@ class RuleApplyService(
                 else -> r
             }
         }.mapIndexed { i, r -> r.copy(order = i) }
-        return applyState(uuid, config, state.copy(rules = updatedRules))
+        return state.copy(rules = updatedRules)
     }
 
     private fun applyState(uuid: UUID, config: File, state: RuleState): Boolean {
         return runCatching {
-            val normalized = state.copy(rules = normalizeRuleOrder(state.rules))
-            val geoDataUrls = GeoDataSources.resolve(
-                preset = serviceStore.geoDataSourcePreset,
-                customGeoIp = serviceStore.geoDataCustomGeoIp,
-                customGeoSite = serviceStore.geoDataCustomGeoSite,
-                customMmdb = serviceStore.geoDataCustomMmdb,
-                customAsn = serviceStore.geoDataCustomAsn,
-            )
-            val mergedYaml = RuleMapper.mergeStateIntoConfig(config.readText(), normalized, geoDataUrls)
-            val proxyGroups = ProxyGroupsYamlPreview.listProxyGroupNames(mergedYaml).toSet()
-            RuleValidator.validate(normalized, proxyGroups)
-            validateMergedYaml(mergedYaml)
+            val dryRun = dryRunState(config, state) ?: return false
+            val normalized = dryRun.normalizedState
+            val mergedYaml = dryRun.proposedYaml
             repository.save(uuid, normalized)
             config.writeText(mergedYaml)
             context.sendProfileChanged(uuid)
@@ -125,6 +174,23 @@ class RuleApplyService(
         }.onFailure {
             Log.e("Apply rules failed", it)
         }.getOrElse { false }
+    }
+
+    private fun dryRunState(config: File, state: RuleState): RuleDryRun {
+        val currentYaml = config.readText()
+        val normalized = state.copy(rules = normalizeRuleOrder(state.rules))
+        val geoDataUrls = GeoDataSources.resolve(
+            preset = serviceStore.geoDataSourcePreset,
+            customGeoIp = serviceStore.geoDataCustomGeoIp,
+            customGeoSite = serviceStore.geoDataCustomGeoSite,
+            customMmdb = serviceStore.geoDataCustomMmdb,
+            customAsn = serviceStore.geoDataCustomAsn,
+        )
+        val mergedYaml = RuleMapper.mergeStateIntoConfig(currentYaml, normalized, geoDataUrls)
+        val proxyGroups = ProxyGroupsYamlPreview.listProxyGroupNames(mergedYaml).toSet()
+        RuleValidator.validate(normalized, proxyGroups)
+        validateMergedYaml(mergedYaml)
+        return RuleDryRun(currentYaml, mergedYaml, normalized)
     }
 
     private fun normalizeRuleOrder(rules: List<RuleItem>): List<RuleItem> {
@@ -191,19 +257,5 @@ class RuleApplyService(
         }
     }
 
-    private fun validateMergedYaml(yaml: String) {
-        val root = YamlFormatting.parseRootMap(yaml)
-            ?: throw IllegalArgumentException("Generated YAML is invalid")
-        val rp = root["rule-providers"]
-        if (rp != null && rp !is Map<*, *>) {
-            throw IllegalArgumentException("Generated rule-providers must be a map")
-        }
-        val rules = root["rules"]
-        if (rules != null && rules !is List<*>) {
-            throw IllegalArgumentException("Generated rules must be a list")
-        }
-        (rules as? List<*>)?.forEach {
-            require(it is String) { "Generated rules entries must be strings" }
-        }
-    }
+    private fun validateMergedYaml(yaml: String) = YamlPreviewSupport.validateConfigYaml(yaml)
 }

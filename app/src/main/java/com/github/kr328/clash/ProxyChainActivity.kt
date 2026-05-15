@@ -12,6 +12,7 @@ import com.github.kr328.clash.design.R
 import com.github.kr328.clash.design.util.showExceptionToast
 import com.github.kr328.clash.util.withClash
 import com.github.kr328.clash.util.withProfile
+import com.github.kr328.clash.util.showYamlPreview
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.isActive
@@ -175,30 +176,28 @@ class ProxyChainActivity : BaseActivity<ProxyChainDesign>() {
         design.setChainBusy(true)
         design.showChainStatus(ChainStatusKind.Progress, getString(R.string.proxy_chain_status_working))
         try {
-            val ok = withProfile { setProxyDialerProxy(uuid, outbound, dialer) }
-            if (!ok) {
-                design.showChainStatus(ChainStatusKind.Error, chainErr(R.string.proxy_chain_not_found))
-                return
-            }
-            refreshDiskUi()
-            waitForProxyEngineReady()
-            uiStore.tunnelModePreference = TunnelState.Mode.Global.name
-            val patched = withClash {
-                val o = queryOverride(Clash.OverrideSlot.Session)
-                o.mode = TunnelState.Mode.Global
-                patchOverride(Clash.OverrideSlot.Session, o)
-                patchSelector(group, outbound)
-            }
-            if (patched) {
-                design.showChainStatus(
-                    ChainStatusKind.Success,
-                    getString(R.string.proxy_chain_status_success, outbound, dialer),
-                )
-            } else {
-                design.showChainStatus(
-                    ChainStatusKind.Warning,
-                    getString(R.string.proxy_chain_connect_selector_failed),
-                )
+            val preview = withProfile { previewSetProxyDialerProxy(uuid, outbound, dialer) }
+            showYamlPreview(preview) {
+                refreshDiskUi()
+                waitForProxyEngineReady()
+                uiStore.tunnelModePreference = TunnelState.Mode.Global.name
+                val patched = withClash {
+                    val o = queryOverride(Clash.OverrideSlot.Session)
+                    o.mode = TunnelState.Mode.Global
+                    patchOverride(Clash.OverrideSlot.Session, o)
+                    patchSelector(group, outbound)
+                }
+                if (patched) {
+                    design.showChainStatus(
+                        ChainStatusKind.Success,
+                        getString(R.string.proxy_chain_status_success, outbound, dialer),
+                    )
+                } else {
+                    design.showChainStatus(
+                        ChainStatusKind.Warning,
+                        getString(R.string.proxy_chain_connect_selector_failed),
+                    )
+                }
             }
         } catch (e: Exception) {
             design.showExceptionToast(e)
@@ -232,12 +231,10 @@ class ProxyChainActivity : BaseActivity<ProxyChainDesign>() {
         }
         design.setChainBusy(true)
         try {
-            val ok = withProfile { setProxyDialerProxy(uuid, outbound, dialer) }
-            if (ok) {
+            val preview = withProfile { previewSetProxyDialerProxy(uuid, outbound, dialer) }
+            showYamlPreview(preview) {
                 refreshDiskUi()
                 design.showChainStatus(ChainStatusKind.Success, getString(R.string.proxy_chain_status_saved_only))
-            } else {
-                design.showChainStatus(ChainStatusKind.Error, chainErr(R.string.proxy_chain_not_found))
             }
         } catch (e: Exception) {
             design.showExceptionToast(e)
@@ -261,12 +258,10 @@ class ProxyChainActivity : BaseActivity<ProxyChainDesign>() {
             return
         }
         try {
-            val ok = withProfile { setProxyDialerProxy(uuid, outbound, null) }
-            if (ok) {
+            val preview = withProfile { previewSetProxyDialerProxy(uuid, outbound, null) }
+            showYamlPreview(preview) {
                 refreshDiskUi()
                 design.showChainStatus(ChainStatusKind.Success, getString(R.string.proxy_chain_cleared))
-            } else {
-                design.showChainStatus(ChainStatusKind.Error, chainErr(R.string.proxy_chain_not_found))
             }
         } catch (e: Exception) {
             design.showExceptionToast(e)
@@ -279,13 +274,11 @@ class ProxyChainActivity : BaseActivity<ProxyChainDesign>() {
         refreshDiskUi: suspend () -> Unit,
     ) {
         try {
-            val ok = withProfile { clearAllProxyDialerChains(uuid) }
-            if (ok) {
+            val preview = withProfile { previewClearAllProxyDialerChains(uuid) }
+            showYamlPreview(preview) {
                 design.showChainStatus(ChainStatusKind.Success, getString(R.string.proxy_chain_cleared_all))
-            } else {
-                design.showChainStatus(ChainStatusKind.Warning, getString(R.string.proxy_chain_saved_empty))
+                refreshDiskUi()
             }
-            refreshDiskUi()
         } catch (e: Exception) {
             design.showExceptionToast(e)
         }
@@ -302,13 +295,11 @@ class ProxyChainActivity : BaseActivity<ProxyChainDesign>() {
             return
         }
         try {
-            val ok = withProfile { setProxyDialerProxy(uuid, target, null) }
-            if (ok) {
+            val preview = withProfile { previewSetProxyDialerProxy(uuid, target, null) }
+            showYamlPreview(preview) {
                 design.showChainStatus(ChainStatusKind.Success, getString(R.string.proxy_chain_cleared_selected))
-            } else {
-                design.showChainStatus(ChainStatusKind.Error, chainErr(R.string.proxy_chain_not_found))
+                refreshDiskUi()
             }
-            refreshDiskUi()
         } catch (e: Exception) {
             design.showExceptionToast(e)
         }
