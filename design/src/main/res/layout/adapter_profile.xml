@@ -47,8 +47,9 @@
 
                 <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="78dp"
+                    android:layout_height="wrap_content"
                     android:gravity="center_vertical"
+                    android:minHeight="78dp"
                     android:orientation="horizontal"
                     android:paddingStart="14dp"
                     android:paddingEnd="10dp">
@@ -75,7 +76,7 @@
                             android:gravity="center"
                             android:textSize="24sp"
                             android:visibility="gone"
-                            tools:text="🇩🇪"
+                            tools:text="DE"
                             tools:visibility="visible" />
                     </FrameLayout>
 
@@ -114,7 +115,8 @@
                                 android:paddingVertical="3dp"
                                 android:textAppearance="@style/TextAppearance.App.LabelSmall"
                                 android:visibility="gone"
-                                tools:text="Active" />
+                                tools:text="Active"
+                                tools:visibility="visible" />
                         </LinearLayout>
 
                         <LinearLayout
@@ -145,6 +147,19 @@
                                 android:visibility="gone"
                                 tools:text="48 ms · Frankfurt"
                                 tools:visibility="visible" />
+
+                            <TextView
+                                android:id="@+id/expiry_chip"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="8dp"
+                                android:background="@drawable/bg_m3_expiry_chip_warning"
+                                android:paddingHorizontal="10dp"
+                                android:paddingVertical="3dp"
+                                android:textAppearance="@style/TextAppearance.App.LabelSmall"
+                                android:visibility="gone"
+                                tools:text="2d left"
+                                tools:visibility="visible" />
                         </LinearLayout>
 
                         <com.google.android.material.progressindicator.LinearProgressIndicator
@@ -172,16 +187,6 @@
                             android:textColor="?attr/colorOnSurfaceVariant"
                             android:visibility="gone"
                             tools:text="Announcement preview" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="3dp"
-                            android:text='@{profile.expire>0 ? I18nKt.toDateStr(profile.expire):""}'
-                            android:textAppearance="@style/TextAppearance.App.BodySmall"
-                            android:textColor="?attr/colorOnSurfaceVariant"
-                            android:visibility="@{profile.expire==0 ? View.GONE : View.VISIBLE}"
-                            tools:text="2026-04-30 01:06:58" />
                     </LinearLayout>
 
                     <FrameLayout
@@ -335,6 +340,7 @@
                     android:textAllCaps="false"
                     app:cornerRadius="16dp" />
             </LinearLayout>
+
         </com.google.android.material.card.MaterialCardView>
 
         <com.google.android.material.card.MaterialCardView

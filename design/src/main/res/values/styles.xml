@@ -43,6 +43,23 @@
 
     <style name="AppChip.Filter" parent="Widget.Material3.Chip.Filter" />
 
+    <style name="ShapeAppearance.App.Circle" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">50%</item>
+    </style>
+
+    <!-- Smaller filter chip for sort/filter rows in the proxy picker. -->
+    <style name="AppChip.Filter.Compact" parent="Widget.Material3.Chip.Filter">
+        <item name="chipMinHeight">28dp</item>
+        <item name="chipMinTouchTargetSize">0dp</item>
+        <item name="ensureMinTouchTargetSize">false</item>
+        <item name="chipStartPadding">10dp</item>
+        <item name="chipEndPadding">10dp</item>
+        <item name="textStartPadding">0dp</item>
+        <item name="textEndPadding">0dp</item>
+        <item name="android:textAppearance">@style/TextAppearance.App.LabelSmall</item>
+    </style>
+
     <style name="AppChip.Input" parent="Widget.Material3.Chip.Input" />
 
     <style name="AppChip.Suggestion" parent="Widget.Material3.Chip.Suggestion" />

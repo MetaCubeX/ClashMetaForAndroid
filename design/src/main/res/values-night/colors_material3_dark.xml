@@ -77,7 +77,8 @@
     <color name="proto_grpc">#9CC6FF</color>
     <color name="proto_http">#FFB37A</color>
     <color name="proto_xhttp">#FFB37A</color>
-    <color name="proto_reality">#C5A8FF</color>
+    <color name="proto_transport">#4DB6AC</color>
+    <color name="proto_reality">#F48FB1</color>
     <color name="proto_hysteria">#F2C76F</color>
     <color name="proto_tuic">#F2C76F</color>
     <color name="proto_vmess">#C0A6FF</color>

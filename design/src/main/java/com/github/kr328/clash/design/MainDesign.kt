@@ -37,6 +37,7 @@ import com.github.kr328.clash.design.util.toBytesString
 import com.github.kr328.clash.design.R
 import com.github.kr328.clash.service.model.Profile
 import com.github.kr328.clash.service.model.ProxyGroupPreviewRow
+import com.github.kr328.clash.service.model.ProxyTransportInfo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.withContext
@@ -502,6 +503,7 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         offlinePreviewByProfile: Map<UUID, Map<String, ProxyGroupPreviewRow>> = emptyMap(),
         activeProfileUuid: UUID? = null,
         offlineSelectionsByProfile: Map<UUID, Map<String, String>> = emptyMap(),
+        transportInfoByProfile: Map<UUID, Map<String, ProxyTransportInfo>> = emptyMap(),
     ) {
         withContext(Dispatchers.Main) {
             profileAdapter.setProxyContext(
@@ -512,6 +514,7 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
                 offlinePreviewByProfile,
                 activeProfileUuid,
                 offlineSelectionsByProfile,
+                transportInfoByProfile,
             )
             profileAdapter.setExpandedUuids(expandedProfileUuids.toSet())
         }

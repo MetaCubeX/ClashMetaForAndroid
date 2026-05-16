@@ -18,6 +18,7 @@ dependencies {
     implementation(libs.androidx.fragment)
     implementation(libs.androidx.viewpager)
     implementation(libs.google.material)
+    implementation("com.caverock:androidsvg-aar:1.4")
 
     testImplementation(kotlin("test-junit"))
 }

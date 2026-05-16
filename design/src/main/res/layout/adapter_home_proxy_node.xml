@@ -24,26 +24,33 @@
         android:background="@drawable/bg_proxy_node_rail"
         android:visibility="invisible" />
 
-    <com.google.android.material.card.MaterialCardView
+    <FrameLayout
         android:id="@+id/proxy_flag_card"
-        style="@style/AppCard.Filled"
         android:layout_width="28dp"
         android:layout_height="28dp"
         android:layout_marginEnd="12dp"
-        android:visibility="gone"
-        app:cardBackgroundColor="?attr/colorSurfaceContainerHigh"
-        app:cardCornerRadius="7dp"
-        app:cardElevation="0dp"
-        app:strokeWidth="0dp">
+        android:visibility="gone">
+
+        <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/proxy_flag_image"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="?attr/colorSurfaceContainerHigh"
+            android:scaleType="centerCrop"
+            android:visibility="gone"
+            app:shapeAppearanceOverlay="@style/ShapeAppearance.App.Circle" />
 
         <TextView
             android:id="@+id/proxy_flag"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:background="@drawable/bg_flag_circle"
             android:gravity="center"
+            android:includeFontPadding="false"
             android:textSize="14sp"
-            tools:text="🇺🇸" />
-    </com.google.android.material.card.MaterialCardView>
+            android:visibility="gone"
+            tools:text="US" />
+    </FrameLayout>
 
     <LinearLayout
         android:layout_width="0dp"
@@ -103,8 +110,40 @@
                 android:textSize="10sp"
                 android:textStyle="bold"
                 android:visibility="gone"
+                tools:text="VLESS"
+                tools:textColor="@color/proto_xhttp"
+                tools:visibility="visible" />
+
+            <TextView
+                android:id="@+id/proxy_transport_badge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:fontFamily="monospace"
+                android:letterSpacing="0.08"
+                android:maxLines="1"
+                android:textAllCaps="true"
+                android:textSize="10sp"
+                android:textStyle="bold"
+                android:visibility="gone"
                 tools:text="XHTTP"
                 tools:textColor="@color/proto_xhttp"
+                tools:visibility="visible" />
+
+            <TextView
+                android:id="@+id/proxy_reality_badge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:fontFamily="monospace"
+                android:letterSpacing="0.08"
+                android:maxLines="1"
+                android:textAllCaps="true"
+                android:textSize="10sp"
+                android:textStyle="bold"
+                android:visibility="gone"
+                tools:text="REALITY"
+                tools:textColor="@color/proto_reality"
                 tools:visibility="visible" />
 
             <TextView

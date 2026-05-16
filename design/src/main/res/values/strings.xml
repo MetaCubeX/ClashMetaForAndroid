@@ -296,6 +296,7 @@ Presets only change <b>where</b> files are downloaded from (CDN / host). It is s
     <string name="profile_selected_group">Selected group</string>
     <string name="profile_nodes">Nodes</string>
     <string name="profile_proxy_search_hint">Search nodes or groups</string>
+    <string name="profile_proxy_search_clear">Clear search</string>
     <string name="profile_proxy_sort_config">Config order</string>
     <string name="profile_proxy_sort_delay">Delay</string>
     <string name="profile_proxy_sort_name">Name</string>

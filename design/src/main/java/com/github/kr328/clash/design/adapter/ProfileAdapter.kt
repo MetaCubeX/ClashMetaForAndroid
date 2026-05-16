@@ -13,6 +13,7 @@ import com.github.kr328.clash.core.model.Proxy
 import com.github.kr328.clash.core.model.ProxyGroup
 import com.github.kr328.clash.core.model.TunnelState
 import com.github.kr328.clash.design.R
+import com.github.kr328.clash.design.util.FlagDrawableLoader
 import com.github.kr328.clash.design.util.FlagParser
 import com.github.kr328.clash.design.util.toBytesString
 import com.github.kr328.clash.design.databinding.AdapterProfileBinding
@@ -22,6 +23,7 @@ import com.github.kr328.clash.design.model.ProfilePageState
 import com.github.kr328.clash.design.util.layoutInflater
 import com.github.kr328.clash.service.model.Profile
 import com.github.kr328.clash.service.model.ProxyGroupPreviewRow
+import com.github.kr328.clash.service.model.ProxyTransportInfo
 import com.google.android.material.chip.Chip
 import com.google.android.material.color.MaterialColors
 import java.util.UUID
@@ -54,6 +56,7 @@ class ProfileAdapter(
     /** Offline proxy groups per profile (expanded cards that are not using live engine data). */
     private var offlinePreviewByProfile: Map<UUID, Map<String, ProxyGroupPreviewRow>> = emptyMap()
     private var offlineSelectionsByProfile: Map<UUID, Map<String, String>> = emptyMap()
+    private var transportInfoByProfile: Map<UUID, Map<String, ProxyTransportInfo>> = emptyMap()
     private val cachedOfflinePreviewByProfile = mutableMapOf<UUID, Map<String, ProxyGroupPreviewRow>>()
     private val cachedOfflineSelectionsByProfile = mutableMapOf<UUID, Map<String, String>>()
     private val selectedGroupIndex = mutableMapOf<UUID, Int>()
@@ -173,15 +176,18 @@ class ProfileAdapter(
         offlinePreviewByProfile: Map<UUID, Map<String, ProxyGroupPreviewRow>> = emptyMap(),
         activeProfileUuid: UUID? = null,
         offlineSelectionsByProfile: Map<UUID, Map<String, String>> = emptyMap(),
+        transportInfoByProfile: Map<UUID, Map<String, ProxyTransportInfo>> = emptyMap(),
     ) {
         if (names == proxyGroupNames && running == clashRunning && mode == tunnelMode &&
             lastGroupHint == this.lastGroupHint &&
             offlinePreviewByProfile == this.offlinePreviewByProfile &&
             activeProfileUuid == this.activeProfileUuid &&
-            offlineSelectionsByProfile == this.offlineSelectionsByProfile
+            offlineSelectionsByProfile == this.offlineSelectionsByProfile &&
+            transportInfoByProfile == this.transportInfoByProfile
         ) {
             return
         }
+        this.transportInfoByProfile = transportInfoByProfile
         // Only reset runtime proxies when identity actually changes. The core may return the
         // same selector list in a different order after patchSelector; treating that like a
         // full reset cleared pending selections and made the home card look like the tap lost.
@@ -612,8 +618,12 @@ class ProfileAdapter(
                             text = context.getString(R.string.profile_proxy_filter_provider, provider)
                             isCheckable = true
                             setEnsureMinTouchTargetSize(false)
-                            minHeight = context.dp(32)
-                            chipMinHeight = context.dp(32).toFloat()
+                            minHeight = context.dp(28)
+                            chipMinHeight = context.dp(28).toFloat()
+                            chipStartPadding = context.dp(10).toFloat()
+                            chipEndPadding = context.dp(10).toFloat()
+                            textStartPadding = 0f
+                            textEndPadding = 0f
                             setTextAppearance(R.style.TextAppearance_App_LabelSmall)
                         },
                     )
@@ -704,6 +714,8 @@ class ProfileAdapter(
 
             sheet.proxySheetSearch.addTextChangedListener { editable ->
                 val newQuery = editable?.toString().orEmpty()
+                sheet.proxySheetSearchClear.visibility =
+                    if (newQuery.isNotEmpty()) View.VISIBLE else View.GONE
                 pendingSearch?.let(sheet.proxySheetSearch::removeCallbacks)
                 val runnable = Runnable {
                     query = newQuery
@@ -711,6 +723,9 @@ class ProfileAdapter(
                 }
                 pendingSearch = runnable
                 sheet.proxySheetSearch.postDelayed(runnable, 200L)
+            }
+            sheet.proxySheetSearchClear.setOnClickListener {
+                sheet.proxySheetSearch.setText("")
             }
             sheet.proxySheetSortChips.setOnCheckedStateChangeListener { _, checkedIds ->
                 sort = when (checkedIds.firstOrNull()) {
@@ -876,6 +891,35 @@ class ProfileAdapter(
         }
     }
 
+    private fun bindExpiryChip(holder: Holder, profile: Profile, context: Context) {
+        val view = holder.binding.expiryChip
+        if (profile.expire <= 0L || !profile.imported || profile.pending) {
+            view.visibility = View.GONE
+            return
+        }
+        val now = System.currentTimeMillis()
+        val diff = profile.expire - now
+        val expired = diff <= 0L
+        val totalHours = if (expired) 0L else diff / 3_600_000L
+        val days = totalHours / 24L
+        val hours = totalHours % 24L
+        val critical = expired || days < 3L
+        if (!critical) {
+            view.visibility = View.GONE
+            return
+        }
+        view.text = when {
+            expired -> context.getString(R.string.proxy_sheet_expiry_expired)
+            days > 0 -> context.getString(R.string.proxy_sheet_expiry_days_hours, days.toInt(), hours.toInt())
+            else -> context.getString(R.string.proxy_sheet_expiry_hours, hours.toInt().coerceAtLeast(1))
+        }
+        view.visibility = View.VISIBLE
+        view.setBackgroundResource(R.drawable.bg_m3_expiry_chip_warning)
+        view.setTextColor(
+            MaterialColors.getColor(view, com.google.android.material.R.attr.colorOnErrorContainer),
+        )
+    }
+
     private fun bindUsageAndProgress(holder: Holder, profile: Profile) {
         val binding = holder.binding
         val used = profile.upload + profile.download
@@ -944,6 +988,7 @@ class ProfileAdapter(
         applyActiveVisuals(holder, current)
         bindUsageAndProgress(holder, current)
         bindAnnouncement(holder, current)
+        bindExpiryChip(holder, current, context)
         if (compactHomeCard) {
             binding.usageSummary.visibility = View.GONE
             binding.usageProgress.visibility = View.GONE
@@ -965,11 +1010,23 @@ class ProfileAdapter(
         binding.serverButton.setOnClickListener {
             if (showServerChooser) onExpandToggle(current)
         }
+        val selectedGroup = selectedGroupForSummary(current)
+        val selectionSummary = selectedGroup?.let { group ->
+            if (compactHomeCard) {
+                formatSelectionSummaryForHome(group)
+            } else {
+                formatSelectionSummaryForProfiles(context, current, group)
+            }
+        }
         if (compactHomeCard) {
             val profileTitle = resolveCurrentNodeDisplayName(current)
                 ?: context.getString(R.string.not_selected)
             val (titleText, emoji) = formatNodeHeadline(profileTitle, context)
-            binding.profileTitle.text = titleText
+            val groupSuffix = selectedGroup
+                ?.takeIf { resolveCurrentNodeDisplayName(current) != null }
+                ?.let { " · " + displayGroupName(it) }
+                .orEmpty()
+            binding.profileTitle.text = titleText + groupSuffix
             val iconEmoji = emoji ?: extractLeadingEmoji(profileTitle)
             binding.profileIconEmoji.visibility = if (iconEmoji != null) View.VISIBLE else View.GONE
             binding.profileIcon.visibility = if (iconEmoji != null) View.GONE else View.VISIBLE
@@ -983,16 +1040,11 @@ class ProfileAdapter(
             binding.profileIconEmoji.text = profileEmoji(current)
         }
 
-        val selectedGroup = selectedGroupForSummary(current)
-        val selectionSummary = selectedGroup?.let { group ->
-            if (compactHomeCard) {
-                formatSelectionSummaryForHome(group)
-            } else {
-                formatSelectionSummaryForProfiles(context, current, group)
-            }
+        binding.serverSelectionSummary.visibility = when {
+            compactHomeCard -> View.GONE
+            !selectionSummary.isNullOrBlank() -> View.VISIBLE
+            else -> View.GONE
         }
-        binding.serverSelectionSummary.visibility =
-            if (!selectionSummary.isNullOrBlank()) View.VISIBLE else View.GONE
         binding.serverSelectionSummary.text = selectionSummary.orEmpty()
         if (useEngineFor(current) && selectedGroup != null) {
             reportVisibleGroup(current, selectedGroup)
@@ -1211,10 +1263,21 @@ class ProfileAdapter(
                 }
             }
             val flagCard = row.findViewById<View>(R.id.proxy_flag_card)
+            val flagImage = row.findViewById<com.google.android.material.imageview.ShapeableImageView>(R.id.proxy_flag_image)
             val flagText = row.findViewById<TextView>(R.id.proxy_flag)
             if (flag != null) {
                 flagCard.visibility = View.VISIBLE
-                flagText.text = flag.emoji
+                val sizePx = context.dp(28)
+                val svgDrawable = FlagDrawableLoader.load(context, flag.code, sizePx)
+                if (svgDrawable != null) {
+                    flagImage.setImageDrawable(svgDrawable)
+                    flagImage.visibility = View.VISIBLE
+                    flagText.visibility = View.GONE
+                } else {
+                    flagImage.visibility = View.GONE
+                    flagText.text = flag.emoji
+                    flagText.visibility = View.VISIBLE
+                }
             } else {
                 flagCard.visibility = View.GONE
             }
@@ -1230,6 +1293,25 @@ class ProfileAdapter(
                 )
             } else {
                 typeBadge.visibility = View.GONE
+            }
+
+            val transportInfo = if (showBadge) transportInfoByProfile[profile.uuid]?.get(p.name) else null
+            val transportBadge = row.findViewById<TextView>(R.id.proxy_transport_badge)
+            val transportLabel = transportLabel(transportInfo)
+            if (transportLabel != null) {
+                transportBadge.visibility = View.VISIBLE
+                transportBadge.text = transportLabel
+                transportBadge.setTextColor(ContextCompat.getColor(context, R.color.proto_transport))
+            } else {
+                transportBadge.visibility = View.GONE
+            }
+            val realityBadge = row.findViewById<TextView>(R.id.proxy_reality_badge)
+            if (transportInfo?.reality == true) {
+                realityBadge.visibility = View.VISIBLE
+                realityBadge.text = "REALITY"
+                realityBadge.setTextColor(ContextCompat.getColor(context, R.color.proto_reality))
+            } else {
+                realityBadge.visibility = View.GONE
             }
 
             val rawSubtitle = p.subtitle
@@ -1490,6 +1572,16 @@ class ProfileAdapter(
         val tailIsCityLike = tail.first().isLetter() && tail.all { it.isLetter() || it == '-' || it == '\'' }
         val headHasIdShape = head.any { it.isDigit() || it == '-' || it == '_' || it == '#' }
         return if (tailIsCityLike && headHasIdShape) head to tail else trimmed to null
+    }
+
+    /** "TCP" / "WS" / "GRPC" / "XHTTP" / "H2" / "HTTP"; null when YAML had no transport info. */
+    private fun transportLabel(info: ProxyTransportInfo?): String? {
+        if (info == null) return null
+        return when (val net = info.network.lowercase()) {
+            "" -> "TCP"
+            "h2", "http2" -> "H2"
+            else -> net.uppercase()
+        }
     }
 
     private fun protocolFamilyColor(typeName: String): Int = when (typeName.lowercase()) {

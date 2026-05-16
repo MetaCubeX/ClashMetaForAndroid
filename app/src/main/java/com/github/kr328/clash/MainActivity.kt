@@ -1052,6 +1052,9 @@ class MainActivity : BaseActivity<MainDesign>() {
         val offlineSelectionsByProfile = previewUuids.associateWith { uuid ->
             withProfile { queryProxySelections(uuid) }
         }
+        val transportInfoByProfile = previewUuids.associateWith { uuid ->
+            withProfile { readProxyTransports(uuid) }
+        }
 
         patchProxyGroups(
             proxyNames,
@@ -1061,6 +1064,7 @@ class MainActivity : BaseActivity<MainDesign>() {
             offlinePreviewByProfile,
             activeUuid,
             offlineSelectionsByProfile,
+            transportInfoByProfile,
         )
         if (!running || activeUuid == null || proxyNames.isEmpty()) {
             clearProxyDetails()
