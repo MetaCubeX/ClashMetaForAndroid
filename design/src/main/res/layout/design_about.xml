@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
     <data>
         <variable
             name="versionName"
@@ -46,12 +47,40 @@
                     android:orientation="vertical">
 
                     <TextView
+                        android:id="@+id/about_brand_name"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:ellipsize="end"
+                        android:maxLines="1"
                         android:text="@string/about_powered_by"
                         android:textAppearance="@style/TextAppearance.Material3.TitleMedium" />
 
                     <TextView
+                        android:id="@+id/about_brand_tagline"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:ellipsize="end"
+                        android:maxLines="2"
+                        android:textAppearance="@style/TextAppearance.App.BodySmall"
+                        android:textColor="?attr/colorOnSurfaceVariant"
+                        android:visibility="gone"
+                        tools:text="Fast and private since 2024"
+                        tools:visibility="visible" />
+
+                    <TextView
+                        android:id="@+id/about_brand_powered_by"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text="@string/about_brand_powered_by"
+                        android:textAppearance="@style/TextAppearance.Material3.BodySmall"
+                        android:textColor="?attr/colorOnSurfaceVariant"
+                        android:visibility="gone"
+                        tools:visibility="visible" />
+
+                    <TextView
+                        android:id="@+id/about_default_subtitle"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="2dp"
@@ -122,6 +151,34 @@
                 android:text="@string/about_support"
                 android:textAllCaps="false"
                 android:visibility="gone" />
+
+            <com.google.android.material.divider.MaterialDivider
+                android:id="@+id/about_brand_divider"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:layout_marginBottom="10dp"
+                android:visibility="gone" />
+
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/about_brand_links"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:chipSpacingHorizontal="6dp"
+                app:chipSpacingVertical="6dp"
+                android:visibility="gone"
+                tools:visibility="visible" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/about_brand_renew_button"
+                style="@style/Widget.Material3.Button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="@string/about_brand_renew"
+                android:textAllCaps="false"
+                android:visibility="gone" />
+
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 </layout>

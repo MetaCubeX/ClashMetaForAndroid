@@ -388,6 +388,24 @@
     <string name="profile_nodes">Узлы</string>
     <string name="profile_proxy_search_hint">Поиск по узлам или группам</string>
     <string name="profile_proxy_search_clear">Очистить поиск</string>
+
+    <!-- ===== Operator branding ===== -->
+    <string name="about_brand_powered_by">основано на ClashFest</string>
+    <string name="about_brand_website">Сайт</string>
+    <string name="about_brand_support">Поддержка</string>
+    <string name="about_brand_telegram">Telegram</string>
+    <string name="about_brand_bot">Бот</string>
+    <string name="about_brand_help">Справка</string>
+    <string name="about_brand_privacy">Конфиденциальность</string>
+    <string name="about_brand_terms">Условия</string>
+    <string name="about_brand_status">Статус</string>
+    <string name="about_brand_renew">Продлить подписку</string>
+    <string name="about_brand_reset">Сбросить брендинг</string>
+    <string name="brand_reset_toast">Брендинг оператора сброшен</string>
+    <string name="brand_renew_action">Продлить</string>
+    <string name="brand_max_devices">До %1$d устройств</string>
+    <string name="brand_status_check">Статус сервиса</string>
+    <string name="nav_operator">Оператор</string>
     <string name="profile_proxy_sort_config">Порядок конфига</string>
     <string name="profile_proxy_sort_delay">Задержка</string>
     <string name="profile_proxy_sort_name">Имя</string>

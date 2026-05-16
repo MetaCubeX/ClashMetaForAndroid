@@ -297,6 +297,24 @@ Presets only change <b>where</b> files are downloaded from (CDN / host). It is s
     <string name="profile_nodes">Nodes</string>
     <string name="profile_proxy_search_hint">Search nodes or groups</string>
     <string name="profile_proxy_search_clear">Clear search</string>
+
+    <!-- ===== Operator branding ===== -->
+    <string name="about_brand_powered_by">powered by ClashFest</string>
+    <string name="about_brand_website">Website</string>
+    <string name="about_brand_support">Support</string>
+    <string name="about_brand_telegram">Telegram</string>
+    <string name="about_brand_bot">Bot</string>
+    <string name="about_brand_help">Help</string>
+    <string name="about_brand_privacy">Privacy</string>
+    <string name="about_brand_terms">Terms</string>
+    <string name="about_brand_status">Status</string>
+    <string name="about_brand_renew">Renew subscription</string>
+    <string name="about_brand_reset">Reset branding</string>
+    <string name="brand_reset_toast">Operator branding has been reset</string>
+    <string name="brand_renew_action">Renew</string>
+    <string name="brand_max_devices">Max %1$d devices</string>
+    <string name="brand_status_check">Service status</string>
+    <string name="nav_operator">Operator</string>
     <string name="profile_proxy_sort_config">Config order</string>
     <string name="profile_proxy_sort_delay">Delay</string>
     <string name="profile_proxy_sort_name">Name</string>

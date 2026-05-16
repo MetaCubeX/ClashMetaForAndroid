@@ -21,6 +21,7 @@ import com.github.kr328.clash.design.databinding.BottomSheetProxyGroupsBinding
 import com.github.kr328.clash.design.dialog.AppBottomSheetDialog
 import com.github.kr328.clash.design.model.ProfilePageState
 import com.github.kr328.clash.design.util.layoutInflater
+import com.github.kr328.clash.common.branding.BrandManifest
 import com.github.kr328.clash.service.model.Profile
 import com.github.kr328.clash.service.model.ProxyGroupPreviewRow
 import com.github.kr328.clash.service.model.ProxyTransportInfo
@@ -67,6 +68,10 @@ class ProfileAdapter(
     /** Last time ping-all was triggered per profile (System.currentTimeMillis()). */
     private val lastPingAllAt: MutableMap<UUID, Long> = mutableMapOf()
 
+    /** Operator-supplied brand manifest, used by v2+ surfaces (Renew tap, max-devices chip). */
+    private var brandManifest: BrandManifest = BrandManifest.EMPTY
+    private var onOpenBrandUrl: ((String) -> Unit)? = null
+
     /** Operator-pushed announcement, rendered inline on the active profile card. */
     private var announcementText: String? = null
     private var announcementUrl: String? = null
@@ -103,6 +108,17 @@ class ProfileAdapter(
     ) {
         val available: Boolean
             get() = delayMs >= 0
+    }
+
+    /**
+     * Push the latest operator brand into the adapter so v2 surfaces
+     * (critical-expiry chip Renew tap, max-devices chip, etc.) can react.
+     */
+    fun setBrandManifest(manifest: BrandManifest, onOpenBrandUrl: (String) -> Unit) {
+        val changed = manifest != brandManifest
+        brandManifest = manifest
+        this.onOpenBrandUrl = onOpenBrandUrl
+        if (changed) notifyDataSetChanged()
     }
 
     fun setActiveAnnouncement(
@@ -918,6 +934,15 @@ class ProfileAdapter(
         view.setTextColor(
             MaterialColors.getColor(view, com.google.android.material.R.attr.colorOnErrorContainer),
         )
+        // Operator may supply X-Brand-Renew-URL; when set, critical-expiry chip
+        // becomes the user's primary "renew this" action. When absent we leave
+        // the chip with its layout defaults (non-clickable TextView) untouched.
+        val renew = brandManifest.renewUrl?.takeIf { it.isNotBlank() }
+        if (renew != null) {
+            view.isClickable = true
+            view.isFocusable = true
+            view.setOnClickListener { onOpenBrandUrl?.invoke(renew) }
+        }
     }
 
     private fun bindUsageAndProgress(holder: Holder, profile: Profile) {

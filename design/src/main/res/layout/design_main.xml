@@ -89,6 +89,17 @@
                         android:gravity="center_vertical"
                         android:orientation="horizontal">
 
+                        <com.google.android.material.imageview.ShapeableImageView
+                            android:id="@+id/main_header_logo"
+                            android:layout_width="28dp"
+                            android:layout_height="28dp"
+                            android:layout_marginEnd="10dp"
+                            android:background="?attr/colorSurfaceContainerHigh"
+                            android:scaleType="centerCrop"
+                            android:visibility="gone"
+                            app:shapeAppearanceOverlay="@style/ShapeAppearance.App.Circle"
+                            tools:visibility="visible" />
+
                         <TextView
                             android:id="@+id/main_header_title"
                             android:layout_width="wrap_content"
@@ -113,6 +124,19 @@
                             app:tint="?attr/colorPrimary"
                             tools:visibility="visible" />
                     </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/main_header_tagline"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="1dp"
+                        android:ellipsize="end"
+                        android:maxLines="1"
+                        android:textAppearance="@style/TextAppearance.App.LabelSmall"
+                        android:textColor="?attr/colorOnSurfaceVariant"
+                        android:visibility="gone"
+                        tools:text="Fast and private since 2024"
+                        tools:visibility="visible" />
 
                     <TextView
                         android:id="@+id/main_header_summary"
@@ -1150,6 +1174,108 @@
         </androidx.core.widget.NestedScrollView>
 
         <androidx.core.widget.NestedScrollView
+            android:id="@+id/main_operator_page"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:fillViewport="false"
+            android:overScrollMode="never"
+            android:paddingTop="@{self.surface.insets.top}"
+            android:paddingBottom="@{self.surface.insets.bottom + context.resources.getDimensionPixelSize(com.github.kr328.clash.design.R.dimen.main_bottom_nav_reserved_space)}"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingHorizontal="20dp"
+                android:paddingTop="8dp"
+                android:paddingBottom="24dp">
+
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:cardBackgroundColor="?attr/colorSurfaceContainer"
+                    app:cardCornerRadius="22dp"
+                    app:cardElevation="0dp"
+                    app:strokeColor="?attr/colorOutlineVariant"
+                    app:strokeWidth="1dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="20dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <com.google.android.material.imageview.ShapeableImageView
+                                android:id="@+id/operator_logo"
+                                android:layout_width="56dp"
+                                android:layout_height="56dp"
+                                android:background="?attr/colorSurfaceContainerHigh"
+                                android:scaleType="centerCrop"
+                                app:shapeAppearanceOverlay="@style/ShapeAppearance.App.Circle" />
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="14dp"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:id="@+id/operator_name"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:ellipsize="end"
+                                    android:maxLines="1"
+                                    android:textAppearance="@style/TextAppearance.App.TitleLarge"
+                                    android:textColor="?attr/colorOnSurface"
+                                    android:textStyle="bold"
+                                    tools:text="SwiftVPN" />
+
+                                <TextView
+                                    android:id="@+id/operator_tagline"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="2dp"
+                                    android:ellipsize="end"
+                                    android:maxLines="2"
+                                    android:textAppearance="@style/TextAppearance.App.BodyMedium"
+                                    android:textColor="?attr/colorOnSurfaceVariant"
+                                    android:visibility="gone"
+                                    tools:text="Fast and private since 2024"
+                                    tools:visibility="visible" />
+                            </LinearLayout>
+                        </LinearLayout>
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/operator_renew_button"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="16dp"
+                            android:text="@string/about_brand_renew"
+                            android:textAllCaps="false"
+                            android:visibility="gone" />
+
+                        <LinearLayout
+                            android:id="@+id/operator_links"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:orientation="vertical" />
+
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+            </LinearLayout>
+        </androidx.core.widget.NestedScrollView>
+
+        <androidx.core.widget.NestedScrollView
             android:id="@+id/main_settings_page"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -1623,6 +1749,42 @@
                         android:gravity="center"
                         android:maxLines="1"
                         android:text="@string/nav_routing"
+                        android:textAppearance="@style/TextAppearance.App.BottomNavigation"
+                        android:textColor="@color/selector_bottom_nav_item" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/main_nav_operator"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:layout_marginStart="4dp"
+                    android:background="@drawable/bg_bottom_nav_item"
+                    android:clickable="true"
+                    android:contentDescription="@string/nav_operator"
+                    android:focusable="true"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:visibility="gone">
+
+                    <ImageView
+                        android:id="@+id/main_nav_operator_icon"
+                        android:layout_width="21dp"
+                        android:layout_height="21dp"
+                        android:duplicateParentState="true"
+                        android:src="@drawable/ic_baseline_business"
+                        app:tint="@color/selector_bottom_nav_item" />
+
+                    <TextView
+                        android:id="@+id/main_nav_operator_label"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:duplicateParentState="true"
+                        android:ellipsize="end"
+                        android:gravity="center"
+                        android:maxLines="1"
+                        android:text="@string/nav_operator"
                         android:textAppearance="@style/TextAppearance.App.BottomNavigation"
                         android:textColor="@color/selector_bottom_nav_item" />
                 </LinearLayout>

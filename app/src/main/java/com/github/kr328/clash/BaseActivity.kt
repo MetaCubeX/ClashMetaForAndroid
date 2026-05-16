@@ -236,6 +236,11 @@ abstract class BaseActivity<D : Design<*>> : AppCompatActivity(),
             theme.applyStyle(R.style.ThemeOverlay_ClashFest_TrueBlack, true)
         }
 
+        // Operator brand accent has the FINAL say — last applyStyle wins, so it
+        // overrides both the user-picked palette and the system dynamic color
+        // overlays applied above. No-op when no brand / no accent set.
+        com.github.kr328.clash.design.branding.BrandThemeApplier.applyToActivity(this)
+
         window.isAllowForceDarkCompat = false
         window.isSystemBarsTranslucentCompat = true
         

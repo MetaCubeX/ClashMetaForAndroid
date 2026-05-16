@@ -373,6 +373,8 @@ class MainActivity : BaseActivity<MainDesign>() {
         design.onUpdateBadgeTap = { showUpdateAvailableDialog() }
         refreshUpdateBadge(design)
 
+        design.onOpenBrandUrl = { url -> openExternalUrl(url) }
+
         val tickerInteractive = ticker(TimeUnit.SECONDS.toMillis(2))
         // Bumped from 8s -> 30s. While the screen is off (or activity is in background),
         // the dashboard is invisible; we only need infrequent updates so totals stay
@@ -1034,6 +1036,7 @@ class MainActivity : BaseActivity<MainDesign>() {
         val profiles = withProfile { queryAll() }
         setProfileName(active?.name ?: status.currentProfile)
         patchProfiles(profiles)
+        applyActiveBrand()
 
         val proxyNames = if (running) {
             runCatching {
@@ -1712,6 +1715,13 @@ class MainActivity : BaseActivity<MainDesign>() {
             SubscriptionOverrides.getUserAgent(this, active.uuid),
             uiStore.subscriptionMetadataAllowInsecureHttp,
         )
+        val brandManifest = com.github.kr328.clash.common.branding.BrandManifestParser.fetch(
+            this,
+            url,
+            SubscriptionOverrides.getUserAgent(this, active.uuid),
+            uiStore.subscriptionMetadataAllowInsecureHttp,
+        )
+        com.github.kr328.clash.service.branding.BrandRefresh.apply(this, active.uuid, brandManifest)
         meta.shareLinksDisable?.let { ServiceStore(this).subscriptionShareLinksLocked = it }
         uiStore.subscriptionHwidActive = meta.hwidActive?.toString().orEmpty()
         uiStore.subscriptionHwidNotSupported = meta.hwidNotSupported?.toString().orEmpty()
@@ -1755,6 +1765,35 @@ class MainActivity : BaseActivity<MainDesign>() {
                 userinfo = meta.subscriptionUserinfo.orEmpty(),
             ),
         )
+    }
+
+    /**
+     * Reads the persisted brand state and pushes a [BrandHolder] snapshot into
+     * MainDesign. Picks the theme-appropriate cached logo. Called on every
+     * UI refresh tick so the header reflects the latest operator brand without
+     * the design layer having to know about persistence.
+     */
+    private suspend fun applyActiveBrand() {
+        val design = design as? com.github.kr328.clash.design.MainDesign ?: return
+        val json = runCatching { withProfile { readActiveBrandJson() } }.getOrNull()
+        if (json.isNullOrBlank()) {
+            design.applyBrand(com.github.kr328.clash.design.branding.BrandHolder.EMPTY)
+            return
+        }
+        val manifest = com.github.kr328.clash.common.branding.BrandManifest.fromJson(json)
+        val nightMode = (resources.configuration.uiMode and
+            android.content.res.Configuration.UI_MODE_NIGHT_MASK) ==
+            android.content.res.Configuration.UI_MODE_NIGHT_YES
+        val logoPath = runCatching { withProfile { activeBrandLogoPath(nightMode) } }.getOrNull()
+        design.applyBrand(
+            com.github.kr328.clash.design.branding.BrandHolder(
+                manifest = manifest,
+                logoPath = logoPath,
+            ),
+        )
+        // If the accent changed since this Activity inflated, recreate so the
+        // M3 harmonised palette propagates to every widget that reads theme attrs.
+        com.github.kr328.clash.design.branding.BrandThemeApplier.maybeRecreateOnAccentChange(this)
     }
 
     private fun openExternalUrl(url: String) {

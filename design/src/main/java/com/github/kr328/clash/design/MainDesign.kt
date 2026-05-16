@@ -75,7 +75,20 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         Home,
         Profiles,
         Routing,
+        Operator,
         Settings,
+    }
+
+    /**
+     * The set of tabs currently visible in bottom nav + ViewPager, in display order.
+     * Default mode is 4 tabs (no Operator). Operator appears between Routing and
+     * Settings when the operator brand is active; when the brand additionally sets
+     * Hide-Routing=true, Operator replaces Routing in place (still 4 tabs).
+     */
+    private var activeTabs: List<MainTab> = DEFAULT_TABS
+
+    private companion object {
+        private val DEFAULT_TABS = listOf(MainTab.Home, MainTab.Profiles, MainTab.Routing, MainTab.Settings)
     }
 
     /** Set by MainActivity to react to taps on the in-header update badge. */
@@ -97,6 +110,8 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
 
     private var clashRunningState: Boolean = false
     private var tunnelStartingState: Boolean = false
+    private var brandHolder: com.github.kr328.clash.design.branding.BrandHolder =
+        com.github.kr328.clash.design.branding.BrandHolder.EMPTY
     private val uiStore = UiStore(context)
     private val expandedProfileUuids: LinkedHashSet<UUID> = linkedSetOf()
     private var currentModeSegment: TunnelState.Mode = TunnelState.Mode.Rule
@@ -217,16 +232,20 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
             activeAnnouncementOnOpenUrl = onOpenUrl
             activeAnnouncementOnSupport = onSupport
 
+            val brandName = brandHolder.manifest.name?.takeIf { it.isNotBlank() }
             if (useAnnouncementCard) {
-                binding.mainHeaderTitle.text = context.getString(R.string.launch_name_meta)
+                binding.mainHeaderTitle.text = brandName ?: context.getString(R.string.launch_name_meta)
                 binding.mainHeaderSummary.visibility = View.GONE
                 binding.mainHeaderSummary.text = ""
                 binding.mainHeaderSummary.setOnClickListener(null)
                 binding.mainHeaderSummary.isClickable = false
             } else {
-                binding.mainHeaderTitle.text = context.getString(
+                val defaultTitle = context.getString(
                     if (hasAnnouncement) R.string.announcement_settings else R.string.launch_name_meta,
                 )
+                // Brand name always wins when set; otherwise fall back to the
+                // announcement-aware default title.
+                binding.mainHeaderTitle.text = brandName ?: defaultTitle
                 binding.mainHeaderSummary.visibility = if (hasAnnouncement) View.VISIBLE else View.GONE
                 binding.mainHeaderSummary.text = message
                 binding.mainHeaderSummary.setOnClickListener {
@@ -313,6 +332,152 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         }
     }
 
+    /**
+     * Apply the latest operator-brand snapshot to the main screen surfaces:
+     * header logo + brand name + tagline + accent override on power button.
+     * Re-applies announcement-derived title afterwards so brand wins over
+     * the default ClashFest text but announcement-card logic still chooses
+     * its own title.
+     */
+    var onOpenBrandUrl: ((String) -> Unit)? = null
+
+    suspend fun applyBrand(holder: com.github.kr328.clash.design.branding.BrandHolder) {
+        withContext(Dispatchers.Main) {
+            brandHolder = holder
+            renderBrandHeader()
+            // Global colorPrimary override is applied by BrandThemeApplier at
+            // Activity onCreate via Material 3 dynamic-colors harmonisation;
+            // every theme-attr-reading widget tracks the accent automatically.
+            // We don't programmatic-tint here.
+            applyPowerVisuals()
+            reconcileTabsForBrand()
+            renderOperatorPage()
+            profileAdapter.setBrandManifest(holder.manifest) { url ->
+                onOpenBrandUrl?.invoke(url)
+            }
+        }
+    }
+
+    private fun renderOperatorPage() {
+        if (!brandHolder.isActive) return
+        val brand = brandHolder.manifest
+
+        // Logo
+        val logo = binding.operatorLogo
+        val logoPath = brandHolder.logoPath
+        if (logoPath != null) {
+            com.github.kr328.clash.design.branding.BrandLogoBinder.bind(logo, logoPath)
+            logo.visibility = View.VISIBLE
+        } else {
+            logo.setImageDrawable(null)
+            logo.visibility = View.GONE
+        }
+
+        // Brand name (fallback to ClashFest if operator didn't supply — the page only
+        // exists when brand is active, so something meaningful should always be shown).
+        binding.operatorName.text = brand.name?.takeIf { it.isNotBlank() }
+            ?: context.getString(R.string.launch_name_meta)
+
+        val tagline = brand.tagline?.takeIf { it.isNotBlank() }
+        if (tagline != null) {
+            binding.operatorTagline.text = tagline
+            binding.operatorTagline.visibility = View.VISIBLE
+        } else {
+            binding.operatorTagline.visibility = View.GONE
+        }
+
+        // Renew CTA
+        val renew = brand.renewUrl?.takeIf { it.isNotBlank() }
+        if (renew != null) {
+            binding.operatorRenewButton.visibility = View.VISIBLE
+            binding.operatorRenewButton.setOnClickListener { onOpenBrandUrl?.invoke(renew) }
+        } else {
+            binding.operatorRenewButton.visibility = View.GONE
+        }
+
+        // Link rows
+        val links = listOfNotNull(
+            brand.websiteUrl?.let { it to R.string.about_brand_website },
+            brand.supportUrl?.let { it to R.string.about_brand_support },
+            brand.telegramUrl?.let { it to R.string.about_brand_telegram },
+            brand.botUrl?.let { it to R.string.about_brand_bot },
+            brand.helpUrl?.let { it to R.string.about_brand_help },
+            brand.privacyUrl?.let { it to R.string.about_brand_privacy },
+            brand.termsUrl?.let { it to R.string.about_brand_terms },
+            brand.statusUrl?.let { it to R.string.about_brand_status },
+        )
+        val container = binding.operatorLinks
+        container.removeAllViews()
+        val density = context.resources.displayMetrics.density
+        fun px(dp: Int) = (dp * density).toInt()
+        links.forEachIndexed { index, (url, label) ->
+            val row = android.widget.TextView(context).apply {
+                text = context.getString(label)
+                setTextAppearance(R.style.TextAppearance_App_BodyMedium)
+                setTextColor(context.resolveThemedColor(MaterialR.attr.colorOnSurface))
+                setPadding(px(2), px(12), px(2), px(12))
+                background = androidx.appcompat.content.res.AppCompatResources
+                    .getDrawable(context, android.R.drawable.list_selector_background)
+                isClickable = true
+                isFocusable = true
+                setOnClickListener { onOpenBrandUrl?.invoke(url) }
+            }
+            container.addView(row)
+            if (index < links.lastIndex) {
+                val divider = View(context).apply {
+                    layoutParams = android.widget.LinearLayout.LayoutParams(
+                        android.widget.LinearLayout.LayoutParams.MATCH_PARENT, px(1),
+                    )
+                    setBackgroundColor(context.resolveThemedColor(MaterialR.attr.colorOutlineVariant))
+                }
+                container.addView(divider)
+            }
+        }
+
+    }
+
+    private fun renderBrandHeader() {
+        val brand = brandHolder.manifest
+
+        // Logo: render only when path is real. Empty path → hide the slot.
+        // We never call BrandLogoBinder.bind with a placeholder fallback,
+        // so the dark-bg circle is invisible to the user unless branding kicked in.
+        val logoView = binding.mainHeaderLogo
+        val logoPath = brandHolder.logoPath
+        if (logoPath != null) {
+            com.github.kr328.clash.design.branding.BrandLogoBinder.bind(logoView, logoPath)
+            logoView.visibility = View.VISIBLE
+        } else {
+            logoView.setImageDrawable(null)
+            logoView.visibility = View.GONE
+        }
+
+        // Brand name: only overwrite when the operator actually supplied one.
+        // Default title management stays with applyAnnouncement; touching it
+        // here would race with the announcement-aware text logic.
+        val brandName = brand.name?.takeIf { it.isNotBlank() }
+        if (brandName != null) {
+            binding.mainHeaderTitle.text = brandName
+        }
+
+        // Tagline: only show / write when operator supplied one.
+        val taglineView = binding.mainHeaderTagline
+        val tagline = brand.tagline?.takeIf { it.isNotBlank() }
+        if (tagline != null) {
+            taglineView.text = tagline
+            taglineView.visibility = View.VISIBLE
+        } else {
+            taglineView.visibility = View.GONE
+        }
+    }
+
+    /** Active operator accent (validated + contrast-OK) or null. Used by applyPowerVisuals. */
+    private fun brandAccentColor(): Int? =
+        com.github.kr328.clash.design.branding.BrandTheme.resolveAccent(
+            brandHolder.manifest.accentColor,
+            context.resolveThemedColor(MaterialR.attr.colorSurface),
+        )
+
     suspend fun setClashRunning(running: Boolean) {
         withContext(Dispatchers.Main) {
             clashRunningState = running
@@ -360,7 +525,15 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
                 4f,
             )
         }
-        button.backgroundTintList = ColorStateList.valueOf(context.resolveThemedColor(bgAttr))
+        // Operator brand accent applies ONLY in the running state — same slot
+        // that colorPrimary would have filled. Idle / starting keep defaults
+        // so the button still reads as "off / loading" regardless of brand.
+        val bgColor = if (running) {
+            brandAccentColor() ?: context.resolveThemedColor(bgAttr)
+        } else {
+            context.resolveThemedColor(bgAttr)
+        }
+        button.backgroundTintList = ColorStateList.valueOf(bgColor)
         button.iconTint = ColorStateList.valueOf(context.resolveThemedColor(iconAttr))
         button.setTextColor(context.resolveThemedColor(iconAttr))
         button.elevation = elevationDp * context.resources.displayMetrics.density
@@ -590,7 +763,7 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
     suspend fun showAbout(
         versionName: String,
         coreVersion: String,
-        onCheckUpdates: (((Boolean) -> Unit, (String?) -> Unit) -> Unit)? = null
+        onCheckUpdates: (((Boolean) -> Unit, (String?) -> Unit) -> Unit)? = null,
     ) {
         withContext(Dispatchers.Main) {
             val binding = DesignAboutBinding.inflate(context.layoutInflater).apply {
@@ -602,6 +775,7 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
             }
             val dialog = AppBottomSheetDialog(context, fitContentHeight = true)
             dialog.setContentView(binding.root)
+            applyBrandToAbout(binding)
 
             binding.aboutGithubIcon.apply {
                 visibility = View.VISIBLE
@@ -670,6 +844,96 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         }
     }
 
+    private fun applyBrandToAbout(binding: DesignAboutBinding) {
+        // Layout defaults already render the unbranded About correctly:
+        //   - about_brand_name = "powered by ClashFest"
+        //   - about_default_subtitle = "ClashFest"
+        //   - about_brand_tagline / about_brand_powered_by / brand chips /
+        //     renew button / reset button all start hidden.
+        // When no brand is active we leave everything as-is.
+        if (!brandHolder.isActive) return
+
+        val brand = brandHolder.manifest
+        val brandName = brand.name?.takeIf { it.isNotBlank() }
+        if (brandName != null) {
+            binding.aboutBrandName.text = brandName
+            binding.aboutDefaultSubtitle.visibility = View.GONE
+            binding.aboutBrandPoweredBy.visibility = View.VISIBLE
+        }
+        val tagline = brand.tagline?.takeIf { it.isNotBlank() }
+        if (tagline != null) {
+            binding.aboutBrandTagline.text = tagline
+            binding.aboutBrandTagline.visibility = View.VISIBLE
+        }
+        brandHolder.logoPath?.let {
+            com.github.kr328.clash.design.branding.BrandLogoBinder.bind(
+                binding.aboutAppIcon, it,
+            )
+        }
+
+        // Operator links chip group.
+        val linksGroup = binding.aboutBrandLinks
+        linksGroup.removeAllViews()
+        val links = listOfNotNull(
+            brand.websiteUrl?.let { it to R.string.about_brand_website },
+            brand.supportUrl?.let { it to R.string.about_brand_support },
+            brand.telegramUrl?.let { it to R.string.about_brand_telegram },
+            brand.botUrl?.let { it to R.string.about_brand_bot },
+            brand.helpUrl?.let { it to R.string.about_brand_help },
+            brand.privacyUrl?.let { it to R.string.about_brand_privacy },
+            brand.termsUrl?.let { it to R.string.about_brand_terms },
+            brand.statusUrl?.let { it to R.string.about_brand_status },
+        )
+        if (links.isNotEmpty()) {
+            binding.aboutBrandDivider.visibility = View.VISIBLE
+            linksGroup.visibility = View.VISIBLE
+            links.forEach { (url, label) ->
+                val chip = com.google.android.material.chip.Chip(context).apply {
+                    text = context.getString(label)
+                    isClickable = true
+                    isCheckable = false
+                    setEnsureMinTouchTargetSize(false)
+                    minHeight = (28 * resources.displayMetrics.density).toInt()
+                    chipMinHeight = 28 * resources.displayMetrics.density
+                    chipStartPadding = 10 * resources.displayMetrics.density
+                    chipEndPadding = 10 * resources.displayMetrics.density
+                    textStartPadding = 0f
+                    textEndPadding = 0f
+                    setTextAppearance(R.style.TextAppearance_App_LabelSmall)
+                    setOnClickListener {
+                        runCatching {
+                            context.startActivity(
+                                Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+                            )
+                        }
+                    }
+                }
+                linksGroup.addView(chip)
+            }
+        } else {
+            binding.aboutBrandDivider.visibility = View.GONE
+            linksGroup.visibility = View.GONE
+        }
+
+        // Renew button — separate from chip group because it's a primary CTA.
+        val renew = brand.renewUrl
+        if (!renew.isNullOrBlank()) {
+            binding.aboutBrandRenewButton.visibility = View.VISIBLE
+            binding.aboutBrandRenewButton.setOnClickListener {
+                runCatching {
+                    context.startActivity(
+                        Intent(Intent.ACTION_VIEW, Uri.parse(renew))
+                            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+                    )
+                }
+            }
+        } else {
+            binding.aboutBrandRenewButton.visibility = View.GONE
+        }
+
+    }
+
     private fun showModeSheet() {
         val sheet = BottomSheetMainModeBinding.inflate(context.layoutInflater)
         val dialog = AppBottomSheetDialog(context, fitContentHeight = true)
@@ -690,24 +954,21 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         dialog.show()
     }
 
-    private fun setupMainPager() {
-        val pages = listOf(
-            binding.mainHomePage,
-            binding.mainProfilesPage,
-            binding.mainRoutingPage,
-            binding.mainSettingsPage,
-        )
-        pages.forEach { page ->
-            (page.parent as? ViewGroup)?.removeView(page)
-            page.visibility = View.VISIBLE
-        }
+    /** Held so [rebuildMainPagerForTabs] can detach/reattach without piling up. */
+    private var pagerPageChangeCallback: ViewPager2.OnPageChangeCallback? = null
+    private var pagerInitialised: Boolean = false
 
-        binding.mainPager.adapter = StaticPageAdapter(pages)
-        binding.mainPager.offscreenPageLimit = pages.lastIndex
-        binding.mainPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+    /** One-time setup. Wires the OnPageChangeCallback exactly once. */
+    private fun setupMainPager() {
+        if (pagerInitialised) return
+        pagerInitialised = true
+
+        attachPagerAdapter()
+
+        val cb = object : ViewPager2.OnPageChangeCallback() {
             override fun onPageScrollStateChanged(state: Int) {
                 if (state != ViewPager2.SCROLL_STATE_IDLE) return
-                val count = MainTab.values().size
+                val count = activeTabs.size
                 when (binding.mainPager.currentItem) {
                     0 -> binding.mainPager.setCurrentItem(count, false)
                     count + 1 -> binding.mainPager.setCurrentItem(1, false)
@@ -717,10 +978,71 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
             override fun onPageSelected(position: Int) {
                 mainTabForPagerPosition(position)?.let(::renderMainTab)
             }
-        })
+        }
+        pagerPageChangeCallback = cb
+        binding.mainPager.registerOnPageChangeCallback(cb)
+
+        // Sync bottom-nav visibility with the active tab set.
+        MainTab.values().forEach { tab ->
+            navForMainTab(tab).visibility = if (tab in activeTabs) View.VISIBLE else View.GONE
+        }
         binding.mainPager.setCurrentItem(1, false)
-        renderMainTab(MainTab.Home)
+        renderMainTab(activeTabs.firstOrNull() ?: MainTab.Home)
         binding.mainPager.post { tweakViewPagerHorizontalSwipeTolerance(binding.mainPager) }
+    }
+
+    /**
+     * Rebuild only the adapter + nav visibility when [activeTabs] actually changes.
+     * Preserves: registered OnPageChangeCallback, current logical tab when possible,
+     * the touch-slop tweak (we don't re-run it).
+     */
+    private fun rebuildMainPagerForTabs() {
+        // Snapshot the tab the user is currently on so we can stay there
+        // (or fall back to Home if it's no longer in the set).
+        val currentLogical = mainTabForPagerPosition(binding.mainPager.currentItem)
+        attachPagerAdapter()
+
+        MainTab.values().forEach { tab ->
+            navForMainTab(tab).visibility = if (tab in activeTabs) View.VISIBLE else View.GONE
+        }
+        val targetTab = currentLogical?.takeIf { it in activeTabs }
+            ?: activeTabs.firstOrNull() ?: MainTab.Home
+        val targetItem = activeTabs.indexOf(targetTab).coerceAtLeast(0) + 1
+        binding.mainPager.setCurrentItem(targetItem, false)
+        renderMainTab(targetTab)
+    }
+
+    private fun attachPagerAdapter() {
+        val pages = activeTabs.map { pageForMainTab(it) }
+        // Detach every page (including ones we won't show) so the new adapter
+        // can attach the ones we want without parent-collision exceptions.
+        MainTab.values().forEach { tab ->
+            val page = pageForMainTab(tab)
+            (page.parent as? ViewGroup)?.removeView(page)
+        }
+        pages.forEach { it.visibility = View.VISIBLE }
+        binding.mainPager.adapter = StaticPageAdapter(pages)
+        binding.mainPager.offscreenPageLimit = pages.lastIndex.coerceAtLeast(1)
+    }
+
+    /**
+     * Compute the desired tab set from the active brand and rebuild the pager
+     * if it changed. No-op when the layout is the same.
+     */
+    private fun reconcileTabsForBrand() {
+        val brand = brandHolder.manifest
+        val desired = when {
+            !brandHolder.isActive -> DEFAULT_TABS
+            brand.hideRouting == true -> listOf(
+                MainTab.Home, MainTab.Profiles, MainTab.Operator, MainTab.Settings,
+            )
+            else -> listOf(
+                MainTab.Home, MainTab.Profiles, MainTab.Routing, MainTab.Operator, MainTab.Settings,
+            )
+        }
+        if (desired == activeTabs) return
+        activeTabs = desired
+        if (pagerInitialised) rebuildMainPagerForTabs()
     }
 
     /**
@@ -728,27 +1050,29 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
      * aspect ratios, small diagonal motion while scrolling can be absorbed as a horizontal
      * page swipe. Raising RecyclerView touch slop reduces accidental tab changes.
      */
+    private var touchSlopTweakApplied: Boolean = false
     private fun tweakViewPagerHorizontalSwipeTolerance(viewPager: ViewPager2) {
+        if (touchSlopTweakApplied) return
         runCatching {
             val recyclerView = viewPager.getChildAt(0) as? RecyclerView ?: return
             val field = RecyclerView::class.java.getDeclaredField("mTouchSlop")
             field.isAccessible = true
             val slop = field.getInt(recyclerView)
             field.setInt(recyclerView, slop * 3)
+            touchSlopTweakApplied = true
         }.onFailure {
             Log.w("ViewPager2 touch slop tweak skipped: ${it.message}")
         }
     }
 
     private fun mainTabForPagerPosition(position: Int): MainTab? {
-        val tabs = MainTab.values()
-        val size = tabs.size
+        val size = activeTabs.size
         val logical = when (position) {
             0 -> size - 1
             size + 1 -> 0
             else -> position - 1
         }
-        return tabs.getOrNull(logical)
+        return activeTabs.getOrNull(logical)
     }
 
     /**
@@ -761,7 +1085,9 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
     }
 
     private fun selectMainTab(tab: MainTab) {
-        val targetItem = tab.ordinal + 1
+        val logicalIndex = activeTabs.indexOf(tab)
+        if (logicalIndex < 0) return
+        val targetItem = logicalIndex + 1
         if (binding.mainPager.currentItem == targetItem) {
             pageForMainTab(tab).smoothScrollTo(0, 0)
             return
@@ -779,6 +1105,7 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         MainTab.Home -> binding.mainHomePage
         MainTab.Profiles -> binding.mainProfilesPage
         MainTab.Routing -> binding.mainRoutingPage
+        MainTab.Operator -> binding.mainOperatorPage
         MainTab.Settings -> binding.mainSettingsPage
     }
 
@@ -786,6 +1113,7 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         MainTab.Home -> binding.mainNavHome
         MainTab.Profiles -> binding.mainNavProfiles
         MainTab.Routing -> binding.mainNavRouting
+        MainTab.Operator -> binding.mainNavOperator
         MainTab.Settings -> binding.mainNavSettings
     }
 
@@ -835,6 +1163,7 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         binding.mainNavHome.setOnClickListener { selectMainTab(MainTab.Home) }
         binding.mainNavProfiles.setOnClickListener { selectMainTab(MainTab.Profiles) }
         binding.mainNavRouting.setOnClickListener { selectMainTab(MainTab.Routing) }
+        binding.mainNavOperator.setOnClickListener { selectMainTab(MainTab.Operator) }
         binding.mainNavSettings.setOnClickListener { selectMainTab(MainTab.Settings) }
         binding.mainHeaderUpdateBadge.setOnClickListener { onUpdateBadgeTap?.invoke() }
         binding.mainModeRow.setOnClickListener { showModeSheet() }
