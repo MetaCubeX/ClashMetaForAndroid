@@ -253,4 +253,7 @@
     <string name="override_destination">Override Destination</string>
     <string name="import_from_qr_no_permission">カメラのアクセスが制限されています。設定から有効にしてください。</string>
     <string name="import_from_qr_exception">システムで予期しない例外が発生しました。</string>
+    <string name="new_config">新規構成</string>
+    <string name="config_name">構成名</string>
+    <string name="edit_config_name">構成名の編集</string>
 </resources>

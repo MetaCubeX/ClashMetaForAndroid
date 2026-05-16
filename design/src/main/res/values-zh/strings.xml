@@ -262,7 +262,9 @@
     <string name="external_control_stopped">Clash.Meta 服务已停止</string>
     <string name="import_from_qr_no_permission">相机权限受限，请前往设置开启。</string>
     <string name="import_from_qr_exception">发生系统未知异常，操作失败。</string>
-
+    <string name="new_config">新配置</string>
+    <string name="config_name">配置名称</string>
+    <string name="edit_config_name">编辑配置名称</string>
     <string name="shortcut_toggle_short">切换 Clash</string>
     <string name="shortcut_toggle_long">切换 Clash 服务启停</string>
     <string name="shortcut_start_short">启动 Clash</string>
