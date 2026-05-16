@@ -137,27 +137,6 @@
                     android:src="@drawable/ic_baseline_add"
                     app:tint="?attr/colorOnSurfaceVariant" />
 
-                <ImageButton
-                    android:id="@+id/top_settings_button"
-                    android:layout_width="42dp"
-                    android:layout_height="42dp"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="@string/settings"
-                    android:padding="9dp"
-                    android:src="@drawable/ic_baseline_settings"
-                    android:visibility="gone"
-                    app:tint="?attr/colorOnSurfaceVariant" />
-
-                <ImageButton
-                    android:id="@+id/main_header_support"
-                    android:layout_width="42dp"
-                    android:layout_height="42dp"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="@string/sub_announcement_support"
-                    android:padding="9dp"
-                    android:src="@drawable/ic_baseline_headset_mic"
-                    android:visibility="gone"
-                    app:tint="?attr/colorPrimary" />
             </LinearLayout>
 
             <FrameLayout

@@ -234,8 +234,6 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
                 }
                 binding.mainHeaderSummary.isClickable = announcementUrl != null
             }
-            binding.mainHeaderSupport.visibility = View.GONE
-            binding.mainHeaderSupport.setOnClickListener(null)
 
             val bodyCollapsed = useAnnouncementCard && announcementCollapsed
             announcementCardCoversSupport = useAnnouncementCard && hasAnnouncement && support != null
