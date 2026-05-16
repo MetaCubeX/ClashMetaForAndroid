@@ -141,4 +141,26 @@ interface IProfileManager {
 
     /** Raw `config.yaml` for an imported profile, or null. */
     suspend fun readImportedConfigYaml(uuid: UUID): String?
+
+    /**
+     * JSON-encoded BrandManifest currently applied to the app, or null when no brand active.
+     * Decode with `BrandManifest.fromJson(...)`.
+     */
+    suspend fun readActiveBrandJson(): String?
+
+    /** UUID of the subscription this brand was sourced from, or null. */
+    suspend fun activeBrandSourceProfile(): String?
+
+    /**
+     * Absolute path of the cached brand logo bitmap for the requested theme.
+     * @param darkTheme when true, returns the dark-theme logo (or its fallback);
+     *                  when false, the light-theme logo with fallback to the primary.
+     */
+    suspend fun activeBrandLogoPath(darkTheme: Boolean): String?
+
+    /**
+     * One-shot wipe of the active brand cache. The next subscription fetch
+     * will re-apply whatever the operator is currently sending. Not a lock.
+     */
+    suspend fun resetActiveBrand()
 }

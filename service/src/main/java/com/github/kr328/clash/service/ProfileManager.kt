@@ -14,6 +14,8 @@ import com.github.kr328.clash.service.data.PendingDao
 import com.github.kr328.clash.service.data.Selection
 import com.github.kr328.clash.service.data.SelectionDao
 import com.github.kr328.clash.service.model.Profile
+import com.github.kr328.clash.service.branding.BrandRefresh
+import com.github.kr328.clash.service.branding.BrandStore
 import com.github.kr328.clash.service.model.ProxyGroupPreviewRow
 import com.github.kr328.clash.service.model.ProxyTransportInfo
 import com.github.kr328.clash.service.model.RuleState
@@ -315,6 +317,7 @@ class ProfileManager(private val context: Context) : IProfileManager,
         }
 
         ProfileProcessor.delete(context, uuid)
+        BrandRefresh.onProfileDeleted(context, uuid)
     }
 
     override suspend fun queryByUUID(uuid: UUID): Profile? {
@@ -828,6 +831,28 @@ class ProfileManager(private val context: Context) : IProfileManager,
                 null
             }
         }
+    }
+
+    override suspend fun readActiveBrandJson(): String? = withContext(Dispatchers.IO) {
+        val store = BrandStore(context)
+        if (!store.isActive()) null else store.manifest.toJson()
+    }
+
+    override suspend fun activeBrandSourceProfile(): String? = withContext(Dispatchers.IO) {
+        BrandStore(context).sourceProfile?.toString()
+    }
+
+    override suspend fun activeBrandLogoPath(darkTheme: Boolean): String? = withContext(Dispatchers.IO) {
+        val store = BrandStore(context)
+        if (!store.isActive()) return@withContext null
+        val primary = store.cachedLogoPath
+        val light = store.cachedLightLogoPath
+        val path = if (darkTheme) primary else (light ?: primary)
+        path?.takeIf { File(it).isFile }
+    }
+
+    override suspend fun resetActiveBrand() = withContext(Dispatchers.IO) {
+        BrandRefresh.resetByUser(context)
     }
 
     private suspend fun previewRuleDryRun(
