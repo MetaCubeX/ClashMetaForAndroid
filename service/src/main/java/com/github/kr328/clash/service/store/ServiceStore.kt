@@ -5,7 +5,12 @@ import com.github.kr328.clash.common.store.Store
 import com.github.kr328.clash.common.store.asStoreProvider
 import com.github.kr328.clash.service.PreferenceProvider
 import com.github.kr328.clash.service.model.AccessControlMode
+import com.github.kr328.clash.service.model.AutoSwitchStrategyType
+import com.github.kr328.clash.service.model.WeeklyAutoSwitchSchedule
 import java.util.*
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.decodeFromString
 
 class ServiceStore(context: Context) {
     private val store = Store(
@@ -65,4 +70,34 @@ class ServiceStore(context: Context) {
         key = "dynamic_notification",
         defaultValue = true
     )
+
+    var autoSwitchStrategy: AutoSwitchStrategyType by store.enum(
+        key = "auto_switch_strategy",
+        defaultValue = AutoSwitchStrategyType.None,
+        values = AutoSwitchStrategyType.values(),
+    )
+
+    private var autoSwitchWeeklyScheduleRaw: WeeklyAutoSwitchSchedule? by store.typedString(
+        key = "auto_switch_weekly_schedule",
+        from = {
+            if (it.isBlank()) {
+                null
+            } else {
+                runCatching { json.decodeFromString<WeeklyAutoSwitchSchedule>(it) }.getOrNull()
+            }
+        },
+        to = { schedule ->
+            schedule?.let { json.encodeToString(it) } ?: ""
+        },
+    )
+
+    var autoSwitchWeeklySchedule: WeeklyAutoSwitchSchedule
+        get() = autoSwitchWeeklyScheduleRaw ?: WeeklyAutoSwitchSchedule()
+        set(value) {
+            autoSwitchWeeklyScheduleRaw = value
+        }
+
+    companion object {
+        private val json = Json { ignoreUnknownKeys = true }
+    }
 }
