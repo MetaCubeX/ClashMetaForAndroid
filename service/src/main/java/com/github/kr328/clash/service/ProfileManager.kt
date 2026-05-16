@@ -15,6 +15,7 @@ import com.github.kr328.clash.service.data.Selection
 import com.github.kr328.clash.service.data.SelectionDao
 import com.github.kr328.clash.service.model.Profile
 import com.github.kr328.clash.service.model.ProxyGroupPreviewRow
+import com.github.kr328.clash.service.model.ProxyTransportInfo
 import com.github.kr328.clash.service.model.RuleState
 import com.github.kr328.clash.service.model.YamlPreview
 import com.github.kr328.clash.service.remote.IFetchObserver
@@ -24,6 +25,7 @@ import com.github.kr328.clash.service.util.directoryLastModified
 import com.github.kr328.clash.service.util.generateProfileUUID
 import com.github.kr328.clash.service.util.importedDir
 import com.github.kr328.clash.service.util.ProxyGroupsYamlPreview
+import com.github.kr328.clash.service.util.ProxyTransportYamlPreview
 import com.github.kr328.clash.service.util.ProxyYamlPreview
 import com.github.kr328.clash.service.util.RuleApplyService
 import com.github.kr328.clash.service.util.ProxyDialerYamlEdit
@@ -384,6 +386,24 @@ class ProfileManager(private val context: Context) : IProfileManager,
             try {
                 val configText = file.readText()
                 ProxyGroupsYamlPreview.parseProxyGroupsPreview(configText, file.parentFile)
+            } catch (_: Exception) {
+                emptyMap()
+            }
+        }
+    }
+
+    override suspend fun readProxyTransports(uuid: UUID): Map<String, ProxyTransportInfo> {
+        return withContext(Dispatchers.IO) {
+            if (ImportedDao().queryByUUID(uuid) == null) {
+                return@withContext emptyMap()
+            }
+            val file = File(context.importedDir, "$uuid/config.yaml")
+            if (!file.isFile) {
+                return@withContext emptyMap()
+            }
+            try {
+                val configText = file.readText()
+                ProxyTransportYamlPreview.parse(configText, file.parentFile)
             } catch (_: Exception) {
                 emptyMap()
             }

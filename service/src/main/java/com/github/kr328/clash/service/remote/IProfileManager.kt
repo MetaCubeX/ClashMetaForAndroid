@@ -2,6 +2,7 @@ package com.github.kr328.clash.service.remote
 
 import com.github.kr328.clash.service.model.Profile
 import com.github.kr328.clash.service.model.ProxyGroupPreviewRow
+import com.github.kr328.clash.service.model.ProxyTransportInfo
 import com.github.kr328.kaidl.BinderInterface
 import java.util.UUID
 
@@ -44,6 +45,9 @@ interface IProfileManager {
 
     /** Proxy group name → type + member names from [uuid]'s config.yaml (no engine). Hidden groups omitted. */
     suspend fun readProxyGroupsPreview(uuid: UUID): Map<String, ProxyGroupPreviewRow>
+
+    /** Per-proxy transport metadata (network/tls/reality) from config + provider files. */
+    suspend fun readProxyTransports(uuid: UUID): Map<String, ProxyTransportInfo>
 
     /** `rule-providers` YAML block or null. */
     suspend fun readRuleProvidersYaml(uuid: UUID): String?
