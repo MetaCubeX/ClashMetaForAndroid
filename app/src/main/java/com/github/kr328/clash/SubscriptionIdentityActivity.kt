@@ -42,12 +42,12 @@ class SubscriptionIdentityActivity : BaseActivity<SubscriptionIdentityDesign>() 
                             design.showToast(R.string.copied, ToastDuration.Short)
                         }
 
-                        SubscriptionIdentityDesign.Request.OpenOperatorApiSpec -> {
+                        is SubscriptionIdentityDesign.Request.OpenUrl -> {
                             runCatching {
                                 startActivity(
                                     android.content.Intent(
                                         android.content.Intent.ACTION_VIEW,
-                                        android.net.Uri.parse(getString(R.string.operator_api_spec_url)),
+                                        android.net.Uri.parse(request.url),
                                     ).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK),
                                 )
                             }

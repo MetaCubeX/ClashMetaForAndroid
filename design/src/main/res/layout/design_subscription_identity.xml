@@ -34,8 +34,22 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:paddingHorizontal="@dimen/main_padding_horizontal"
-                android:paddingTop="12dp"
+                android:paddingTop="8dp"
                 android:paddingBottom="24dp">
+
+                <!-- ===== Device ===== -->
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingHorizontal="4dp"
+                    android:paddingTop="12dp"
+                    android:paddingBottom="6dp"
+                    android:text="@string/subscription_section_device"
+                    android:textAllCaps="true"
+                    android:textAppearance="@style/TextAppearance.App.LabelLarge"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:textSize="12sp"
+                    android:letterSpacing="0.08" />
 
                 <com.google.android.material.card.MaterialCardView
                     style="@style/AppCard.Filled"
@@ -76,11 +90,24 @@
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
+                <!-- ===== Deep links ===== -->
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingHorizontal="4dp"
+                    android:paddingTop="18dp"
+                    android:paddingBottom="6dp"
+                    android:text="@string/subscription_section_deeplinks"
+                    android:textAllCaps="true"
+                    android:textAppearance="@style/TextAppearance.App.LabelLarge"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:textSize="12sp"
+                    android:letterSpacing="0.08" />
+
                 <com.google.android.material.card.MaterialCardView
                     style="@style/AppCard.Filled"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
                     app:cardBackgroundColor="?attr/colorSurfaceContainer"
                     app:cardCornerRadius="24dp"
                     app:cardElevation="0dp"
@@ -116,11 +143,24 @@
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
+                <!-- ===== Diagnostics ===== -->
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingHorizontal="4dp"
+                    android:paddingTop="18dp"
+                    android:paddingBottom="6dp"
+                    android:text="@string/subscription_section_diagnostics"
+                    android:textAllCaps="true"
+                    android:textAppearance="@style/TextAppearance.App.LabelLarge"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:textSize="12sp"
+                    android:letterSpacing="0.08" />
+
                 <com.google.android.material.card.MaterialCardView
                     style="@style/AppCard.Filled"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
                     app:cardBackgroundColor="?attr/colorSurfaceContainer"
                     app:cardCornerRadius="24dp"
                     app:cardElevation="0dp"
@@ -156,11 +196,24 @@
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
+                <!-- ===== Operator API ===== -->
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingHorizontal="4dp"
+                    android:paddingTop="18dp"
+                    android:paddingBottom="6dp"
+                    android:text="@string/subscription_section_api"
+                    android:textAllCaps="true"
+                    android:textAppearance="@style/TextAppearance.App.LabelLarge"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:textSize="12sp"
+                    android:letterSpacing="0.08" />
+
                 <com.google.android.material.card.MaterialCardView
                     style="@style/AppCard.Filled"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
                     app:cardBackgroundColor="?attr/colorSurfaceContainer"
                     app:cardCornerRadius="24dp"
                     app:cardElevation="0dp"
@@ -202,6 +255,31 @@
                             android:onClick="@{() -> self.requestOpenOperatorApiSpec()}"
                             app:icon="@drawable/ic_outline_info"
                             app:text="@string/subscription_open_operator_api_spec" />
+
+                        <!-- Documentation sub-block: divider + label + rows filled programmatically -->
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="1dp"
+                            android:layout_marginTop="14dp"
+                            android:layout_marginBottom="10dp"
+                            android:background="?attr/colorOutlineVariant" />
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/subscription_docs_title"
+                            android:textAllCaps="true"
+                            android:textAppearance="@style/TextAppearance.App.LabelLarge"
+                            android:textColor="?attr/colorOnSurfaceVariant"
+                            android:textSize="12sp"
+                            android:letterSpacing="0.08" />
+
+                        <LinearLayout
+                            android:id="@+id/docs_container"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:orientation="vertical" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
             </LinearLayout>

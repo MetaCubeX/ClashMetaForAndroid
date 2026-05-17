@@ -624,6 +624,21 @@
     <string name="subscription_response_headers_title">支持的响应头</string>
     <string name="subscription_response_headers_summary">ClashFest 从订阅 URL 响应中读取的标头。运营商可使用它们来定制应用、传达策略并发布公告。</string>
     <string name="subscription_open_operator_api_spec">打开完整的运营商 API 规范</string>
+
+    <!-- Schemes &amp; HWID 分区标题 -->
+    <string name="subscription_section_device">设备</string>
+    <string name="subscription_section_deeplinks">深链接</string>
+    <string name="subscription_section_diagnostics">诊断</string>
+    <string name="subscription_section_api">运营商 API</string>
+
+    <!-- Operator API 卡内文档跳转 -->
+    <string name="subscription_docs_title">文档</string>
+    <string name="subscription_docs_overview">运营商 API 概览</string>
+    <string name="subscription_docs_headers">完整标头参考</string>
+    <string name="subscription_docs_quickstart">运营商快速上手</string>
+    <string name="subscription_docs_templates">面板模板变量</string>
+    <string name="subscription_docs_security">安全与校验</string>
+    <string name="subscription_docs_consolidated">汇总参考</string>
     <string name="headers_desc_userinfo">订阅配额和到期时间(upload/download/total/expire)。</string>
     <string name="headers_desc_profile_title">个人资料卡上显示的订阅或用户名。</string>
     <string name="headers_desc_update_interval">自动更新间隔(小时),强制不少于 15 分钟。</string>

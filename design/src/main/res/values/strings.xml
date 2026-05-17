@@ -325,7 +325,29 @@ Presets only change <b>where</b> files are downloaded from (CDN / host). It is s
     <string name="subscription_response_headers_title">Supported response headers</string>
     <string name="subscription_response_headers_summary">Headers ClashFest reads from your subscription URL response. Operators use them to brand the app, surface policies, and broadcast announcements.</string>
     <string name="subscription_open_operator_api_spec">Open full operator API spec</string>
-    <string name="operator_api_spec_url">https://github.com/Nemu-x/ClashFest/blob/main/docs/supported-headers.md</string>
+    <string name="operator_api_spec_url">https://github.com/Nemu-x/ClashFest/blob/feat/init-clashfest/docs/supported-headers.md</string>
+
+    <!-- Section headers grouping the Schemes & HWID cards -->
+    <string name="subscription_section_device">Device</string>
+    <string name="subscription_section_deeplinks">Deep links</string>
+    <string name="subscription_section_diagnostics">Diagnostics</string>
+    <string name="subscription_section_api">Operator API</string>
+
+    <!-- Documentation sub-block: rows linking to the operator-api docs on GitHub -->
+    <string name="subscription_docs_title">Documentation</string>
+    <string name="subscription_docs_overview">Operator API overview</string>
+    <string name="subscription_docs_headers">Full headers reference</string>
+    <string name="subscription_docs_quickstart">Quick start for operators</string>
+    <string name="subscription_docs_templates">Panel template variables</string>
+    <string name="subscription_docs_security">Security &amp; validation</string>
+    <string name="subscription_docs_consolidated">Consolidated reference</string>
+
+    <string name="docs_url_operator_overview">https://github.com/Nemu-x/ClashFest/blob/feat/init-clashfest/docs/operator-api/README.md</string>
+    <string name="docs_url_operator_headers">https://github.com/Nemu-x/ClashFest/blob/feat/init-clashfest/docs/operator-api/headers.md</string>
+    <string name="docs_url_operator_quickstart">https://github.com/Nemu-x/ClashFest/blob/feat/init-clashfest/docs/operator-api/branding-quickstart.md</string>
+    <string name="docs_url_operator_templates">https://github.com/Nemu-x/ClashFest/blob/feat/init-clashfest/docs/operator-api/template-variables.md</string>
+    <string name="docs_url_operator_security">https://github.com/Nemu-x/ClashFest/blob/feat/init-clashfest/docs/operator-api/security.md</string>
+    <string name="docs_url_supported_headers">https://github.com/Nemu-x/ClashFest/blob/feat/init-clashfest/docs/supported-headers.md</string>
 
     <string name="headers_desc_userinfo">Subscription quota and expiry (upload/download/total/expire).</string>
     <string name="headers_desc_profile_title">Subscription / user name shown on the profile card.</string>

@@ -417,6 +417,21 @@
     <string name="subscription_response_headers_summary">Headers, которые ClashFest читает из ответа сервера подписки. Операторы используют их для брендинга приложения, передачи политик и анонсов.</string>
     <string name="subscription_open_operator_api_spec">Открыть полную спецификацию Operator API</string>
 
+    <!-- Подписи секций экрана Schemes &amp; HWID -->
+    <string name="subscription_section_device">Устройство</string>
+    <string name="subscription_section_deeplinks">Deep links</string>
+    <string name="subscription_section_diagnostics">Диагностика</string>
+    <string name="subscription_section_api">Operator API</string>
+
+    <!-- Документация: ссылки на .md внутри карточки Operator API -->
+    <string name="subscription_docs_title">Документация</string>
+    <string name="subscription_docs_overview">Обзор Operator API</string>
+    <string name="subscription_docs_headers">Полный справочник headers</string>
+    <string name="subscription_docs_quickstart">Гайд для оператора</string>
+    <string name="subscription_docs_templates">Переменные шаблонов панелей</string>
+    <string name="subscription_docs_security">Безопасность и валидация</string>
+    <string name="subscription_docs_consolidated">Сводный справочник</string>
+
     <string name="headers_desc_userinfo">Квота и срок действия подписки (upload/download/total/expire).</string>
     <string name="headers_desc_profile_title">Имя подписки/пользователя на карточке профиля.</string>
     <string name="headers_desc_update_interval">Интервал авто-обновления в часах (минимум 15 мин).</string>
