@@ -148,10 +148,36 @@ class ServiceStore(context: Context) {
      * When true (operator policy via `share-links` headers), subscription URL/source
      * edits from UI are rejected and share/copy actions are disabled.
      */
+    /**
+     * @deprecated Per-profile flag — use [subscriptionShareLinksLockedFor].
+     * Kept temporarily so legacy reads don't break before the call sites move.
+     */
+    @Deprecated("Use subscriptionShareLinksLockedFor(uuid)")
     var subscriptionShareLinksLocked: Boolean by store.boolean(
         key = "subscription_share_links_locked",
         defaultValue = false,
     )
+
+    private val rawPrefs = PreferenceProvider.createSharedPreferencesFromContext(context)
+
+    /**
+     * Per-profile share-links lock. The operator policy travels per
+     * subscription (different profiles can have different `share-links`
+     * policies), so this can't be a single global flag.
+     */
+    fun subscriptionShareLinksLockedFor(uuid: UUID): Boolean =
+        rawPrefs.getBoolean("subscription_share_links_locked_$uuid", false)
+
+    fun setSubscriptionShareLinksLockedFor(uuid: UUID, value: Boolean) {
+        rawPrefs.edit().also { e ->
+            if (value) e.putBoolean("subscription_share_links_locked_$uuid", true)
+            else e.remove("subscription_share_links_locked_$uuid")
+        }.apply()
+    }
+
+    fun clearSubscriptionShareLinksLockedFor(uuid: UUID) {
+        rawPrefs.edit().remove("subscription_share_links_locked_$uuid").apply()
+    }
 
     companion object {
         private const val KEY_ALLOW_BYPASS = "allow_bypass"

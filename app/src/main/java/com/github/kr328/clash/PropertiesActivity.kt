@@ -43,7 +43,7 @@ class PropertiesActivity : BaseActivity<PropertiesDesign>() {
         design.setOnUserAgentChanged { userAgentOverride = it.takeIf(String::isNotBlank) }
         design.strictUserAgent = originalStrictUserAgent
         design.setOnStrictUserAgentChanged { strictUserAgent = it }
-        design.subscriptionSourceLocked = ServiceStore(this).subscriptionShareLinksLocked
+        design.subscriptionSourceLocked = ServiceStore(this).subscriptionShareLinksLockedFor(original.uuid)
 
         setContentDesign(design)
 
@@ -121,7 +121,7 @@ class PropertiesActivity : BaseActivity<PropertiesDesign>() {
     }
 
     private suspend fun PropertiesDesign.verifyAndCommit() {
-        if (ServiceStore(this@PropertiesActivity).subscriptionShareLinksLocked &&
+        if (ServiceStore(this@PropertiesActivity).subscriptionShareLinksLockedFor(original.uuid) &&
             profile.source.trim() != original.source.trim()
         ) {
             showToast(R.string.subscription_source_locked, ToastDuration.Long)

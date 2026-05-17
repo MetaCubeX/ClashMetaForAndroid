@@ -39,6 +39,20 @@ data class BrandManifest(
     val hideStats: Boolean? = null,
     val hideLogs: Boolean? = null,
     val hideRouting: Boolean? = null,
+
+    /**
+     * Explicit operator opt-in for the dedicated Operator tab. Even when brand
+     * identity is set, the tab does not appear unless this header is true.
+     */
+    val showOperatorTab: Boolean? = null,
+
+    /**
+     * Master switch — explicit opt-in. Branding only applies when the
+     * operator sends `X-Branding-Enabled: true`. Absent header / `false` /
+     * `null` all mean "do not brand this subscription", regardless of any
+     * other X-Brand-* field that may have been parsed.
+     */
+    val enabled: Boolean? = null,
 ) {
     fun isEmpty(): Boolean =
         name == null &&
@@ -57,7 +71,30 @@ data class BrandManifest(
             renewUrl == null &&
             hideStats == null &&
             hideLogs == null &&
-            hideRouting == null
+            hideRouting == null &&
+            showOperatorTab == null &&
+            enabled == null
+
+    /**
+     * True when the manifest has enough to brand the app visually — meaning
+     * a name, logo, or accent. Operator-info URLs alone (only support / privacy)
+     * do not count: those flow through legacy SubscriptionMetadata anyway,
+     * and on their own they shouldn't trigger any "brand active" UI.
+     *
+     * Branding is **explicit opt-in**. Unless the operator sends
+     * `X-Branding-Enabled: true`, identity fields are ignored and the
+     * client treats this manifest as unbranded — even if name / logo /
+     * accent are present. This makes branding a feature the operator
+     * consciously turns on per subscription, not something every panel
+     * accidentally activates by setting one field.
+     */
+    fun hasBrandIdentity(): Boolean {
+        if (enabled != true) return false
+        return !name.isNullOrBlank() ||
+            !logoUrl.isNullOrBlank() ||
+            !logoLightUrl.isNullOrBlank() ||
+            !accentColor.isNullOrBlank()
+    }
 
     /**
      * Pick the right logo URL for the user's current theme.

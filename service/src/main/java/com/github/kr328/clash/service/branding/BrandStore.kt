@@ -6,64 +6,64 @@ import com.github.kr328.clash.service.PreferenceProvider
 import java.util.UUID
 
 /**
- * Persistence for the currently-active operator brand manifest.
+ * Per-subscription operator-brand persistence.
  *
- * State model is intentionally simple: at any moment there is **one active
- * brand**, attached to **one source profile UUID**. When that profile is
- * deleted (or branding is reset by the user, or the operator stops sending
- * brand headers on the next subscription fetch), the store clears itself.
+ * Each imported profile keeps its own brand snapshot — switching the active
+ * profile flips the visible brand immediately, without any subscription
+ * refetch. When a profile is deleted, its entry is purged on the spot.
  *
- * Backed by the same SharedPreferences as ServiceStore — values survive
- * app restarts.
+ * Backed by the same SharedPreferences as ServiceStore. All keys are scoped
+ * by the source profile UUID so unrelated profiles never collide.
  */
 class BrandStore(context: Context) {
     private val prefs = PreferenceProvider.createSharedPreferencesFromContext(context)
 
-    var sourceProfile: UUID?
-        get() = prefs.getString(KEY_SOURCE_PROFILE, null)?.let {
-            runCatching { UUID.fromString(it) }.getOrNull()
-        }
-        set(value) {
-            prefs.edit().also { e ->
-                if (value == null) e.remove(KEY_SOURCE_PROFILE)
-                else e.putString(KEY_SOURCE_PROFILE, value.toString())
-            }.apply()
-        }
+    /**
+     * Manifest stored for [uuid]. Returns [BrandManifest.EMPTY] when no brand
+     * was ever applied for that subscription.
+     */
+    fun manifestFor(uuid: UUID): BrandManifest =
+        BrandManifest.fromJson(prefs.getString(manifestKey(uuid), null))
 
-    var manifest: BrandManifest
-        get() = BrandManifest.fromJson(prefs.getString(KEY_MANIFEST, null))
-        set(value) {
-            prefs.edit().also { e ->
-                if (value.isEmpty()) e.remove(KEY_MANIFEST)
-                else e.putString(KEY_MANIFEST, value.toJson())
-            }.apply()
-        }
+    fun setManifest(uuid: UUID, manifest: BrandManifest) {
+        prefs.edit().also { e ->
+            if (manifest.isEmpty()) e.remove(manifestKey(uuid))
+            else e.putString(manifestKey(uuid), manifest.toJson())
+        }.apply()
+    }
 
-    /** Local cache path of the most recently downloaded primary logo, if any. */
-    var cachedLogoPath: String?
-        get() = prefs.getString(KEY_CACHED_LOGO_PATH, null)
-        set(value) {
-            prefs.edit().also { e ->
-                if (value.isNullOrBlank()) e.remove(KEY_CACHED_LOGO_PATH)
-                else e.putString(KEY_CACHED_LOGO_PATH, value)
-            }.apply()
-        }
+    fun logoPathFor(uuid: UUID, darkTheme: Boolean): String? {
+        val primary = prefs.getString(logoKey(uuid), null)
+        val light = prefs.getString(logoLightKey(uuid), null)
+        return if (darkTheme) primary else (light ?: primary)
+    }
 
-    /** Local cache path of the light-theme logo variant, if any. */
-    var cachedLightLogoPath: String?
-        get() = prefs.getString(KEY_CACHED_LIGHT_LOGO_PATH, null)
-        set(value) {
-            prefs.edit().also { e ->
-                if (value.isNullOrBlank()) e.remove(KEY_CACHED_LIGHT_LOGO_PATH)
-                else e.putString(KEY_CACHED_LIGHT_LOGO_PATH, value)
-            }.apply()
-        }
+    fun setLogoPaths(uuid: UUID, primary: String?, light: String?) {
+        prefs.edit().also { e ->
+            if (primary.isNullOrBlank()) e.remove(logoKey(uuid)) else e.putString(logoKey(uuid), primary)
+            if (light.isNullOrBlank()) e.remove(logoLightKey(uuid)) else e.putString(logoLightKey(uuid), light)
+        }.apply()
+    }
+
+    /**
+     * Whether [uuid]'s subscription carries a real brand identity (name /
+     * logo / accent). Operator-info URLs alone do NOT count — having only a
+     * support URL must not cause "Operator" UI to appear.
+     */
+    fun isActiveFor(uuid: UUID): Boolean = manifestFor(uuid).hasBrandIdentity()
+
+    fun clearFor(uuid: UUID) {
+        prefs.edit()
+            .remove(manifestKey(uuid))
+            .remove(logoKey(uuid))
+            .remove(logoLightKey(uuid))
+            .apply()
+    }
 
     /**
      * Accent hex (`#RRGGBB`) of the theme overlay actually applied to the
-     * current Activity. Tracked separately from [manifest] so the design
-     * layer can detect when an Activity needs to be recreated to refresh its
-     * Material colour roles.
+     * current Activity. Tracked separately from manifests so the design
+     * layer can detect when an Activity needs to be recreated.
      */
     var lastAppliedAccent: String
         get() = prefs.getString(KEY_LAST_APPLIED_ACCENT, "").orEmpty()
@@ -74,24 +74,14 @@ class BrandStore(context: Context) {
             }.apply()
         }
 
-    fun isActive(): Boolean = !manifest.isEmpty() && sourceProfile != null
-
-    fun clear() {
-        prefs.edit()
-            .remove(KEY_SOURCE_PROFILE)
-            .remove(KEY_MANIFEST)
-            .remove(KEY_CACHED_LOGO_PATH)
-            .remove(KEY_CACHED_LIGHT_LOGO_PATH)
-            // lastAppliedAccent is intentionally NOT cleared — keeps the
-            // recreate cycle from oscillating across resets.
-            .apply()
-    }
+    private fun manifestKey(uuid: UUID) = "${KEY_PREFIX_MANIFEST}_$uuid"
+    private fun logoKey(uuid: UUID) = "${KEY_PREFIX_LOGO}_$uuid"
+    private fun logoLightKey(uuid: UUID) = "${KEY_PREFIX_LOGO_LIGHT}_$uuid"
 
     companion object {
-        private const val KEY_SOURCE_PROFILE = "brand_source_profile"
-        private const val KEY_MANIFEST = "brand_manifest_json"
-        private const val KEY_CACHED_LOGO_PATH = "brand_cached_logo_path"
-        private const val KEY_CACHED_LIGHT_LOGO_PATH = "brand_cached_light_logo_path"
+        private const val KEY_PREFIX_MANIFEST = "brand_manifest"
+        private const val KEY_PREFIX_LOGO = "brand_logo"
+        private const val KEY_PREFIX_LOGO_LIGHT = "brand_logo_light"
         private const val KEY_LAST_APPLIED_ACCENT = "brand_last_applied_accent"
     }
 }

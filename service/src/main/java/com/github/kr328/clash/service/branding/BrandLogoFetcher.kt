@@ -40,9 +40,23 @@ object BrandLogoFetcher {
     )
 
     suspend fun fetch(context: Context, urlString: String): String? = withContext(Dispatchers.IO) {
-        val parsed = runCatching { URL(urlString) }.getOrNull() ?: return@withContext null
-        if (!parsed.protocol.equals("https", ignoreCase = true)) return@withContext null
-        if (!isPublicHost(parsed.host)) return@withContext null
+        val parsed = runCatching { URL(urlString) }.getOrNull()
+        if (parsed == null) {
+            Log.w("BrandLogoFetcher: malformed URL: $urlString")
+            return@withContext null
+        }
+        if (!parsed.protocol.equals("https", ignoreCase = true)) {
+            Log.w("BrandLogoFetcher: rejected non-https URL: $urlString")
+            return@withContext null
+        }
+        if (!isPublicHost(parsed.host)) {
+            Log.w(
+                "BrandLogoFetcher: SSRF guard rejected $urlString — host '${parsed.host}' " +
+                    "resolves to a private/loopback/link-local IP (this can happen when the " +
+                    "VPN tunnel is active and DNS resolves through it)",
+            )
+            return@withContext null
+        }
 
         try {
             val bytes = openWithSafeRedirects(parsed, 0)?.use { input ->

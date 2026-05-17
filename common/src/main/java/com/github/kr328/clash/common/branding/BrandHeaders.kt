@@ -9,6 +9,15 @@ package com.github.kr328.clash.common.branding
  */
 object BrandHeaders {
 
+    /**
+     * Master kill switch. When the operator sends `X-Branding-Enabled: false`,
+     * every other X-Brand-* header is ignored and the client reverts to the
+     * default ClashFest UI. Lets an operator roll back branding instantly if
+     * a deployed configuration introduces a regression, without having to
+     * remove all of their branding headers one-by-one.
+     */
+    const val BRANDING_ENABLED = "X-Branding-Enabled"
+
     // --- Brand identity (v1) ---
     const val NAME = "X-Brand-Name"
     const val TAGLINE = "X-Brand-Tagline"
@@ -35,17 +44,9 @@ object BrandHeaders {
     const val HIDE_ROUTING = "X-Brand-Hide-Routing"
 
     /**
-     * Legacy / pre-Brand spellings we still honour. New code should reach for
-     * the canonical X-Brand-* names above; these stay for backwards compatibility
-     * with operators on older configurations.
+     * Explicit opt-in for the dedicated Operator tab. Brand identity / accent /
+     * logo apply on their own; the Operator tab is an extra surface and the
+     * operator chooses whether to enable it.
      */
-    object Legacy {
-        val SUPPORT_URL = listOf(
-            "support-url", "Support-URL", "X-Support-URL",
-            "support_url", "x-support-url",
-            "profile-support-url", "Profile-Support-URL",
-            "subscription-support-url", "Subscription-Support-URL",
-            "support", "Support",
-        )
-    }
+    const val SHOW_OPERATOR_TAB = "X-Brand-Show-Operator-Tab"
 }

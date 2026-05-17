@@ -144,7 +144,7 @@ class ProfileManager(private val context: Context) : IProfileManager,
     }
 
     override suspend fun patch(uuid: UUID, name: String, source: String, interval: Long) {
-        val locked = store.subscriptionShareLinksLocked
+        val locked = store.subscriptionShareLinksLockedFor(uuid)
         val resolvedSource =
             if (!locked) {
                 source
@@ -266,6 +266,15 @@ class ProfileManager(private val context: Context) : IProfileManager,
 
                 ImportedDao().update(new)
 
+                // Parse operator brand off the SAME response so the new accent
+                // / logo / hide-routing flags apply on the very first update,
+                // not on a follow-up sync tick. Per-uuid storage means a brand
+                // attaches to its source subscription cleanly.
+                val brand = com.github.kr328.clash.common.branding.BrandManifestParser.parse { key ->
+                    response.headers[key]
+                }
+                BrandRefresh.apply(context, new.uuid, brand)
+
                 PendingDao().remove(new.uuid)
                 context.sendProfileChanged(new.uuid)
             }
@@ -318,6 +327,7 @@ class ProfileManager(private val context: Context) : IProfileManager,
 
         ProfileProcessor.delete(context, uuid)
         BrandRefresh.onProfileDeleted(context, uuid)
+        store.clearSubscriptionShareLinksLockedFor(uuid)
     }
 
     override suspend fun queryByUUID(uuid: UUID): Profile? {
@@ -833,26 +843,15 @@ class ProfileManager(private val context: Context) : IProfileManager,
         }
     }
 
-    override suspend fun readActiveBrandJson(): String? = withContext(Dispatchers.IO) {
+    override suspend fun readBrandJsonFor(uuid: UUID): String? = withContext(Dispatchers.IO) {
         val store = BrandStore(context)
-        if (!store.isActive()) null else store.manifest.toJson()
+        if (!store.isActiveFor(uuid)) null else store.manifestFor(uuid).toJson()
     }
 
-    override suspend fun activeBrandSourceProfile(): String? = withContext(Dispatchers.IO) {
-        BrandStore(context).sourceProfile?.toString()
-    }
-
-    override suspend fun activeBrandLogoPath(darkTheme: Boolean): String? = withContext(Dispatchers.IO) {
+    override suspend fun brandLogoPathFor(uuid: UUID, darkTheme: Boolean): String? = withContext(Dispatchers.IO) {
         val store = BrandStore(context)
-        if (!store.isActive()) return@withContext null
-        val primary = store.cachedLogoPath
-        val light = store.cachedLightLogoPath
-        val path = if (darkTheme) primary else (light ?: primary)
-        path?.takeIf { File(it).isFile }
-    }
-
-    override suspend fun resetActiveBrand() = withContext(Dispatchers.IO) {
-        BrandRefresh.resetByUser(context)
+        if (!store.isActiveFor(uuid)) return@withContext null
+        store.logoPathFor(uuid, darkTheme)?.takeIf { File(it).isFile }
     }
 
     private suspend fun previewRuleDryRun(

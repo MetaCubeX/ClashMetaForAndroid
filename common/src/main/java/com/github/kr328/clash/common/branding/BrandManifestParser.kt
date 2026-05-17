@@ -73,16 +73,11 @@ object BrandManifestParser {
     fun parse(headerLookup: (String) -> String?): BrandManifest {
         fun raw(key: String): String? = headerLookup(key)?.trim()?.trim('"', '\'')
 
-        fun rawAny(vararg keys: String): String? {
-            for (k in keys) {
-                val v = raw(k)
-                if (!v.isNullOrBlank()) return v
-            }
-            return null
-        }
-
-        val supportRaw = raw(BrandHeaders.SUPPORT_URL) ?: rawAny(*BrandHeaders.Legacy.SUPPORT_URL.toTypedArray())
-
+        // X-Brand-* namespace ONLY. Legacy `support-url` / `Profile-Support-URL`
+        // are handled by SubscriptionMetadataFetcher in the common namespace
+        // and surface through the existing announcement-card "Support" action —
+        // we don't dual-claim them here, otherwise a profile that ships only
+        // a legacy support URL would falsely look "branded".
         return BrandManifest(
             name = BrandValidation.cleanName(raw(BrandHeaders.NAME)),
             tagline = BrandValidation.cleanTagline(raw(BrandHeaders.TAGLINE)),
@@ -90,7 +85,7 @@ object BrandManifestParser {
             logoLightUrl = BrandValidation.cleanLogoUrl(raw(BrandHeaders.LOGO_LIGHT_URL)),
             accentColor = BrandValidation.cleanHexColor(raw(BrandHeaders.ACCENT_COLOR)),
             websiteUrl = BrandValidation.cleanBrandUrl(raw(BrandHeaders.WEBSITE_URL)),
-            supportUrl = BrandValidation.cleanBrandUrl(supportRaw),
+            supportUrl = BrandValidation.cleanBrandUrl(raw(BrandHeaders.SUPPORT_URL)),
             telegramUrl = BrandValidation.cleanBrandUrl(raw(BrandHeaders.TELEGRAM_URL)),
             botUrl = BrandValidation.cleanBrandUrl(raw(BrandHeaders.BOT_URL)),
             privacyUrl = BrandValidation.cleanBrandUrl(raw(BrandHeaders.PRIVACY_URL)),
@@ -101,6 +96,8 @@ object BrandManifestParser {
             hideStats = BrandValidation.parseBoolean(raw(BrandHeaders.HIDE_STATS)),
             hideLogs = BrandValidation.parseBoolean(raw(BrandHeaders.HIDE_LOGS)),
             hideRouting = BrandValidation.parseBoolean(raw(BrandHeaders.HIDE_ROUTING)),
+            showOperatorTab = BrandValidation.parseBoolean(raw(BrandHeaders.SHOW_OPERATOR_TAB)),
+            enabled = BrandValidation.parseBoolean(raw(BrandHeaders.BRANDING_ENABLED)),
         )
     }
 }
