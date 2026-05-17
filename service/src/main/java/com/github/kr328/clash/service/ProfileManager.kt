@@ -236,7 +236,19 @@ class ProfileManager(private val context: Context) : IProfileManager,
                 .build()
 
             client.newCall(request).execute().use { response ->
-                if (!response.isSuccessful || response.headers["subscription-userinfo"] == null) return
+                if (!response.isSuccessful) return
+
+                // Operator brand parses independently of subscription-userinfo —
+                // panels that don't carry quota (free tiers, custom auth flows)
+                // still need to brand the app. We do this BEFORE the
+                // subscription-userinfo early-return so brand survives even
+                // when the panel stops sending quota headers.
+                val brand = com.github.kr328.clash.common.branding.BrandManifestParser.parse { key ->
+                    response.headers[key]
+                }
+                BrandRefresh.apply(context, old.uuid, brand)
+
+                if (response.headers["subscription-userinfo"] == null) return
 
                 val usage = SubscriptionUsage.parse(response.headers["subscription-userinfo"])
                 val upload = usage?.upload ?: 0L
@@ -265,15 +277,6 @@ class ProfileManager(private val context: Context) : IProfileManager,
                 )
 
                 ImportedDao().update(new)
-
-                // Parse operator brand off the SAME response so the new accent
-                // / logo / hide-routing flags apply on the very first update,
-                // not on a follow-up sync tick. Per-uuid storage means a brand
-                // attaches to its source subscription cleanly.
-                val brand = com.github.kr328.clash.common.branding.BrandManifestParser.parse { key ->
-                    response.headers[key]
-                }
-                BrandRefresh.apply(context, new.uuid, brand)
 
                 PendingDao().remove(new.uuid)
                 context.sendProfileChanged(new.uuid)

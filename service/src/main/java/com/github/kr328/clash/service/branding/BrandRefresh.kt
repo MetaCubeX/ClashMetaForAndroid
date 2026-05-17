@@ -24,13 +24,23 @@ object BrandRefresh {
         val store = BrandStore(context)
         val previous = store.manifestFor(sourceProfile)
 
-        if (manifest.isEmpty()) {
+        // Explicit kill-switch from the operator → wipe.
+        if (manifest.enabled == false) {
             if (store.isActiveFor(sourceProfile)) {
                 store.clearFor(sourceProfile)
                 pruneOrphanLogos(context)
-                Log.d("BrandRefresh: operator cleared branding for $sourceProfile")
+                Log.d("BrandRefresh: operator disabled branding via X-Branding-Enabled=false for $sourceProfile")
                 return true
             }
+            return false
+        }
+
+        // Completely empty response (operator briefly stopped sending any
+        // X-Brand-* / X-Branding-Enabled header) — do NOT wipe cached state.
+        // A flaky deploy that omits the headers for one fetch shouldn't drop
+        // a brand the user already saw. Only explicit `false` kills the brand.
+        if (manifest.isEmpty()) {
+            Log.d("BrandRefresh: empty manifest from $sourceProfile, keeping cached state")
             return false
         }
 
