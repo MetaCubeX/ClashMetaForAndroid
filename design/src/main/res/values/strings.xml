@@ -318,6 +318,8 @@ Presets only change <b>where</b> files are downloaded from (CDN / host). It is s
     <string name="operator_group_contact">Contact</string>
     <string name="operator_group_help">Help &amp; status</string>
     <string name="operator_group_legal">Legal</string>
+    <string name="operator_greeting_default">Hello, %1$s!</string>
+    <string name="about_brand_logged_in_as">Logged in as %1$s</string>
 
     <!-- ===== Supported response headers (Schemes & HWID screen) ===== -->
     <string name="subscription_response_headers_title">Supported response headers</string>
@@ -347,6 +349,8 @@ Presets only change <b>where</b> files are downloaded from (CDN / host). It is s
     <string name="headers_desc_brand_help">Help / FAQ link.</string>
     <string name="headers_desc_brand_status">Service status page (surfaces on connection issues).</string>
     <string name="headers_desc_brand_renew">Subscription renewal deep link. Tapping a critical-expiry chip opens it.</string>
+    <string name="headers_desc_brand_user_display_name">Per-user name shown in About (template-variable driven, e.g. {{USERNAME}}).</string>
+    <string name="headers_desc_brand_greeting">Hero greeting on the Operator tab. Combine template variables for dynamic content.</string>
     <string name="headers_desc_brand_show_tab">Explicit opt-in to add the dedicated Operator bottom-nav tab.</string>
     <string name="headers_desc_brand_hide_routing">Paired with Show-Operator-Tab=true: replace Routing with Operator. No-op on its own.</string>
     <string name="profile_proxy_sort_config">Config order</string>

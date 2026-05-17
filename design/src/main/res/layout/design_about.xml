@@ -100,6 +100,19 @@
                     app:tint="?attr/colorOnSurface" />
             </LinearLayout>
 
+            <TextView
+                android:id="@+id/about_brand_user_display_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textAppearance="@style/TextAppearance.App.BodySmall"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:visibility="gone"
+                tools:text="Logged in as vasya@example.com"
+                tools:visibility="visible" />
+
             <com.google.android.material.divider.MaterialDivider
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

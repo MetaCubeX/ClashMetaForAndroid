@@ -397,6 +397,22 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
             binding.operatorTagline.visibility = View.GONE
         }
 
+        // Greeting hero line. Operators typically wire this through a panel
+        // template variable so the panel substitutes the user's name / days
+        // remaining / etc. into the header before sending. If the operator
+        // only supplied a display name (no greeting), fall back to a built-in
+        // "Hello, <name>!" so the hero block still feels personal.
+        val greeting = brand.greeting?.takeIf { it.isNotBlank() }
+            ?: brand.userDisplayName?.takeIf { it.isNotBlank() }?.let {
+                context.getString(R.string.operator_greeting_default, it)
+            }
+        if (greeting != null) {
+            binding.operatorGreeting.text = greeting
+            binding.operatorGreeting.visibility = View.VISIBLE
+        } else {
+            binding.operatorGreeting.visibility = View.GONE
+        }
+
         // Renew CTA (primary action)
         val renew = brand.renewUrl?.takeIf { it.isNotBlank() }
         if (renew != null) {
@@ -979,6 +995,18 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
             com.github.kr328.clash.design.branding.BrandLogoBinder.bind(
                 binding.aboutAppIcon, it,
             )
+        }
+
+        // Per-user display name. Operators typically wire this via a panel
+        // template variable (e.g. `X-Brand-User-Display-Name: {{USERNAME}}`)
+        // so the panel substitutes the actual name before sending.
+        val displayName = brand.userDisplayName?.takeIf { it.isNotBlank() }
+        if (displayName != null) {
+            binding.aboutBrandUserDisplayName.text = context.getString(
+                R.string.about_brand_logged_in_as,
+                displayName,
+            )
+            binding.aboutBrandUserDisplayName.visibility = View.VISIBLE
         }
 
         // Operator links chip group.

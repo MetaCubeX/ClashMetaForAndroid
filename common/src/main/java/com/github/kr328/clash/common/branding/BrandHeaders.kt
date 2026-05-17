@@ -38,6 +38,11 @@ object BrandHeaders {
     const val STATUS_URL = "X-Brand-Status-URL"
     const val RENEW_URL = "X-Brand-Renew-URL"
 
+    // --- Per-user context (v2 — meaningful only when the panel substitutes
+    //                       variables like {{USERNAME}} into the header) ---
+    const val USER_DISPLAY_NAME = "X-Brand-User-Display-Name"
+    const val GREETING = "X-Brand-Greeting"
+
     // --- UX simplification (v3) ---
     const val HIDE_STATS = "X-Brand-Hide-Stats"
     const val HIDE_LOGS = "X-Brand-Hide-Logs"

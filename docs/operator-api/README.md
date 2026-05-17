@@ -94,6 +94,9 @@ After ClashFest reads this:
 
 - [**headers.md**](headers.md) — full reference of every header, with type,
   example, semantics, validation rules, fallback, and implementation status.
+- [**template-variables.md**](template-variables.md) — how panel
+  template variables (`{{USERNAME}}`, `{{DAYS_LEFT}}`, etc.) flow into
+  brand headers, with per-panel cheat-sheets and practical recipes.
 - [**security.md**](security.md) — what the client validates, threat model,
   SSRF protection, image-size limits.
 - [**branding-quickstart.md**](branding-quickstart.md) — step-by-step setup

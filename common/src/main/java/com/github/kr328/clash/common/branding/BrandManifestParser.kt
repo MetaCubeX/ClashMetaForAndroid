@@ -93,6 +93,14 @@ object BrandManifestParser {
             helpUrl = BrandValidation.cleanBrandUrl(raw(BrandHeaders.HELP_URL)),
             statusUrl = BrandValidation.cleanBrandUrl(raw(BrandHeaders.STATUS_URL)),
             renewUrl = BrandValidation.cleanBrandUrl(raw(BrandHeaders.RENEW_URL)),
+            userDisplayName = BrandValidation.cleanString(
+                raw(BrandHeaders.USER_DISPLAY_NAME),
+                BrandValidation.USER_DISPLAY_NAME_MAX_LENGTH,
+            ),
+            greeting = BrandValidation.cleanString(
+                raw(BrandHeaders.GREETING),
+                BrandValidation.GREETING_MAX_LENGTH,
+            ),
             hideStats = BrandValidation.parseBoolean(raw(BrandHeaders.HIDE_STATS)),
             hideLogs = BrandValidation.parseBoolean(raw(BrandHeaders.HIDE_LOGS)),
             hideRouting = BrandValidation.parseBoolean(raw(BrandHeaders.HIDE_ROUTING)),

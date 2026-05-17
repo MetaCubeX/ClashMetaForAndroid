@@ -35,6 +35,20 @@ data class BrandManifest(
     val statusUrl: String? = null,
     val renewUrl: String? = null,
 
+    /**
+     * Per-user display name surfaced in About sheet. Operators wire this via
+     * a panel template variable (e.g. `X-Brand-User-Display-Name: {{USERNAME}}`)
+     * so the panel substitutes the actual username before the response leaves.
+     */
+    val userDisplayName: String? = null,
+
+    /**
+     * Hero greeting line on the Operator tab. Same template-variable pattern
+     * as userDisplayName — operators typically write something like
+     * `X-Brand-Greeting: Welcome back, {{USERNAME}}! {{DAYS_LEFT}} days left`.
+     */
+    val greeting: String? = null,
+
     // UX simplification flags. Null = operator hasn't expressed a preference.
     val hideStats: Boolean? = null,
     val hideLogs: Boolean? = null,
@@ -69,6 +83,8 @@ data class BrandManifest(
             helpUrl == null &&
             statusUrl == null &&
             renewUrl == null &&
+            userDisplayName == null &&
+            greeting == null &&
             hideStats == null &&
             hideLogs == null &&
             hideRouting == null &&

@@ -1254,6 +1254,17 @@
                             </LinearLayout>
                         </LinearLayout>
 
+                        <TextView
+                            android:id="@+id/operator_greeting"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="14dp"
+                            android:textAppearance="@style/TextAppearance.App.BodyLarge"
+                            android:textColor="?attr/colorOnSurface"
+                            android:visibility="gone"
+                            tools:text="Welcome back, Vasya! 12 days remaining."
+                            tools:visibility="visible" />
+
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/operator_renew_button"
                             android:layout_width="match_parent"

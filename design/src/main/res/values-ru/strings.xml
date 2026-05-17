@@ -409,6 +409,8 @@
     <string name="operator_group_contact">Связь</string>
     <string name="operator_group_help">Помощь и статус</string>
     <string name="operator_group_legal">Юридическое</string>
+    <string name="operator_greeting_default">Привет, %1$s!</string>
+    <string name="about_brand_logged_in_as">Вы вошли как %1$s</string>
 
     <!-- ===== Поддерживаемые headers ответа ===== -->
     <string name="subscription_response_headers_title">Поддерживаемые headers ответа</string>
@@ -437,6 +439,8 @@
     <string name="headers_desc_brand_help">Ссылка на Help / FAQ.</string>
     <string name="headers_desc_brand_status">Страница статуса сервиса (показывается при проблемах с подключением).</string>
     <string name="headers_desc_brand_renew">Deep link на продление подписки. Открывается тапом по critical-expiry chip.</string>
+    <string name="headers_desc_brand_user_display_name">Имя пользователя в About (заполняется через panel-переменные, например {{USERNAME}}).</string>
+    <string name="headers_desc_brand_greeting">Приветствие на Operator-вкладке. Сочетайте panel-переменные для динамического контента.</string>
     <string name="headers_desc_brand_show_tab">Явный opt-in для появления отдельной Operator-вкладки.</string>
     <string name="headers_desc_brand_hide_routing">В паре с Show-Operator-Tab=true: заменяет Routing на Operator. Сам по себе ничего не делает.</string>
     <string name="profile_proxy_sort_config">Порядок конфига</string>

@@ -14,6 +14,8 @@ object BrandValidation {
 
     const val NAME_MAX_LENGTH = 32
     const val TAGLINE_MAX_LENGTH = 64
+    const val USER_DISPLAY_NAME_MAX_LENGTH = 64
+    const val GREETING_MAX_LENGTH = 120
 
     private val HEX_COLOR = Regex("^#[0-9A-Fa-f]{6}$")
     private val CONTROL_CHARS = Regex("[\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F]")

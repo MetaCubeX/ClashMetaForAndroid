@@ -224,7 +224,27 @@ Free-form, panel-controlled.
 | Type | string |
 | Status | **v1** (already parsed) |
 | Applied to | Profile card title |
-| Notes | Carries both the subscription plan AND any per-user context (user name, tier, trial state) — the operator decides the format. We don't ship separate `X-Brand-User-*` headers because most panels can't dynamically personalise headers per user; baking everything into one field keeps the spec honest. |
+| Notes | Carries the subscription plan label. For per-user identity / greeting, see the new headers below — modern panels support template variables that substitute user data into headers at request time. |
+
+### `X-Brand-User-Display-Name`
+
+| | |
+|---|---|
+| Type | string |
+| Max length | 64 characters |
+| Status | **v2** |
+| Applied to | "Logged in as <name>" line in About sheet (under the brand identity block) |
+| Notes | Designed to be filled via a panel template variable, e.g. `X-Brand-User-Display-Name: {{USERNAME}}`. See [template-variables.md](template-variables.md) for the full list per panel. |
+
+### `X-Brand-Greeting`
+
+| | |
+|---|---|
+| Type | string |
+| Max length | 120 characters |
+| Status | **v2** |
+| Applied to | Hero line on the Operator tab, between the brand-identity block and the Renew CTA |
+| Notes | Free-form. Operators typically wire dynamic content here via panel templates, e.g. `X-Brand-Greeting: Welcome back, {{USERNAME}}! {{DAYS_LEFT}} days remaining`. If absent but `X-Brand-User-Display-Name` is set, the client falls back to a built-in "Hello, <name>!". |
 
 ---
 
