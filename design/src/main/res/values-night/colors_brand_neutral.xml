@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- M3 neutral surface colors (dark theme). See values/colors_brand_neutral.xml. -->
+<resources>
+    <color name="brand_neutral_surface_variant">#49454F</color>
+    <color name="brand_neutral_on_surface_variant">#CAC4D0</color>
+    <color name="brand_neutral_outline">#938F99</color>
+    <color name="brand_neutral_outline_variant">#49454F</color>
+    <color name="brand_neutral_surface_container">#211F26</color>
+    <color name="brand_neutral_surface_container_low">#1D1B20</color>
+    <color name="brand_neutral_surface_container_high">#2B2930</color>
+    <color name="brand_neutral_surface_container_highest">#36343B</color>
+</resources>

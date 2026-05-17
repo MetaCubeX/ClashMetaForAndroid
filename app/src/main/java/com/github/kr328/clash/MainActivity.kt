@@ -691,8 +691,11 @@ class MainActivity : BaseActivity<MainDesign>() {
                 design.profileForceUpdateRequests.onReceive { profile ->
                     launch {
                         withProfile { update(profile.uuid) }
-                        // Also re-pull operator headers (announcement, support, userinfo) right away,
-                        // so the inline announcement text updates with the same tap.
+                        // Run metadata sync in the background so the UI tap returns
+                        // immediately. The earlier race (announcement-card hiding the
+                        // active-card support button for a tick) was structural — we
+                        // removed that coverage logic, so there's nothing to race now
+                        // and we don't need to block the user on a slow HTTP roundtrip.
                         launch(Dispatchers.IO) {
                             uiStore.subscriptionMetadataLastFetch = 0L
                             runCatching { syncSubscriptionMetadata() }
@@ -786,7 +789,7 @@ class MainActivity : BaseActivity<MainDesign>() {
             profile.imported && profile.type != Profile.Type.File
         m.findItem(R.id.profile_menu_subscription_sources).isVisible = profile.imported
         m.findItem(R.id.profile_menu_duplicate).isVisible = profile.imported
-        val shareLocked = ServiceStore(this).subscriptionShareLinksLocked
+        val shareLocked = ServiceStore(this).subscriptionShareLinksLockedFor(profile.uuid)
         m.findItem(R.id.profile_menu_share).isVisible =
             profile.imported && profile.type == Profile.Type.Url && !shareLocked
         popup.setOnMenuItemClickListener { item ->
@@ -1722,7 +1725,9 @@ class MainActivity : BaseActivity<MainDesign>() {
             uiStore.subscriptionMetadataAllowInsecureHttp,
         )
         com.github.kr328.clash.service.branding.BrandRefresh.apply(this, active.uuid, brandManifest)
-        meta.shareLinksDisable?.let { ServiceStore(this).subscriptionShareLinksLocked = it }
+        meta.shareLinksDisable?.let {
+            ServiceStore(this).setSubscriptionShareLinksLockedFor(active.uuid, it)
+        }
         uiStore.subscriptionHwidActive = meta.hwidActive?.toString().orEmpty()
         uiStore.subscriptionHwidNotSupported = meta.hwidNotSupported?.toString().orEmpty()
         uiStore.subscriptionHwidMaxDevicesReached = meta.hwidMaxDevicesReached?.toString().orEmpty()
@@ -1775,7 +1780,12 @@ class MainActivity : BaseActivity<MainDesign>() {
      */
     private suspend fun applyActiveBrand() {
         val design = design as? com.github.kr328.clash.design.MainDesign ?: return
-        val json = runCatching { withProfile { readActiveBrandJson() } }.getOrNull()
+        val activeUuid = runCatching { withProfile { queryActive() } }.getOrNull()?.uuid
+        if (activeUuid == null) {
+            design.applyBrand(com.github.kr328.clash.design.branding.BrandHolder.EMPTY)
+            return
+        }
+        val json = runCatching { withProfile { readBrandJsonFor(activeUuid) } }.getOrNull()
         if (json.isNullOrBlank()) {
             design.applyBrand(com.github.kr328.clash.design.branding.BrandHolder.EMPTY)
             return
@@ -1784,15 +1794,23 @@ class MainActivity : BaseActivity<MainDesign>() {
         val nightMode = (resources.configuration.uiMode and
             android.content.res.Configuration.UI_MODE_NIGHT_MASK) ==
             android.content.res.Configuration.UI_MODE_NIGHT_YES
-        val logoPath = runCatching { withProfile { activeBrandLogoPath(nightMode) } }.getOrNull()
+        val logoPath = runCatching {
+            withProfile { brandLogoPathFor(activeUuid, nightMode) }
+        }.getOrNull()
+        com.github.kr328.clash.common.log.Log.d(
+            "applyActiveBrand: uuid=$activeUuid, nightMode=$nightMode, " +
+                "manifest.logoUrl=${manifest.logoUrl}, manifest.logoLightUrl=${manifest.logoLightUrl}, " +
+                "resolvedPath=$logoPath",
+        )
         design.applyBrand(
             com.github.kr328.clash.design.branding.BrandHolder(
                 manifest = manifest,
                 logoPath = logoPath,
             ),
         )
-        // If the accent changed since this Activity inflated, recreate so the
-        // M3 harmonised palette propagates to every widget that reads theme attrs.
+        // Theme overlay is captured at inflate time. If the accent changed
+        // since this Activity was built, recreate so the new harmonised
+        // palette flows into every widget that reads ?attr/colorPrimary etc.
         com.github.kr328.clash.design.branding.BrandThemeApplier.maybeRecreateOnAccentChange(this)
     }
 

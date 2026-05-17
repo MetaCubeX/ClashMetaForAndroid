@@ -2,43 +2,45 @@ package com.github.kr328.clash.design.branding
 
 import android.app.Activity
 import android.graphics.Color
-import com.github.kr328.clash.common.branding.BrandManifest
+import com.github.kr328.clash.design.R
 import com.google.android.material.color.DynamicColors
 import com.google.android.material.color.DynamicColorsOptions
 
 /**
- * Applies the operator-supplied accent as the Material 3 colorPrimary seed for
- * an entire Activity. Generates a harmonised tonal palette from one hex value
- * via Material's content-based dynamic colors, so every widget that reaches
- * for `colorPrimary` / `colorPrimaryContainer` / `colorOnPrimary` / etc.
- * automatically follows.
+ * Applies the operator accent as a Material 3 dynamic-color theme overlay —
+ * exactly the same path used by the built-in "themes & palette" feature, just
+ * sourced from a runtime hex instead of a pre-built XML palette. The
+ * harmoniser builds the whole M3 tonal palette from the accent seed so every
+ * widget that reads `?attr/colorPrimary` etc. picks up the brand
+ * automatically — filled buttons, switches in their checked state, sliders,
+ * progress indicators, tab indicators, on-primary text and icons, etc.
  *
- * **Must be called before `setContentView` in the Activity's onCreate.**
+ * Right after the harmoniser, we apply [R.style.ThemeOverlay_App_BrandNeutralSurfaces]
+ * to pin the **off-state / non-primary** attrs (colorSurfaceVariant,
+ * colorOutline, colorSurfaceContainer*, etc.) back to the default M3
+ * neutrals. Without that second overlay the harmoniser would re-tint every
+ * surface tone from the brand seed by design, and disconnected widgets
+ * would visually read as the accent — Material 3's "harmonious palette" idea
+ * conflicts with our "off must look off" requirement, so we forcibly split
+ * the two.
  *
- * Reads the persisted brand directly from SharedPreferences (sync) — we can't
- * wait for the AIDL profile manager because that happens after the Activity
- * has already inflated its theme.
+ * **Must be called before setContentView** of the host Activity. We invoke it
+ * from BaseActivity.applyDayNight, after the user's day/night and palette
+ * overlays so the brand always wins.
  */
 object BrandThemeApplier {
 
-    /**
-     * Apply the operator accent as the **final** theme overlay on [activity].
-     *
-     * Must run AFTER any user-picked palette / system dynamic-color overlays
-     * inside the host theme chain so the operator has the last word — calling
-     * this before, say, `paletteOverlay` from UiStore will silently lose to
-     * the later palette applyStyle.
-     */
     fun applyToActivity(activity: Activity) {
+        val activeUuid = com.github.kr328.clash.service.store.ServiceStore(activity).activeProfile
+            ?: return
         val store = com.github.kr328.clash.service.branding.BrandStore(activity)
-        if (!store.isActive()) return
-        val accent = parseHexColor(store.manifest.accentColor) ?: return
+        if (!store.isActiveFor(activeUuid)) return
+        val hex = store.manifestFor(activeUuid).accentColor
+        val accent = parseHexColor(hex) ?: return
 
-        // `applyToActivityIfAvailable`'s default precondition refuses to apply
-        // on pre-Android-12 because system "wallpaper dynamic color" isn't
-        // there. We want a content-based palette derived from the operator
-        // accent, which works on every Android version — override the
-        // precondition to always-true.
+        // 1) Brand harmoniser → palette from seed (works on every Android version
+        //    when we override the precondition; the default precondition checks
+        //    system dynamic-color support which is Android 12+).
         DynamicColors.applyToActivityIfAvailable(
             activity,
             DynamicColorsOptions.Builder()
@@ -46,23 +48,31 @@ object BrandThemeApplier {
                 .setPrecondition { _, _ -> true }
                 .build(),
         )
+        // 2) Pin off-state surface attrs back to default M3 neutrals so
+        //    disconnected / unchecked surfaces don't read as the accent.
+        activity.theme.applyStyle(R.style.ThemeOverlay_App_BrandNeutralSurfaces, true)
+
         com.github.kr328.clash.common.log.Log.d(
-            "BrandThemeApplier: applied accent=${store.manifest.accentColor} to ${activity::class.java.simpleName}",
+            "BrandThemeApplier: harmonised palette from accent=$hex + neutral surfaces overlay applied to ${activity::class.java.simpleName}",
         )
     }
 
     /**
-     * Recreate the activity when the active brand's accent has changed since
-     * it was inflated. The persisted `lastAppliedAccent` is tracked separately
-     * from the manifest so we don't recreate on unrelated brand updates
-     * (logo refresh, link change, etc.).
+     * Recreate the Activity when the brand accent (or active brand state)
+     * has changed since this Activity was inflated. The harmoniser overlay
+     * is captured at inflate time — there's no way to update an already-
+     * inflated theme.
      */
     fun maybeRecreateOnAccentChange(activity: Activity) {
+        val activeUuid = com.github.kr328.clash.service.store.ServiceStore(activity).activeProfile
         val store = com.github.kr328.clash.service.branding.BrandStore(activity)
-        val current = store.manifest.accentColor.orEmpty()
+        val current = if (activeUuid != null && store.isActiveFor(activeUuid)) {
+            store.manifestFor(activeUuid).accentColor.orEmpty()
+        } else {
+            ""
+        }
         val last = store.lastAppliedAccent
         if (current == last) return
-        // Persist BEFORE recreate so we don't loop.
         store.lastAppliedAccent = current
         com.github.kr328.clash.common.log.Log.d(
             "BrandThemeApplier: accent changed ('$last' -> '$current'), recreating ${activity::class.java.simpleName}",
@@ -75,6 +85,3 @@ object BrandThemeApplier {
         return runCatching { Color.parseColor(hex) }.getOrNull()
     }
 }
-
-@Suppress("unused")
-private fun BrandManifest.accentColorOrNull(): String? = accentColor

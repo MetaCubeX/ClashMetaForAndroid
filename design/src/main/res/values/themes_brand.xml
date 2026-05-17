@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+        Pin Material 3 neutral surface and outline attrs back to their default
+        values after the brand harmoniser has re-tinted the whole palette from
+        the operator accent seed. Applied as the LAST theme overlay in
+        BrandThemeApplier.applyToActivity:
+
+          theme.applyStyle(DynamicColors-with-brand-seed)   ← sets colorPrimary
+          theme.applyStyle(ThemeOverlay.App.BrandNeutralSurfaces) ← resets off-state attrs
+
+        Result: brand accent applies broadly (filled buttons, switches when
+        checked, sliders, progress, tab indicator, cards on-primary surfaces,
+        etc.) while disconnected / unchecked / non-primary surfaces stay neutral.
+    -->
+    <style name="ThemeOverlay.App.BrandNeutralSurfaces" parent="">
+        <item name="colorSurfaceVariant">@color/brand_neutral_surface_variant</item>
+        <item name="colorOnSurfaceVariant">@color/brand_neutral_on_surface_variant</item>
+        <item name="colorOutline">@color/brand_neutral_outline</item>
+        <item name="colorOutlineVariant">@color/brand_neutral_outline_variant</item>
+        <item name="colorSurfaceContainer">@color/brand_neutral_surface_container</item>
+        <item name="colorSurfaceContainerLow">@color/brand_neutral_surface_container_low</item>
+        <item name="colorSurfaceContainerHigh">@color/brand_neutral_surface_container_high</item>
+        <item name="colorSurfaceContainerHighest">@color/brand_neutral_surface_container_highest</item>
+    </style>
+</resources>

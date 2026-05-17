@@ -256,7 +256,15 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
             }
 
             val bodyCollapsed = useAnnouncementCard && announcementCollapsed
-            announcementCardCoversSupport = useAnnouncementCard && hasAnnouncement && support != null
+            // The dedicated support button used to live inside the announcement
+            // card and we'd hide the small one on the active-profile card to
+            // avoid duplication. That created a visible flicker right after a
+            // new subscription import (active-card button shows for one frame
+            // with stale uiStore.supportUrl, then announcement-card sync hides
+            // it). We now drop the announcement-card support entirely — the
+            // small button on the active-profile card is the single canonical
+            // entry point.
+            announcementCardCoversSupport = false
 
             binding.mainAnnouncementCard.visibility =
                 if (useAnnouncementCard) View.VISIBLE else View.GONE
@@ -282,12 +290,11 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
                 onOpenUrl?.invoke(target)
             }
 
-            binding.mainAnnouncementSupport.visibility =
-                if (useAnnouncementCard && !bodyCollapsed && support != null) View.VISIBLE else View.GONE
-            binding.mainAnnouncementSupport.setOnClickListener {
-                val target = support ?: return@setOnClickListener
-                onOpenUrl?.invoke(target) ?: onSupport?.invoke()
-            }
+            // Announcement-card support button is intentionally retired —
+            // see the note above on announcementCardCoversSupport. Kept the
+            // view in the layout for binding-compat but always GONE.
+            binding.mainAnnouncementSupport.visibility = View.GONE
+            binding.mainAnnouncementSupport.setOnClickListener(null)
 
             binding.mainAnnouncementRefresh.visibility =
                 if (useAnnouncementCard && onRefresh != null) View.VISIBLE else View.GONE
@@ -345,10 +352,14 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         withContext(Dispatchers.Main) {
             brandHolder = holder
             renderBrandHeader()
-            // Global colorPrimary override is applied by BrandThemeApplier at
-            // Activity onCreate via Material 3 dynamic-colors harmonisation;
-            // every theme-attr-reading widget tracks the accent automatically.
-            // We don't programmatic-tint here.
+            // BrandThemeApplier installs the M3 harmonised palette plus the
+            // neutral-surface overlay at Activity onCreate / after recreate.
+            // Once that overlay is in the theme, every widget reading
+            // ?attr/colorPrimary etc. picks up the brand automatically — no
+            // programmatic walker needed. Power button is the one place
+            // where we explicitly override (running state) because the
+            // attrs we picked for it are intentionally state-aware in code,
+            // not in XML.
             applyPowerVisuals()
             reconcileTabsForBrand()
             renderOperatorPage()
@@ -478,6 +489,19 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
             context.resolveThemedColor(MaterialR.attr.colorSurface),
         )
 
+    /**
+     * Neutral gray used for the power button background when the operator brand
+     * harmoniser has tinted the whole surface palette and we need the idle
+     * state to read as off (not "pale accent"). Reads the night-mode bit of
+     * the current configuration so it tracks the user's day/night choice.
+     */
+    private fun idleNeutralBackground(): Int {
+        val night = (context.resources.configuration.uiMode and
+            android.content.res.Configuration.UI_MODE_NIGHT_MASK) ==
+            android.content.res.Configuration.UI_MODE_NIGHT_YES
+        return if (night) 0xFF2A2A2A.toInt() else 0xFFE2E2E2.toInt()
+    }
+
     suspend fun setClashRunning(running: Boolean) {
         withContext(Dispatchers.Main) {
             clashRunningState = running
@@ -525,9 +549,12 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
                 4f,
             )
         }
-        // Operator brand accent applies ONLY in the running state — same slot
-        // that colorPrimary would have filled. Idle / starting keep defaults
-        // so the button still reads as "off / loading" regardless of brand.
+        // Operator brand accent applies ONLY in the running state — that's the
+        // slot `colorPrimary` filled in the default theme. Idle / starting
+        // states read default M3 surface attrs. Since we no longer run a
+        // dynamic-color harmoniser (which used to derive ALL surface tones
+        // from the brand seed and tint the off-state), surface attrs stay at
+        // their built-in neutral M3 values automatically — no workaround needed.
         val bgColor = if (running) {
             brandAccentColor() ?: context.resolveThemedColor(bgAttr)
         } else {
@@ -1028,12 +1055,20 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
     /**
      * Compute the desired tab set from the active brand and rebuild the pager
      * if it changed. No-op when the layout is the same.
+     *
+     * The Operator tab is **explicit opt-in** via X-Brand-Show-Operator-Tab —
+     * just having a brand name / logo / accent applies the visual brand but
+     * does NOT add a tab. Hide-Routing only takes effect when the operator
+     * also opted into the tab, otherwise it'd hide Routing without anything
+     * replacing it.
      */
     private fun reconcileTabsForBrand() {
         val brand = brandHolder.manifest
+        val showTab = brand.showOperatorTab == true
+        val hideRouting = brand.hideRouting == true
         val desired = when {
-            !brandHolder.isActive -> DEFAULT_TABS
-            brand.hideRouting == true -> listOf(
+            !brandHolder.isActive || !showTab -> DEFAULT_TABS
+            hideRouting -> listOf(
                 MainTab.Home, MainTab.Profiles, MainTab.Operator, MainTab.Settings,
             )
             else -> listOf(
