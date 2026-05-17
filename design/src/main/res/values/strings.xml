@@ -315,6 +315,9 @@ Presets only change <b>where</b> files are downloaded from (CDN / host). It is s
     <string name="brand_max_devices">Max %1$d devices</string>
     <string name="brand_status_check">Service status</string>
     <string name="nav_operator">Operator</string>
+    <string name="operator_group_contact">Contact</string>
+    <string name="operator_group_help">Help &amp; status</string>
+    <string name="operator_group_legal">Legal</string>
 
     <!-- ===== Supported response headers (Schemes & HWID screen) ===== -->
     <string name="subscription_response_headers_title">Supported response headers</string>

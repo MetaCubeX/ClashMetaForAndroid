@@ -591,4 +591,59 @@
     <string name="tun_stack_mode">栈模式</string>
     <string name="tun_stack_system">系统栈</string>
     <string name="usage_unlimited_symbol">∞</string>
+
+    <!-- ===== Operator branding (X-Brand-* headers + Operator tab) ===== -->
+    <string name="about_brand_powered_by">由 ClashFest 提供支持</string>
+    <string name="about_brand_website">网站</string>
+    <string name="about_brand_support">技术支持</string>
+    <string name="about_brand_telegram">Telegram</string>
+    <string name="about_brand_bot">机器人</string>
+    <string name="about_brand_help">帮助</string>
+    <string name="about_brand_privacy">隐私政策</string>
+    <string name="about_brand_terms">服务条款</string>
+    <string name="about_brand_status">状态</string>
+    <string name="about_brand_renew">续订订阅</string>
+    <string name="about_brand_reset">重置品牌</string>
+    <string name="brand_reset_toast">运营商品牌已重置</string>
+    <string name="brand_renew_action">续订</string>
+    <string name="brand_max_devices">最多 %1$d 台设备</string>
+    <string name="brand_status_check">服务状态</string>
+
+    <!-- Operator tab + grouping -->
+    <string name="nav_operator">运营商</string>
+    <string name="operator_group_contact">联系方式</string>
+    <string name="operator_group_help">帮助和状态</string>
+    <string name="operator_group_legal">法律</string>
+
+    <!-- Search clear hint (proxy picker) -->
+    <string name="profile_proxy_search_clear">清除搜索</string>
+
+    <!-- Supported response headers reference (Schemes &amp; HWID screen) -->
+    <string name="subscription_response_headers_title">支持的响应头</string>
+    <string name="subscription_response_headers_summary">ClashFest 从订阅 URL 响应中读取的标头。运营商可使用它们来定制应用、传达策略并发布公告。</string>
+    <string name="subscription_open_operator_api_spec">打开完整的运营商 API 规范</string>
+    <string name="headers_desc_userinfo">订阅配额和到期时间(upload/download/total/expire)。</string>
+    <string name="headers_desc_profile_title">个人资料卡上显示的订阅或用户名。</string>
+    <string name="headers_desc_update_interval">自动更新间隔(小时),强制不少于 15 分钟。</string>
+    <string name="headers_desc_share_links">按订阅:隐藏分享/复制链接操作并锁定 URL 编辑。</string>
+    <string name="headers_desc_x_hwid">面板侧设备绑定状态 (active / not-supported / max-reached / limit)。</string>
+    <string name="headers_desc_announce">运营商广播消息及可选 URL,显示为主页公告卡。</string>
+    <string name="headers_desc_legacy_support">旧版支持 URL(以及 Profile-Support-URL / Subscription-Support-URL)。通过公告卡的支持按钮显示;不会单独激活品牌界面。</string>
+    <string name="headers_desc_branding_enabled">必需的主开关。仅当设为 true 时品牌才会应用;否则所有 X-Brand-* 字段都会被忽略。</string>
+    <string name="headers_desc_brand_name">主屏幕标题栏和关于页面中显示的应用标题(≤32 个字符)。</string>
+    <string name="headers_desc_brand_tagline">品牌名称下方的一行副标题(≤64 个字符)。</string>
+    <string name="headers_desc_brand_logo">主(深色主题)Logo。HTTPS,PNG/WebP/JPEG,≤512KB。</string>
+    <string name="headers_desc_brand_logo_light">浅色主题 Logo,深色主题下会回退到主 Logo。</string>
+    <string name="headers_desc_brand_accent">Material 3 调色板的种子色(#RRGGBB)。</string>
+    <string name="headers_desc_brand_website">运营商网站链接。</string>
+    <string name="headers_desc_brand_support">运营商支持联系方式。建议替代旧版 support-url。</string>
+    <string name="headers_desc_brand_telegram">Telegram 频道链接。</string>
+    <string name="headers_desc_brand_bot">Telegram 机器人链接。</string>
+    <string name="headers_desc_brand_privacy">隐私政策链接。</string>
+    <string name="headers_desc_brand_terms">服务条款链接。</string>
+    <string name="headers_desc_brand_help">帮助/常见问题链接。</string>
+    <string name="headers_desc_brand_status">服务状态页(连接问题时显示)。</string>
+    <string name="headers_desc_brand_renew">订阅续订深度链接。点击临近到期标签会打开此链接。</string>
+    <string name="headers_desc_brand_show_tab">显式启用专用的运营商底部导航标签。</string>
+    <string name="headers_desc_brand_hide_routing">与 Show-Operator-Tab=true 配对:用运营商标签替换路由标签。单独使用无效。</string>
 </resources>

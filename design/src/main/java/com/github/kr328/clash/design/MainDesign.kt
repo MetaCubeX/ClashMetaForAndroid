@@ -397,7 +397,7 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
             binding.operatorTagline.visibility = View.GONE
         }
 
-        // Renew CTA
+        // Renew CTA (primary action)
         val renew = brand.renewUrl?.takeIf { it.isNotBlank() }
         if (renew != null) {
             binding.operatorRenewButton.visibility = View.VISIBLE
@@ -406,45 +406,138 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
             binding.operatorRenewButton.visibility = View.GONE
         }
 
-        // Link rows
-        val links = listOfNotNull(
-            brand.websiteUrl?.let { it to R.string.about_brand_website },
-            brand.supportUrl?.let { it to R.string.about_brand_support },
-            brand.telegramUrl?.let { it to R.string.about_brand_telegram },
-            brand.botUrl?.let { it to R.string.about_brand_bot },
-            brand.helpUrl?.let { it to R.string.about_brand_help },
-            brand.privacyUrl?.let { it to R.string.about_brand_privacy },
-            brand.termsUrl?.let { it to R.string.about_brand_terms },
-            brand.statusUrl?.let { it to R.string.about_brand_status },
-        )
+        // Grouped link rows. Each row gets a leading icon and a trailing chevron;
+        // groups are separated by small headers so the user can scan the page
+        // by intent (talk to humans / read docs / check status).
         val container = binding.operatorLinks
         container.removeAllViews()
+
+        val operatorLinks = listOfNotNull(
+            brand.websiteUrl?.let { OperatorLink(it, R.string.about_brand_website, R.drawable.ic_baseline_language) },
+            brand.supportUrl?.let { OperatorLink(it, R.string.about_brand_support, R.drawable.ic_baseline_headset_mic) },
+            brand.telegramUrl?.let { OperatorLink(it, R.string.about_brand_telegram, R.drawable.ic_baseline_campaign) },
+            brand.botUrl?.let { OperatorLink(it, R.string.about_brand_bot, R.drawable.ic_baseline_subscriptions) },
+        )
+        val helpLinks = listOfNotNull(
+            brand.helpUrl?.let { OperatorLink(it, R.string.about_brand_help, R.drawable.ic_outline_info) },
+            brand.statusUrl?.let { OperatorLink(it, R.string.about_brand_status, R.drawable.ic_baseline_info) },
+        )
+        val legalLinks = listOfNotNull(
+            brand.privacyUrl?.let { OperatorLink(it, R.string.about_brand_privacy, R.drawable.ic_outline_article) },
+            brand.termsUrl?.let { OperatorLink(it, R.string.about_brand_terms, R.drawable.ic_baseline_article) },
+        )
+
+        addOperatorGroup(container, R.string.operator_group_contact, operatorLinks)
+        addOperatorGroup(container, R.string.operator_group_help, helpLinks)
+        addOperatorGroup(container, R.string.operator_group_legal, legalLinks)
+    }
+
+    private data class OperatorLink(
+        val url: String,
+        val labelRes: Int,
+        val iconRes: Int,
+    )
+
+    private fun addOperatorGroup(
+        container: android.widget.LinearLayout,
+        titleRes: Int,
+        links: List<OperatorLink>,
+    ) {
+        if (links.isEmpty()) return
         val density = context.resources.displayMetrics.density
         fun px(dp: Int) = (dp * density).toInt()
-        links.forEachIndexed { index, (url, label) ->
-            val row = android.widget.TextView(context).apply {
-                text = context.getString(label)
-                setTextAppearance(R.style.TextAppearance_App_BodyMedium)
-                setTextColor(context.resolveThemedColor(MaterialR.attr.colorOnSurface))
-                setPadding(px(2), px(12), px(2), px(12))
-                background = androidx.appcompat.content.res.AppCompatResources
-                    .getDrawable(context, android.R.drawable.list_selector_background)
-                isClickable = true
-                isFocusable = true
-                setOnClickListener { onOpenBrandUrl?.invoke(url) }
-            }
-            container.addView(row)
-            if (index < links.lastIndex) {
+
+        // Group header — Material Title-Small in colorOnSurfaceVariant
+        val header = android.widget.TextView(context).apply {
+            text = context.getString(titleRes)
+            setTextAppearance(R.style.TextAppearance_App_LabelLarge)
+            setTextColor(context.resolveThemedColor(MaterialR.attr.colorOnSurfaceVariant))
+            setPadding(px(4), px(14), px(4), px(6))
+            isAllCaps = true
+            letterSpacing = 0.08f
+            textSize = 12f
+        }
+        container.addView(header)
+
+        // Rows wrapper card so dividers render cleanly between rows
+        val card = com.google.android.material.card.MaterialCardView(context).apply {
+            layoutParams = android.widget.LinearLayout.LayoutParams(
+                android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
+                android.widget.LinearLayout.LayoutParams.WRAP_CONTENT,
+            )
+            radius = px(14).toFloat()
+            cardElevation = 0f
+            strokeWidth = 0
+            setCardBackgroundColor(context.resolveThemedColor(MaterialR.attr.colorSurfaceContainerHigh))
+        }
+        val cardInner = android.widget.LinearLayout(context).apply {
+            orientation = android.widget.LinearLayout.VERTICAL
+        }
+        card.addView(cardInner)
+        container.addView(card)
+
+        links.forEachIndexed { i, link ->
+            cardInner.addView(buildOperatorRow(link))
+            if (i < links.lastIndex) {
                 val divider = View(context).apply {
                     layoutParams = android.widget.LinearLayout.LayoutParams(
                         android.widget.LinearLayout.LayoutParams.MATCH_PARENT, px(1),
+                    ).apply { setMargins(px(48), 0, 0, 0) }
+                    setBackgroundColor(
+                        context.resolveThemedColor(MaterialR.attr.colorOutlineVariant)
                     )
-                    setBackgroundColor(context.resolveThemedColor(MaterialR.attr.colorOutlineVariant))
                 }
-                container.addView(divider)
+                cardInner.addView(divider)
             }
         }
+    }
 
+    private fun buildOperatorRow(link: OperatorLink): View {
+        val density = context.resources.displayMetrics.density
+        fun px(dp: Int) = (dp * density).toInt()
+
+        val row = android.widget.LinearLayout(context).apply {
+            orientation = android.widget.LinearLayout.HORIZONTAL
+            gravity = android.view.Gravity.CENTER_VERTICAL
+            setPadding(px(14), px(14), px(14), px(14))
+            background = androidx.appcompat.content.res.AppCompatResources
+                .getDrawable(context, R.drawable.bg_proxy_node_row)
+            isClickable = true
+            isFocusable = true
+            setOnClickListener { onOpenBrandUrl?.invoke(link.url) }
+        }
+        // Leading icon
+        val icon = android.widget.ImageView(context).apply {
+            layoutParams = android.widget.LinearLayout.LayoutParams(px(22), px(22)).apply {
+                marginEnd = px(14)
+            }
+            setImageResource(link.iconRes)
+            imageTintList = android.content.res.ColorStateList.valueOf(
+                context.resolveThemedColor(MaterialR.attr.colorPrimary)
+            )
+        }
+        row.addView(icon)
+        // Label takes remaining width
+        val label = android.widget.TextView(context).apply {
+            layoutParams = android.widget.LinearLayout.LayoutParams(
+                0, android.widget.LinearLayout.LayoutParams.WRAP_CONTENT, 1f,
+            )
+            text = context.getString(link.labelRes)
+            setTextAppearance(R.style.TextAppearance_App_BodyMedium)
+            setTextColor(context.resolveThemedColor(MaterialR.attr.colorOnSurface))
+        }
+        row.addView(label)
+        // Trailing chevron
+        val chevron = android.widget.ImageView(context).apply {
+            layoutParams = android.widget.LinearLayout.LayoutParams(px(16), px(16))
+            setImageResource(R.drawable.ic_baseline_expand_more)
+            rotation = -90f
+            imageTintList = android.content.res.ColorStateList.valueOf(
+                context.resolveThemedColor(MaterialR.attr.colorOnSurfaceVariant)
+            )
+        }
+        row.addView(chevron)
+        return row
     }
 
     private fun renderBrandHeader() {
@@ -483,23 +576,13 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
     }
 
     /** Active operator accent (validated + contrast-OK) or null. Used by applyPowerVisuals. */
-    private fun brandAccentColor(): Int? =
-        com.github.kr328.clash.design.branding.BrandTheme.resolveAccent(
-            brandHolder.manifest.accentColor,
-            context.resolveThemedColor(MaterialR.attr.colorSurface),
-        )
-
-    /**
-     * Neutral gray used for the power button background when the operator brand
-     * harmoniser has tinted the whole surface palette and we need the idle
-     * state to read as off (not "pale accent"). Reads the night-mode bit of
-     * the current configuration so it tracks the user's day/night choice.
-     */
-    private fun idleNeutralBackground(): Int {
-        val night = (context.resources.configuration.uiMode and
-            android.content.res.Configuration.UI_MODE_NIGHT_MASK) ==
-            android.content.res.Configuration.UI_MODE_NIGHT_YES
-        return if (night) 0xFF2A2A2A.toInt() else 0xFFE2E2E2.toInt()
+    private fun brandAccentColor(): Int? {
+        val hex = brandHolder.manifest.accentColor?.takeIf { it.isNotBlank() } ?: return null
+        val parsed = runCatching { android.graphics.Color.parseColor(hex) }.getOrNull() ?: return null
+        val surface = context.resolveThemedColor(MaterialR.attr.colorSurface)
+        return if (com.github.kr328.clash.common.branding.BrandValidation
+                .hasMinContrast(parsed, surface)
+        ) parsed else null
     }
 
     suspend fun setClashRunning(running: Boolean) {

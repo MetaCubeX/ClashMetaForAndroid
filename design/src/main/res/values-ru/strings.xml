@@ -406,6 +406,9 @@
     <string name="brand_max_devices">До %1$d устройств</string>
     <string name="brand_status_check">Статус сервиса</string>
     <string name="nav_operator">Оператор</string>
+    <string name="operator_group_contact">Связь</string>
+    <string name="operator_group_help">Помощь и статус</string>
+    <string name="operator_group_legal">Юридическое</string>
 
     <!-- ===== Поддерживаемые headers ответа ===== -->
     <string name="subscription_response_headers_title">Поддерживаемые headers ответа</string>
