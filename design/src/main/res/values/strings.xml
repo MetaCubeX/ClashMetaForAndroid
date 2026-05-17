@@ -297,6 +297,62 @@ Presets only change <b>where</b> files are downloaded from (CDN / host). It is s
     <string name="profile_nodes">Nodes</string>
     <string name="profile_proxy_search_hint">Search nodes or groups</string>
     <string name="profile_proxy_search_clear">Clear search</string>
+
+    <!-- ===== Operator branding ===== -->
+    <string name="about_brand_powered_by">powered by ClashFest</string>
+    <string name="about_brand_website">Website</string>
+    <string name="about_brand_support">Support</string>
+    <string name="about_brand_telegram">Telegram</string>
+    <string name="about_brand_bot">Bot</string>
+    <string name="about_brand_help">Help</string>
+    <string name="about_brand_privacy">Privacy</string>
+    <string name="about_brand_terms">Terms</string>
+    <string name="about_brand_status">Status</string>
+    <string name="about_brand_renew">Renew subscription</string>
+    <string name="about_brand_reset">Reset branding</string>
+    <string name="brand_reset_toast">Operator branding has been reset</string>
+    <string name="brand_renew_action">Renew</string>
+    <string name="brand_max_devices">Max %1$d devices</string>
+    <string name="brand_status_check">Service status</string>
+    <string name="nav_operator">Operator</string>
+    <string name="operator_group_contact">Contact</string>
+    <string name="operator_group_help">Help &amp; status</string>
+    <string name="operator_group_legal">Legal</string>
+    <string name="operator_greeting_default">Hello, %1$s!</string>
+    <string name="about_brand_logged_in_as">Logged in as %1$s</string>
+
+    <!-- ===== Supported response headers (Schemes & HWID screen) ===== -->
+    <string name="subscription_response_headers_title">Supported response headers</string>
+    <string name="subscription_response_headers_summary">Headers ClashFest reads from your subscription URL response. Operators use them to brand the app, surface policies, and broadcast announcements.</string>
+    <string name="subscription_open_operator_api_spec">Open full operator API spec</string>
+    <string name="operator_api_spec_url">https://github.com/Nemu-x/ClashFest/blob/main/docs/supported-headers.md</string>
+
+    <string name="headers_desc_userinfo">Subscription quota and expiry (upload/download/total/expire).</string>
+    <string name="headers_desc_profile_title">Subscription / user name shown on the profile card.</string>
+    <string name="headers_desc_update_interval">Auto-update interval in hours (coerced to ≥15 min).</string>
+    <string name="headers_desc_share_links">Per-subscription: hide share / copy-link actions and lock URL editing.</string>
+    <string name="headers_desc_x_hwid">Device-binding state from the panel (active / not-supported / max-reached / limit).</string>
+    <string name="headers_desc_announce">Operator broadcast message + optional URL, surfaces as the home announcement card.</string>
+    <string name="headers_desc_legacy_support">Legacy support URL (also Profile-Support-URL / Subscription-Support-URL). Surfaces in the announcement card support button; does not activate brand UI on its own.</string>
+    <string name="headers_desc_branding_enabled">Required master switch. Branding only applies when set to true; without it every X-Brand-* field is ignored.</string>
+    <string name="headers_desc_brand_name">App title shown in the main header and About sheet (≤32 chars).</string>
+    <string name="headers_desc_brand_tagline">One-line subtitle under the brand name (≤64 chars).</string>
+    <string name="headers_desc_brand_logo">Primary (dark-theme) logo. HTTPS, PNG/WebP/JPEG, ≤512KB.</string>
+    <string name="headers_desc_brand_logo_light">Light-theme logo variant, falls back to the primary on dark theme.</string>
+    <string name="headers_desc_brand_accent">Material 3 seed for the harmonised palette (#RRGGBB).</string>
+    <string name="headers_desc_brand_website">Operator website link.</string>
+    <string name="headers_desc_brand_support">Operator support contact. Use this instead of the legacy support-url.</string>
+    <string name="headers_desc_brand_telegram">Telegram channel link.</string>
+    <string name="headers_desc_brand_bot">Telegram bot link.</string>
+    <string name="headers_desc_brand_privacy">Privacy policy link.</string>
+    <string name="headers_desc_brand_terms">Terms of service link.</string>
+    <string name="headers_desc_brand_help">Help / FAQ link.</string>
+    <string name="headers_desc_brand_status">Service status page (surfaces on connection issues).</string>
+    <string name="headers_desc_brand_renew">Subscription renewal deep link. Tapping a critical-expiry chip opens it.</string>
+    <string name="headers_desc_brand_user_display_name">Per-user name shown in About (template-variable driven, e.g. {{USERNAME}}).</string>
+    <string name="headers_desc_brand_greeting">Hero greeting on the Operator tab. Combine template variables for dynamic content.</string>
+    <string name="headers_desc_brand_show_tab">Explicit opt-in to add the dedicated Operator bottom-nav tab.</string>
+    <string name="headers_desc_brand_hide_routing">Paired with Show-Operator-Tab=true: replace Routing with Operator. No-op on its own.</string>
     <string name="profile_proxy_sort_config">Config order</string>
     <string name="profile_proxy_sort_delay">Delay</string>
     <string name="profile_proxy_sort_name">Name</string>

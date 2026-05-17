@@ -14,6 +14,8 @@ import com.github.kr328.clash.service.data.PendingDao
 import com.github.kr328.clash.service.data.Selection
 import com.github.kr328.clash.service.data.SelectionDao
 import com.github.kr328.clash.service.model.Profile
+import com.github.kr328.clash.service.branding.BrandRefresh
+import com.github.kr328.clash.service.branding.BrandStore
 import com.github.kr328.clash.service.model.ProxyGroupPreviewRow
 import com.github.kr328.clash.service.model.ProxyTransportInfo
 import com.github.kr328.clash.service.model.RuleState
@@ -142,7 +144,7 @@ class ProfileManager(private val context: Context) : IProfileManager,
     }
 
     override suspend fun patch(uuid: UUID, name: String, source: String, interval: Long) {
-        val locked = store.subscriptionShareLinksLocked
+        val locked = store.subscriptionShareLinksLockedFor(uuid)
         val resolvedSource =
             if (!locked) {
                 source
@@ -234,7 +236,19 @@ class ProfileManager(private val context: Context) : IProfileManager,
                 .build()
 
             client.newCall(request).execute().use { response ->
-                if (!response.isSuccessful || response.headers["subscription-userinfo"] == null) return
+                if (!response.isSuccessful) return
+
+                // Operator brand parses independently of subscription-userinfo —
+                // panels that don't carry quota (free tiers, custom auth flows)
+                // still need to brand the app. We do this BEFORE the
+                // subscription-userinfo early-return so brand survives even
+                // when the panel stops sending quota headers.
+                val brand = com.github.kr328.clash.common.branding.BrandManifestParser.parse { key ->
+                    response.headers[key]
+                }
+                BrandRefresh.apply(context, old.uuid, brand)
+
+                if (response.headers["subscription-userinfo"] == null) return
 
                 val usage = SubscriptionUsage.parse(response.headers["subscription-userinfo"])
                 val upload = usage?.upload ?: 0L
@@ -315,6 +329,8 @@ class ProfileManager(private val context: Context) : IProfileManager,
         }
 
         ProfileProcessor.delete(context, uuid)
+        BrandRefresh.onProfileDeleted(context, uuid)
+        store.clearSubscriptionShareLinksLockedFor(uuid)
     }
 
     override suspend fun queryByUUID(uuid: UUID): Profile? {
@@ -828,6 +844,17 @@ class ProfileManager(private val context: Context) : IProfileManager,
                 null
             }
         }
+    }
+
+    override suspend fun readBrandJsonFor(uuid: UUID): String? = withContext(Dispatchers.IO) {
+        val store = BrandStore(context)
+        if (!store.isActiveFor(uuid)) null else store.manifestFor(uuid).toJson()
+    }
+
+    override suspend fun brandLogoPathFor(uuid: UUID, darkTheme: Boolean): String? = withContext(Dispatchers.IO) {
+        val store = BrandStore(context)
+        if (!store.isActiveFor(uuid)) return@withContext null
+        store.logoPathFor(uuid, darkTheme)?.takeIf { File(it).isFile }
     }
 
     private suspend fun previewRuleDryRun(

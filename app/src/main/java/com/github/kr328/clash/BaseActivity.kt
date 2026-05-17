@@ -236,6 +236,12 @@ abstract class BaseActivity<D : Design<*>> : AppCompatActivity(),
             theme.applyStyle(R.style.ThemeOverlay_ClashFest_TrueBlack, true)
         }
 
+        // Operator brand accent — applied as the FINAL theme overlay so the
+        // brand always wins over user palette / system dynamic-color choices.
+        // applyToActivity also pins neutral surface attrs after the
+        // harmoniser, keeping off-state widgets unambiguously neutral.
+        com.github.kr328.clash.design.branding.BrandThemeApplier.applyToActivity(this)
+
         window.isAllowForceDarkCompat = false
         window.isSystemBarsTranslucentCompat = true
         

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Default Material 3 neutral surface colors (light theme).
+    Pinned via ThemeOverlay.App.BrandNeutralSurfaces after the brand
+    harmoniser runs, so off-state surfaces (disconnected power button,
+    unchecked switch tracks, etc.) don't pick up the operator accent tint.
+-->
+<resources>
+    <color name="brand_neutral_surface_variant">#E7E0EC</color>
+    <color name="brand_neutral_on_surface_variant">#49454F</color>
+    <color name="brand_neutral_outline">#79747E</color>
+    <color name="brand_neutral_outline_variant">#CAC4D0</color>
+    <color name="brand_neutral_surface_container">#F3EDF7</color>
+    <color name="brand_neutral_surface_container_low">#F7F2FA</color>
+    <color name="brand_neutral_surface_container_high">#ECE6F0</color>
+    <color name="brand_neutral_surface_container_highest">#E6E0E9</color>
+</resources>

@@ -141,4 +141,18 @@ interface IProfileManager {
 
     /** Raw `config.yaml` for an imported profile, or null. */
     suspend fun readImportedConfigYaml(uuid: UUID): String?
+
+    /**
+     * JSON-encoded BrandManifest stored for [uuid], or null when no brand
+     * was ever applied for that subscription. Decode with `BrandManifest.fromJson(...)`.
+     */
+    suspend fun readBrandJsonFor(uuid: UUID): String?
+
+    /**
+     * Absolute path of the cached brand logo bitmap for [uuid] in the
+     * requested theme. `darkTheme=true` returns the dark logo (or fallback
+     * to the primary); `darkTheme=false` returns the light variant
+     * (or fallback to the primary).
+     */
+    suspend fun brandLogoPathFor(uuid: UUID, darkTheme: Boolean): String?
 }

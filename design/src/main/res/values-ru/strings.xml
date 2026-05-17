@@ -388,6 +388,61 @@
     <string name="profile_nodes">Узлы</string>
     <string name="profile_proxy_search_hint">Поиск по узлам или группам</string>
     <string name="profile_proxy_search_clear">Очистить поиск</string>
+
+    <!-- ===== Operator branding ===== -->
+    <string name="about_brand_powered_by">основано на ClashFest</string>
+    <string name="about_brand_website">Сайт</string>
+    <string name="about_brand_support">Поддержка</string>
+    <string name="about_brand_telegram">Telegram</string>
+    <string name="about_brand_bot">Бот</string>
+    <string name="about_brand_help">Справка</string>
+    <string name="about_brand_privacy">Конфиденциальность</string>
+    <string name="about_brand_terms">Условия</string>
+    <string name="about_brand_status">Статус</string>
+    <string name="about_brand_renew">Продлить подписку</string>
+    <string name="about_brand_reset">Сбросить брендинг</string>
+    <string name="brand_reset_toast">Брендинг оператора сброшен</string>
+    <string name="brand_renew_action">Продлить</string>
+    <string name="brand_max_devices">До %1$d устройств</string>
+    <string name="brand_status_check">Статус сервиса</string>
+    <string name="nav_operator">Оператор</string>
+    <string name="operator_group_contact">Связь</string>
+    <string name="operator_group_help">Помощь и статус</string>
+    <string name="operator_group_legal">Юридическое</string>
+    <string name="operator_greeting_default">Привет, %1$s!</string>
+    <string name="about_brand_logged_in_as">Вы вошли как %1$s</string>
+
+    <!-- ===== Поддерживаемые headers ответа ===== -->
+    <string name="subscription_response_headers_title">Поддерживаемые headers ответа</string>
+    <string name="subscription_response_headers_summary">Headers, которые ClashFest читает из ответа сервера подписки. Операторы используют их для брендинга приложения, передачи политик и анонсов.</string>
+    <string name="subscription_open_operator_api_spec">Открыть полную спецификацию Operator API</string>
+
+    <string name="headers_desc_userinfo">Квота и срок действия подписки (upload/download/total/expire).</string>
+    <string name="headers_desc_profile_title">Имя подписки/пользователя на карточке профиля.</string>
+    <string name="headers_desc_update_interval">Интервал авто-обновления в часах (минимум 15 мин).</string>
+    <string name="headers_desc_share_links">Per-subscription: скрыть share / copy-link и заблокировать редактирование URL.</string>
+    <string name="headers_desc_x_hwid">Состояние HWID-привязки со стороны панели (active / not-supported / max-reached / limit).</string>
+    <string name="headers_desc_announce">Анонс оператора + URL, отображается на главной как announcement-card.</string>
+    <string name="headers_desc_legacy_support">Legacy support URL (также Profile-Support-URL / Subscription-Support-URL). Отображается через кнопку support в announcement card; сам по себе НЕ активирует brand UI.</string>
+    <string name="headers_desc_branding_enabled">Обязательный master-переключатель. Брендинг применяется только при значении true; без него все X-Brand-* игнорируются.</string>
+    <string name="headers_desc_brand_name">Название приложения в шапке и в About (≤32 символов).</string>
+    <string name="headers_desc_brand_tagline">Подпись под названием (≤64 символов).</string>
+    <string name="headers_desc_brand_logo">Основной (тёмный) логотип. HTTPS, PNG/WebP/JPEG, ≤512KB.</string>
+    <string name="headers_desc_brand_logo_light">Логотип для светлой темы, fallback на основной если не задан.</string>
+    <string name="headers_desc_brand_accent">Seed-цвет для Material 3 палитры (#RRGGBB).</string>
+    <string name="headers_desc_brand_website">Ссылка на сайт оператора.</string>
+    <string name="headers_desc_brand_support">Контакт поддержки. Используйте вместо legacy support-url.</string>
+    <string name="headers_desc_brand_telegram">Ссылка на Telegram-канал.</string>
+    <string name="headers_desc_brand_bot">Ссылка на Telegram-бота.</string>
+    <string name="headers_desc_brand_privacy">Ссылка на Privacy policy.</string>
+    <string name="headers_desc_brand_terms">Ссылка на Terms of service.</string>
+    <string name="headers_desc_brand_help">Ссылка на Help / FAQ.</string>
+    <string name="headers_desc_brand_status">Страница статуса сервиса (показывается при проблемах с подключением).</string>
+    <string name="headers_desc_brand_renew">Deep link на продление подписки. Открывается тапом по critical-expiry chip.</string>
+    <string name="headers_desc_brand_user_display_name">Имя пользователя в About (заполняется через panel-переменные, например {{USERNAME}}).</string>
+    <string name="headers_desc_brand_greeting">Приветствие на Operator-вкладке. Сочетайте panel-переменные для динамического контента.</string>
+    <string name="headers_desc_brand_show_tab">Явный opt-in для появления отдельной Operator-вкладки.</string>
+    <string name="headers_desc_brand_hide_routing">В паре с Show-Operator-Tab=true: заменяет Routing на Operator. Сам по себе ничего не делает.</string>
     <string name="profile_proxy_sort_config">Порядок конфига</string>
     <string name="profile_proxy_sort_delay">Задержка</string>
     <string name="profile_proxy_sort_name">Имя</string>

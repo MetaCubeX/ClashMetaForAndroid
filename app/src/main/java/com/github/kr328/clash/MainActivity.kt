@@ -373,6 +373,8 @@ class MainActivity : BaseActivity<MainDesign>() {
         design.onUpdateBadgeTap = { showUpdateAvailableDialog() }
         refreshUpdateBadge(design)
 
+        design.onOpenBrandUrl = { url -> openExternalUrl(url) }
+
         val tickerInteractive = ticker(TimeUnit.SECONDS.toMillis(2))
         // Bumped from 8s -> 30s. While the screen is off (or activity is in background),
         // the dashboard is invisible; we only need infrequent updates so totals stay
@@ -689,8 +691,11 @@ class MainActivity : BaseActivity<MainDesign>() {
                 design.profileForceUpdateRequests.onReceive { profile ->
                     launch {
                         withProfile { update(profile.uuid) }
-                        // Also re-pull operator headers (announcement, support, userinfo) right away,
-                        // so the inline announcement text updates with the same tap.
+                        // Run metadata sync in the background so the UI tap returns
+                        // immediately. The earlier race (announcement-card hiding the
+                        // active-card support button for a tick) was structural — we
+                        // removed that coverage logic, so there's nothing to race now
+                        // and we don't need to block the user on a slow HTTP roundtrip.
                         launch(Dispatchers.IO) {
                             uiStore.subscriptionMetadataLastFetch = 0L
                             runCatching { syncSubscriptionMetadata() }
@@ -784,7 +789,7 @@ class MainActivity : BaseActivity<MainDesign>() {
             profile.imported && profile.type != Profile.Type.File
         m.findItem(R.id.profile_menu_subscription_sources).isVisible = profile.imported
         m.findItem(R.id.profile_menu_duplicate).isVisible = profile.imported
-        val shareLocked = ServiceStore(this).subscriptionShareLinksLocked
+        val shareLocked = ServiceStore(this).subscriptionShareLinksLockedFor(profile.uuid)
         m.findItem(R.id.profile_menu_share).isVisible =
             profile.imported && profile.type == Profile.Type.Url && !shareLocked
         popup.setOnMenuItemClickListener { item ->
@@ -1034,6 +1039,7 @@ class MainActivity : BaseActivity<MainDesign>() {
         val profiles = withProfile { queryAll() }
         setProfileName(active?.name ?: status.currentProfile)
         patchProfiles(profiles)
+        applyActiveBrand()
 
         val proxyNames = if (running) {
             runCatching {
@@ -1712,7 +1718,16 @@ class MainActivity : BaseActivity<MainDesign>() {
             SubscriptionOverrides.getUserAgent(this, active.uuid),
             uiStore.subscriptionMetadataAllowInsecureHttp,
         )
-        meta.shareLinksDisable?.let { ServiceStore(this).subscriptionShareLinksLocked = it }
+        val brandManifest = com.github.kr328.clash.common.branding.BrandManifestParser.fetch(
+            this,
+            url,
+            SubscriptionOverrides.getUserAgent(this, active.uuid),
+            uiStore.subscriptionMetadataAllowInsecureHttp,
+        )
+        com.github.kr328.clash.service.branding.BrandRefresh.apply(this, active.uuid, brandManifest)
+        meta.shareLinksDisable?.let {
+            ServiceStore(this).setSubscriptionShareLinksLockedFor(active.uuid, it)
+        }
         uiStore.subscriptionHwidActive = meta.hwidActive?.toString().orEmpty()
         uiStore.subscriptionHwidNotSupported = meta.hwidNotSupported?.toString().orEmpty()
         uiStore.subscriptionHwidMaxDevicesReached = meta.hwidMaxDevicesReached?.toString().orEmpty()
@@ -1755,6 +1770,48 @@ class MainActivity : BaseActivity<MainDesign>() {
                 userinfo = meta.subscriptionUserinfo.orEmpty(),
             ),
         )
+    }
+
+    /**
+     * Reads the persisted brand state and pushes a [BrandHolder] snapshot into
+     * MainDesign. Picks the theme-appropriate cached logo. Called on every
+     * UI refresh tick so the header reflects the latest operator brand without
+     * the design layer having to know about persistence.
+     */
+    private suspend fun applyActiveBrand() {
+        val design = design as? com.github.kr328.clash.design.MainDesign ?: return
+        val activeUuid = runCatching { withProfile { queryActive() } }.getOrNull()?.uuid
+        if (activeUuid == null) {
+            design.applyBrand(com.github.kr328.clash.design.branding.BrandHolder.EMPTY)
+            return
+        }
+        val json = runCatching { withProfile { readBrandJsonFor(activeUuid) } }.getOrNull()
+        if (json.isNullOrBlank()) {
+            design.applyBrand(com.github.kr328.clash.design.branding.BrandHolder.EMPTY)
+            return
+        }
+        val manifest = com.github.kr328.clash.common.branding.BrandManifest.fromJson(json)
+        val nightMode = (resources.configuration.uiMode and
+            android.content.res.Configuration.UI_MODE_NIGHT_MASK) ==
+            android.content.res.Configuration.UI_MODE_NIGHT_YES
+        val logoPath = runCatching {
+            withProfile { brandLogoPathFor(activeUuid, nightMode) }
+        }.getOrNull()
+        com.github.kr328.clash.common.log.Log.d(
+            "applyActiveBrand: uuid=$activeUuid, nightMode=$nightMode, " +
+                "manifest.logoUrl=${manifest.logoUrl}, manifest.logoLightUrl=${manifest.logoLightUrl}, " +
+                "resolvedPath=$logoPath",
+        )
+        design.applyBrand(
+            com.github.kr328.clash.design.branding.BrandHolder(
+                manifest = manifest,
+                logoPath = logoPath,
+            ),
+        )
+        // Theme overlay is captured at inflate time. If the accent changed
+        // since this Activity was built, recreate so the new harmonised
+        // palette flows into every widget that reads ?attr/colorPrimary etc.
+        com.github.kr328.clash.design.branding.BrandThemeApplier.maybeRecreateOnAccentChange(this)
     }
 
     private fun openExternalUrl(url: String) {

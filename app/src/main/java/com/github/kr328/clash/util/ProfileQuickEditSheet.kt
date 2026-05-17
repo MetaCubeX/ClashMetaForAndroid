@@ -34,7 +34,7 @@ fun BaseActivity<*>.showProfileQuickEditSheet(
     val saveButton = view.findViewById<MaterialButton>(R.id.btn_save_profile)
     val advancedButton = view.findViewById<View>(R.id.btn_open_advanced_profile)
 
-    val subscriptionLocked = ServiceStore(this).subscriptionShareLinksLocked
+    val subscriptionLocked = ServiceStore(this).subscriptionShareLinksLockedFor(profile.uuid)
 
     nameInput.setText(profile.name)
     sourceInput.setText(profile.source)
