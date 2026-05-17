@@ -14,7 +14,12 @@ data class BrandHolder(
     /** Absolute path to the appropriate logo bitmap for the current theme, or null. */
     val logoPath: String?,
 ) {
-    val isActive: Boolean get() = !manifest.isEmpty()
+    /**
+     * Active brand means there's enough to actually brand the UI visually
+     * (name / logo / accent). Operator-info-only manifests don't trigger
+     * brand UI — they piggyback on the existing announcement card.
+     */
+    val isActive: Boolean get() = manifest.hasBrandIdentity()
 
     companion object {
         val EMPTY = BrandHolder(BrandManifest.EMPTY, null)

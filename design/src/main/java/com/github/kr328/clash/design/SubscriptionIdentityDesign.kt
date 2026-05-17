@@ -12,6 +12,7 @@ class SubscriptionIdentityDesign(context: Context) : Design<SubscriptionIdentity
         CopyHwid,
         CopySchemes,
         CopyHwidDiagnostics,
+        OpenOperatorApiSpec,
     }
 
     private val binding = DesignSubscriptionIdentityBinding
@@ -26,6 +27,44 @@ class SubscriptionIdentityDesign(context: Context) : Design<SubscriptionIdentity
         binding.toolbar.setNavigationOnClickListener {
             (context as? AppCompatActivity)?.onBackPressedDispatcher?.onBackPressed()
         }
+        binding.textSupportedResponseHeaders.text = buildSupportedResponseHeadersText(context)
+    }
+
+    private fun buildSupportedResponseHeadersText(context: Context): String {
+        // Single source of truth for the in-app reference — same set of headers
+        // documented in docs/operator-api/. Operator-facing spec lives there;
+        // this is the user-facing "what is supported".
+        val rows = listOf(
+            "Subscription-Userinfo" to context.getString(R.string.headers_desc_userinfo),
+            "profile-title" to context.getString(R.string.headers_desc_profile_title),
+            "profile-update-interval" to context.getString(R.string.headers_desc_update_interval),
+            "share-links" to context.getString(R.string.headers_desc_share_links),
+            "x-hwid-*" to context.getString(R.string.headers_desc_x_hwid),
+            "announce / announce-url" to context.getString(R.string.headers_desc_announce),
+            "support-url (legacy)" to context.getString(R.string.headers_desc_legacy_support),
+            "X-Branding-Enabled" to context.getString(R.string.headers_desc_branding_enabled),
+            "X-Brand-Name" to context.getString(R.string.headers_desc_brand_name),
+            "X-Brand-Tagline" to context.getString(R.string.headers_desc_brand_tagline),
+            "X-Brand-Logo-URL" to context.getString(R.string.headers_desc_brand_logo),
+            "X-Brand-Logo-Light-URL" to context.getString(R.string.headers_desc_brand_logo_light),
+            "X-Brand-Accent-Color" to context.getString(R.string.headers_desc_brand_accent),
+            "X-Brand-Website-URL" to context.getString(R.string.headers_desc_brand_website),
+            "X-Brand-Support-URL" to context.getString(R.string.headers_desc_brand_support),
+            "X-Brand-Telegram-URL" to context.getString(R.string.headers_desc_brand_telegram),
+            "X-Brand-Bot-URL" to context.getString(R.string.headers_desc_brand_bot),
+            "X-Brand-Privacy-URL" to context.getString(R.string.headers_desc_brand_privacy),
+            "X-Brand-Terms-URL" to context.getString(R.string.headers_desc_brand_terms),
+            "X-Brand-Help-URL" to context.getString(R.string.headers_desc_brand_help),
+            "X-Brand-Status-URL" to context.getString(R.string.headers_desc_brand_status),
+            "X-Brand-Renew-URL" to context.getString(R.string.headers_desc_brand_renew),
+            "X-Brand-Show-Operator-Tab" to context.getString(R.string.headers_desc_brand_show_tab),
+            "X-Brand-Hide-Routing" to context.getString(R.string.headers_desc_brand_hide_routing),
+        )
+        return rows.joinToString("\n\n") { (key, desc) -> "$key\n  $desc" }
+    }
+
+    fun requestOpenOperatorApiSpec() {
+        requests.trySend(Request.OpenOperatorApiSpec)
     }
 
     fun setHwid(value: String) {

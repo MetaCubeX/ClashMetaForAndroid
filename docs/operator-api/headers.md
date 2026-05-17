@@ -16,6 +16,33 @@ it's the optional override.
 
 ---
 
+## 0. Master switch
+
+### `X-Branding-Enabled`
+
+| | |
+|---|---|
+| Type | boolean |
+| Status | **v1** |
+| Required for | **Any branding to apply.** Without this header set to `true`, every other `X-Brand-*` field is ignored and the client shows the default ClashFest UI. |
+| Default | absent / `false` / `null` → **branding off** |
+| Notes | Branding is **explicit opt-in per subscription**. Setting `X-Brand-Name`, `X-Brand-Logo-URL`, etc. without also sending `X-Branding-Enabled: true` is a no-op — the headers are parsed and persisted, but the UI stays default. To roll back a misconfigured deployment, drop this header (or set `false`); brand state on the client reverts immediately after the next subscription refresh. |
+
+**Example to enable branding:**
+```
+X-Branding-Enabled: true
+X-Brand-Name: SwiftVPN
+X-Brand-Logo-URL: https://cdn.example.com/logo-dark.png
+X-Brand-Accent-Color: #5E35B1
+```
+
+**Example to disable / kill switch:**
+```
+X-Branding-Enabled: false
+```
+
+---
+
 ## 1. Brand identity
 
 ### `X-Brand-Name`
@@ -213,6 +240,15 @@ We deliberately do **not** ship operator-controlled `default-mode`,
 handles tunnel mode and group selection via the YAML config, and locale /
 theme should follow user preference, not operator preference.
 
+### `X-Brand-Show-Operator-Tab`
+
+| | |
+|---|---|
+| Type | boolean |
+| Status | **v1** |
+| Applied to | Adds a dedicated "Operator" entry to the bottom navigation with logo + name + tagline + Renew CTA + operator-info link list. |
+| Notes | Explicit opt-in. Sending brand identity (name / logo / accent) alone is enough to brand the visuals — it does NOT auto-add a tab. Operators that want the consolidated info page choose it consciously. Pair with `X-Brand-Hide-Routing` to replace Routing instead of adding a 5th tab. |
+
 ### `X-Brand-Hide-Stats`
 
 | | |
@@ -235,8 +271,8 @@ theme should follow user preference, not operator preference.
 | | |
 |---|---|
 | Type | boolean |
-| Status | **v3** |
-| Applied to | Hides the Rules / Routing tab and rule editor entry points |
+| Status | **v1** |
+| Applied to | When paired with `X-Brand-Show-Operator-Tab=true`, the Operator tab **replaces** Routing in the bottom-nav slot (still 4 tabs, just different middle). Alone, this header has no effect — hiding Routing without something to replace it would just remove a section the user needs. |
 
 ---
 
@@ -264,7 +300,8 @@ theme should follow user preference, not operator preference.
 |---|---|
 | Type | boolean (`true`/`1`/`yes`/`on` = disable sharing) |
 | Status | **v1** (already parsed) |
-| Applied to | Hides "Copy node link" / "Share" actions in the picker |
+| Applied to | Hides "Copy node link" / "Share" actions in the picker AND locks subscription URL editing for **that subscription only** |
+| Notes | Stored per-profile (`subscriptionShareLinksLockedFor(uuid)`). Different subscriptions can have different share policies — one operator's lock does not affect another's subscription on the same device. |
 
 ### `x-hwid-active` / `x-hwid-not-supported` / `x-hwid-max-devices-reached` / `x-hwid-limit` (existing)
 

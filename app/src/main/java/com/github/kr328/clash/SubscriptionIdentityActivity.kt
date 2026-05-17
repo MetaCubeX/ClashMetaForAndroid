@@ -41,6 +41,17 @@ class SubscriptionIdentityActivity : BaseActivity<SubscriptionIdentityDesign>() 
                             copyToClipboard("HWID diagnostics", diagnostics)
                             design.showToast(R.string.copied, ToastDuration.Short)
                         }
+
+                        SubscriptionIdentityDesign.Request.OpenOperatorApiSpec -> {
+                            runCatching {
+                                startActivity(
+                                    android.content.Intent(
+                                        android.content.Intent.ACTION_VIEW,
+                                        android.net.Uri.parse(getString(R.string.operator_api_spec_url)),
+                                    ).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK),
+                                )
+                            }
+                        }
                     }
                 }
             }
