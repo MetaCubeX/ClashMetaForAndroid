@@ -551,11 +551,6 @@ class ProfileAdapter(
         }
     }
 
-    private fun bindAnnouncement(holder: Holder, profile: Profile) {
-        val view = holder.binding.announcementInline
-        view.visibility = View.GONE
-        view.setOnClickListener(null)
-    }
 
     fun showProxySheet(context: Context, profile: Profile) {
         if (!profile.imported) return
@@ -1012,12 +1007,10 @@ class ProfileAdapter(
 
         applyActiveVisuals(holder, current)
         bindUsageAndProgress(holder, current)
-        bindAnnouncement(holder, current)
         bindExpiryChip(holder, current, context)
         if (compactHomeCard) {
             binding.usageSummary.visibility = View.GONE
             binding.usageProgress.visibility = View.GONE
-            binding.announcementInline.visibility = View.GONE
         }
 
         val groupNames = effectiveGroupsForProfile(current)

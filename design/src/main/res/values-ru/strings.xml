@@ -162,6 +162,12 @@
     <string name="dismiss">Скрыть</string>
     <string name="announcement_collapse">Свернуть</string>
     <string name="announcement_expand">Развернуть объявление</string>
+
+    <!-- Bottom sheet объявления (открывается по тапу на баннер главной) -->
+    <string name="announcement_sheet_title">Объявление</string>
+    <string name="announcement_sheet_from">От %1$s</string>
+    <string name="announcement_action_copy">Скопировать</string>
+    <string name="announcement_copied">Объявление скопировано</string>
     <string name="about_support">Связаться с поддержкой</string>
     <string name="update_notification_channel_name">Обновления приложения</string>
     <string name="update_notification_channel_description">Периодическая проверка обновлений ClashFest</string>

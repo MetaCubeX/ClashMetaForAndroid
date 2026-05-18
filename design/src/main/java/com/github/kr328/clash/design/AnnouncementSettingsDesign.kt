@@ -62,12 +62,6 @@ class AnnouncementSettingsDesign(
 
             category(R.string.announcement_category_announcement)
 
-            switch(
-                value = uiStore::announcementCardEnabled,
-                title = R.string.announcement_card_enabled,
-                summary = R.string.announcement_card_enabled_summary,
-            )
-
             editableText(
                 value = announcementNullable::value,
                 adapter = NullableTextAdapter.String,

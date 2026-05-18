@@ -148,29 +148,27 @@ class UiStore(context: Context) {
         defaultValue = "",
     )
 
-    /** Master toggle for showing the announcement card on the main screen. */
-    var announcementCardEnabled: Boolean by store.boolean(
-        key = "announcement_card_enabled",
-        defaultValue = true,
-    )
+    /**
+     * Last announcement hash the user has already opened (per subscription).
+     * The key is `announcement_read_hash_<profile-uuid>`; the value is a stable
+     * digest of the announcement payload from that subscription. When the
+     * stored hash differs from the current announcement, the banner shows a
+     * `New` indicator until the user opens the sheet.
+     */
+    fun announcementReadHashFor(uuid: java.util.UUID): String =
+        rawAnnouncementPrefs.getString(announcementReadKey(uuid), "").orEmpty()
 
-    /** When true, hide the announcement card on the main screen until text changes. */
-    var announcementDismissed: Boolean by store.boolean(
-        key = "announcement_dismissed",
-        defaultValue = false,
-    )
+    fun setAnnouncementReadHashFor(uuid: java.util.UUID, hash: String) {
+        rawAnnouncementPrefs.edit().also { e ->
+            if (hash.isBlank()) e.remove(announcementReadKey(uuid))
+            else e.putString(announcementReadKey(uuid), hash)
+        }.apply()
+    }
 
-    /** When true, announcement card shows only the title row until expanded again. */
-    var announcementCollapsed: Boolean by store.boolean(
-        key = "announcement_collapsed",
-        defaultValue = false,
-    )
+    private val rawAnnouncementPrefs =
+        context.getSharedPreferences(PREFERENCE_NAME, Context.MODE_PRIVATE)
 
-    /** Hash of last seen announcement; reset of [announcementDismissed] when text changes. */
-    var announcementSeenHash: String by store.string(
-        key = "announcement_seen_hash",
-        defaultValue = "",
-    )
+    private fun announcementReadKey(uuid: java.util.UUID) = "announcement_read_hash_$uuid"
 
     /**
      * JSON object: profile UUID string → { a, au, s, u } (announcement, announcement URL,
