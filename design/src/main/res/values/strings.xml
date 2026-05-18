@@ -135,8 +135,12 @@ Presets only change <b>where</b> files are downloaded from (CDN / host). It is s
     <string name="announcement_url_placeholder">Optional link with more information</string>
     <string name="not_set">Not set</string>
     <string name="dismiss">Dismiss</string>
-    <string name="announcement_collapse">Collapse</string>
-    <string name="announcement_expand">Expand announcement</string>
+
+    <!-- Announcement bottom sheet (opened by tapping the banner on home) -->
+    <string name="announcement_sheet_title">Announcement</string>
+    <string name="announcement_sheet_from">From %1$s</string>
+    <string name="announcement_action_copy">Copy</string>
+    <string name="announcement_copied">Announcement copied</string>
     <string name="about_support">Contact support</string>
     <string name="expires_on">expires %1$s</string>
     <string name="sub_announcement_traffic_left">Traffic left:</string>

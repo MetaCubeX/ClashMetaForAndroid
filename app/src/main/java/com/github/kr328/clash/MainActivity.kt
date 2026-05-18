@@ -1558,45 +1558,16 @@ class MainActivity : BaseActivity<MainDesign>() {
         val text = uiStore.announcement
         val url = uiStore.announcementUrl
         val supportUrl = uiStore.supportUrl
-        val hash = text.hashCode().toString()
-        if (uiStore.announcementSeenHash != hash) {
-            uiStore.announcementSeenHash = hash
-            uiStore.announcementDismissed = false
-            uiStore.announcementCollapsed = false
-        }
-        val textVisible = if (uiStore.announcementCardEnabled) {
-            text.isNotBlank()
-        } else {
-            text.isNotBlank() && !uiStore.announcementDismissed
-        }
-        val usage = com.github.kr328.clash.common.util.SubscriptionUsage.parse(
-            uiStore.subscriptionUserinfo.takeIf { it.isNotBlank() }
-        )
 
         design.setAnnouncement(
-            text = if (textVisible) text else null,
+            text = text.takeIf { it.isNotBlank() },
             url = url.takeIf { it.isNotBlank() },
-            usage = usage,
             supportUrl = supportUrl.takeIf { it.isNotBlank() },
+            sourceUuid = active?.uuid,
+            sourceName = active?.name,
             onOpenUrl = { openExternalUrl(it) },
-            onRefresh = {
-                launch(Dispatchers.IO) {
-                    uiStore.subscriptionMetadataLastFetch = 0L
-                    runCatching { syncSubscriptionMetadata() }
-                    withContext(Dispatchers.Main) { refreshAnnouncement(design) }
-                }
-            },
             onSupport = {
                 supportUrl.takeIf { it.isNotBlank() }?.let { openExternalUrl(it) }
-            },
-            announcementCollapsed = uiStore.announcementCollapsed,
-            onToggleCollapsed = if (textVisible && uiStore.announcementCardEnabled) {
-                {
-                    uiStore.announcementCollapsed = !uiStore.announcementCollapsed
-                    launch { renderAnnouncementFromStore(design) }
-                }
-            } else {
-                null
             },
         )
     }

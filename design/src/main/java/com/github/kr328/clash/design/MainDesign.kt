@@ -117,10 +117,8 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
     private var currentModeSegment: TunnelState.Mode = TunnelState.Mode.Rule
     private var activeProfileForQuickActions: Profile? = null
     private var activeAnnouncementSupportUrl: String? = null
-    private var activeSubscriptionUsage: SubscriptionUsage? = null
     private var activeAnnouncementOnOpenUrl: ((String) -> Unit)? = null
     private var activeAnnouncementOnSupport: (() -> Unit)? = null
-    private var announcementCardCoversSupport: Boolean = false
 
     private class StaticPageAdapter(
         private val pages: List<View>,
@@ -210,13 +208,11 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
     suspend fun setAnnouncement(
         text: String?,
         url: String?,
-        usage: SubscriptionUsage? = null,
         supportUrl: String? = null,
+        sourceUuid: UUID? = null,
+        sourceName: String? = null,
         onOpenUrl: ((String) -> Unit)? = null,
-        onRefresh: (() -> Unit)? = null,
         onSupport: (() -> Unit)? = null,
-        announcementCollapsed: Boolean = false,
-        onToggleCollapsed: (() -> Unit)? = null,
     ) {
         withContext(Dispatchers.Main) {
             val message = text
@@ -226,100 +222,44 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
             val announcementUrl = url?.takeIf { it.isNotBlank() }
             val support = supportUrl?.takeIf { it.isNotBlank() }
             val hasAnnouncement = message.isNotBlank()
-            val useAnnouncementCard = hasAnnouncement && uiStore.announcementCardEnabled
             activeAnnouncementSupportUrl = support
-            activeSubscriptionUsage = usage
             activeAnnouncementOnOpenUrl = onOpenUrl
             activeAnnouncementOnSupport = onSupport
 
+            // Brand name always wins for the header title; announcement no longer
+            // doubles into the header summary (the banner below carries it).
             val brandName = brandHolder.manifest.name?.takeIf { it.isNotBlank() }
-            if (useAnnouncementCard) {
-                binding.mainHeaderTitle.text = brandName ?: context.getString(R.string.launch_name_meta)
-                binding.mainHeaderSummary.visibility = View.GONE
-                binding.mainHeaderSummary.text = ""
-                binding.mainHeaderSummary.setOnClickListener(null)
-                binding.mainHeaderSummary.isClickable = false
-            } else {
-                val defaultTitle = context.getString(
-                    if (hasAnnouncement) R.string.announcement_settings else R.string.launch_name_meta,
-                )
-                // Brand name always wins when set; otherwise fall back to the
-                // announcement-aware default title.
-                binding.mainHeaderTitle.text = brandName ?: defaultTitle
-                binding.mainHeaderSummary.visibility = if (hasAnnouncement) View.VISIBLE else View.GONE
-                binding.mainHeaderSummary.text = message
-                binding.mainHeaderSummary.setOnClickListener {
-                    val target = announcementUrl ?: return@setOnClickListener
-                    onOpenUrl?.invoke(target)
+            binding.mainHeaderTitle.text = brandName ?: context.getString(R.string.launch_name_meta)
+            binding.mainHeaderSummary.visibility = View.GONE
+            binding.mainHeaderSummary.setOnClickListener(null)
+            binding.mainHeaderSummary.isClickable = false
+
+            binding.mainAnnouncementCard.visibility = if (hasAnnouncement) View.VISIBLE else View.GONE
+            if (hasAnnouncement) {
+                binding.mainAnnouncementPreview.text = message.replace('\n', ' ')
+
+                val hash = announcementHash(message, announcementUrl, support, sourceName)
+                val unread = sourceUuid != null && uiStore.announcementReadHashFor(sourceUuid) != hash
+                binding.mainAnnouncementNewDot.visibility = if (unread) View.VISIBLE else View.GONE
+
+                binding.mainAnnouncementCard.setOnClickListener {
+                    if (sourceUuid != null) {
+                        uiStore.setAnnouncementReadHashFor(sourceUuid, hash)
+                        binding.mainAnnouncementNewDot.visibility = View.GONE
+                    }
+                    com.github.kr328.clash.design.dialog.AnnouncementSheet.show(
+                        context = context,
+                        text = message,
+                        url = announcementUrl,
+                        supportUrl = support,
+                        sourceName = sourceName,
+                        onOpenUrl = { target -> onOpenUrl?.invoke(target) },
+                        onSupport = onSupport.takeIf { support != null || onSupport != null },
+                    )
                 }
-                binding.mainHeaderSummary.isClickable = announcementUrl != null
-            }
-
-            val bodyCollapsed = useAnnouncementCard && announcementCollapsed
-            // The dedicated support button used to live inside the announcement
-            // card and we'd hide the small one on the active-profile card to
-            // avoid duplication. That created a visible flicker right after a
-            // new subscription import (active-card button shows for one frame
-            // with stale uiStore.supportUrl, then announcement-card sync hides
-            // it). We now drop the announcement-card support entirely — the
-            // small button on the active-profile card is the single canonical
-            // entry point.
-            announcementCardCoversSupport = false
-
-            binding.mainAnnouncementCard.visibility =
-                if (useAnnouncementCard) View.VISIBLE else View.GONE
-            binding.mainAnnouncementBodyScroll.visibility =
-                if (useAnnouncementCard && !bodyCollapsed) View.VISIBLE else View.GONE
-            binding.mainAnnouncementBody.visibility =
-                if (useAnnouncementCard && !bodyCollapsed) View.VISIBLE else View.GONE
-
-            binding.mainAnnouncementText.visibility =
-                if (useAnnouncementCard && !bodyCollapsed && message.isNotBlank()) View.VISIBLE else View.GONE
-            binding.mainAnnouncementText.text = message
-
-            binding.mainAnnouncementStatsRow.visibility = View.GONE
-            binding.mainAnnouncementUsageBar.visibility = View.GONE
-            binding.mainAnnouncementUsageText.visibility = View.GONE
-            binding.mainAnnouncementUnavailableRow.visibility =
-                if (useAnnouncementCard && !bodyCollapsed && announcementUrl != null) View.VISIBLE else View.GONE
-
-            binding.mainAnnouncementOpenLink.visibility =
-                if (useAnnouncementCard && !bodyCollapsed && announcementUrl != null) View.VISIBLE else View.GONE
-            binding.mainAnnouncementOpenLink.setOnClickListener {
-                val target = announcementUrl ?: return@setOnClickListener
-                onOpenUrl?.invoke(target)
-            }
-
-            // Announcement-card support button is intentionally retired —
-            // see the note above on announcementCardCoversSupport. Kept the
-            // view in the layout for binding-compat but always GONE.
-            binding.mainAnnouncementSupport.visibility = View.GONE
-            binding.mainAnnouncementSupport.setOnClickListener(null)
-
-            binding.mainAnnouncementRefresh.visibility =
-                if (useAnnouncementCard && onRefresh != null) View.VISIBLE else View.GONE
-            binding.mainAnnouncementRefresh.setOnClickListener { onRefresh?.invoke() }
-
-            val showCollapseControl = useAnnouncementCard && onToggleCollapsed != null
-            binding.mainAnnouncementDismiss.visibility =
-                if (showCollapseControl) View.VISIBLE else View.GONE
-            if (bodyCollapsed) {
-                binding.mainAnnouncementDismiss.setImageResource(R.drawable.ic_baseline_expand_more)
-                binding.mainAnnouncementDismiss.contentDescription =
-                    context.getString(R.string.announcement_expand)
             } else {
-                binding.mainAnnouncementDismiss.setImageResource(R.drawable.ic_baseline_expand_less)
-                binding.mainAnnouncementDismiss.contentDescription =
-                    context.getString(R.string.announcement_collapse)
-            }
-            binding.mainAnnouncementDismiss.setOnClickListener {
-                onToggleCollapsed?.invoke()
-            }
-
-            binding.mainAnnouncementCard.isClickable = bodyCollapsed
-            binding.mainAnnouncementCard.isFocusable = bodyCollapsed
-            binding.mainAnnouncementCard.setOnClickListener {
-                if (bodyCollapsed) onToggleCollapsed?.invoke()
+                binding.mainAnnouncementCard.setOnClickListener(null)
+                binding.mainAnnouncementNewDot.visibility = View.GONE
             }
 
             profileAdapter.setActiveAnnouncement(
@@ -330,6 +270,24 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
                 onSupport = onSupport,
             )
             renderActiveProfileCard(activeProfileForQuickActions)
+        }
+    }
+
+    private fun announcementHash(
+        message: String,
+        url: String?,
+        supportUrl: String?,
+        source: String?,
+    ): String {
+        val payload = "$message ${url.orEmpty()} ${supportUrl.orEmpty()} ${source.orEmpty()}"
+        val md = java.security.MessageDigest.getInstance("SHA-256")
+        val bytes = md.digest(payload.toByteArray(Charsets.UTF_8))
+        return buildString(bytes.size * 2) {
+            val hex = "0123456789abcdef"
+            for (b in bytes) {
+                val v = b.toInt() and 0xFF
+                append(hex[v ushr 4]); append(hex[v and 0x0F])
+            }
         }
     }
 
@@ -756,7 +714,7 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         binding.mainActiveProfileUsage.visibility = if (p != null) View.VISIBLE else View.GONE
         val showUpdate = p?.imported == true && p.type != Profile.Type.File
         binding.mainActiveProfileUpdate.visibility = if (showUpdate) View.VISIBLE else View.GONE
-        val showSupport = !resolveSupportUrl().isNullOrBlank() && !announcementCardCoversSupport
+        val showSupport = !resolveSupportUrl().isNullOrBlank()
         binding.mainActiveProfileSupport.visibility = if (showSupport) View.VISIBLE else View.GONE
     }
 
@@ -786,7 +744,11 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
     }
 
     private fun usageLabel(profile: Profile): String {
-        val headerUsage = activeSubscriptionUsage.takeIf { profile.type == Profile.Type.Url }
+        val headerUsage = if (profile.type == Profile.Type.Url) {
+            com.github.kr328.clash.common.util.SubscriptionUsage.parse(
+                uiStore.subscriptionUserinfo.takeIf { it.isNotBlank() }
+            )
+        } else null
         val used = headerUsage?.used ?: (profile.upload + profile.download)
         val usedText = used.toBytesString()
         val total = headerUsage?.total ?: profile.total

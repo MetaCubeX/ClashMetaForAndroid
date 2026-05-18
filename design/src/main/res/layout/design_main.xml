@@ -599,180 +599,72 @@
 
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/main_announcement_card"
-                style="@style/AppCard.Outlined"
+                style="@style/AppCard.Filled"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="12dp"
-                android:layout_marginTop="3dp"
-                android:clipChildren="true"
-                android:clipToPadding="true"
+                android:layout_marginTop="6dp"
+                android:clickable="true"
+                android:focusable="true"
                 android:visibility="gone"
                 app:cardBackgroundColor="?attr/colorSurfaceContainer"
-                app:cardCornerRadius="10dp"
+                app:cardCornerRadius="16dp"
                 app:cardElevation="0dp"
-                app:strokeColor="?attr/colorOutlineVariant"
-                app:strokeWidth="1dp">
+                app:strokeWidth="0dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:paddingHorizontal="5dp"
-                    android:paddingVertical="3dp">
+                    android:gravity="center_vertical"
+                    android:minHeight="52dp"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="14dp"
+                    android:paddingVertical="10dp">
 
-                    <LinearLayout
-                        android:layout_width="match_parent"
+                    <FrameLayout
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal">
+                        android:layout_marginEnd="12dp">
 
                         <ImageView
-                            android:layout_width="16dp"
-                            android:layout_height="16dp"
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
                             android:contentDescription="@string/announcement_text"
                             android:src="@drawable/ic_baseline_campaign"
-                            app:tint="?attr/colorOnSurfaceVariant" />
+                            app:tint="?attr/colorPrimary" />
 
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="6dp"
-                            android:layout_weight="1"
-                            android:text="@string/announcement_settings"
-                            android:textAppearance="@style/TextAppearance.App.LabelSmall"
-                            android:textColor="?attr/colorOnSurfaceVariant" />
-
-                        <ImageButton
-                            android:id="@+id/main_announcement_refresh"
-                            android:layout_width="28dp"
-                            android:layout_height="28dp"
-                            android:background="?attr/selectableItemBackgroundBorderless"
-                            android:contentDescription="@string/sub_announcement_refresh"
-                            android:padding="5dp"
-                            android:src="@drawable/ic_baseline_sync"
-                            app:tint="?attr/colorOnSurfaceVariant" />
-
-                        <ImageButton
-                            android:id="@+id/main_announcement_dismiss"
-                            android:layout_width="28dp"
-                            android:layout_height="28dp"
-                            android:background="?attr/selectableItemBackgroundBorderless"
-                            android:contentDescription="@string/announcement_collapse"
-                            android:padding="5dp"
-                            android:src="@drawable/ic_baseline_expand_less"
-                            app:tint="?attr/colorOnSurfaceVariant" />
-                    </LinearLayout>
-
-                    <com.github.kr328.clash.design.view.BoundedNestedScrollView
-                        android:id="@+id/main_announcement_body_scroll"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:overScrollMode="ifContentScrolls"
-                        android:scrollbars="none"
-                        app:maxHeight="170dp">
-
-                    <LinearLayout
-                        android:id="@+id/main_announcement_body"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:clipChildren="true"
-                        android:clipToPadding="true"
-                        android:orientation="vertical">
+                        <View
+                            android:id="@+id/main_announcement_new_dot"
+                            android:layout_width="8dp"
+                            android:layout_height="8dp"
+                            android:layout_gravity="top|end"
+                            android:background="@drawable/bg_announcement_new_dot"
+                            android:visibility="gone" />
+                    </FrameLayout>
 
                     <TextView
-                        android:id="@+id/main_announcement_text"
-                        android:layout_width="match_parent"
+                        android:id="@+id/main_announcement_preview"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:breakStrategy="balanced"
+                        android:layout_weight="1"
                         android:ellipsize="end"
-                        android:hyphenationFrequency="none"
-                        android:lineSpacingMultiplier="0.9"
-                        android:maxLines="4"
-                        android:scrollHorizontally="false"
-                        android:textAppearance="@style/TextAppearance.App.BodySmall"
-                        android:textColor="?attr/colorOnSurfaceVariant"
-                        android:textSize="11sp"
-                        android:visibility="gone"
-                        tools:text="Announcement message" />
+                        android:maxLines="1"
+                        android:textAppearance="@style/TextAppearance.App.BodyMedium"
+                        android:textColor="?attr/colorOnSurface"
+                        tools:text="Plan maintenance scheduled on Sunday" />
 
-                    <LinearLayout
-                        android:id="@+id/main_announcement_unavailable_row"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal"
-                        android:visibility="gone">
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/main_announcement_open_link"
-                            style="@style/AppButton.Text"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:minWidth="0dp"
-                            android:minHeight="32dp"
-                            android:paddingHorizontal="6dp"
-                            android:paddingVertical="4dp"
-                            android:text="@string/sub_announcement_open_link"
-                            android:textAllCaps="false"
-                            android:maxLines="2"
-                            android:ellipsize="end"
-                            app:icon="@drawable/ic_baseline_update"
-                            app:iconGravity="textStart"
-                            app:iconPadding="4dp"
-                            app:iconSize="16dp" />
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:id="@+id/main_announcement_stats_row"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:orientation="horizontal"
-                        android:visibility="gone" />
-
-                    <com.google.android.material.progressindicator.LinearProgressIndicator
-                        android:id="@+id/main_announcement_usage_bar"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:visibility="gone"
-                        app:trackCornerRadius="2dp"
-                        app:trackThickness="3dp" />
-
-                    <TextView
-                        android:id="@+id/main_announcement_usage_text"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:textAppearance="@style/TextAppearance.App.BodySmall"
-                        android:textColor="?attr/colorOnSurfaceVariant"
-                        android:visibility="gone" />
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/main_announcement_support"
-                        style="@style/AppButton.Tonal"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:minHeight="34dp"
-                        android:text="@string/sub_announcement_support"
-                        android:textAllCaps="false"
-                        android:visibility="gone"
-                        app:cornerRadius="10dp"
-                        app:icon="@drawable/ic_baseline_headset_mic"
-                        app:iconGravity="textStart"
-                        app:iconPadding="4dp"
-                        app:iconSize="16dp" />
-                    </LinearLayout>
-                    </com.github.kr328.clash.design.view.BoundedNestedScrollView>
+                    <ImageView
+                        android:layout_width="16dp"
+                        android:layout_height="16dp"
+                        android:layout_marginStart="10dp"
+                        android:contentDescription="@null"
+                        android:rotation="-90"
+                        android:src="@drawable/ic_baseline_expand_more"
+                        app:tint="?attr/colorOnSurfaceVariant" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
-
             </LinearLayout>
-
-            </LinearLayout>
+        </LinearLayout>
         </androidx.core.widget.NestedScrollView>
 
         <androidx.core.widget.NestedScrollView

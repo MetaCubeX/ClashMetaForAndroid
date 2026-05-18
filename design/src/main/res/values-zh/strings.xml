@@ -620,6 +620,12 @@
     <!-- Search clear hint (proxy picker) -->
     <string name="profile_proxy_search_clear">清除搜索</string>
 
+    <!-- Announcement bottom sheet -->
+    <string name="announcement_sheet_title">公告</string>
+    <string name="announcement_sheet_from">来自 %1$s</string>
+    <string name="announcement_action_copy">复制</string>
+    <string name="announcement_copied">公告已复制</string>
+
     <!-- Supported response headers reference (Schemes &amp; HWID screen) -->
     <string name="subscription_response_headers_title">支持的响应头</string>
     <string name="subscription_response_headers_summary">ClashFest 从订阅 URL 响应中读取的标头。运营商可使用它们来定制应用、传达策略并发布公告。</string>
