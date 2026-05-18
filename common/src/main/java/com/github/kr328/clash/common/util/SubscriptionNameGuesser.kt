@@ -298,20 +298,73 @@ object SubscriptionNameGuesser {
     private fun sanitizeName(s: String): String =
         s.replace(Regex("[\r\n\t]"), " ").trim().take(64)
 
+    /**
+     * Best-effort name when no server-supplied title is available.
+     *
+     * Used to favour the last URL path segment, but for nearly every modern
+     * panel (Marzban / Pasarguard / Marzneshin / 3X-UI / ...) that segment is a
+     * subscription token like `asdkjzx1238sZasd` — looks awful as a profile
+     * label. We now derive a brand name from the host:
+     *
+     *   sub.cubereon.io/abcdef…    → "cubereon"
+     *   m.example.co.uk/abc        → "example"
+     *   marzban.host.ru            → "marzban" (after dropping "host" as a
+     *                                noisy infrastructure subdomain… no, kept;
+     *                                we drop only generic prefixes like
+     *                                sub/www/api/panel/subscription)
+     *
+     * The path segment is used *only* when it looks human (short or contains
+     * obvious word separators), never for long alphanum tokens.
+     */
     private fun fallbackName(urlString: String): String =
         try {
             val uri = URL(urlString)
-            val path = uri.path?.trim('/')?.split('/')?.filter { it.isNotBlank() }?.lastOrNull()
-            val safePath = path?.takeIf { it.length <= 48 }?.let { p ->
-                p.replace(Regex("[^a-zA-Z0-9._-]"), "_")
-            }
-            when {
-                !safePath.isNullOrBlank() -> safePath
-                !uri.host.isNullOrBlank() -> uri.host.substringBefore('.')
-                    .replace(Regex("[^a-zA-Z0-9._-]"), "_")
-                else -> "Subscription"
-            }
+            val pathSeg = uri.path?.trim('/')?.split('/')?.filter { it.isNotBlank() }?.lastOrNull()
+            val humanPath = pathSeg?.let { trimFileExtension(it) }?.takeIf(::looksHumanReadable)
+            val byHost = uri.host?.let(::brandFromHost)
+            val pick = humanPath ?: byHost
+            pick?.replace(Regex("[^a-zA-Z0-9._-]"), "_")?.takeIf { it.isNotBlank() }
+                ?: "Subscription"
         } catch (_: Exception) {
             "Subscription"
         }
+
+    private fun trimFileExtension(segment: String): String =
+        when {
+            segment.endsWith(".yaml", ignoreCase = true) ||
+                segment.endsWith(".yml", ignoreCase = true) ||
+                segment.endsWith(".txt", ignoreCase = true) ||
+                segment.endsWith(".json", ignoreCase = true) ->
+                segment.substringBeforeLast('.')
+            else -> segment
+        }
+
+    /**
+     * True when a path segment plausibly carries a user-meaningful label
+     * rather than a random subscription token: short (≤16), or contains word
+     * separators with reasonable length.
+     */
+    private fun looksHumanReadable(segment: String): Boolean {
+        if (segment.length <= 16) return true
+        if (segment.length > 32) return false
+        return segment.contains('-') || segment.contains('_')
+    }
+
+    /**
+     * Derive a brand-ish name from a host:
+     *   - drop generic infra subdomain prefixes (sub, www, api, panel, m, …)
+     *   - take the first remaining label (typically the operator brand)
+     *   - fall back to the raw first label if everything was noisy
+     */
+    private fun brandFromHost(host: String): String? {
+        val parts = host.lowercase().split('.').filter { it.isNotBlank() }
+        if (parts.isEmpty()) return null
+        val noisy = setOf(
+            "sub", "subs", "subscription", "subscriptions",
+            "www", "api", "panel", "app",
+            "m", "s", "v1", "v2",
+        )
+        val significant = parts.dropWhile { it in noisy }
+        return significant.firstOrNull()?.takeIf { it.length >= 2 } ?: parts.firstOrNull()
+    }
 }

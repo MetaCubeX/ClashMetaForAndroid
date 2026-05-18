@@ -163,14 +163,19 @@ class ProfilesActivity : BaseActivity<ProfilesDesign>() {
             return
         }
         design.showToast(DesignR.string.import_resolving, ToastDuration.Short)
-        val name = withTimeoutOrNull(4500L) {
+        // 8s gives Cloudflare-fronted panels (Marzban / Pasarguard) time to
+        // actually answer with Profile-Title; 4.5s was tripping on cold CDNs
+        // and we'd fall back to the path-token name (e.g. "asdkjzx1238s").
+        val name = withTimeoutOrNull(8000L) {
             SubscriptionNameGuesser.guess(this@ProfilesActivity, trimmed)
         } ?: SubscriptionNameGuesser.guessFast(trimmed)
         val uuid = withProfile {
             create(Profile.Type.Url, name, trimmed)
         }
         try {
-            withProfile { commit(uuid) }
+            com.github.kr328.clash.util.ImportRetry.withTransientRetry {
+                withProfile { commit(uuid) }
+            }
         } catch (e: Exception) {
             showImportCommitFailureDialog(uuid, e)
             return
@@ -217,13 +222,15 @@ class ProfilesActivity : BaseActivity<ProfilesDesign>() {
         }
 
         d.showToast(DesignR.string.import_resolving, ToastDuration.Short)
-        val name = withTimeoutOrNull(4500L) {
+        val name = withTimeoutOrNull(8000L) {
             SubscriptionNameGuesser.guess(this@ProfilesActivity, text)
         } ?: SubscriptionNameGuesser.guessFast(text)
 
         val uuid = withProfile { create(Profile.Type.Url, name, text) }
         try {
-            withProfile { commit(uuid) }
+            com.github.kr328.clash.util.ImportRetry.withTransientRetry {
+                withProfile { commit(uuid) }
+            }
         } catch (e: Exception) {
             d.showExceptionToast(e)
             return
