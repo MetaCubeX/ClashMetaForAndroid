@@ -31,12 +31,23 @@ import com.google.android.material.color.DynamicColorsOptions
 object BrandThemeApplier {
 
     fun applyToActivity(activity: Activity) {
-        val activeUuid = com.github.kr328.clash.service.store.ServiceStore(activity).activeProfile
-            ?: return
         val store = com.github.kr328.clash.service.branding.BrandStore(activity)
-        if (!store.isActiveFor(activeUuid)) return
+        val activeUuid = com.github.kr328.clash.service.store.ServiceStore(activity).activeProfile
+        if (activeUuid == null || !store.isActiveFor(activeUuid)) {
+            // No brand for the active profile (or no active profile at all) →
+            // record that the theme is *unbranded* so [maybeRecreateOnAccentChange]
+            // can compare against the actual state next tick. Crucially, we mark
+            // this AFTER the theme reflects it; if recreate ever silently fails
+            // we want the next tick to still observe last != current and retry.
+            store.lastAppliedAccent = ""
+            return
+        }
         val hex = store.manifestFor(activeUuid).accentColor
-        val accent = parseHexColor(hex) ?: return
+        val accent = parseHexColor(hex)
+        if (accent == null) {
+            store.lastAppliedAccent = ""
+            return
+        }
 
         // 1) Brand harmoniser → palette from seed (works on every Android version
         //    when we override the precondition; the default precondition checks
@@ -52,6 +63,11 @@ object BrandThemeApplier {
         //    disconnected / unchecked surfaces don't read as the accent.
         activity.theme.applyStyle(R.style.ThemeOverlay_App_BrandNeutralSurfaces, true)
 
+        // Mark the accent that's now baked into this Activity's theme.
+        // [maybeRecreateOnAccentChange] reads this on the next dashboard tick
+        // and compares to the desired-for-active-profile accent.
+        store.lastAppliedAccent = hex.orEmpty()
+
         com.github.kr328.clash.common.log.Log.d(
             "BrandThemeApplier: harmonised palette from accent=$hex + neutral surfaces overlay applied to ${activity::class.java.simpleName}",
         )
@@ -62,20 +78,29 @@ object BrandThemeApplier {
      * has changed since this Activity was inflated. The harmoniser overlay
      * is captured at inflate time — there's no way to update an already-
      * inflated theme.
+     *
+     * **Do not** update [com.github.kr328.clash.service.branding.BrandStore.lastAppliedAccent]
+     * here — that field is owned by [applyToActivity] and represents what is
+     * actually applied to the live theme. Writing it pre-recreate created a
+     * race: if [Activity.recreate] silently no-op'd (Activity in STOPPED
+     * state, lifecycle race, OEM quirk), the stored value would advance to
+     * the new accent while the theme stayed on the old one, and every
+     * follow-up tick would see `current == last` and bail without retrying.
+     * Result: brand accent permanently stuck on the home screen until the
+     * process was killed.
      */
     fun maybeRecreateOnAccentChange(activity: Activity) {
         val activeUuid = com.github.kr328.clash.service.store.ServiceStore(activity).activeProfile
         val store = com.github.kr328.clash.service.branding.BrandStore(activity)
-        val current = if (activeUuid != null && store.isActiveFor(activeUuid)) {
+        val desired = if (activeUuid != null && store.isActiveFor(activeUuid)) {
             store.manifestFor(activeUuid).accentColor.orEmpty()
         } else {
             ""
         }
-        val last = store.lastAppliedAccent
-        if (current == last) return
-        store.lastAppliedAccent = current
+        val applied = store.lastAppliedAccent
+        if (desired == applied) return
         com.github.kr328.clash.common.log.Log.d(
-            "BrandThemeApplier: accent changed ('$last' -> '$current'), recreating ${activity::class.java.simpleName}",
+            "BrandThemeApplier: accent mismatch (applied='$applied', desired='$desired'), recreating ${activity::class.java.simpleName}",
         )
         activity.recreate()
     }

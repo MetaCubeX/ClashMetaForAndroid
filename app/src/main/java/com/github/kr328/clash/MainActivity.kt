@@ -1751,38 +1751,46 @@ class MainActivity : BaseActivity<MainDesign>() {
      */
     private suspend fun applyActiveBrand() {
         val design = design as? com.github.kr328.clash.design.MainDesign ?: return
-        val activeUuid = runCatching { withProfile { queryActive() } }.getOrNull()?.uuid
-        if (activeUuid == null) {
-            design.applyBrand(com.github.kr328.clash.design.branding.BrandHolder.EMPTY)
-            return
+        // try/finally guarantees the recreate-check runs on EVERY exit path —
+        // including the "no active profile" / "no brand for active profile"
+        // branches. Otherwise a brand → no-brand switch sheds the UI layer but
+        // leaves the theme overlay branded until the app is force-stopped.
+        try {
+            val activeUuid = runCatching { withProfile { queryActive() } }.getOrNull()?.uuid
+            if (activeUuid == null) {
+                design.applyBrand(com.github.kr328.clash.design.branding.BrandHolder.EMPTY)
+                return
+            }
+            val json = runCatching { withProfile { readBrandJsonFor(activeUuid) } }.getOrNull()
+            if (json.isNullOrBlank()) {
+                design.applyBrand(com.github.kr328.clash.design.branding.BrandHolder.EMPTY)
+                return
+            }
+            val manifest = com.github.kr328.clash.common.branding.BrandManifest.fromJson(json)
+            val nightMode = (resources.configuration.uiMode and
+                android.content.res.Configuration.UI_MODE_NIGHT_MASK) ==
+                android.content.res.Configuration.UI_MODE_NIGHT_YES
+            val logoPath = runCatching {
+                withProfile { brandLogoPathFor(activeUuid, nightMode) }
+            }.getOrNull()
+            com.github.kr328.clash.common.log.Log.d(
+                "applyActiveBrand: uuid=$activeUuid, nightMode=$nightMode, " +
+                    "manifest.logoUrl=${manifest.logoUrl}, manifest.logoLightUrl=${manifest.logoLightUrl}, " +
+                    "resolvedPath=$logoPath",
+            )
+            design.applyBrand(
+                com.github.kr328.clash.design.branding.BrandHolder(
+                    manifest = manifest,
+                    logoPath = logoPath,
+                ),
+            )
+        } finally {
+            // Theme overlay is captured at inflate time. If the active profile's
+            // accent diverges from what's actually applied, recreate so the new
+            // (or absent) harmonised palette flows into every widget that reads
+            // ?attr/colorPrimary etc.
+            com.github.kr328.clash.design.branding.BrandThemeApplier.maybeRecreateOnAccentChange(this)
         }
-        val json = runCatching { withProfile { readBrandJsonFor(activeUuid) } }.getOrNull()
-        if (json.isNullOrBlank()) {
-            design.applyBrand(com.github.kr328.clash.design.branding.BrandHolder.EMPTY)
-            return
-        }
-        val manifest = com.github.kr328.clash.common.branding.BrandManifest.fromJson(json)
-        val nightMode = (resources.configuration.uiMode and
-            android.content.res.Configuration.UI_MODE_NIGHT_MASK) ==
-            android.content.res.Configuration.UI_MODE_NIGHT_YES
-        val logoPath = runCatching {
-            withProfile { brandLogoPathFor(activeUuid, nightMode) }
-        }.getOrNull()
-        com.github.kr328.clash.common.log.Log.d(
-            "applyActiveBrand: uuid=$activeUuid, nightMode=$nightMode, " +
-                "manifest.logoUrl=${manifest.logoUrl}, manifest.logoLightUrl=${manifest.logoLightUrl}, " +
-                "resolvedPath=$logoPath",
-        )
-        design.applyBrand(
-            com.github.kr328.clash.design.branding.BrandHolder(
-                manifest = manifest,
-                logoPath = logoPath,
-            ),
-        )
-        // Theme overlay is captured at inflate time. If the accent changed
-        // since this Activity was built, recreate so the new harmonised
-        // palette flows into every widget that reads ?attr/colorPrimary etc.
-        com.github.kr328.clash.design.branding.BrandThemeApplier.maybeRecreateOnAccentChange(this)
     }
 
     private fun openExternalUrl(url: String) {
