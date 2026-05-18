@@ -202,7 +202,9 @@ class NewProfileActivity : BaseActivity<NewProfileDesign>() {
             create(Profile.Type.Url, name, trimmed)
         }
         try {
-            withProfile { commit(uuid) }
+            com.github.kr328.clash.util.ImportRetry.withTransientRetry {
+                withProfile { commit(uuid) }
+            }
         } catch (e: Exception) {
             showImportCommitFailureDialog(uuid, e)
             return

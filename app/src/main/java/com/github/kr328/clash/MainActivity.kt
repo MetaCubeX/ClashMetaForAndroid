@@ -888,7 +888,7 @@ class MainActivity : BaseActivity<MainDesign>() {
      */
     private suspend fun importSubscriptionFromUrl(design: MainDesign, url: String) {
         design.showToast(R.string.import_resolving, ToastDuration.Short)
-        val name = withTimeoutOrNull(4500L) {
+        val name = withTimeoutOrNull(8000L) {
             SubscriptionNameGuesser.guess(this@MainActivity, url)
         } ?: SubscriptionNameGuesser.guessFast(url)
         val uuid = withProfile {
@@ -919,11 +919,13 @@ class MainActivity : BaseActivity<MainDesign>() {
             }
 
             coroutineScope {
-                withProfile {
-                    commit(uuid) { status ->
-                        launch {
-                            configure {
-                                applyFetchStatus(this@MainActivity, status)
+                com.github.kr328.clash.util.ImportRetry.withTransientRetry {
+                    withProfile {
+                        commit(uuid) { status ->
+                            launch {
+                                configure {
+                                    applyFetchStatus(this@MainActivity, status)
+                                }
                             }
                         }
                     }
