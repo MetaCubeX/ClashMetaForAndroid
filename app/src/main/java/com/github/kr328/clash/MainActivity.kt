@@ -27,6 +27,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.getSystemService
 import com.github.kr328.clash.common.util.ShareImportSupport
 import com.github.kr328.clash.util.SubscriptionMetaCache
+import com.github.kr328.clash.util.commitProfileWithProgress
 import com.github.kr328.clash.util.createEmptyUrlProfileAndOpenEditor
 import com.github.kr328.clash.common.util.StandalonePing
 import com.github.kr328.clash.common.util.SubscriptionNameGuesser
@@ -934,29 +935,6 @@ class MainActivity : BaseActivity<MainDesign>() {
             ?: return pending.preliminaryName
         runCatching { withProfile { renameImported(uuid, better) } }
         return better
-    }
-
-    private suspend fun commitProfileWithProgress(uuid: UUID) {
-        withModelProgressBar {
-            configure {
-                isIndeterminate = true
-                text = getString(R.string.initializing)
-            }
-
-            coroutineScope {
-                com.github.kr328.clash.util.ImportRetry.withTransientRetry {
-                    withProfile {
-                        commit(uuid) { status ->
-                            launch {
-                                configure {
-                                    applyFetchStatus(this@MainActivity, status)
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
     }
 
     private suspend fun launchProperties(uuid: UUID) {
