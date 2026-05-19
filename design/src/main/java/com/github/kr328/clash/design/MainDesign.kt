@@ -1,11 +1,13 @@
 package com.github.kr328.clash.design
 
+import android.animation.ValueAnimator
 import android.content.res.ColorStateList
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.view.MotionEvent
 import android.view.View
+import android.view.animation.AccelerateDecelerateInterpolator
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import com.google.android.material.R as MaterialR
@@ -110,6 +112,30 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
 
     private var clashRunningState: Boolean = false
     private var tunnelStartingState: Boolean = false
+    /**
+     * Breath loop for the power button + concentric rings — slow infinite
+     * "ripple outwards" pulse that plays **only** while the tunnel is
+     * running. Each layer (button → halo → inner ring → outer ring) shares
+     * the same 2s period but starts with an increasing [startDelay], so the
+     * inhale visually radiates from the button outward instead of all four
+     * layers pulsing in lockstep. Idle and connecting states pin every
+     * animated property back to its static value — no motion distraction.
+     *
+     * Held as separate animators so we can cancel them all in one place.
+     */
+    private var powerBreathAnimator: ValueAnimator? = null
+    private var powerHaloBreathAnimator: ValueAnimator? = null
+    private var powerRingInnerBreathAnimator: ValueAnimator? = null
+    private var powerRingOuterBreathAnimator: ValueAnimator? = null
+
+    /**
+     * Tracks the running flag the breath animators were last spun up for, so
+     * repeated [applyPowerVisuals] calls (brand updates, profile refresh,
+     * mode toggles) don't restart the breath mid-cycle and visibly blip the
+     * rings. Only a real state transition (running ↔ not-running) tears down
+     * and rebuilds the animators.
+     */
+    private var lastBreathRunning: Boolean? = null
     private var brandHolder: com.github.kr328.clash.design.branding.BrandHolder =
         com.github.kr328.clash.design.branding.BrandHolder.EMPTY
     private val uiStore = UiStore(context)
@@ -612,11 +638,8 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         // dynamic-color harmoniser (which used to derive ALL surface tones
         // from the brand seed and tint the off-state), surface attrs stay at
         // their built-in neutral M3 values automatically — no workaround needed.
-        val bgColor = if (running) {
-            brandAccentColor() ?: context.resolveThemedColor(bgAttr)
-        } else {
-            context.resolveThemedColor(bgAttr)
-        }
+        val accentBg = brandAccentColor() ?: context.resolveThemedColor(com.google.android.material.R.attr.colorPrimary)
+        val bgColor = if (running) accentBg else context.resolveThemedColor(bgAttr)
         button.backgroundTintList = ColorStateList.valueOf(bgColor)
         button.iconTint = ColorStateList.valueOf(context.resolveThemedColor(iconAttr))
         button.setTextColor(context.resolveThemedColor(iconAttr))
@@ -632,17 +655,181 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
             starting -> 1.04f
             else -> 0.96f
         }
+        // Halo: when running, the breath loop owns the alpha channel — we
+        // only ramp scale here. When idle/connecting, breath is dormant so
+        // we drive alpha normally (ramp to targetAlpha).
         binding.powerHalo.animate().cancel()
-        binding.powerHalo.animate()
-            .alpha(targetAlpha)
+        val haloAnim = binding.powerHalo.animate()
             .scaleX(targetScale)
             .scaleY(targetScale)
             .setDuration(260L)
-            .start()
-        binding.powerRingOuter.animate()
-            .alpha(if (running || starting) 0.95f else 0.62f)
-            .setDuration(220L)
-            .start()
+        if (!running) {
+            haloAnim.alpha(targetAlpha)
+        }
+        haloAnim.start()
+
+        // Outer ring: alpha is breath-owned in running. Idle/connecting fade
+        // it all the way out — rings only exist as part of the breath ripple,
+        // so when there is no breath there should be no rings at all (just
+        // the bare button + halo). This is what makes "press → rings appear"
+        // read as the rings actually igniting on connect, not just dimming.
+        binding.powerRingOuter.animate().cancel()
+        if (!running) {
+            binding.powerRingOuter.animate()
+                .alpha(0.0f)
+                .setDuration(220L)
+                .start()
+        }
+
+        // Persistent accent: when VPN is running, the halo + outer ring tint
+        // to the active accent (brand or M3 primary). Idle/starting states
+        // fall back to colorSurfaceVariant for a neutral look. This is what
+        // gives the home screen its "lamp is on" feel without animation.
+        val ringTint = if (running) {
+            accentBg
+        } else {
+            context.resolveThemedColor(com.google.android.material.R.attr.colorSurfaceVariant)
+        }
+        binding.powerHalo.backgroundTintList = ColorStateList.valueOf(ringTint)
+        binding.powerRingOuter.backgroundTintList = ColorStateList.valueOf(ringTint)
+
+        // Status pill: accent-tinted background + on-primary text when running,
+        // neutral chip otherwise. Subtle but immediately readable as "active".
+        val statusBgRes = if (running) R.drawable.bg_m3_status_chip else R.drawable.bg_m3_status_chip_neutral
+        binding.mainStatusLabel.setBackgroundResource(statusBgRes)
+        val statusTextColor = if (running) {
+            context.resolveThemedColor(com.google.android.material.R.attr.colorOnPrimaryContainer)
+        } else {
+            context.resolveThemedColor(com.google.android.material.R.attr.colorOnSurfaceVariant)
+        }
+        binding.mainStatusLabel.setTextColor(statusTextColor)
+
+        updateBreathAnimator(running, starting)
+    }
+
+    /**
+     * (Re)starts the power-button + concentric-ring breath loop when the
+     * tunnel is running. Each ring uses an increasing [startDelay] so the
+     * pulse visually ripples outward from the button rather than every
+     * layer beating in lockstep. In idle / connecting we cancel everything
+     * and pin properties back to their static values so nothing wobbles.
+     *
+     * Animators are recreated rather than mutated so each new state change
+     * starts at a known frame instead of jumping from a mid-cycle value.
+     */
+    private fun updateBreathAnimator(running: Boolean, starting: Boolean) {
+        // Skip rebuild when the state hasn't actually changed — keeps the
+        // breath loop running smoothly through unrelated applyPowerVisuals
+        // calls (brand refresh, mode change, etc).
+        if (lastBreathRunning == running && powerBreathAnimator?.isRunning == true) {
+            return
+        }
+        lastBreathRunning = running
+
+        powerBreathAnimator?.cancel()
+        powerHaloBreathAnimator?.cancel()
+        powerRingInnerBreathAnimator?.cancel()
+        powerRingOuterBreathAnimator?.cancel()
+        powerBreathAnimator = null
+        powerHaloBreathAnimator = null
+        powerRingInnerBreathAnimator = null
+        powerRingOuterBreathAnimator = null
+
+        val button = binding.mainPowerCard
+        val halo = binding.powerHalo
+        val innerRing = binding.powerRingInner
+        val outerRing = binding.powerRingOuter
+
+        if (!running) {
+            // Idle / connecting: rings fade out completely. They only exist
+            // as the "ignition wave" of the breath loop, so when no breath
+            // is running there is no ring visible — just the button and the
+            // halo glow. Inner ring uses its own .animate() because (unlike
+            // outer ring, halo, button) it has no driver in applyPowerVisuals.
+            button.scaleX = 1.0f
+            button.scaleY = 1.0f
+            innerRing.animate().cancel()
+            innerRing.animate()
+                .alpha(0.0f)
+                .setDuration(220L)
+                .start()
+            return
+        }
+
+        // Running breath: four-layer outward ripple. Each layer shares the
+        // same 2s period but starts with a progressively larger startDelay
+        // so the inhale radiates outward (button → halo → inner ring →
+        // outer ring) instead of every layer pulsing in lockstep.
+        //
+        // Rings start completely dark (alpha 0) on enter-running and "light
+        // up" on the inhale — peak brightness reached around mid-cycle, then
+        // they fade back out on the exhale. This is the "lighthouse"
+        // feeling the user wants: the rings are extinguished at rest and
+        // ignite with each breath, with a visible delay between layers so
+        // you can see the wave travel outward.
+        val period = 2000L
+        button.scaleX = 1.0f
+        button.scaleY = 1.0f
+        // Pre-set the "off" baseline so the first frame of each animator
+        // doesn't visually jump from whatever alpha the view had in idle.
+        halo.alpha = 0.34f
+        innerRing.alpha = 0.0f
+        outerRing.alpha = 0.0f
+
+        // Layer 0: button scale (epicentre, no delay).
+        powerBreathAnimator = ValueAnimator.ofFloat(1.0f, 1.06f).apply {
+            duration = period
+            repeatCount = ValueAnimator.INFINITE
+            repeatMode = ValueAnimator.REVERSE
+            interpolator = AccelerateDecelerateInterpolator()
+            addUpdateListener { animator ->
+                val v = animator.animatedValue as Float
+                button.scaleX = v
+                button.scaleY = v
+            }
+            start()
+        }
+        // Layer 1: halo alpha pulse — slight phase shift, halo is right
+        // under the button so it reads as part of the same "breath". Stays
+        // bright on average (0.34→0.50) because it's the "glow", not a ring.
+        powerHaloBreathAnimator = ValueAnimator.ofFloat(0.34f, 0.50f).apply {
+            duration = period
+            startDelay = 90L
+            repeatCount = ValueAnimator.INFINITE
+            repeatMode = ValueAnimator.REVERSE
+            interpolator = AccelerateDecelerateInterpolator()
+            addUpdateListener { animator ->
+                halo.alpha = animator.animatedValue as Float
+            }
+            start()
+        }
+        // Layer 2: inner ring fully off → bright (0.0 → 0.85). With ~180ms
+        // delay this is where the user perceives the ring "switching on".
+        powerRingInnerBreathAnimator = ValueAnimator.ofFloat(0.0f, 0.85f).apply {
+            duration = period
+            startDelay = 180L
+            repeatCount = ValueAnimator.INFINITE
+            repeatMode = ValueAnimator.REVERSE
+            interpolator = AccelerateDecelerateInterpolator()
+            addUpdateListener { animator ->
+                innerRing.alpha = animator.animatedValue as Float
+            }
+            start()
+        }
+        // Layer 3: outer ring off → near-full (0.0 → 0.95). Furthest delay
+        // (~310ms) — the wave "arrives" at the outer edge last and lights
+        // it up brightest, then it fades back to dark.
+        powerRingOuterBreathAnimator = ValueAnimator.ofFloat(0.0f, 0.95f).apply {
+            duration = period
+            startDelay = 310L
+            repeatCount = ValueAnimator.INFINITE
+            repeatMode = ValueAnimator.REVERSE
+            interpolator = AccelerateDecelerateInterpolator()
+            addUpdateListener { animator ->
+                outerRing.alpha = animator.animatedValue as Float
+            }
+            start()
+        }
     }
 
     suspend fun setForwarded(value: Long) {
