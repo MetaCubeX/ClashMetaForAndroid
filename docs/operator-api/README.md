@@ -61,6 +61,7 @@ X-Brand-Logo-URL: https://swiftvpn.example.com/static/logo-dark-256.png
 X-Brand-Logo-Light-URL: https://swiftvpn.example.com/static/logo-light-256.png
 X-Brand-Accent-Color: #5E35B1
 
+X-Brand-Cabinet-URL: https://t.me/<bot>?startapp={{SHORT_UUID}}
 X-Brand-Website-URL: https://swiftvpn.example.com
 X-Brand-Support-URL: https://t.me/swiftvpn_support
 X-Brand-Telegram-URL: https://t.me/swiftvpn_news
