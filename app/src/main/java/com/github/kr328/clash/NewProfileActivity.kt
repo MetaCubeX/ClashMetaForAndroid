@@ -19,6 +19,7 @@ import com.github.kr328.clash.design.model.ProfileProvider
 import com.github.kr328.clash.design.ui.ToastDuration
 import com.github.kr328.clash.design.util.showExceptionToast
 import com.github.kr328.clash.service.model.Profile
+import com.github.kr328.clash.util.commitProfileWithProgress
 import com.github.kr328.clash.util.withProfile
 import io.github.g00fy2.quickie.QRResult
 import io.github.g00fy2.quickie.QRResult.QRError
@@ -204,9 +205,7 @@ class NewProfileActivity : BaseActivity<NewProfileDesign>() {
             create(Profile.Type.Url, pending.preliminaryName, trimmed)
         }
         try {
-            com.github.kr328.clash.util.ImportRetry.withTransientRetry {
-                withProfile { commit(uuid) }
-            }
+            commitProfileWithProgress(uuid)
         } catch (e: Exception) {
             pending.betterName.cancel()
             showImportCommitFailureDialog(uuid, e)

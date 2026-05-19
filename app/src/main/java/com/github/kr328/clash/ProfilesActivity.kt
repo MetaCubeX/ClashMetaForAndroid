@@ -19,6 +19,7 @@ import com.github.kr328.clash.design.dialog.AppBottomSheetDialog
 import com.github.kr328.clash.design.ui.ToastDuration
 import com.github.kr328.clash.design.util.showExceptionToast
 import com.github.kr328.clash.service.model.Profile
+import com.github.kr328.clash.util.commitProfileWithProgress
 import com.github.kr328.clash.util.createEmptyUrlProfileAndOpenEditor
 import com.github.kr328.clash.util.withClash
 import com.github.kr328.clash.util.withProfile
@@ -172,9 +173,7 @@ class ProfilesActivity : BaseActivity<ProfilesDesign>() {
             create(Profile.Type.Url, pending.preliminaryName, trimmed)
         }
         try {
-            com.github.kr328.clash.util.ImportRetry.withTransientRetry {
-                withProfile { commit(uuid) }
-            }
+            commitProfileWithProgress(uuid)
         } catch (e: Exception) {
             pending.betterName.cancel()
             showImportCommitFailureDialog(uuid, e)
@@ -244,9 +243,7 @@ class ProfilesActivity : BaseActivity<ProfilesDesign>() {
             .start(this, this@ProfilesActivity, text)
         val uuid = withProfile { create(Profile.Type.Url, pending.preliminaryName, text) }
         try {
-            com.github.kr328.clash.util.ImportRetry.withTransientRetry {
-                withProfile { commit(uuid) }
-            }
+            commitProfileWithProgress(uuid)
         } catch (e: Exception) {
             pending.betterName.cancel()
             d.showExceptionToast(e)
