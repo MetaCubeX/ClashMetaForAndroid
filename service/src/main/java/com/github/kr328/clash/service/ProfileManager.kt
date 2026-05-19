@@ -190,6 +190,23 @@ class ProfileManager(private val context: Context) : IProfileManager,
         }
     }
 
+    override suspend fun renameImported(uuid: UUID, name: String) {
+        withContext(Dispatchers.IO) {
+            val trimmed = name.trim()
+            if (trimmed.isBlank()) return@withContext
+            val imported = ImportedDao().queryByUUID(uuid) ?: return@withContext
+            if (imported.name == trimmed) return@withContext
+            ImportedDao().update(imported.copy(name = trimmed))
+            // Mirror to a pending draft if one happens to exist (full edit
+            // flow in progress) — otherwise we'd silently overwrite the
+            // user's in-progress edit on the next commit. No-op when no draft.
+            PendingDao().queryByUUID(uuid)?.let { pending ->
+                PendingDao().update(pending.copy(name = trimmed))
+            }
+            context.sendProfileChanged(uuid)
+        }
+    }
+
     override suspend fun applySubscriptionUpdateInterval(uuid: UUID, intervalMillis: Long) {
         withContext(Dispatchers.IO) {
             val min = java.util.concurrent.TimeUnit.MINUTES.toMillis(15)

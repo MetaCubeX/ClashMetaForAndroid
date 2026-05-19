@@ -162,33 +162,52 @@ class ProfilesActivity : BaseActivity<ProfilesDesign>() {
             design.showToast(DesignR.string.invalid_url, ToastDuration.Long)
             return
         }
-        design.showToast(DesignR.string.import_resolving, ToastDuration.Short)
-        // 8s gives Cloudflare-fronted panels (Marzban / Pasarguard) time to
-        // actually answer with Profile-Title; 4.5s was tripping on cold CDNs
-        // and we'd fall back to the path-token name (e.g. "asdkjzx1238s").
-        val name = withTimeoutOrNull(8000L) {
-            SubscriptionNameGuesser.guess(this@ProfilesActivity, trimmed)
-        } ?: SubscriptionNameGuesser.guessFast(trimmed)
+        // Optimistic import: see [com.github.kr328.clash.util.AsyncNameResolver].
+        // Synchronously block here used to freeze the UI for up to 8s before
+        // commit() even started — and worse, on slow links the timeout fired
+        // before Profile-Title arrived, giving us the host name anyway.
+        val pending = com.github.kr328.clash.util.AsyncNameResolver
+            .start(this, this@ProfilesActivity, trimmed)
         val uuid = withProfile {
-            create(Profile.Type.Url, name, trimmed)
+            create(Profile.Type.Url, pending.preliminaryName, trimmed)
         }
         try {
             com.github.kr328.clash.util.ImportRetry.withTransientRetry {
                 withProfile { commit(uuid) }
             }
         } catch (e: Exception) {
+            pending.betterName.cancel()
             showImportCommitFailureDialog(uuid, e)
             return
         }
+        val displayName = upgradeProfileNameIfBetter(uuid, pending, trimmed)
         val profile = withProfile { queryByUUID(uuid) }
         if (profile?.imported == true) {
             withProfile { setActive(profile) }
             ensureGlobalSelectionSafeAfterImport()
-            design.showToast(getString(DesignR.string.import_done_named, name), ToastDuration.Long)
+            design.showToast(getString(DesignR.string.import_done_named, displayName), ToastDuration.Long)
             design.fetch()
         } else {
             startActivity(PropertiesActivity::class.intent.setUUID(uuid))
         }
+    }
+
+    /**
+     * Awaits the background [com.github.kr328.clash.util.AsyncNameResolver]
+     * result and renames the imported profile if a better name arrived.
+     * Uses [com.github.kr328.clash.service.remote.IProfileManager.renameImported]
+     * to avoid the draft/unsaved state that [patch] would create.
+     */
+    @Suppress("UNUSED_PARAMETER")
+    private suspend fun upgradeProfileNameIfBetter(
+        uuid: UUID,
+        pending: com.github.kr328.clash.util.AsyncNameResolver.Pending,
+        url: String,
+    ): String {
+        val better = runCatching { pending.betterName.await() }.getOrNull()
+            ?: return pending.preliminaryName
+        runCatching { withProfile { renameImported(uuid, better) } }
+        return better
     }
 
     private suspend fun showImportCommitFailureDialog(uuid: UUID, e: Throwable) {
@@ -221,26 +240,25 @@ class ProfilesActivity : BaseActivity<ProfilesDesign>() {
             return
         }
 
-        d.showToast(DesignR.string.import_resolving, ToastDuration.Short)
-        val name = withTimeoutOrNull(8000L) {
-            SubscriptionNameGuesser.guess(this@ProfilesActivity, text)
-        } ?: SubscriptionNameGuesser.guessFast(text)
-
-        val uuid = withProfile { create(Profile.Type.Url, name, text) }
+        val pending = com.github.kr328.clash.util.AsyncNameResolver
+            .start(this, this@ProfilesActivity, text)
+        val uuid = withProfile { create(Profile.Type.Url, pending.preliminaryName, text) }
         try {
             com.github.kr328.clash.util.ImportRetry.withTransientRetry {
                 withProfile { commit(uuid) }
             }
         } catch (e: Exception) {
+            pending.betterName.cancel()
             d.showExceptionToast(e)
             return
         }
+        val displayName = upgradeProfileNameIfBetter(uuid, pending, text)
 
         val profile = withProfile { queryByUUID(uuid) }
         if (profile?.imported == true) {
             withProfile { setActive(profile) }
             ensureGlobalSelectionSafeAfterImport()
-            d.showToast(getString(DesignR.string.import_done_named, name), ToastDuration.Long)
+            d.showToast(getString(DesignR.string.import_done_named, displayName), ToastDuration.Long)
             d.fetch()
         } else {
             startActivity(PropertiesActivity::class.intent.setUUID(uuid))

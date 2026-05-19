@@ -196,27 +196,43 @@ class NewProfileActivity : BaseActivity<NewProfileDesign>() {
             return
         }
         val d = design ?: return
-        d.showToast(R.string.import_resolving, ToastDuration.Short)
-        val name = SubscriptionNameGuesser.guess(self, trimmed)
+        // Optimistic import: see [com.github.kr328.clash.util.AsyncNameResolver].
+        // Was a fully synchronous guess() with no timeout at all here — could
+        // block the QR-import flow up to 40s on stalled CDNs.
+        val pending = com.github.kr328.clash.util.AsyncNameResolver.start(this, self, trimmed)
         val uuid = withProfile {
-            create(Profile.Type.Url, name, trimmed)
+            create(Profile.Type.Url, pending.preliminaryName, trimmed)
         }
         try {
             com.github.kr328.clash.util.ImportRetry.withTransientRetry {
                 withProfile { commit(uuid) }
             }
         } catch (e: Exception) {
+            pending.betterName.cancel()
             showImportCommitFailureDialog(uuid, e)
             return
         }
+        val displayName = upgradeProfileNameIfBetter(uuid, pending, trimmed)
         val profile = withProfile { queryByUUID(uuid) }
         if (profile?.imported == true) {
             withProfile { setActive(profile) }
-            d.showToast(getString(R.string.import_done_named, name), ToastDuration.Long)
+            d.showToast(getString(R.string.import_done_named, displayName), ToastDuration.Long)
             finish()
         } else {
             launchProperties(uuid)
         }
+    }
+
+    @Suppress("UNUSED_PARAMETER")
+    private suspend fun upgradeProfileNameIfBetter(
+        uuid: UUID,
+        pending: com.github.kr328.clash.util.AsyncNameResolver.Pending,
+        url: String,
+    ): String {
+        val better = runCatching { pending.betterName.await() }.getOrNull()
+            ?: return pending.preliminaryName
+        runCatching { withProfile { renameImported(uuid, better) } }
+        return better
     }
 
     /** Commit failed after QR scan: show error in a dialog first; Properties only if user chooses. */
