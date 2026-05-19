@@ -406,6 +406,18 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
             binding.operatorRenewButton.visibility = View.GONE
         }
 
+        // Personal cabinet entry-point. Stays tonal-secondary even when Renew
+        // is absent — the visual difference between Renew (filled) and
+        // Cabinet (tonal) is a deliberate hierarchy cue: Renew converts the
+        // user into a paying / renewing customer, Cabinet only navigates.
+        val cabinet = brand.cabinetUrl?.takeIf { it.isNotBlank() }
+        if (cabinet != null) {
+            binding.operatorCabinetButton.visibility = View.VISIBLE
+            binding.operatorCabinetButton.setOnClickListener { onOpenBrandUrl?.invoke(cabinet) }
+        } else {
+            binding.operatorCabinetButton.visibility = View.GONE
+        }
+
         // Grouped link rows. Each row gets a leading icon and a trailing chevron;
         // groups are separated by small headers so the user can scan the page
         // by intent (talk to humans / read docs / check status).

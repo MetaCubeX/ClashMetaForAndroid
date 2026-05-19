@@ -104,6 +104,7 @@ All URL fields accept `https://`, `tg://`, `mailto:`, `t.me/`
 | `X-Brand-Help-URL` | About → Help chip |
 | `X-Brand-Status-URL` | Service-status page link |
 | `X-Brand-Renew-URL` | Deep link for renewal. Critical-expiry chip becomes tappable when set; Renew CTA appears on the Operator tab. |
+| `X-Brand-Cabinet-URL` | Per-user personal account / billing deep link built with a panel template variable (e.g. `https://t.me/<bot>?startapp={{SHORT_UUID}}` for a Telegram Mini App, or `https://billing.example.com/account?ref={{ID}}`). Surfaces as the "My account" button on the Operator tab. |
 
 #### UX surfaces
 

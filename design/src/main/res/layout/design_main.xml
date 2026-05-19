@@ -1167,6 +1167,27 @@
                             android:textAllCaps="false"
                             android:visibility="gone" />
 
+                        <!--
+                          Personal cabinet entry-point. The operator builds the URL
+                          with a panel template variable that identifies the current
+                          user (e.g. `https://t.me/<bot>?startapp={{SHORT_UUID}}` for
+                          a Telegram Mini App, or `https://billing.example.com/account?ref={{ID}}`
+                          for a web cabinet). We open it via ACTION_VIEW — Android
+                          routes the appropriate handler.
+                        -->
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/operator_cabinet_button"
+                            style="@style/Widget.Material3.Button.TonalButton"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="10dp"
+                            android:text="@string/about_brand_cabinet"
+                            android:textAllCaps="false"
+                            android:visibility="gone"
+                            app:icon="@drawable/ic_baseline_account_circle"
+                            app:iconGravity="textStart"
+                            app:iconPadding="8dp" />
+
                         <LinearLayout
                             android:id="@+id/operator_links"
                             android:layout_width="match_parent"

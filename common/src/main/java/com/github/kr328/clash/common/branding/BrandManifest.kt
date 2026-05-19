@@ -36,6 +36,18 @@ data class BrandManifest(
     val renewUrl: String? = null,
 
     /**
+     * Personal account / billing URL for the *current user* of this
+     * subscription. The operator builds it by templating their panel's
+     * user identifier (e.g. `https://t.me/<bot>?startapp={{SHORT_UUID}}`
+     * for Telegram Mini App, or `https://billing.example.com/account?ref={{ID}}`
+     * for a web cabinet). We pass it through verbatim and open it via
+     * `ACTION_VIEW` — Android routes `tg://` / `https://t.me/...` to
+     * Telegram, `https://...` to a browser, etc. Per-subscription, validated
+     * the same way as other URL fields.
+     */
+    val cabinetUrl: String? = null,
+
+    /**
      * Per-user display name surfaced in About sheet. Operators wire this via
      * a panel template variable (e.g. `X-Brand-User-Display-Name: {{USERNAME}}`)
      * so the panel substitutes the actual username before the response leaves.
@@ -83,6 +95,7 @@ data class BrandManifest(
             helpUrl == null &&
             statusUrl == null &&
             renewUrl == null &&
+            cabinetUrl == null &&
             userDisplayName == null &&
             greeting == null &&
             hideStats == null &&

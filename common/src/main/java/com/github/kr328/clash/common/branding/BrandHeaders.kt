@@ -38,6 +38,16 @@ object BrandHeaders {
     const val STATUS_URL = "X-Brand-Status-URL"
     const val RENEW_URL = "X-Brand-Renew-URL"
 
+    /**
+     * Personal account / billing entry-point for the current user of this
+     * subscription. Built by the operator with a panel template variable
+     * (e.g. `https://t.me/<bot>?startapp={{SHORT_UUID}}` for a Telegram
+     * Mini App, or `https://billing.example.com/account?ref={{ID}}` for a
+     * web cabinet). ClashFest opens the URL via `ACTION_VIEW` — `tg://` and
+     * `https://t.me/...` route to Telegram, plain `https://` to a browser.
+     */
+    const val CABINET_URL = "X-Brand-Cabinet-URL"
+
     // --- Per-user context (v2 — meaningful only when the panel substitutes
     //                       variables like {{USERNAME}} into the header) ---
     const val USER_DISPLAY_NAME = "X-Brand-User-Display-Name"
