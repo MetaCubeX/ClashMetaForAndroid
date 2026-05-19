@@ -208,6 +208,15 @@ is ignored.
 | Applied to | When subscription expiry is critical (<3 days or already expired):<br>• tap on the existing critical-expiry chip on the profile card<br>• "Renew" button in the profile bottom sheet near the expiry info<br>• "Renew subscription" entry in the profile overflow menu<br>About screen also gets a Renew button when this URL is set. |
 | Notes | All entry points appear only when this URL is provided. No URL → no Renew UI anywhere. |
 
+### `X-Brand-Cabinet-URL`
+
+| | |
+|---|---|
+| Type | URL (https / tg / mailto) — almost always built with a panel template variable |
+| Status | **v3** |
+| Applied to | "My account" button on the **Operator** tab, rendered as a tonal-secondary button under the Renew CTA (or alone if no Renew URL). |
+| Notes | The operator builds a **per-user** URL using their panel's identifier template — e.g. `{{SHORT_UUID}}`, `{{ID}}`, `{{USERNAME}}`. Examples:<br>• Telegram Mini App: `https://t.me/<bot>?startapp={{SHORT_UUID}}` (requires the bot to be registered as a Mini App in BotFather).<br>• Web cabinet: `https://billing.example.com/account?ref={{ID}}`<br>• Bot chat with start payload: `https://t.me/<bot>?start={{SHORT_UUID}}` (operator must handle the payload in `/start` and surface the cabinet button).<br>Client opens the URL via `ACTION_VIEW` — Android routes `tg://` / `https://t.me/...` to Telegram (Mini App or chat depending on the URL form), other `https://` to the browser. |
+
 ---
 
 ## 3. User context

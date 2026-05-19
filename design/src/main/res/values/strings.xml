@@ -313,6 +313,7 @@ Presets only change <b>where</b> files are downloaded from (CDN / host). It is s
     <string name="about_brand_terms">Terms</string>
     <string name="about_brand_status">Status</string>
     <string name="about_brand_renew">Renew subscription</string>
+    <string name="about_brand_cabinet">My account</string>
     <string name="about_brand_reset">Reset branding</string>
     <string name="brand_reset_toast">Operator branding has been reset</string>
     <string name="brand_renew_action">Renew</string>
@@ -375,6 +376,7 @@ Presets only change <b>where</b> files are downloaded from (CDN / host). It is s
     <string name="headers_desc_brand_help">Help / FAQ link.</string>
     <string name="headers_desc_brand_status">Service status page (surfaces on connection issues).</string>
     <string name="headers_desc_brand_renew">Subscription renewal deep link. Tapping a critical-expiry chip opens it.</string>
+    <string name="headers_desc_brand_cabinet">Personal account / billing deep link with a panel template variable (e.g. {{SHORT_UUID}} for a Telegram Mini App). Surfaces as the \"My account\" button on the Operator tab.</string>
     <string name="headers_desc_brand_user_display_name">Per-user name shown in About (template-variable driven, e.g. {{USERNAME}}).</string>
     <string name="headers_desc_brand_greeting">Hero greeting on the Operator tab. Combine template variables for dynamic content.</string>
     <string name="headers_desc_brand_show_tab">Explicit opt-in to add the dedicated Operator bottom-nav tab.</string>

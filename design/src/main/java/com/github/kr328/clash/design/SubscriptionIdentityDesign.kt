@@ -77,6 +77,7 @@ class SubscriptionIdentityDesign(context: Context) : Design<SubscriptionIdentity
             "X-Brand-Help-URL" to context.getString(R.string.headers_desc_brand_help),
             "X-Brand-Status-URL" to context.getString(R.string.headers_desc_brand_status),
             "X-Brand-Renew-URL" to context.getString(R.string.headers_desc_brand_renew),
+            "X-Brand-Cabinet-URL" to context.getString(R.string.headers_desc_brand_cabinet),
             "X-Brand-User-Display-Name" to context.getString(R.string.headers_desc_brand_user_display_name),
             "X-Brand-Greeting" to context.getString(R.string.headers_desc_brand_greeting),
             "X-Brand-Show-Operator-Tab" to context.getString(R.string.headers_desc_brand_show_tab),
