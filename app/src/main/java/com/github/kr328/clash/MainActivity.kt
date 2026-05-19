@@ -887,28 +887,53 @@ class MainActivity : BaseActivity<MainDesign>() {
      * [commit]s the fetch, activates it — no Properties screen on success.
      */
     private suspend fun importSubscriptionFromUrl(design: MainDesign, url: String) {
-        design.showToast(R.string.import_resolving, ToastDuration.Short)
-        val name = withTimeoutOrNull(8000L) {
-            SubscriptionNameGuesser.guess(this@MainActivity, url)
-        } ?: SubscriptionNameGuesser.guessFast(url)
+        // Optimistic import: don't block the UI on Profile-Title lookup.
+        // Create with a host-based preliminary name (instant), kick off the
+        // network guess in the background, and rename after commit() if a
+        // better name arrives. Previous flow froze the UI for up to 8s before
+        // the progress bar even appeared.
+        val pending = com.github.kr328.clash.util.AsyncNameResolver.start(this, this@MainActivity, url)
         val uuid = withProfile {
-            create(Profile.Type.Url, name, url)
+            create(Profile.Type.Url, pending.preliminaryName, url)
         }
         try {
             commitProfileWithProgress(uuid)
         } catch (e: Exception) {
+            pending.betterName.cancel()
             showImportCommitFailureDialog(uuid, e)
             return
         }
+        val displayName = upgradeProfileNameIfBetter(uuid, pending, url)
         val profile = withProfile { queryByUUID(uuid) }
         if (profile?.imported == true) {
             withProfile { setActive(profile) }
             ensureGlobalSelectionSafeWithRetry()
-            design.showToast(getString(R.string.import_done_named, name), ToastDuration.Long)
+            design.showToast(getString(R.string.import_done_named, displayName), ToastDuration.Long)
         } else {
             launchProperties(uuid)
         }
         design.fetch()
+    }
+
+    /**
+     * Awaits the background [com.github.kr328.clash.util.AsyncNameResolver]
+     * result and renames the imported profile if a better name arrived.
+     * Uses [com.github.kr328.clash.service.remote.IProfileManager.renameImported]
+     * (direct ImportedDao update) — NOT [patch], which would put the profile
+     * back into a pending/draft state and surface as "unsaved" to the user.
+     * Returns the effective display name (better one if applied, preliminary
+     * otherwise).
+     */
+    @Suppress("UNUSED_PARAMETER")
+    private suspend fun upgradeProfileNameIfBetter(
+        uuid: java.util.UUID,
+        pending: com.github.kr328.clash.util.AsyncNameResolver.Pending,
+        url: String,
+    ): String {
+        val better = runCatching { pending.betterName.await() }.getOrNull()
+            ?: return pending.preliminaryName
+        runCatching { withProfile { renameImported(uuid, better) } }
+        return better
     }
 
     private suspend fun commitProfileWithProgress(uuid: UUID) {

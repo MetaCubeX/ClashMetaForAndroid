@@ -14,6 +14,18 @@ interface IProfileManager {
     suspend fun release(uuid: UUID)
     suspend fun delete(uuid: UUID)
     suspend fun patch(uuid: UUID, name: String, source: String, interval: Long)
+
+    /**
+     * Direct rename of an **already imported** profile — only changes `name`
+     * in [ImportedDao], does not enter the pending/draft state that [patch]
+     * uses for the full "Edit profile" flow. Used by optimistic-import to
+     * upgrade the placeholder host-based name to the real Profile-Title once
+     * the background guess finishes, without making the profile look unsaved
+     * to the user. No-op if the profile is not in [ImportedDao] (pending /
+     * deleted).
+     */
+    suspend fun renameImported(uuid: UUID, name: String)
+
     /**
      * Persists subscription auto-update interval from operator headers (e.g. `Profile-Update-Interval`)
      * without re-fetching the subscription body. Coerces to at least 15 minutes (same as [ProfileReceiver]).
