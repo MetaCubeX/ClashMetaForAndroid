@@ -11,6 +11,8 @@ import (
 	P "path"
 	"runtime"
 	"strings"
+	"sync"
+	"sync/atomic"
 	"time"
 
 	"cfa/native/app"
@@ -48,8 +50,14 @@ func openContent(url string) (io.ReadCloser, error) {
 	return app.OpenContent(url)
 }
 
+// 20s per single fetch keeps a stuck rule-provider from holding up the whole
+// import. With 60s and sequential fetches, one slow CDN edge could turn a
+// 10-provider import into a 10-minute hang. With parallel fetches (see
+// [fetchProviders]) the slowest individual stream is also the worst-case
+// total — 20s gives enough room for honest slow links without making the user
+// wait.
 func fetch(url *U.URL, file string) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 
 	var reader io.ReadCloser
@@ -197,6 +205,15 @@ func FetchProvidersAndValid(
 	return nil
 }
 
+// maxProviderConcurrency caps how many rule/proxy-providers can be downloaded
+// at once. Higher values reduce wall-clock time for big subscriptions on fast
+// links, but on mobile / EDGE / Cloudflare-fronted CDNs each parallel stream
+// adds its own DNS lookup + TLS handshake; opening 20 of them simultaneously
+// can starve the link and trigger DNS timeouts (UnknownHostException-style
+// failures). 6 is a good compromise — fast enough for a 10-provider import
+// to finish in ~3 seconds on Wi-Fi, low enough not to overwhelm mobile DNS.
+const maxProviderConcurrency = 6
+
 func fetchProviders(rawCfg *config.RawConfig, force bool, reportStatus func(string)) error {
 	providerFetchTasks := make([]providerFetchTask, 0)
 	forEachProviders(rawCfg, func(index int, total int, name string, provider map[string]any, prefix string) {
@@ -232,18 +249,46 @@ func fetchProviders(rawCfg *config.RawConfig, force bool, reportStatus func(stri
 		})
 	})
 
-	for index, task := range providerFetchTasks {
-		bytes, _ := json.Marshal(&Status{
-			Action:      "FetchProviders",
-			Args:        []string{task.name},
-			Progress:    index,
-			MaxProgress: len(providerFetchTasks),
-		})
-
-		reportStatus(string(bytes))
-
-		_ = fetch(task.url, task.path)
+	total := len(providerFetchTasks)
+	if total == 0 {
+		return nil
 	}
+
+	// Parallel fetch with a bounded semaphore. Previous implementation was
+	// sequential — one slow / stuck provider could stall the entire import
+	// for tens of seconds even though all other providers were ready in <1s.
+	// We still report Action=FetchProviders status messages, but [Progress]
+	// now reflects completed count (an atomic counter incremented after each
+	// fetch resolves), not the launch index, so the UI doesn't run ahead of
+	// the actual work.
+	sem := make(chan struct{}, maxProviderConcurrency)
+	var wg sync.WaitGroup
+	var done int32
+
+	for _, task := range providerFetchTasks {
+		wg.Add(1)
+		sem <- struct{}{}
+		go func(t providerFetchTask) {
+			defer wg.Done()
+			defer func() { <-sem }()
+
+			// Per-task errors are intentionally swallowed (mirrors the prior
+			// behaviour): a missing rule-provider should not abort the whole
+			// import — the user can still activate the profile and the
+			// provider re-fetches on the next FetchProvidersAndValid pass.
+			_ = fetch(t.url, t.path)
+
+			current := atomic.AddInt32(&done, 1)
+			bytes, _ := json.Marshal(&Status{
+				Action:      "FetchProviders",
+				Args:        []string{t.name},
+				Progress:    int(current),
+				MaxProgress: total,
+			})
+			reportStatus(string(bytes))
+		}(task)
+	}
+	wg.Wait()
 
 	return nil
 }
