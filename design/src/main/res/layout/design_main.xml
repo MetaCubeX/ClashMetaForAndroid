@@ -271,9 +271,9 @@
 
                 <FrameLayout
                     android:id="@+id/main_power_shell"
-                    android:layout_width="190dp"
-                    android:layout_height="190dp"
-                    android:layout_marginTop="10dp">
+                    android:layout_width="210dp"
+                    android:layout_height="210dp"
+                    android:layout_marginTop="12dp">
 
                     <View
                         android:id="@+id/power_halo"
@@ -285,24 +285,25 @@
 
                     <View
                         android:id="@+id/power_ring_outer"
-                        android:layout_width="170dp"
-                        android:layout_height="170dp"
+                        android:layout_width="190dp"
+                        android:layout_height="190dp"
                         android:layout_gravity="center"
+                        android:alpha="0.0"
                         android:background="@drawable/bg_power_ring" />
 
                     <View
                         android:id="@+id/power_ring_inner"
-                        android:layout_width="154dp"
-                        android:layout_height="154dp"
+                        android:layout_width="174dp"
+                        android:layout_height="174dp"
                         android:layout_gravity="center"
-                        android:alpha="0.65"
+                        android:alpha="0.0"
                         android:background="@drawable/bg_power_ring" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/main_power_card"
                         style="@style/Widget.Material3.Button.IconButton.Filled"
-                        android:layout_width="132dp"
-                        android:layout_height="132dp"
+                        android:layout_width="148dp"
+                        android:layout_height="148dp"
                         android:layout_gravity="center"
                         android:contentDescription="@string/tap_to_start"
                         android:insetLeft="0dp"
@@ -310,11 +311,11 @@
                         android:insetRight="0dp"
                         android:insetBottom="0dp"
                         android:padding="0dp"
-                        app:cornerRadius="66dp"
+                        app:cornerRadius="74dp"
                         app:icon="@drawable/ic_baseline_bolt"
                         app:iconGravity="textStart"
                         app:iconPadding="0dp"
-                        app:iconSize="42dp" />
+                        app:iconSize="48dp" />
                 </FrameLayout>
 
                 <TextView
@@ -333,7 +334,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="20dp"
-                android:layout_marginTop="10dp"
+                android:layout_marginTop="18dp"
                 app:cardBackgroundColor="?attr/colorSurfaceContainerLow"
                 app:cardCornerRadius="22dp"
                 app:cardElevation="0dp"
