@@ -580,7 +580,6 @@ class ProfileAdapter(
             var query = ""
             var sort = ProxyPickerSort.Config
             var filter: ProxyPickerFilter = ProxyPickerFilter.CurrentGroup
-            val providerChipIds = mutableMapOf<Int, String>()
             var selectedScrolledGroupIndex: Int? = null
             // Per-sheet row cache: buildProxyPickerRows walks every group of the profile,
             // which can be hundreds of nodes for big subscriptions. Invalidated whenever
@@ -603,42 +602,26 @@ class ProfileAdapter(
                 cachedRowsGroupIndex = -1
             }
 
-            fun renderProviderFilters() {
-                providerChipIds.clear()
-                val existingProviders = rowsForCurrentGroup(idx)
-                    .mapNotNull { it.provider }
-                    .distinct()
-                    .sortedWith(String.CASE_INSENSITIVE_ORDER)
-                val group = sheet.proxySheetFilterChips
-                val staticIds = setOf(
-                    R.id.proxy_sheet_filter_all,
-                    R.id.proxy_sheet_filter_current,
-                    R.id.proxy_sheet_filter_selected,
-                    R.id.proxy_sheet_filter_available,
-                )
-                group.children
-                    .filter { it.id !in staticIds }
-                    .toList()
-                    .forEach(group::removeView)
-                for (provider in existingProviders) {
-                    val id = View.generateViewId()
-                    providerChipIds[id] = provider
-                    group.addView(
-                        Chip(context).apply {
-                            this.id = id
-                            text = context.getString(R.string.profile_proxy_filter_provider, provider)
-                            isCheckable = true
-                            setEnsureMinTouchTargetSize(false)
-                            minHeight = context.dp(28)
-                            chipMinHeight = context.dp(28).toFloat()
-                            chipStartPadding = context.dp(10).toFloat()
-                            chipEndPadding = context.dp(10).toFloat()
-                            textStartPadding = 0f
-                            textEndPadding = 0f
-                            setTextAppearance(R.style.TextAppearance_App_LabelSmall)
-                        },
-                    )
-                }
+            fun sortLabel(s: ProxyPickerSort): String = context.getString(
+                when (s) {
+                    ProxyPickerSort.Config -> R.string.profile_proxy_sort_config
+                    ProxyPickerSort.Delay -> R.string.profile_proxy_sort_delay
+                    ProxyPickerSort.Name -> R.string.profile_proxy_sort_name
+                },
+            )
+
+            fun filterLabel(f: ProxyPickerFilter): String = when (f) {
+                ProxyPickerFilter.All -> context.getString(R.string.profile_proxy_filter_all)
+                ProxyPickerFilter.CurrentGroup -> context.getString(R.string.profile_proxy_filter_current)
+                ProxyPickerFilter.Selected -> context.getString(R.string.profile_proxy_filter_selected)
+                ProxyPickerFilter.Available -> context.getString(R.string.profile_proxy_filter_available)
+                is ProxyPickerFilter.Provider ->
+                    context.getString(R.string.profile_proxy_filter_provider, f.name)
+            }
+
+            fun updateControlLabels() {
+                sheet.proxySheetSortButton.text = sortLabel(sort)
+                sheet.proxySheetFilterButton.text = filterLabel(filter)
             }
 
             fun render(selectedIndex: Int) {
@@ -679,20 +662,44 @@ class ProfileAdapter(
                 )
             }
 
+            var wasPinging = states.pingingUuid == profile.uuid
             val refreshRunnable = object : Runnable {
                 override fun run() {
                     if (!dialog.isShowing) return
-                    invalidateRowCache()
-                    val currentIndex = selectedGroupIndex[profile.uuid] ?: 0
-                    render(currentIndex.coerceIn(0, groupNames.lastIndex))
-                    bindSubscriptionStatus(sheet, profile, context)
                     val pingingNow = states.pingingUuid == profile.uuid
+                    val currentIndex = (selectedGroupIndex[profile.uuid] ?: 0)
+                        .coerceIn(0, groupNames.lastIndex)
+
+                    when {
+                        pingingNow -> {
+                            // Live ping: update ONLY the delay capsules on the
+                            // existing row views. The list structure stays
+                            // frozen so the user can keep scrolling and tapping
+                            // nodes — the previous full re-inflate every 260ms
+                            // made both impossible (jank + missed taps).
+                            refreshProxyDelaysInPlace(sheet.proxySheetNodesList, profile)
+                        }
+                        wasPinging -> {
+                            // Ping just finished — one full render so Delay
+                            // sort and the Available filter pick up the fresh
+                            // results and the list re-orders exactly once.
+                            invalidateRowCache()
+                            render(currentIndex)
+                        }
+                        // else — steady idle: nothing rebuilds. The picker has
+                        // nothing that changes on its own between ping runs;
+                        // only the lightweight "tested ago" / status text below
+                        // ticks.
+                    }
+                    wasPinging = pingingNow
+
+                    bindSubscriptionStatus(sheet, profile, context)
+                    bindTestedAgo(sheet, profile, context)
                     sheet.proxySheetPingProgress.visibility = if (pingingNow) View.VISIBLE else View.GONE
                     sheet.proxySheetPingButton.visibility = if (pingingNow) View.INVISIBLE else View.VISIBLE
-                    // 260ms while pinging keeps the live progress chip readable.
-                    // Idle interval is 2500ms — the picker doesn't show anything that
-                    // changes faster than that when the user isn't pinging, and the
-                    // sheet may stay open for a while.
+                    // 260ms while pinging keeps the live delay capsules fresh.
+                    // Idle interval is 2500ms — only the "tested ago" label
+                    // ticks, and the sheet may stay open for a while.
                     if (pingingNow) {
                         sheet.root.postDelayed(this, 260L)
                     } else {
@@ -738,26 +745,65 @@ class ProfileAdapter(
             sheet.proxySheetSearchClear.setOnClickListener {
                 sheet.proxySheetSearch.setText("")
             }
-            sheet.proxySheetSortChips.setOnCheckedStateChangeListener { _, checkedIds ->
-                sort = when (checkedIds.firstOrNull()) {
-                    R.id.proxy_sheet_sort_delay -> ProxyPickerSort.Delay
-                    R.id.proxy_sheet_sort_name -> ProxyPickerSort.Name
-                    else -> ProxyPickerSort.Config
-                }
-                render((selectedGroupIndex[profile.uuid] ?: 0).coerceIn(0, groupNames.lastIndex))
+            // Sort dropdown — three fixed options.
+            sheet.proxySheetSortButton.setOnClickListener { anchor ->
+                android.widget.PopupMenu(context, anchor).apply {
+                    val options = listOf(
+                        ProxyPickerSort.Config,
+                        ProxyPickerSort.Delay,
+                        ProxyPickerSort.Name,
+                    )
+                    options.forEachIndexed { i, opt -> menu.add(0, i, i, sortLabel(opt)) }
+                    setOnMenuItemClickListener { item ->
+                        sort = options.getOrElse(item.itemId) { ProxyPickerSort.Config }
+                        updateControlLabels()
+                        render((selectedGroupIndex[profile.uuid] ?: 0).coerceIn(0, groupNames.lastIndex))
+                        true
+                    }
+                }.show()
             }
-            sheet.proxySheetFilterChips.setOnCheckedStateChangeListener { _, checkedIds ->
-                val checked = checkedIds.firstOrNull() ?: R.id.proxy_sheet_filter_all
-                filter = when (checked) {
-                    R.id.proxy_sheet_filter_current -> ProxyPickerFilter.CurrentGroup
-                    R.id.proxy_sheet_filter_selected -> ProxyPickerFilter.Selected
-                    R.id.proxy_sheet_filter_available -> ProxyPickerFilter.Available
-                    else -> providerChipIds[checked]?.let(ProxyPickerFilter::Provider) ?: ProxyPickerFilter.All
-                }
-                render((selectedGroupIndex[profile.uuid] ?: 0).coerceIn(0, groupNames.lastIndex))
+            // Filter dropdown — four fixed options plus one entry per provider
+            // present in the current group. The provider list is rebuilt at
+            // click time so it always reflects the group currently shown.
+            sheet.proxySheetFilterButton.setOnClickListener { anchor ->
+                val currentIndex = (selectedGroupIndex[profile.uuid] ?: 0)
+                    .coerceIn(0, groupNames.lastIndex)
+                val providers = rowsForCurrentGroup(currentIndex)
+                    .mapNotNull { it.provider }
+                    .distinct()
+                    .sortedWith(String.CASE_INSENSITIVE_ORDER)
+                android.widget.PopupMenu(context, anchor).apply {
+                    val fixed = listOf(
+                        ProxyPickerFilter.All,
+                        ProxyPickerFilter.CurrentGroup,
+                        ProxyPickerFilter.Selected,
+                        ProxyPickerFilter.Available,
+                    )
+                    fixed.forEachIndexed { i, opt -> menu.add(0, i, i, filterLabel(opt)) }
+                    // Provider entries use ids offset by 100 to never collide
+                    // with the fixed-option ids above.
+                    providers.forEachIndexed { i, p ->
+                        menu.add(
+                            0, 100 + i, 100 + i,
+                            context.getString(R.string.profile_proxy_filter_provider, p),
+                        )
+                    }
+                    setOnMenuItemClickListener { item ->
+                        filter = if (item.itemId >= 100) {
+                            providers.getOrNull(item.itemId - 100)
+                                ?.let(ProxyPickerFilter::Provider)
+                                ?: ProxyPickerFilter.All
+                        } else {
+                            fixed.getOrElse(item.itemId) { ProxyPickerFilter.All }
+                        }
+                        updateControlLabels()
+                        render((selectedGroupIndex[profile.uuid] ?: 0).coerceIn(0, groupNames.lastIndex))
+                        true
+                    }
+                }.show()
             }
 
-            renderProviderFilters()
+            updateControlLabels()
             render(idx)
             reportVisibleGroup(profile, groupNames[idx])
 
@@ -1381,7 +1427,32 @@ class ProfileAdapter(
                 onProxyYamlDetail(profile, groupName, p.name)
                 true
             }
+            // Tag the row with its Proxy so refreshProxyDelaysInPlace can
+            // update just the latency capsule during a live ping without
+            // rebuilding the whole list.
+            row.tag = p
             list.addView(row)
+        }
+    }
+
+    /**
+     * Updates only the latency capsule (delay text + colour) on each already-
+     * inflated proxy row, leaving the list structure untouched. Used during a
+     * live ping so the user can keep scrolling and tapping nodes — a full
+     * [fillProxyRowsInto] re-inflate on every 260ms tick made the list jank
+     * and swallowed taps. Re-sorting / re-filtering by the new delays happens
+     * once, after the ping finishes (see the refresh runnable).
+     */
+    private fun refreshProxyDelaysInPlace(list: ViewGroup, profile: Profile) {
+        val context = list.context
+        for (row in list.children) {
+            val proxy = row.tag as? Proxy ?: continue
+            val delayMs = resolveProxyDelay(profile.uuid, proxy)
+            val capsule = row.findViewById<View>(R.id.latency_capsule) ?: continue
+            val dot = row.findViewById<View>(R.id.latency_dot) ?: continue
+            val delayView = row.findViewById<TextView>(R.id.proxy_delay) ?: continue
+            delayView.text = formatDelay(delayMs)
+            applyDelayStyle(capsule, dot, delayView, delayMs, context)
         }
     }
 

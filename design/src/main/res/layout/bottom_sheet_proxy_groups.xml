@@ -225,93 +225,46 @@
                 app:tint="?attr/colorOnSurfaceVariant" />
         </LinearLayout>
 
-        <HorizontalScrollView
+        <!--
+          Sort + filter as two compact dropdown buttons in a single row,
+          replacing the previous two stacked HorizontalScrollView chip rows.
+          Each button shows the current selection and opens a PopupMenu; the
+          filter menu's provider entries are populated at click time.
+        -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
-            android:overScrollMode="never"
-            android:scrollbars="none">
+            android:orientation="horizontal">
 
-            <com.google.android.material.chip.ChipGroup
-                android:id="@+id/proxy_sheet_sort_chips"
-                android:layout_width="wrap_content"
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/proxy_sheet_sort_button"
+                style="@style/Widget.Material3.Button.TonalButton"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                app:chipSpacingHorizontal="6dp"
-                app:singleLine="true"
-                app:singleSelection="true"
-                app:selectionRequired="true">
+                android:layout_marginEnd="4dp"
+                android:layout_weight="1"
+                android:gravity="start|center_vertical"
+                android:textAllCaps="false"
+                app:icon="@drawable/ic_baseline_swap_vert"
+                app:iconGravity="textStart"
+                app:iconSize="18dp"
+                tools:text="Config order" />
 
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/proxy_sheet_sort_config"
-                    style="@style/AppChip.Filter.Compact"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:checked="true"
-                    android:text="@string/profile_proxy_sort_config" />
-
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/proxy_sheet_sort_delay"
-                    style="@style/AppChip.Filter.Compact"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/profile_proxy_sort_delay" />
-
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/proxy_sheet_sort_name"
-                    style="@style/AppChip.Filter.Compact"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/profile_proxy_sort_name" />
-            </com.google.android.material.chip.ChipGroup>
-        </HorizontalScrollView>
-
-        <HorizontalScrollView
-            android:id="@+id/proxy_sheet_filter_scroll"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
-            android:overScrollMode="never"
-            android:scrollbars="none">
-
-            <com.google.android.material.chip.ChipGroup
-                android:id="@+id/proxy_sheet_filter_chips"
-                android:layout_width="wrap_content"
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/proxy_sheet_filter_button"
+                style="@style/Widget.Material3.Button.TonalButton"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                app:chipSpacingHorizontal="6dp"
-                app:singleLine="true"
-                app:singleSelection="true"
-                app:selectionRequired="true">
-
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/proxy_sheet_filter_all"
-                    style="@style/AppChip.Filter.Compact"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/profile_proxy_filter_all" />
-
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/proxy_sheet_filter_current"
-                    style="@style/AppChip.Filter.Compact"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:checked="true"
-                    android:text="@string/profile_proxy_filter_current" />
-
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/proxy_sheet_filter_selected"
-                    style="@style/AppChip.Filter.Compact"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/profile_proxy_filter_selected" />
-
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/proxy_sheet_filter_available"
-                    style="@style/AppChip.Filter.Compact"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/profile_proxy_filter_available" />
-            </com.google.android.material.chip.ChipGroup>
-        </HorizontalScrollView>
+                android:layout_marginStart="4dp"
+                android:layout_weight="1"
+                android:gravity="start|center_vertical"
+                android:textAllCaps="false"
+                app:icon="@drawable/ic_baseline_filter_list"
+                app:iconGravity="textStart"
+                app:iconSize="18dp"
+                tools:text="Current group" />
+        </LinearLayout>
 
         <!-- Hidden legacy chip group / type label (kept for binding compat) -->
         <com.google.android.material.chip.ChipGroup
