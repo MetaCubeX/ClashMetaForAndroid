@@ -21,6 +21,7 @@ import com.github.kr328.clash.design.util.showExceptionToast
 import com.github.kr328.clash.service.model.Profile
 import com.github.kr328.clash.util.commitProfileWithProgress
 import com.github.kr328.clash.util.createEmptyUrlProfileAndOpenEditor
+import com.github.kr328.clash.util.updateProfileWithProgress
 import com.github.kr328.clash.util.withClash
 import com.github.kr328.clash.util.withProfile
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -79,7 +80,7 @@ class ProfilesActivity : BaseActivity<ProfilesDesign>() {
                                 }
                             }
                         is ProfilesDesign.Request.Update ->
-                            withProfile { update(it.profile.uuid) }
+                            updateProfileWithProgress(it.profile.uuid)
                         is ProfilesDesign.Request.Delete ->
                             withProfile { delete(it.profile.uuid) }
                         is ProfilesDesign.Request.Edit ->

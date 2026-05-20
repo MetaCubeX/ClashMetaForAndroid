@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Snackbar background per the Material 3 spec: inverse-surface fill (the bar
+  reads as deliberately "other" against the page surface), with our rounded
+  20dp corners on top. Pairs with ?attr/colorOnSurfaceInverse text and
+  ?attr/colorPrimaryInverse action — both set in Design.styleAsMaterial3.
+
+  Note the M3 attr name is `colorSurfaceInverse`, NOT the legacy
+  MaterialComponents `colorInverseSurface` (AAPT will fail to resolve the
+  latter in Material 1.12+).
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="?attr/colorSurfaceInverse" />
+    <corners android:radius="20dp" />
+</shape>
