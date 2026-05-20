@@ -46,3 +46,41 @@ suspend fun Context.commitProfileWithProgress(uuid: UUID) {
         }
     }
 }
+
+/**
+ * Modal progress dialog + transient-error retry around `update(uuid)`.
+ *
+ * Sibling of [commitProfileWithProgress] for the force-refresh path. While
+ * the dialog is open the user physically cannot tap the refresh button again,
+ * which is the primary defence against the "io read/write on closed pipe"
+ * race that fires when two `update()` calls arrive in flight simultaneously.
+ * (ProfileManager.update also has a per-uuid dedupe set as a second line of
+ * defence — see its docstring.)
+ *
+ * The retry wrapper catches transient EOF / DNS / socket-timeout errors that
+ * mostly happen when refreshing a subscription while the VPN tunnel is active
+ * — the underlying connection sometimes gets reset mid-stream and a second
+ * attempt almost always succeeds.
+ */
+suspend fun Context.updateProfileWithProgress(uuid: UUID) {
+    val ctx = this
+    withModelProgressBar {
+        configure {
+            isIndeterminate = true
+            text = ctx.getString(R.string.initializing)
+        }
+        coroutineScope {
+            ImportRetry.withTransientRetry {
+                withProfile {
+                    update(uuid) { status ->
+                        launch {
+                            configure {
+                                applyFetchStatus(ctx, status)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

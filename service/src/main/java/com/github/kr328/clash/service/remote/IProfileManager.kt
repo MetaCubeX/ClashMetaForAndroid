@@ -32,7 +32,18 @@ interface IProfileManager {
      * No-op if the profile is missing or not a URL subscription.
      */
     suspend fun applySubscriptionUpdateInterval(uuid: UUID, intervalMillis: Long)
-    suspend fun update(uuid: UUID)
+    /**
+     * Force-refresh the subscription identified by [uuid]. Suspends until the
+     * fetch + verify pipeline finishes (or fails). [callback] receives the
+     * usual `FetchStatus` updates so the UI can drive a progress dialog.
+     *
+     * Calls are deduplicated by UUID — if an `update()` is already in flight
+     * for the same profile, the second invocation returns immediately without
+     * starting a second concurrent fetch. This prevents the "io read/write on
+     * closed pipe" race that happened when the user rage-tapped the update
+     * button while a previous request was still running.
+     */
+    suspend fun update(uuid: UUID, callback: IFetchObserver? = null)
     suspend fun queryByUUID(uuid: UUID): Profile?
     suspend fun queryAll(): List<Profile>
     suspend fun reorder(uuids: List<String>)

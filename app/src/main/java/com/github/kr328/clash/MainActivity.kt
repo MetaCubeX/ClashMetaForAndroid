@@ -29,6 +29,7 @@ import com.github.kr328.clash.common.util.ShareImportSupport
 import com.github.kr328.clash.util.SubscriptionMetaCache
 import com.github.kr328.clash.util.commitProfileWithProgress
 import com.github.kr328.clash.util.createEmptyUrlProfileAndOpenEditor
+import com.github.kr328.clash.util.updateProfileWithProgress
 import com.github.kr328.clash.common.util.StandalonePing
 import com.github.kr328.clash.common.util.SubscriptionNameGuesser
 import com.github.kr328.clash.common.util.SubscriptionOverrides
@@ -691,7 +692,11 @@ class MainActivity : BaseActivity<MainDesign>() {
 
                 design.profileForceUpdateRequests.onReceive { profile ->
                     launch {
-                        withProfile { update(profile.uuid) }
+                        // Success / failure toast comes from the broadcast
+                        // observer (onProfileUpdateCompleted / Failed). Don't
+                        // toast "started" here — the user sees that *after*
+                        // the modal closes, by which point the work is done.
+                        runCatching { updateProfileWithProgress(profile.uuid) }
                         // Run metadata sync in the background so the UI tap returns
                         // immediately. The earlier race (announcement-card hiding the
                         // active-card support button for a tick) was structural — we
@@ -702,7 +707,6 @@ class MainActivity : BaseActivity<MainDesign>() {
                             runCatching { syncSubscriptionMetadata() }
                             withContext(Dispatchers.Main) { refreshAnnouncement(design) }
                         }
-                        design.showToast(R.string.profile_update_scheduled, ToastDuration.Long)
                         scheduleDashboardRefresh()
                     }
                 }
@@ -811,8 +815,12 @@ class MainActivity : BaseActivity<MainDesign>() {
                 }
                 R.id.profile_menu_update -> {
                     launch {
-                        withProfile { update(profile.uuid) }
-                        design.showToast(R.string.profile_update_scheduled, ToastDuration.Long)
+                        // Success / failure toast is driven by the
+                        // Profile-Update-Completed / Failed broadcast in
+                        // onProfileUpdateCompleted / onProfileUpdateFailed —
+                        // no manual toast here, otherwise the user gets a
+                        // stale "started" message *after* the actual result.
+                        runCatching { updateProfileWithProgress(profile.uuid) }
                         design.fetch()
                     }
                     true
