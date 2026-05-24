@@ -1,12 +1,9 @@
 package com.github.kr328.clash.service.util
 
-import org.yaml.snakeyaml.Yaml
-
 /** Extract a single `proxies:` entry as readable YAML (for UI). */
 object ProxyYamlPreview {
     fun extractProxyEntry(text: String, proxyName: String): String? {
-        val root = YamlFormatting.parseRootMap(text) ?: return null
-        val proxies = root["proxies"] as? List<*> ?: return null
+        val proxies = MihomoConfigDocument.parse(text)?.proxies ?: return null
         val yaml = YamlFormatting.blockYaml()
         for (raw in proxies) {
             val m = raw as? Map<*, *> ?: continue

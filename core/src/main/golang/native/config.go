@@ -75,6 +75,17 @@ func load(completable unsafe.Pointer, path C.c_string) {
 	}(C.GoString(path))
 }
 
+//export validateProfile
+func validateProfile(completable unsafe.Pointer, path C.c_string) {
+	go func(path string) {
+		C.complete(completable, marshalString(config.Validate(path)))
+
+		C.release_object(completable)
+
+		runtime.GC()
+	}(C.GoString(path))
+}
+
 //export readOverride
 func readOverride(slot C.int) *C.char {
 	return C.CString(config.ReadOverride(config.OverrideSlot(slot)))

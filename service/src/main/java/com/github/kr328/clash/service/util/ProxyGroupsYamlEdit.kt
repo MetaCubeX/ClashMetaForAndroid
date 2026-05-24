@@ -1,6 +1,5 @@
 package com.github.kr328.clash.service.util
 
-import org.yaml.snakeyaml.Yaml
 import java.io.File
 
 /**
@@ -11,9 +10,6 @@ import java.io.File
  * merged names are also added to GLOBAL proxies so they appear in the Global selector.
  */
 object ProxyGroupsYamlEdit {
-    private val parseYaml = Yaml()
-    private val dumpYaml = YamlFormatting.blockYaml()
-
     /**
      * Removes one stale [staleName] from every `proxy-groups` entry’s `proxies` and `use` lists in
      * [profileDir]/config.yaml. Used when Mihomo fails load with `proxy group[n]: …: '…' not found`
@@ -26,7 +22,9 @@ object ProxyGroupsYamlEdit {
         if (trimmed.isEmpty()) return false
         val configFile = File(profileDir, "config.yaml")
         if (!configFile.isFile) return false
-        val root = YamlFormatting.parseRootMap(configFile.readText()) ?: return false
+        val configText = configFile.readText()
+        val document = MihomoConfigDocument.parse(configText) ?: return false
+        val root = document.root
         @Suppress("UNCHECKED_CAST")
         val groups = root["proxy-groups"] as? MutableList<Any?> ?: return false
         var changed = false
@@ -53,7 +51,7 @@ object ProxyGroupsYamlEdit {
         }
         if (!changed) return false
         root["proxy-groups"] = groups
-        configFile.writeText(dumpYaml.dump(root))
+        configFile.writeText(document.renderReplacing("proxy-groups"))
         return true
     }
 
@@ -69,7 +67,8 @@ object ProxyGroupsYamlEdit {
         if (providerKeys.isEmpty()) return null
         val trimmedName = groupName.trim()
         if (trimmedName.isEmpty()) return null
-        val root = parseYaml.load<MutableMap<String, Any?>>(configText) ?: return null
+        val document = MihomoConfigDocument.parse(configText) ?: return null
+        val root = document.root
         @Suppress("UNCHECKED_CAST")
         val groups = (root["proxy-groups"] as? MutableList<Any?>) ?: mutableListOf()
         for (raw in groups) {
@@ -84,7 +83,7 @@ object ProxyGroupsYamlEdit {
         groups.add(newGroup)
         root["proxy-groups"] = groups
         ensureGlobalGroupListsMergedName(root, trimmedName)
-        return dumpYaml.dump(root)
+        return document.renderReplacing("proxy-groups")
     }
 
     /**
@@ -124,7 +123,8 @@ object ProxyGroupsYamlEdit {
     fun removeGroupByName(configText: String, groupName: String): String? {
         val trimmed = groupName.trim()
         if (trimmed.isEmpty()) return null
-        val root = parseYaml.load<MutableMap<String, Any?>>(configText) ?: return null
+        val document = MihomoConfigDocument.parse(configText) ?: return null
+        val root = document.root
         @Suppress("UNCHECKED_CAST")
         val groups = (root["proxy-groups"] as? MutableList<Any?>) ?: return null
         val idx = groups.indexOfFirst { raw ->
@@ -135,6 +135,6 @@ object ProxyGroupsYamlEdit {
         groups.removeAt(idx)
         root["proxy-groups"] = groups
         removeNameFromGlobalGroupProxies(root, trimmed)
-        return dumpYaml.dump(root)
+        return document.renderReplacing("proxy-groups")
     }
 }

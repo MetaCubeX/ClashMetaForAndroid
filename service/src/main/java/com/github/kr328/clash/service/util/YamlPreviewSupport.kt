@@ -10,32 +10,9 @@ object YamlPreviewSupport {
     }
 
     fun validateConfigYaml(text: String) {
-        val root = YamlFormatting.parseRootMap(text)
+        val document = MihomoConfigDocument.parse(text)
             ?: throw IllegalArgumentException("Generated YAML is invalid")
-        root["rule-providers"]?.let {
-            require(it is Map<*, *>) { "Generated rule-providers must be a map" }
-        }
-        root["proxy-providers"]?.let {
-            require(it is Map<*, *>) { "Generated proxy-providers must be a map" }
-        }
-        root["rules"]?.let { rules ->
-            require(rules is List<*>) { "Generated rules must be a list" }
-            rules.forEach {
-                require(it is String) { "Generated rules entries must be strings" }
-            }
-        }
-        root["proxy-groups"]?.let { groups ->
-            require(groups is List<*>) { "Generated proxy-groups must be a list" }
-            groups.forEach {
-                require(it is Map<*, *>) { "Generated proxy-groups entries must be maps" }
-            }
-        }
-        root["proxies"]?.let { proxies ->
-            require(proxies is List<*>) { "Generated proxies must be a list" }
-            proxies.forEach {
-                require(it is Map<*, *>) { "Generated proxies entries must be maps" }
-            }
-        }
+        document.requireSupportedShape()
     }
 
     fun unifiedDiff(oldText: String, newText: String, context: Int = 3): String {

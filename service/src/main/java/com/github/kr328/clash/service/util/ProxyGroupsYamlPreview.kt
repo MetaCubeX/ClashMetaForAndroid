@@ -2,7 +2,6 @@ package com.github.kr328.clash.service.util
 
 import com.github.kr328.clash.core.model.Proxy
 import com.github.kr328.clash.service.model.ProxyGroupPreviewRow
-import org.yaml.snakeyaml.Yaml
 import java.io.File
 
 /** Reads [proxy-groups] from a Clash config.yaml without loading the engine. */
@@ -144,12 +143,9 @@ object ProxyGroupsYamlPreview {
      *   live engine data fills these in on the engine path.
      */
     fun parseProxyGroupsPreview(text: String, profileDir: File? = null): Map<String, ProxyGroupPreviewRow> {
-        val root = try {
-            Yaml().load<Map<String, Any?>>(text) ?: return emptyMap()
-        } catch (_: Exception) {
-            return emptyMap()
-        }
-        val groups = root["proxy-groups"] as? List<*> ?: return emptyMap()
+        val document = MihomoConfigDocument.parse(text) ?: return emptyMap()
+        val root = document.root
+        val groups = document.proxyGroups ?: return emptyMap()
         val out = linkedMapOf<String, ProxyGroupPreviewRow>()
         for (raw in groups) {
             val g = raw as? Map<*, *> ?: continue
@@ -196,12 +192,7 @@ object ProxyGroupsYamlPreview {
      * (e.g. rule targets) — groups with empty or unusual `proxies`/`use` are still listed here. Includes **hidden** names (valid rule targets).
      */
     fun listProxyGroupNames(text: String): List<String> {
-        val root = try {
-            Yaml().load<Map<String, Any?>>(text) ?: return emptyList()
-        } catch (_: Exception) {
-            return emptyList()
-        }
-        val groups = root["proxy-groups"] as? List<*> ?: return emptyList()
+        val groups = MihomoConfigDocument.parse(text)?.proxyGroups ?: return emptyList()
         return groups.mapNotNull { raw ->
             (raw as? Map<*, *>)?.get("name")?.toString()?.trim()?.takeIf { it.isNotEmpty() }
         }
@@ -209,12 +200,7 @@ object ProxyGroupsYamlPreview {
 
     /** Names of [proxy-groups] that reference proxy-providers via [use] (merged-style). */
     fun listGroupNamesWithUse(text: String): List<String> {
-        val root = try {
-            Yaml().load<Map<String, Any?>>(text) ?: return emptyList()
-        } catch (_: Exception) {
-            return emptyList()
-        }
-        val groups = root["proxy-groups"] as? List<*> ?: return emptyList()
+        val groups = MihomoConfigDocument.parse(text)?.proxyGroups ?: return emptyList()
         val out = ArrayList<String>()
         for (raw in groups) {
             val g = raw as? Map<*, *> ?: continue

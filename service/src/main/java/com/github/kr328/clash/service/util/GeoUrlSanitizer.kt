@@ -17,8 +17,6 @@ import java.util.concurrent.ConcurrentHashMap
  * since the last clean pass.
  */
 object GeoUrlSanitizer {
-    private val dumpYaml = YamlFormatting.blockYaml()
-
     /** Last-known clean signature per absolute config.yaml path. */
     private val cleanSignature = ConcurrentHashMap<String, Long>()
 
@@ -63,7 +61,8 @@ object GeoUrlSanitizer {
      * to be rewritten.
      */
     fun sanitizeYaml(text: String): String? {
-        val root = YamlFormatting.parseRootMap(text) ?: return null
+        val document = MihomoConfigDocument.parse(text) ?: return null
+        val root = document.root
         var changed = rewriteGeoxUrl(root)
         // Локальные .dat/.metadb/.mmdb уже распакованы из ассетов в clashDir,
         // поэтому отключаем периодический онлайн-апдейт ядром, иначе оно опять
@@ -72,7 +71,7 @@ object GeoUrlSanitizer {
             root["geo-auto-update"] = false
             changed = true
         }
-        return if (changed) dumpYaml.dump(root) else text
+        return if (changed) document.renderReplacing("geox-url", "geo-auto-update") else text
     }
 
     private fun rewriteGeoxUrl(root: MutableMap<String, Any?>): Boolean {

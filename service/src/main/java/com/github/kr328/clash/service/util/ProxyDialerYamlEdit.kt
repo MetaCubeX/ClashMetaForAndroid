@@ -37,7 +37,7 @@ object ProxyDialerYamlEdit {
         val out = ArrayList<DialerChainRow>()
         val configFile = File(profileDir, "config.yaml")
         if (!configFile.isFile) return out
-        val root = YamlFormatting.parseRootMap(configFile.readText()) ?: return out
+        val root = MihomoConfigDocument.parse(configFile.readText())?.root ?: return out
         collectDialerChainsFromRoot(root, "config.yaml", out)
         val pp = root["proxy-providers"] as? Map<*, *> ?: return out
         for ((_, v) in pp) {
@@ -69,9 +69,10 @@ object ProxyDialerYamlEdit {
         if (!configFile.isFile) return emptyList()
         val patches = ArrayList<FilePatch>()
         val configText = configFile.readText()
-        val root = YamlFormatting.parseRootMap(configText) ?: return emptyList()
+        val document = MihomoConfigDocument.parse(configText) ?: return emptyList()
+        val root = document.root
         if (stripDialerFromProxiesInRoot(root)) {
-            patches.add(FilePatch("config.yaml", configText, dumpYaml.dump(root)))
+            patches.add(FilePatch("config.yaml", configText, document.renderReplacing("proxies")))
         }
         val pp = root["proxy-providers"] as? Map<*, *> ?: return patches
         for ((_, v) in pp) {
@@ -149,9 +150,10 @@ object ProxyDialerYamlEdit {
         } catch (_: Exception) {
             return null
         }
-        val root = YamlFormatting.parseRootMap(configText) ?: return null
+        val document = MihomoConfigDocument.parse(configText) ?: return null
+        val root = document.root
         if (patchProxiesList(root, trimmedTarget, dialerProxyName)) {
-            return FilePatch("config.yaml", configText, dumpYaml.dump(root))
+            return FilePatch("config.yaml", configText, document.renderReplacing("proxies"))
         }
 
         val pp = root["proxy-providers"] as? Map<*, *> ?: return null

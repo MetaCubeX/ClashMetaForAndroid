@@ -1,7 +1,6 @@
 package com.github.kr328.clash.service.util
 
 import com.github.kr328.clash.service.model.ProxyTransportInfo
-import org.yaml.snakeyaml.Yaml
 import java.io.File
 
 /**
@@ -16,11 +15,7 @@ object ProxyTransportYamlPreview {
 
     /** name -> transport info. */
     fun parse(text: String, profileDir: File? = null): Map<String, ProxyTransportInfo> {
-        val root = try {
-            Yaml().load<Map<String, Any?>>(text) ?: return emptyMap()
-        } catch (_: Exception) {
-            return emptyMap()
-        }
+        val root = MihomoConfigDocument.parse(text)?.root ?: return emptyMap()
         val out = linkedMapOf<String, ProxyTransportInfo>()
         collectInlineProxies(root, out)
         collectProviderProxies(root, profileDir, out)

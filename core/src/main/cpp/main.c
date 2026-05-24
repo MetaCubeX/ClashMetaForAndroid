@@ -226,6 +226,17 @@ Java_com_github_kr328_clash_core_bridge_Bridge_nativeLoad(JNIEnv *env, jobject t
 }
 
 JNIEXPORT void JNICALL
+Java_com_github_kr328_clash_core_bridge_Bridge_nativeValidateProfile(JNIEnv *env, jobject thiz,
+                                                                     jobject completable, jstring path) {
+    TRACE_METHOD();
+
+    jobject _completable = new_global(completable);
+    scoped_string _path = get_string(path);
+
+    validateProfile(_completable, _path);
+}
+
+JNIEXPORT void JNICALL
 Java_com_github_kr328_clash_core_bridge_Bridge_nativeFetchAndValid(JNIEnv *env, jobject thiz,
                                                                    jobject callback,
                                                                    jstring path,
