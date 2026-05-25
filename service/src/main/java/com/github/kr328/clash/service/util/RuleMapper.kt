@@ -1,9 +1,12 @@
 package com.github.kr328.clash.service.util
 
+import com.github.kr328.clash.core.model.ProfileSnapshot
 import com.github.kr328.clash.service.model.RuleItem
 import com.github.kr328.clash.service.model.RuleProviderItem
 import com.github.kr328.clash.service.model.RuleSource
 import com.github.kr328.clash.service.model.RuleState
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import org.yaml.snakeyaml.Yaml
 import java.util.UUID
 
@@ -12,10 +15,24 @@ object RuleMapper {
     private val DEFAULT_GEOIP_URL = GeoMirrors.primaryGeoIpDat()
     private val DEFAULT_GEOSITE_URL = GeoMirrors.primaryGeoSiteDat()
 
-    fun parseStateFromConfig(configText: String): RuleState {
-        val document = MihomoConfigDocument.parse(configText) ?: return RuleState()
-        val providers = parseProviders(document.ruleProviders)
-        val rules = parseRules(document.rules)
+    // Rule types whose body is structural (nested parens, lists, scripts) and
+    // would be silently corrupted by a naive split-by-comma. For these we keep
+    // the raw line as-is and never re-synthesise it from type/value/policy.
+    private val OPAQUE_RULE_TYPES = setOf("AND", "OR", "NOT", "SUB-RULE", "SCRIPT")
+
+    /**
+     * Build the editor-facing state from an engine-parsed snapshot. This is
+     * the entry point for the Path B read pipeline — rule strings arrive
+     * from mihomo as whole tokens (logical rules included), no Kotlin-side
+     * YAML parsing happens here.
+     */
+    fun parseStateFromSnapshot(snapshot: ProfileSnapshot): RuleState {
+        val providers = snapshot.ruleProviders.map { (name, body) ->
+            providerFromJson(name, body, source = RuleSource.PROVIDER)
+        }
+        val rules = snapshot.rules.mapIndexedNotNull { index, raw ->
+            parseRuleLine(raw, index)
+        }
         return RuleState(providers = providers, rules = rules)
     }
 
@@ -75,6 +92,11 @@ object RuleMapper {
         root["geox-url"] = existing
     }
 
+    /**
+     * Parses a fragment of YAML that contains only a `rule-providers:` block
+     * (or just the inner provider map), used when the UI hands us a textarea
+     * paste. Not on the snapshot path because the input is not a full config.
+     */
     fun parseProvidersYaml(yamlText: String): List<RuleProviderItem> {
         val parsed = yaml.load<Any?>(yamlText) ?: return emptyList()
         val rp = when (parsed) {
@@ -99,77 +121,121 @@ object RuleMapper {
         }
     }
 
-    private fun parseProviders(node: Any?): List<RuleProviderItem> {
-        val map = node as? Map<*, *> ?: return emptyList()
-        return map.entries.mapIndexedNotNull { _, entry ->
-            val name = entry.key?.toString()?.trim().orEmpty()
-            val body = entry.value as? Map<*, *> ?: return@mapIndexedNotNull null
-            if (name.isBlank()) return@mapIndexedNotNull null
-            RuleProviderItem(
-                id = UUID.randomUUID().toString(),
-                name = name,
-                type = body["type"]?.toString().orEmpty().ifBlank { "http" },
-                behavior = body["behavior"]?.toString().orEmpty().ifBlank { "classical" },
-                url = body["url"]?.toString().orEmpty(),
-                path = body["path"]?.toString().orEmpty(),
-                interval = body["interval"]?.toString()?.toIntOrNull() ?: 86400,
-                enabled = true,
-                source = RuleSource.PROVIDER,
-            )
-        }
-    }
+    /**
+     * Parses a single raw rule line into a RuleItem. Logical / opaque rule
+     * types (AND, OR, NOT, SUB-RULE, SCRIPT) keep the raw line intact and
+     * expose empty value/policy — re-synthesising them from substrings would
+     * corrupt the nested-paren payload, see toRuleLine.
+     *
+     * Exposed as a top-level utility so RuleApplyService can build RuleItems
+     * for lines that come from the UI directly (paste, snippets) without
+     * going through a full snapshot.
+     */
+    fun parseRuleLine(line: String, order: Int, defaultSource: RuleSource = RuleSource.MANUAL): RuleItem? {
+        val trimmed = line.trim().removePrefix("-").trim()
+        if (trimmed.isBlank()) return null
 
-    private fun parseRules(node: Any?): List<RuleItem> {
-        val list = node as? List<*> ?: return emptyList()
-        return list.mapIndexedNotNull { index, raw ->
-            parseRuleLine(raw?.toString().orEmpty(), index)
-        }
-    }
+        val typeRaw = trimmed.substringBefore(',', missingDelimiterValue = trimmed).trim()
+        if (typeRaw.isBlank()) return null
+        val type = typeRaw.uppercase()
 
-    private fun parseRuleLine(line: String, order: Int): RuleItem? {
-        val t = line.trim().removePrefix("-").trim()
-        if (t.isBlank()) return null
-        val parts = t.split(",").map { it.trim() }
-        if (parts.isEmpty()) return null
-        val type = parts[0].uppercase()
-        return if (type == "MATCH") {
-            RuleItem(
+        if (type == "MATCH") {
+            // MATCH,<target> — only the target after the comma is meaningful.
+            val target = trimmed.substringAfter(',', missingDelimiterValue = "").trim()
+            return RuleItem(
                 id = UUID.randomUUID().toString(),
-                raw = t,
-                type = type,
+                raw = trimmed,
+                type = "MATCH",
                 value = "",
-                policy = parts.getOrElse(1) { "DIRECT" },
+                policy = target.ifBlank { "DIRECT" },
                 enabled = true,
                 deleted = false,
-                source = RuleSource.PROVIDER,
+                source = defaultSource,
                 providerName = null,
                 isRestorable = true,
                 order = order,
             )
-        } else {
-            val providerName = if (type == "RULE-SET") parts.getOrElse(1) { "" }.ifBlank { null } else null
-            RuleItem(
+        }
+
+        if (type in OPAQUE_RULE_TYPES) {
+            // Body is structural (nested parens, comma-bearing payloads). Do
+            // not split — store the raw line, leave value/policy empty so the
+            // UI knows not to offer structural edits, and rely on toRuleLine
+            // returning raw verbatim.
+            return RuleItem(
                 id = UUID.randomUUID().toString(),
-                raw = t,
+                raw = trimmed,
                 type = type,
-                value = parts.getOrElse(1) { "" },
-                policy = parts.getOrElse(2) { "DIRECT" },
+                value = "",
+                policy = "",
                 enabled = true,
                 deleted = false,
-                source = if (providerName != null) RuleSource.PROVIDER else RuleSource.MANUAL,
-                providerName = providerName,
-                isRestorable = providerName != null,
+                source = defaultSource,
+                providerName = null,
+                isRestorable = false,
                 order = order,
             )
         }
+
+        // Regular rule: TYPE,VALUE,POLICY[,no-resolve|src]. Split-by-comma is
+        // safe here because the value of a non-opaque rule never contains a
+        // literal comma (per mihomo grammar).
+        val parts = trimmed.split(",").map { it.trim() }
+        val providerName = if (type == "RULE-SET") parts.getOrElse(1) { "" }.ifBlank { null } else null
+        return RuleItem(
+            id = UUID.randomUUID().toString(),
+            raw = trimmed,
+            type = type,
+            value = parts.getOrElse(1) { "" },
+            policy = parts.getOrElse(2) { "DIRECT" },
+            enabled = true,
+            deleted = false,
+            source = if (providerName != null) RuleSource.PROVIDER else defaultSource,
+            providerName = providerName,
+            isRestorable = providerName != null,
+            order = order,
+        )
     }
 
-    private fun toRuleLine(rule: RuleItem): String {
-        if (rule.raw.isNotBlank() && rule.type.equals("CUSTOM", true)) return rule.raw.trim()
+    fun toRuleLine(rule: RuleItem): String {
+        // For opaque types (AND/OR/NOT/SUB-RULE/SCRIPT) and any explicit
+        // CUSTOM marker, trust the raw line. Re-synthesising would lose the
+        // nested-paren body and produce "AND,((NETWORK,UDP)" — the exact bug
+        // that broke logical rules before Path B.
+        if (rule.raw.isNotBlank() &&
+            (rule.type.uppercase() in OPAQUE_RULE_TYPES || rule.type.equals("CUSTOM", true))
+        ) {
+            return rule.raw.trim()
+        }
         return if (rule.type.equals("MATCH", true)) {
             "MATCH,${rule.policy}"
         } else {
             "${rule.type},${rule.value},${rule.policy}"
         }
+    }
+
+    private fun providerFromJson(
+        name: String,
+        body: JsonObject,
+        source: RuleSource,
+    ): RuleProviderItem {
+        fun str(key: String): String =
+            body[key]?.let { runCatching { it.jsonPrimitive.content }.getOrNull() }.orEmpty()
+
+        fun int(key: String, default: Int): Int =
+            body[key]?.let { runCatching { it.jsonPrimitive.content.toIntOrNull() }.getOrNull() }
+                ?: default
+
+        return RuleProviderItem(
+            id = UUID.randomUUID().toString(),
+            name = name,
+            type = str("type").ifBlank { "http" },
+            behavior = str("behavior").ifBlank { "classical" },
+            url = str("url"),
+            path = str("path"),
+            interval = int("interval", 86400),
+            enabled = true,
+            source = source,
+        )
     }
 }

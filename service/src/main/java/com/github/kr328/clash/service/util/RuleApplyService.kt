@@ -2,6 +2,7 @@ package com.github.kr328.clash.service.util
 
 import android.content.Context
 import com.github.kr328.clash.common.log.Log
+import com.github.kr328.clash.core.Clash
 import com.github.kr328.clash.service.model.RuleItem
 import com.github.kr328.clash.service.model.RuleState
 import com.github.kr328.clash.service.model.RuleSource
@@ -30,7 +31,7 @@ class RuleApplyService(
     fun readStateJson(uuid: UUID): String? {
         val config = configFile(uuid) ?: return null
         Log.d("Read rule state")
-        return repository.readStateJson(uuid, config.readText())
+        return repository.readStateJson(uuid, config.parentFile!!)
     }
 
     fun applyStateJson(uuid: UUID, stateJson: String): Boolean {
@@ -52,16 +53,14 @@ class RuleApplyService(
 
     fun mergeProviderShortcut(uuid: UUID, providersYaml: String, prependRuleLine: String): Boolean {
         val config = configFile(uuid) ?: return false
-        val currentText = config.readText()
-        val current = repository.load(uuid, currentText)
+        val current = repository.load(uuid, config.parentFile!!)
         val merged = mergeProviderShortcutState(current, providersYaml, prependRuleLine)
         return applyState(uuid, config, merged)
     }
 
     fun dryRunMergeProviderShortcut(uuid: UUID, providersYaml: String, prependRuleLine: String): RuleDryRun? {
         val config = configFile(uuid) ?: return null
-        val currentText = config.readText()
-        val current = repository.load(uuid, currentText)
+        val current = repository.load(uuid, config.parentFile!!)
         return dryRunState(config, mergeProviderShortcutState(current, providersYaml, prependRuleLine))
     }
 
@@ -71,7 +70,7 @@ class RuleApplyService(
         prependRuleLine: String,
     ): RuleState {
         val incomingProviders = RuleMapper.parseProvidersYaml(providersYaml)
-        val incomingRule = parseRuleLine(prependRuleLine, current.rules.size)
+        val incomingRule = RuleMapper.parseRuleLine(prependRuleLine, current.rules.size)
         Log.d("Merge provider shortcut incomingProviders=${incomingProviders.size} incomingRule=${incomingRule != null}")
 
         val mergedProviders = (current.providers + incomingProviders)
@@ -92,13 +91,13 @@ class RuleApplyService(
 
     fun addRules(uuid: UUID, rawRules: List<String>, addMode: Boolean, insertMode: String): Boolean {
         val config = configFile(uuid) ?: return false
-        val current = repository.load(uuid, config.readText())
+        val current = repository.load(uuid, config.parentFile!!)
         return applyState(uuid, config, addRulesState(current, rawRules, addMode, insertMode))
     }
 
     fun dryRunAddRules(uuid: UUID, rawRules: List<String>, addMode: Boolean, insertMode: String): RuleDryRun? {
         val config = configFile(uuid) ?: return null
-        val current = repository.load(uuid, config.readText())
+        val current = repository.load(uuid, config.parentFile!!)
         return dryRunState(config, addRulesState(current, rawRules, addMode, insertMode))
     }
 
@@ -109,7 +108,7 @@ class RuleApplyService(
         insertMode: String,
     ): RuleState {
         val incoming = rawRules.mapIndexedNotNull { idx, line ->
-            parseRuleLine(line, idx)
+            RuleMapper.parseRuleLine(line, idx)
         }
         if (incoming.isEmpty()) return current
 
@@ -136,13 +135,13 @@ class RuleApplyService(
 
     fun mutateRule(uuid: UUID, ruleId: String, action: String, enabled: Boolean? = null): Boolean {
         val config = configFile(uuid) ?: return false
-        val state = repository.load(uuid, config.readText())
+        val state = repository.load(uuid, config.parentFile!!)
         return applyState(uuid, config, mutateRuleState(state, ruleId, action, enabled))
     }
 
     fun dryRunMutateRule(uuid: UUID, ruleId: String, action: String, enabled: Boolean? = null): RuleDryRun? {
         val config = configFile(uuid) ?: return null
-        val state = repository.load(uuid, config.readText())
+        val state = repository.load(uuid, config.parentFile!!)
         return dryRunState(config, mutateRuleState(state, ruleId, action, enabled))
     }
 
@@ -217,7 +216,8 @@ class RuleApplyService(
         if (!stateFile.isFile) return false
         return runCatching {
             val configText = configFile.readText()
-            val parsed = RuleMapper.parseStateFromConfig(configText)
+            val snapshot = Clash.parseProfileSnapshot(configFile.parentFile!!)
+            val parsed = RuleMapper.parseStateFromSnapshot(snapshot)
             val stored = stateJsonForReconcile.decodeFromString(
                 RuleState.serializer(),
                 stateFile.readText(),
@@ -294,41 +294,6 @@ class RuleApplyService(
     private fun configFile(uuid: UUID): File? {
         val file = File(context.importedDir, "$uuid/config.yaml")
         return file.takeIf { it.isFile }
-    }
-
-    private fun parseRuleLine(line: String, order: Int): RuleItem? {
-        val t = line.trim().removePrefix("-").trim()
-        if (t.isBlank()) return null
-        val parts = t.split(",").map { it.trim() }
-        val type = parts.firstOrNull().orEmpty()
-        if (type.isBlank()) return null
-        return if (type.equals("MATCH", true)) {
-            RuleItem(
-                id = UUID.randomUUID().toString(),
-                raw = t,
-                type = "MATCH",
-                value = "",
-                policy = parts.getOrElse(1) { "DIRECT" },
-                enabled = true,
-                deleted = false,
-                source = RuleSource.MANUAL,
-                order = order,
-            )
-        } else {
-            RuleItem(
-                id = UUID.randomUUID().toString(),
-                raw = t,
-                type = type.uppercase(),
-                value = parts.getOrElse(1) { "" },
-                policy = parts.getOrElse(2) { "DIRECT" },
-                enabled = true,
-                deleted = false,
-                source = if (type.equals("RULE-SET", true)) RuleSource.PROVIDER else RuleSource.MANUAL,
-                providerName = if (type.equals("RULE-SET", true)) parts.getOrElse(1) { "" }.ifBlank { null } else null,
-                isRestorable = type.equals("RULE-SET", true),
-                order = order,
-            )
-        }
     }
 
     private fun ruleLineKey(rule: RuleItem): String {

@@ -1,6 +1,7 @@
 package com.github.kr328.clash.service.util
 
 import android.content.Context
+import com.github.kr328.clash.core.Clash
 import com.github.kr328.clash.service.model.RuleSource
 import com.github.kr328.clash.service.model.RuleState
 import kotlinx.serialization.json.Json
@@ -14,8 +15,14 @@ class RuleRepository(private val context: Context) {
         prettyPrint = true
     }
 
-    fun load(uuid: UUID, configText: String): RuleState {
-        val parsed = RuleMapper.parseStateFromConfig(configText)
+    /**
+     * Loads the editor-facing state for a profile. The parse goes through
+     * mihomo (Clash.parseProfileSnapshot) — never through Kotlin-side YAML
+     * parsing — so rule strings (including AND/OR/SUB-RULE) survive intact.
+     */
+    fun load(uuid: UUID, profileDir: File): RuleState {
+        val snapshot = Clash.parseProfileSnapshot(profileDir)
+        val parsed = RuleMapper.parseStateFromSnapshot(snapshot)
         val file = stateFile(uuid)
         if (file.isFile) {
             runCatching {
@@ -35,8 +42,8 @@ class RuleRepository(private val context: Context) {
         file.writeText(json.encodeToString(RuleState.serializer(), state))
     }
 
-    fun readStateJson(uuid: UUID, configText: String): String {
-        val state = load(uuid, configText)
+    fun readStateJson(uuid: UUID, profileDir: File): String {
+        val state = load(uuid, profileDir)
         return json.encodeToString(RuleState.serializer(), state)
     }
 
