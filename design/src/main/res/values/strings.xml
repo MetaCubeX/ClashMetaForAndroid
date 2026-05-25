@@ -1,8 +1,8 @@
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="PluralsCandidate">
     <string name="launch_name_meta">ClashFest</string>
-    <string name="launch_name_alpha">ClashFest Alpha</string>
-    <string name="application_name_meta">ClashFest for Android</string>
-    <string name="application_name_alpha">ClashFest for Android Alpha</string>
+    <string name="launch_name_alpha">ClashFest</string>
+    <string name="application_name_meta">ClashFest</string>
+    <string name="application_name_alpha">ClashFest</string>
 
     <string name="stopped">Stopped</string>
     <string name="tap_to_start">Tap to start</string>
@@ -110,7 +110,7 @@ Presets only change <b>where</b> files are downloaded from (CDN / host). It is s
     <string name="main_open_theme_summary">Dark mode, palette and text scale</string>
     <string name="main_open_language_summary">Change app language without opening deep settings</string>
     <string name="main_open_subscription_identity_summary">HWID, clashfest:// scheme and copy buttons</string>
-    <string name="main_open_about_summary">Version info, core version and update check</string>
+    <string name="main_open_about_summary">Version info, 1 and update check</string>
 
     <!-- Routing hub screen -->
     <string name="routing_hub_tips">Manage how traffic is routed: rule snippets, the active rule list, and per-app inclusion/exclusion.</string>
