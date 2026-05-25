@@ -149,6 +149,12 @@ class ProfileAdapter(
     }
 
     fun updateElapsed() {
+        // Full rebind is acceptable here: this is invoked from the profile
+        // ticker (TimeUnit.MINUTES.toMillis(2)) — every two minutes, not on a
+        // scroll-sensitive cadence. Moving it to a payload-based partial bind
+        // would require splitting onBindViewHolder into time-dependent / time-
+        // independent halves, which is not worth the maintenance cost for a
+        // 0.5/min event.
         notifyDataSetChanged()
     }
 
@@ -203,6 +209,18 @@ class ProfileAdapter(
         ) {
             return
         }
+        // Capture what was here so we can compute which profile cards actually
+        // need a rebind. Doing a full notifyDataSetChanged from this hot path
+        // (interactive dashboard ticker fires it every ~2s) was the main scroll
+        // jank source: every visible card got rebound from scratch even when
+        // only one profile's selection map changed.
+        val previousActiveUuid = this.activeProfileUuid
+        val previousMode = this.tunnelMode
+        val previousLastGroupHint = this.lastGroupHint
+        val previousOfflinePreview = this.offlinePreviewByProfile
+        val previousOfflineSelections = this.offlineSelectionsByProfile
+        val previousTransportInfo = this.transportInfoByProfile
+
         this.transportInfoByProfile = transportInfoByProfile
         // Only reset runtime proxies when identity actually changes. The core may return the
         // same selector list in a different order after patchSelector; treating that like a
@@ -234,7 +252,70 @@ class ProfileAdapter(
         clashRunning = running
         tunnelMode = mode
         this.lastGroupHint = lastGroupHint
-        notifyDataSetChanged()
+        dispatchProxyContextChanges(
+            previousActiveUuid = previousActiveUuid,
+            previousMode = previousMode,
+            previousLastGroupHint = previousLastGroupHint,
+            previousOfflinePreview = previousOfflinePreview,
+            previousOfflineSelections = previousOfflineSelections,
+            previousTransportInfo = previousTransportInfo,
+            runningChanged = runningChanged,
+            groupSetChanged = groupSetChanged,
+        )
+    }
+
+    /**
+     * Computes the set of profile cards actually affected by a setProxyContext
+     * batch and issues a single notifyItemChanged per affected position.
+     *
+     * The rules are intentionally conservative — when in doubt we still notify,
+     * because a missed update would look like a stale card. The point is to
+     * avoid full notifyDataSetChanged for the common case where only the
+     * active profile's selection / transport map changed: that case used to
+     * rebind every visible card and was the dominant cause of scroll jank.
+     */
+    private fun dispatchProxyContextChanges(
+        previousActiveUuid: UUID?,
+        previousMode: TunnelState.Mode?,
+        previousLastGroupHint: String?,
+        previousOfflinePreview: Map<UUID, Map<String, ProxyGroupPreviewRow>>,
+        previousOfflineSelections: Map<UUID, Map<String, String>>,
+        previousTransportInfo: Map<UUID, Map<String, ProxyTransportInfo>>,
+        runningChanged: Boolean,
+        groupSetChanged: Boolean,
+    ) {
+        val affected = HashSet<UUID>()
+
+        // Active-profile identity flips both the visual "this card is on" badge
+        // and engine/offline routing — touch the old card and the new one.
+        if (previousActiveUuid != activeProfileUuid) {
+            previousActiveUuid?.let(affected::add)
+            activeProfileUuid?.let(affected::add)
+        }
+        // Engine identity (running/group set) influences the active card's
+        // expanded carriage (engine path vs offline preview). Other cards
+        // never consult these fields so they don't need a rebind.
+        if (runningChanged || groupSetChanged || previousLastGroupHint != lastGroupHint || previousMode != tunnelMode) {
+            activeProfileUuid?.let(affected::add)
+        }
+        // Per-profile maps only affect the profile whose UUID actually moved.
+        previousOfflinePreview.collectDiffKeys(offlinePreviewByProfile, affected)
+        previousOfflineSelections.collectDiffKeys(offlineSelectionsByProfile, affected)
+        previousTransportInfo.collectDiffKeys(transportInfoByProfile, affected)
+
+        if (affected.isEmpty()) return
+        for (i in profiles.indices) {
+            if (profiles[i].uuid in affected) notifyItemChanged(i)
+        }
+    }
+
+    private fun <K, V> Map<K, V>.collectDiffKeys(other: Map<K, V>, into: HashSet<K>) {
+        for ((key, value) in this) {
+            if (other[key] != value) into.add(key)
+        }
+        for ((key, value) in other) {
+            if (this[key] != value) into.add(key)
+        }
     }
 
     fun setProxyDetails(details: Map<String, ProxyGroup>) {
@@ -284,10 +365,14 @@ class ProfileAdapter(
     fun clearProxyDetails() {
         if (proxyDetails.isEmpty()) return
         proxyDetails = emptyMap()
-        activeProfileUuid?.let { uuid ->
-            val i = profiles.indexOfFirst { it.uuid == uuid }
-            if (i >= 0) notifyItemChanged(i)
-        } ?: notifyDataSetChanged()
+        // Only the active card reads proxyDetails — clearing it cannot change
+        // anything on the other rows. If we don't know who the active profile
+        // is right now (rare race during VPN off→on), no card depends on the
+        // stale details either; skipping the rebind here avoids the same
+        // scroll-jank pattern setProxyContext used to cause.
+        val uuid = activeProfileUuid ?: return
+        val i = profiles.indexOfFirst { it.uuid == uuid }
+        if (i >= 0) notifyItemChanged(i)
     }
 
     fun setPendingProxySelection(uuid: UUID, groupName: String, proxyName: String) {
