@@ -1,5 +1,6 @@
 package com.github.kr328.clash.service.util
 
+import com.github.kr328.clash.core.model.ProfileSnapshot
 import java.io.File
 
 /**
@@ -31,12 +32,22 @@ object SubscriptionUpdateMerge {
         }
     }
 
-    fun extractPreserved(configYaml: String): PreservedOverlay {
-        val document = MihomoConfigDocument.parse(configYaml) ?: return PreservedOverlay.EMPTY
-        val rp = document.ruleProviders
-        val rules = document.rules
-        val pp = document.proxyProviders
-        val pg = document.proxyGroups
+    /**
+     * Snapshot-based extraction. The caller is responsible for obtaining the
+     * snapshot from the engine (typically `Clash.parseProfileSnapshot(profileDir)`)
+     * before the fetch overwrites config.yaml. Engine-parsed values are
+     * converted to plain Map/List/scalar trees so the existing mergeAfterFetch
+     * pipeline (which dumps back via SnakeYAML) keeps working unchanged.
+     */
+    fun extractPreserved(snapshot: ProfileSnapshot): PreservedOverlay {
+        val rp = snapshot.ruleProviders.takeIf { it.isNotEmpty() }
+            ?.let { JsonElementToYaml.convertObjectMap(it) }
+        val rules = snapshot.rules.takeIf { it.isNotEmpty() }
+            ?.let { ArrayList<Any?>(it) }
+        val pp = snapshot.proxyProviders.takeIf { it.isNotEmpty() }
+            ?.let { JsonElementToYaml.convertObjectMap(it) }
+        val pg = snapshot.proxyGroups.takeIf { it.isNotEmpty() }
+            ?.let { JsonElementToYaml.convertObjectList(it) }
         if (rp == null && rules == null && pp == null && pg == null) return PreservedOverlay.EMPTY
         return PreservedOverlay(rp, rules, pp, pg)
     }

@@ -208,7 +208,12 @@ object ProfileProcessor {
 
                 val configFile = File(context.processingDir, "config.yaml")
                 val preserved = if (configFile.isFile) {
-                    SubscriptionUpdateMerge.extractPreserved(configFile.readText())
+                    runCatching { Clash.parseProfileSnapshot(context.processingDir) }
+                        .map { SubscriptionUpdateMerge.extractPreserved(it) }
+                        .getOrElse {
+                            Log.w("Failed to snapshot pre-fetch profile for preservation; continuing without overlay", it)
+                            SubscriptionUpdateMerge.PreservedOverlay.EMPTY
+                        }
                 } else {
                     SubscriptionUpdateMerge.PreservedOverlay.EMPTY
                 }
