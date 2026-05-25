@@ -24,6 +24,7 @@ object Bridge {
     external fun nativeStartHttp(listenAt: String): String?
     external fun nativeStopHttp()
     external fun nativeQueryGroupNames(excludeNotSelectable: Boolean): String
+    external fun nativeQueryAllGroupNamesIncludingHidden(): String
     external fun nativeQueryGroup(name: String, sort: String): String?
     external fun nativeHealthCheck(completable: CompletableDeferred<Unit>, name: String)
     external fun nativeHealthCheckAll()

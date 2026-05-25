@@ -113,6 +113,23 @@ object Clash {
         }
     }
 
+    /**
+     * Returns every proxy group, including those with `hidden: true`.
+     * Use this for health-check warmup discovery — subscriptions with deep
+     * group trees often hide every url-test/fallback child behind a single
+     * visible `select` root, and queryGroupNames would filter them out.
+     */
+    fun queryAllGroupNamesIncludingHidden(): List<String> {
+        val names = Json.Default.decodeFromString(
+            JsonArray.serializer(),
+            Bridge.nativeQueryAllGroupNamesIncludingHidden()
+        )
+        return names.map {
+            require(it.jsonPrimitive.isString)
+            it.jsonPrimitive.content
+        }
+    }
+
     fun queryGroup(name: String, sort: ProxySort): ProxyGroup {
         return Bridge.nativeQueryGroup(name, sort.name)
             ?.let { Json.Default.decodeFromString(ProxyGroup.serializer(), it) }

@@ -42,6 +42,11 @@ func queryGroupNames(excludeNotSelectable C.int) *C.char {
 	return marshalJson(tunnel.QueryProxyGroupNames(excludeNotSelectable != 0))
 }
 
+//export queryAllGroupNamesIncludingHidden
+func queryAllGroupNamesIncludingHidden() *C.char {
+	return marshalJson(tunnel.QueryAllProxyGroupNamesIncludingHidden())
+}
+
 //export queryGroup
 func queryGroup(name C.c_string, sortMode C.c_string) *C.char {
 	n := C.GoString(name)

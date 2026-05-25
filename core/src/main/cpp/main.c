@@ -169,6 +169,15 @@ Java_com_github_kr328_clash_core_bridge_Bridge_nativeQueryGroupNames(JNIEnv *env
 }
 
 JNIEXPORT jstring JNICALL
+Java_com_github_kr328_clash_core_bridge_Bridge_nativeQueryAllGroupNamesIncludingHidden(JNIEnv *env, jobject thiz) {
+    TRACE_METHOD();
+
+    scoped_string response = queryAllGroupNamesIncludingHidden();
+
+    return new_string(response);
+}
+
+JNIEXPORT jstring JNICALL
 Java_com_github_kr328_clash_core_bridge_Bridge_nativeQueryGroup(JNIEnv *env, jobject thiz,
                                                                 jstring name, jstring mode) {
     TRACE_METHOD();

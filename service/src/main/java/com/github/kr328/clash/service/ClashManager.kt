@@ -39,6 +39,10 @@ class ClashManager(private val context: Context) : IClashManager,
         return Clash.queryGroupNames(excludeNotSelectable)
     }
 
+    override fun queryAllProxyGroupNamesIncludingHidden(): List<String> {
+        return Clash.queryAllGroupNamesIncludingHidden()
+    }
+
     override fun queryProxyGroup(name: String, proxySort: ProxySort): ProxyGroup {
         return Clash.queryGroup(name, proxySort)
     }

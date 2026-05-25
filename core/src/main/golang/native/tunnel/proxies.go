@@ -64,6 +64,20 @@ func proxyGroupVisibleWithSelectableFilter(adapterType C.AdapterType) bool {
 }
 
 func QueryProxyGroupNames(excludeNotSelectable bool) []string {
+	return queryProxyGroupNames(excludeNotSelectable, false)
+}
+
+// QueryAllProxyGroupNamesIncludingHidden returns every proxy group, including
+// `hidden: true` entries that QueryProxyGroupNames filters out for the UI.
+// Used by the health-check warmup path: subscriptions with deep group trees
+// where the user-facing root is `select` but every url-test/fallback child is
+// hidden would otherwise never get a health check triggered, because the
+// warmup builds its candidate set from the visible-name list.
+func QueryAllProxyGroupNamesIncludingHidden() []string {
+	return queryProxyGroupNames(false, true)
+}
+
+func queryProxyGroupNames(excludeNotSelectable bool, includeHidden bool) []string {
 	mode := tunnel.Mode()
 
 	if mode == tunnel.Direct {
@@ -81,7 +95,7 @@ func QueryProxyGroupNames(excludeNotSelectable bool) []string {
 	for _, p := range proxies {
 		if g, ok := p.Adapter().(outboundgroup.ProxyGroup); ok {
 			if !excludeNotSelectable || proxyGroupVisibleWithSelectableFilter(p.Type()) {
-				if g.Hidden() {
+				if g.Hidden() && !includeHidden {
 					continue
 				}
 				result = append(result, p.Name())

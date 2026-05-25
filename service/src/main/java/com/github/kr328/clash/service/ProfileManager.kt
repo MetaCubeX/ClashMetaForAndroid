@@ -476,7 +476,18 @@ class ProfileManager(private val context: Context) : IProfileManager,
             }
             try {
                 val snapshot = Clash.parseProfileSnapshot(file.parentFile!!)
-                ProxyGroupsYamlPreview.parseProxyGroupsPreview(snapshot, file.parentFile)
+                // includeHidden = true: when the live engine path serves the
+                // UI, the picker pills walk every group (visible + hidden) via
+                // Clash.queryAllProxyGroupNamesIncludingHidden, so the offline
+                // preview must match that universe — otherwise hidden auto
+                // subgroups have no rows during the warmup race (live data not
+                // ready yet, offline fallback missing the group), and the
+                // expanded carriage flashes empty until proxyDetails arrives.
+                ProxyGroupsYamlPreview.parseProxyGroupsPreview(
+                    snapshot,
+                    file.parentFile,
+                    includeHidden = true,
+                )
             } catch (_: Exception) {
                 emptyMap()
             }
