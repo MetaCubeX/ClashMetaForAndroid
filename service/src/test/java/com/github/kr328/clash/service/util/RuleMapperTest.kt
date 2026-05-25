@@ -145,6 +145,88 @@ class RuleMapperTest {
     }
 
     @Test
+    fun inferFormat_recoversMrsFromPathExtension() {
+        // Legacy config where format: was silently stripped by the old
+        // mergeStateIntoConfig. The .mrs extension on path is enough to
+        // restore the correct format on next read.
+        assertEquals(
+            "mrs",
+            RuleMapper.inferFormat(declared = "", path = "./ruleset/apple.mrs", url = ""),
+        )
+    }
+
+    @Test
+    fun inferFormat_recoversMrsFromUrlExtension() {
+        assertEquals(
+            "mrs",
+            RuleMapper.inferFormat(
+                declared = "",
+                path = "",
+                url = "https://example.com/release/apple.mrs",
+            ),
+        )
+    }
+
+    @Test
+    fun inferFormat_recoversMrsIgnoringUrlQueryString() {
+        // Some CDNs append ?v=hash; the strip-before-?
+        // keeps the heuristic honest.
+        assertEquals(
+            "mrs",
+            RuleMapper.inferFormat(
+                declared = "",
+                path = "",
+                url = "https://cdn.example.com/apple.mrs?ver=20251015",
+            ),
+        )
+    }
+
+    @Test
+    fun inferFormat_doesNotOverrideExplicitDeclaration() {
+        // If the config says format: text we trust it, even if path looks
+        // like .mrs (extremely unlikely but defensive).
+        assertEquals(
+            "text",
+            RuleMapper.inferFormat(declared = "text", path = "./ruleset/foo.mrs", url = ""),
+        )
+    }
+
+    @Test
+    fun inferFormat_leavesYamlProvidersAlone() {
+        // No .mrs hint anywhere → return empty (mihomo defaults to yaml).
+        assertEquals(
+            "",
+            RuleMapper.inferFormat(
+                declared = "",
+                path = "./ruleset/myrules.yaml",
+                url = "https://example.com/myrules.yaml",
+            ),
+        )
+    }
+
+    @Test
+    fun parseStateFromSnapshot_recoversMissingMrsFormatFromPath() {
+        // End-to-end: snapshot has a provider with no format: but a .mrs
+        // path - parseStateFromSnapshot must reconstruct format = "mrs" so
+        // the next mergeStateIntoConfig writes the correct field back.
+        val snapshot = ProfileSnapshot(
+            rules = emptyList(),
+            ruleProviders = mapOf(
+                "apple" to providerJson(
+                    "type" to "http",
+                    "behavior" to "domain",
+                    "url" to "https://example.com/apple.mrs",
+                    "path" to "./ruleset/apple.mrs",
+                ),
+            ),
+        )
+
+        val state = RuleMapper.parseStateFromSnapshot(snapshot)
+
+        assertEquals("mrs", state.providers[0].format)
+    }
+
+    @Test
     fun parseStateFromSnapshot_preservesProviderFormatForMrs() {
         // Regression: mergeStateIntoConfig used to write only 5 provider
         // fields (type/behavior/url/path/interval). A `.mrs` provider relies

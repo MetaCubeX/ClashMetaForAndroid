@@ -142,15 +142,21 @@ object RuleMapper {
             val key = entry.key?.toString()?.trim().orEmpty()
             val body = entry.value as? Map<*, *> ?: return@mapIndexedNotNull null
             if (key.isEmpty()) return@mapIndexedNotNull null
+            val rawPath = body["path"]?.toString().orEmpty()
+            val rawUrl = body["url"]?.toString().orEmpty()
             RuleProviderItem(
                 id = UUID.randomUUID().toString(),
                 name = key,
                 type = body["type"]?.toString().orEmpty().ifBlank { "http" },
                 behavior = body["behavior"]?.toString().orEmpty().ifBlank { "classical" },
-                url = body["url"]?.toString().orEmpty(),
-                path = body["path"]?.toString().orEmpty(),
+                url = rawUrl,
+                path = rawPath,
                 interval = body["interval"]?.toString()?.toIntOrNull() ?: 86400,
-                format = body["format"]?.toString().orEmpty(),
+                format = inferFormat(
+                    declared = body["format"]?.toString().orEmpty(),
+                    path = rawPath,
+                    url = rawUrl,
+                ),
                 enabled = true,
                 source = RuleSource.MANUAL,
             )
@@ -262,20 +268,45 @@ object RuleMapper {
             body[key]?.let { runCatching { it.jsonPrimitive.content.toIntOrNull() }.getOrNull() }
                 ?: default
 
+        val rawPath = str("path")
+        val rawUrl = str("url")
         return RuleProviderItem(
             id = UUID.randomUUID().toString(),
             name = name,
             type = str("type").ifBlank { "http" },
             behavior = str("behavior").ifBlank { "classical" },
-            url = str("url"),
-            path = str("path"),
+            url = rawUrl,
+            path = rawPath,
             interval = int("interval", 86400),
             // Optional in mihomo (defaults to "yaml"). Critical for .mrs
             // providers: without "mrs" here, mergeStateIntoConfig will drop
             // the field and mihomo will try to parse the binary as YAML.
-            format = str("format"),
+            format = inferFormat(declared = str("format"), path = rawPath, url = rawUrl),
             enabled = true,
             source = source,
         )
+    }
+
+    /**
+     * Recovers a provider's `format:` field when it is missing from the
+     * config but the path or url extension makes the binary format obvious.
+     *
+     * This is a one-way heuristic — we never *override* an explicitly set
+     * value, we only *fill in* a blank. Triggered specifically by a class of
+     * pre-Path-B configs where mergeStateIntoConfig used to silently strip
+     * `format:` and turn .mrs providers into broken classical-yaml parses.
+     *
+     * Conservative: only the `.mrs` suffix is recovered. `.txt`/`.list` could
+     * imply `format: text`, but those are also valid as classical-yaml when
+     * the file actually has a `payload:` block, so we don't guess there.
+     */
+    internal fun inferFormat(declared: String, path: String, url: String): String {
+        if (declared.isNotBlank()) return declared
+        val pathLower = path.trim().lowercase()
+        val urlLower = url.trim().lowercase()
+        if (pathLower.endsWith(".mrs") || urlLower.substringBefore('?').endsWith(".mrs")) {
+            return "mrs"
+        }
+        return ""
     }
 }
