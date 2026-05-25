@@ -207,12 +207,16 @@ class RuleApplyService(
         val mergedSnapshot = Clash.parseProfileSnapshotFromYaml(mergedYaml)
         val proxyGroups = ProxyGroupsYamlPreview.listProxyGroupNames(mergedSnapshot).toSet()
         RuleValidator.validate(normalized, proxyGroups)
-        // Engine veto: ask mihomo whether it would actually load this YAML.
-        // Covers rule grammar, provider definition shape, regex compile, and
-        // group reference resolution - all the checks our Kotlin-side helpers
-        // used to approximate via YamlPreviewSupport.validateConfigYaml.
+        // Soft engine check: ask mihomo whether it would accept the merged
+        // YAML and surface its verdict in the log. We do NOT block the write
+        // on failure - ParseRawConfig also loads provider files, which means
+        // a broken provider .mrs/.yaml on disk would block legitimate rule
+        // edits (toggle/delete) that have nothing to do with the provider.
+        // Use the log to spot issues; the runtime apply will hard-fail later
+        // if mihomo really can't load, and at that point the user fixes the
+        // provider, not their edits.
         Clash.validateProfileBytes(mergedYaml)?.let { engineError ->
-            throw IllegalStateException("mihomo rejected merged config: $engineError")
+            Log.w("Engine flagged merged config (continuing anyway): $engineError")
         }
         return RuleDryRun(currentYaml, mergedYaml, normalized)
     }
@@ -251,10 +255,9 @@ class RuleApplyService(
                 customAsn = serviceStore.geoDataCustomAsn,
             )
             val mergedYaml = RuleMapper.mergeStateIntoConfig(configText, normalized, geoDataUrls)
-            // Same engine veto as dryRunState: if mihomo would refuse the reconciled
-            // YAML, abort the reconcile and leave mergeAfterFetch's output on disk.
+            // Soft engine check (see dryRunState comment for the rationale).
             Clash.validateProfileBytes(mergedYaml)?.let { engineError ->
-                throw IllegalStateException("mihomo rejected reconciled config: $engineError")
+                Log.w("Engine flagged reconciled config (continuing anyway): $engineError")
             }
             configFile.writeText(mergedYaml)
             stateFile.writeText(stateJsonForReconcile.encodeToString(RuleState.serializer(), normalized))

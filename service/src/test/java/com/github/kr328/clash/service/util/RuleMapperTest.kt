@@ -80,6 +80,60 @@ class RuleMapperTest {
     }
 
     @Test
+    fun parseStateFromSnapshot_classifiesSubscriptionOwnedTypesAsProvider() {
+        // Regression: GEOSITE / GEOIP / MATCH / AND / OR / NOT / SUB-RULE
+        // cannot be entered via the UI add-rule form, so when they appear in
+        // config.yaml they came from the subscription. Marking them MANUAL
+        // (the parseRuleLine default for UI-add flows) caused
+        // syncProviderRules to retain stale entries across subscription
+        // refreshes that no longer contained them.
+        val snapshot = snapshotWith(
+            "GEOSITE,category-ads-all,REJECT",
+            "GEOIP,private,DIRECT",
+            "MATCH,GLOBAL",
+            "AND,((NETWORK,UDP),(DST-PORT,53)),DIRECT",
+            "OR,((GEOIP,CN),(DOMAIN-SUFFIX,cn)),DIRECT",
+            "NOT,((GEOIP,CN)),Proxy",
+            "SUB-RULE,((DOMAIN,foo.com)),GLOBAL",
+            "RULE-SET,myrules,Proxy",
+        )
+
+        val state = RuleMapper.parseStateFromSnapshot(snapshot)
+
+        // Every subscription-owned type comes back as PROVIDER.
+        state.rules.forEachIndexed { index, rule ->
+            assertEquals(
+                "rule[$index] type=${rule.type} must be PROVIDER",
+                RuleSource.PROVIDER,
+                rule.source,
+            )
+        }
+    }
+
+    @Test
+    fun parseStateFromSnapshot_keepsManualTypesAsManual() {
+        // User-addable types stay MANUAL when read from config.yaml so
+        // subscription refresh does not wipe DOMAIN/IP-CIDR entries the
+        // user added through the UI.
+        val snapshot = snapshotWith(
+            "DOMAIN,example.com,DIRECT",
+            "DOMAIN-SUFFIX,corp.local,DIRECT",
+            "IP-CIDR,10.0.0.0/8,DIRECT",
+            "DOMAIN-KEYWORD,ads,REJECT",
+        )
+
+        val state = RuleMapper.parseStateFromSnapshot(snapshot)
+
+        state.rules.forEach { rule ->
+            assertEquals(
+                "rule type=${rule.type} must keep MANUAL classification",
+                RuleSource.MANUAL,
+                rule.source,
+            )
+        }
+    }
+
+    @Test
     fun parseStateFromSnapshot_handlesMatchWithTrailingTarget() {
         val snapshot = snapshotWith("MATCH,GLOBAL")
 

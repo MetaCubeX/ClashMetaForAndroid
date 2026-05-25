@@ -20,6 +20,21 @@ object RuleMapper {
     // the raw line as-is and never re-synthesise it from type/value/policy.
     private val OPAQUE_RULE_TYPES = setOf("AND", "OR", "NOT", "SUB-RULE", "SCRIPT")
 
+    // Rule types that only exist via subscription content - the UI does not
+    // offer a form to add these manually. When we read them out of config.yaml
+    // they are by definition PROVIDER-sourced. Marking them MANUAL caused
+    // syncProviderRules to retain stale entries after a subscription refresh
+    // that no longer contained them (e.g. GEOSITE,category-ads-all,REJECT
+    // surviving across an update that deleted it).
+    //
+    // Kept in sync with SubscriptionUpdateMerge.SUBSCRIPTION_OWNED_RULE_TYPES
+    // by intent: those are the same types the merge step drops from preserved
+    // overlays. Both files own a copy to keep the dependency direction clean.
+    private val SUBSCRIPTION_OWNED_RULE_TYPES = setOf(
+        "RULE-SET", "GEOSITE", "GEOIP", "MATCH",
+        "SUB-RULE", "AND", "OR", "NOT",
+    )
+
     /**
      * Build the editor-facing state from an engine-parsed snapshot. This is
      * the entry point for the Path B read pipeline — rule strings arrive
@@ -31,7 +46,21 @@ object RuleMapper {
             providerFromJson(name, body, source = RuleSource.PROVIDER)
         }
         val rules = snapshot.rules.mapIndexedNotNull { index, raw ->
-            parseRuleLine(raw, index)
+            parseRuleLine(raw, index)?.let { item ->
+                // Subscription-owned types (RULE-SET, GEOSITE, GEOIP, MATCH,
+                // SUB-RULE, AND, OR, NOT) cannot be entered through the UI
+                // add form, so when we see them in config.yaml they came
+                // from the subscription. Override the default MANUAL source
+                // so syncProviderRules drops them cleanly on a refresh that
+                // no longer contains them. User-typed types (DOMAIN, IP-CIDR,
+                // DOMAIN-SUFFIX, ...) keep the helper's MANUAL default - that
+                // is what lets manual entries survive subscription updates.
+                if (item.type.uppercase() in SUBSCRIPTION_OWNED_RULE_TYPES) {
+                    item.copy(source = RuleSource.PROVIDER)
+                } else {
+                    item
+                }
+            }
         }
         return RuleState(providers = providers, rules = rules)
     }
