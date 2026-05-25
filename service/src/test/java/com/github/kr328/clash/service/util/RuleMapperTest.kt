@@ -145,6 +145,33 @@ class RuleMapperTest {
     }
 
     @Test
+    fun parseStateFromSnapshot_preservesProviderFormatForMrs() {
+        // Regression: mergeStateIntoConfig used to write only 5 provider
+        // fields (type/behavior/url/path/interval). A `.mrs` provider relies
+        // on `format: mrs` to tell mihomo it's a binary file - drop the
+        // field and the engine tries to parse the binary as YAML and fails
+        // with 'file must have a payload field' on every refresh after a
+        // UI edit.
+        val snapshot = ProfileSnapshot(
+            rules = emptyList(),
+            ruleProviders = mapOf(
+                "apple" to providerJson(
+                    "type" to "http",
+                    "behavior" to "domain",
+                    "format" to "mrs",
+                    "url" to "https://example.com/apple.mrs",
+                    "path" to "./ruleset/apple.mrs",
+                ),
+            ),
+        )
+
+        val state = RuleMapper.parseStateFromSnapshot(snapshot)
+
+        assertEquals(1, state.providers.size)
+        assertEquals("mrs", state.providers[0].format)
+    }
+
+    @Test
     fun parseStateFromSnapshot_mapsRuleProviders() {
         val snapshot = ProfileSnapshot(
             rules = emptyList(),

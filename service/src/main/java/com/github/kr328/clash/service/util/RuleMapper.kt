@@ -71,13 +71,19 @@ object RuleMapper {
         root["rule-providers"] = state.providers
             .filter { it.enabled }
             .associate { p ->
-                p.name to linkedMapOf(
+                p.name to linkedMapOf<String, Any?>(
                     "type" to p.type,
                     "behavior" to p.behavior,
                     "url" to p.url,
                     "path" to p.path.ifBlank { "./ruleset/${p.name}.yaml" },
                     "interval" to p.interval,
-                )
+                ).apply {
+                    // Preserve `format:` for non-yaml providers (mrs/text).
+                    // Dropping it silently turned mrs providers into broken
+                    // classical-yaml parses with "file must have a payload
+                    // field" on every refresh after a UI edit.
+                    if (p.format.isNotBlank()) put("format", p.format)
+                }
             }
 
         root["rules"] = state.rules
@@ -144,6 +150,7 @@ object RuleMapper {
                 url = body["url"]?.toString().orEmpty(),
                 path = body["path"]?.toString().orEmpty(),
                 interval = body["interval"]?.toString()?.toIntOrNull() ?: 86400,
+                format = body["format"]?.toString().orEmpty(),
                 enabled = true,
                 source = RuleSource.MANUAL,
             )
@@ -263,6 +270,10 @@ object RuleMapper {
             url = str("url"),
             path = str("path"),
             interval = int("interval", 86400),
+            // Optional in mihomo (defaults to "yaml"). Critical for .mrs
+            // providers: without "mrs" here, mergeStateIntoConfig will drop
+            // the field and mihomo will try to parse the binary as YAML.
+            format = str("format"),
             enabled = true,
             source = source,
         )
