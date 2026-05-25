@@ -211,6 +211,36 @@ object Clash {
         }
     }
 
+    /**
+     * Parses the profile via mihomo and returns its structural snapshot
+     * (rules, proxy-groups, providers). This is the source of truth for UI
+     * READ-operations — no YAML parsing should happen in Kotlin.
+     *
+     * Synchronous JNI call. Profile parsing is in the 10-50ms range on typical
+     * configs, so call from a background dispatcher (`Dispatchers.IO`).
+     *
+     * The call does not hit the network: providers are not fetched, only their
+     * paths are rewritten.
+     *
+     * @throws ClashException with mihomo's verbatim error message when the
+     *         profile cannot be parsed (invalid YAML, missing required fields,
+     *         etc).
+     */
+    fun parseProfileSnapshot(path: File): ProfileSnapshot {
+        val envelope = ProfileSnapshotJson.decodeFromString(
+            ProfileSnapshotEnvelope.serializer(),
+            Bridge.nativeParseProfileSnapshot(path.absolutePath),
+        )
+        if (!envelope.ok || envelope.snapshot == null) {
+            throw ClashException(envelope.error ?: "failed to parse profile")
+        }
+        return envelope.snapshot
+    }
+
+    private val ProfileSnapshotJson = Json {
+        ignoreUnknownKeys = true
+    }
+
     fun queryProviders(): List<Provider> {
         val providers =
             Json.Default.decodeFromString(JsonArray.serializer(), Bridge.nativeQueryProviders())

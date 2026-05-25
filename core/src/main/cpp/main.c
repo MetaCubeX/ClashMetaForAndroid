@@ -236,6 +236,18 @@ Java_com_github_kr328_clash_core_bridge_Bridge_nativeValidateProfile(JNIEnv *env
     validateProfile(_completable, _path);
 }
 
+JNIEXPORT jstring JNICALL
+Java_com_github_kr328_clash_core_bridge_Bridge_nativeParseProfileSnapshot(JNIEnv *env, jobject thiz,
+                                                                          jstring path) {
+    TRACE_METHOD();
+
+    scoped_string _path = get_string(path);
+
+    scoped_string response = parseProfileSnapshot(_path);
+
+    return new_string(response);
+}
+
 JNIEXPORT void JNICALL
 Java_com_github_kr328_clash_core_bridge_Bridge_nativeFetchAndValid(JNIEnv *env, jobject thiz,
                                                                    jobject callback,

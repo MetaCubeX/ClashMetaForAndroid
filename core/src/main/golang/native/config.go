@@ -10,6 +10,7 @@ import (
 
 	"cfa/native/app"
 	"cfa/native/config"
+	"cfa/native/snapshot"
 )
 
 var subscriptionFetchSessionMu sync.Mutex
@@ -84,6 +85,11 @@ func validateProfile(completable unsafe.Pointer, path C.c_string) {
 
 		runtime.GC()
 	}(C.GoString(path))
+}
+
+//export parseProfileSnapshot
+func parseProfileSnapshot(path C.c_string) *C.char {
+	return C.CString(snapshot.MarshalJSON(C.GoString(path)))
 }
 
 //export readOverride
