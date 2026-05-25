@@ -22,7 +22,7 @@ This document covers the things you need before opening a PR. If you are using a
   One topic branch per logical change. Long-running umbrella work (e.g. Path B) lives on its own branch and ships as a series of small commits inside it; do not pile unrelated fixes on the same branch.
 - **Fork lineage:** `kr328/ClashForAndroid` → `MetaCubeX/ClashMetaForAndroid` → `Nemu-x/ClashFest`. We try not to drift further from upstream than necessary — see "Working with upstream" below.
 - **Read first:** [AGENTS.md](AGENTS.md) (security rules, UI invariants, module layout, what *not* to do) and the relevant docs under [`docs/`](docs/) for the area you are touching.
-- **Language:** every committed file — code comments, docs, KDoc, commit messages, PR descriptions — is in English. Working drafts kept locally (untracked) can be in any language while in progress; once it lands in a PR it is English.
+- **Language:** authoring text — code comments, KDoc, files under [`docs/`](docs/), commit messages, and PR descriptions — is in English. User-visible app strings stay localized as section 3 requires (EN + RU + ZH mandatory, others optional). Working drafts kept locally (untracked) can be in any language while in progress; once it lands in a PR the authoring text is English.
 
 ## 2. Building
 
