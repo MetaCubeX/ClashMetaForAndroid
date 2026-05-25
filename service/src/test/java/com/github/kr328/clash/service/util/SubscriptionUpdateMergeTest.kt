@@ -136,6 +136,157 @@ class SubscriptionUpdateMergeTest {
     }
 
     @Test
+    fun mergeAfterFetch_dropsUnreferencedRuleProviders() {
+        // Preserved overlay carries a rule-provider 'apple' from the old
+        // subscription. The new subscription no longer references it via any
+        // RULE-SET rule, so the merge should NOT carry it forward — mihomo
+        // would otherwise refetch it every interval for nothing.
+        val preserved = SubscriptionUpdateMerge.extractPreserved(
+            snapshot(
+                rules = listOf("DOMAIN,manual.example.com,DIRECT"),
+                ruleProviders = mapOf(
+                    "apple" to jsonObj(
+                        "type" to JsonPrimitive("http"),
+                        "behavior" to JsonPrimitive("domain"),
+                        "format" to JsonPrimitive("mrs"),
+                        "url" to JsonPrimitive("https://example.com/apple.mrs"),
+                    ),
+                    "used-by-fetched" to jsonObj(
+                        "type" to JsonPrimitive("http"),
+                        "behavior" to JsonPrimitive("classical"),
+                        "url" to JsonPrimitive("https://example.com/used.yaml"),
+                    ),
+                ),
+            ),
+        )
+
+        val fetched = """
+            mixed-port: 7890
+            proxies:
+              - name: node-a
+                type: ss
+                server: 1.2.3.4
+                port: 8388
+                cipher: aes-256-gcm
+                password: x
+            rule-providers:
+              used-by-fetched:
+                type: http
+                behavior: classical
+                url: "https://example.com/used.yaml"
+            rules:
+              - RULE-SET,used-by-fetched,DIRECT
+              - MATCH,GLOBAL
+        """.trimIndent()
+
+        val merged = SubscriptionUpdateMerge.mergeAfterFetch(fetched, preserved)
+
+        assertTrue(
+            "kept provider must survive: $merged",
+            merged.contains("used-by-fetched"),
+        )
+        assertFalse(
+            "unreferenced apple.mrs must be GC'd: $merged",
+            merged.contains("apple.mrs"),
+        )
+        assertFalse(
+            "unreferenced 'apple:' key must be gone: $merged",
+            merged.contains("apple:"),
+        )
+    }
+
+    @Test
+    fun mergeAfterFetch_dropsUnusedProxyProviders() {
+        // sub-old is preserved but no proxy-group references it; should be
+        // dropped. sub-new is referenced by GROUP.use → must survive.
+        val preserved = SubscriptionUpdateMerge.extractPreserved(
+            snapshot(
+                proxyProviders = mapOf(
+                    "sub-old" to jsonObj(
+                        "type" to JsonPrimitive("http"),
+                        "url" to JsonPrimitive("https://old.example/sub.yaml"),
+                    ),
+                ),
+                proxyGroups = listOf(
+                    jsonObj("name" to JsonPrimitive("MainGroup"), "type" to JsonPrimitive("select")),
+                ),
+            ),
+        )
+
+        val fetched = """
+            mixed-port: 7890
+            proxies:
+              - name: node-a
+                type: ss
+                server: 1.2.3.4
+                port: 8388
+                cipher: aes-256-gcm
+                password: x
+            proxy-providers:
+              sub-new:
+                type: http
+                url: "https://new.example/sub.yaml"
+            proxy-groups:
+              - name: GROUP
+                type: select
+                use:
+                  - sub-new
+            rules:
+              - MATCH,GROUP
+        """.trimIndent()
+
+        val merged = SubscriptionUpdateMerge.mergeAfterFetch(fetched, preserved)
+
+        assertTrue("sub-new must survive: $merged", merged.contains("sub-new"))
+        assertFalse("unreferenced sub-old must be GC'd: $merged", merged.contains("sub-old"))
+    }
+
+    @Test
+    fun mergeAfterFetch_keepsAllProxyProvidersWhenGroupHasIncludeAll() {
+        // include-all-providers: true expands the universe to every provider,
+        // so GC must NOT prune anything.
+        val preserved = SubscriptionUpdateMerge.extractPreserved(
+            snapshot(
+                proxyProviders = mapOf(
+                    "sub-old" to jsonObj(
+                        "type" to JsonPrimitive("http"),
+                        "url" to JsonPrimitive("https://old.example/sub.yaml"),
+                    ),
+                ),
+            ),
+        )
+
+        val fetched = """
+            mixed-port: 7890
+            proxies:
+              - name: node-a
+                type: ss
+                server: 1.2.3.4
+                port: 8388
+                cipher: aes-256-gcm
+                password: x
+            proxy-providers:
+              sub-new:
+                type: http
+                url: "https://new.example/sub.yaml"
+            proxy-groups:
+              - name: Auto
+                type: url-test
+                include-all-providers: true
+            rules:
+              - MATCH,Auto
+        """.trimIndent()
+
+        val merged = SubscriptionUpdateMerge.mergeAfterFetch(fetched, preserved)
+
+        assertTrue("sub-new must survive: $merged", merged.contains("sub-new"))
+        assertTrue(
+            "sub-old must survive under include-all-providers: $merged",
+            merged.contains("sub-old"),
+        )
+    }
+
+    @Test
     fun mergeAfterFetch_preservesManualNonSubscriptionRules() {
         // Pre-fetch snapshot: user added a manual DOMAIN rule + had a logical
         // AND rule + the subscription's MATCH. After fetch, only MATCH remains

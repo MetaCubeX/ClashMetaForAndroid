@@ -73,7 +73,87 @@ object SubscriptionUpdateMerge {
         if (preserved.proxyGroups != null) {
             root["proxy-groups"] = mergeProxyGroupsLists(root, preserved, profileDir)
         }
+        // Garbage-collect providers nothing references. After overlaying the
+        // pre-fetch state on top of the fresh subscription, a rule-provider
+        // may exist that no `RULE-SET,name,...` rule mentions, or a
+        // proxy-provider that no proxy-group uses. Mihomo would still refetch
+        // them every `interval:` and the UI would list them — both noise.
+        // Always safe to drop because nothing in the active config consumes
+        // them; if the user wants the provider back, the rule referencing it
+        // must be re-added too.
+        gcUnusedRuleProviders(root)
+        gcUnusedProxyProviders(root)
         return document.renderReplacing("rule-providers", "rules", "proxy-providers", "proxy-groups")
+    }
+
+    /**
+     * Drops entries from `rule-providers` whose name does not appear as the
+     * second token of any `RULE-SET,<name>,...` rule. Mutates root in place.
+     */
+    private fun gcUnusedRuleProviders(root: MutableMap<String, Any?>) {
+        val providers = root["rule-providers"] as? Map<*, *> ?: return
+        if (providers.isEmpty()) return
+        val referenced = collectRuleSetTargets(root["rules"])
+        val kept = LinkedHashMap<String, Any?>()
+        for ((k, v) in providers) {
+            val name = k?.toString() ?: continue
+            if (name in referenced) kept[name] = v
+        }
+        if (kept.size != providers.size) {
+            root["rule-providers"] = kept
+        }
+    }
+
+    /**
+     * Drops entries from `proxy-providers` no proxy-group references via
+     * `use:` and no group declares `include-all-providers: true` /
+     * `include-all: true` (those expand the universe to every provider).
+     */
+    private fun gcUnusedProxyProviders(root: MutableMap<String, Any?>) {
+        val providers = root["proxy-providers"] as? Map<*, *> ?: return
+        if (providers.isEmpty()) return
+        val (referenced, includeAll) = collectProxyProviderUsage(root["proxy-groups"])
+        if (includeAll) return // every provider is implicitly used
+        val kept = LinkedHashMap<String, Any?>()
+        for ((k, v) in providers) {
+            val name = k?.toString() ?: continue
+            if (name in referenced) kept[name] = v
+        }
+        if (kept.size != providers.size) {
+            root["proxy-providers"] = kept
+        }
+    }
+
+    private fun collectRuleSetTargets(rulesNode: Any?): Set<String> {
+        val list = rulesNode as? List<*> ?: return emptySet()
+        val out = HashSet<String>()
+        for (raw in list) {
+            val line = raw?.toString()?.trim() ?: continue
+            // RULE-SET,<name>,<policy>[,extra]
+            if (!line.startsWith("RULE-SET,", ignoreCase = true) &&
+                !line.startsWith("- RULE-SET,", ignoreCase = true)
+            ) continue
+            val parts = line.removePrefix("-").trim().split(",")
+            val name = parts.getOrNull(1)?.trim()?.takeIf { it.isNotEmpty() } ?: continue
+            out.add(name)
+        }
+        return out
+    }
+
+    private fun collectProxyProviderUsage(groupsNode: Any?): Pair<Set<String>, Boolean> {
+        val groups = groupsNode as? List<*> ?: return emptySet<String>() to false
+        val out = HashSet<String>()
+        var includeAll = false
+        for (raw in groups) {
+            val g = raw as? Map<*, *> ?: continue
+            if (yamlTruthy(g["include-all-providers"]) || yamlTruthy(g["include-all"])) {
+                includeAll = true
+            }
+            (g["use"] as? List<*>)?.forEach { p ->
+                p?.toString()?.trim()?.takeIf { it.isNotEmpty() }?.let { out.add(it) }
+            }
+        }
+        return out to includeAll
     }
 
     /** Start from fetched map, overlay preserved entries (local wins on same key). */
