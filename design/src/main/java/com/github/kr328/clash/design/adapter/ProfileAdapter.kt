@@ -352,11 +352,51 @@ class ProfileAdapter(
         if (profile.uuid !in expandedUuids || !profile.imported) {
             return emptyList()
         }
-        return if (useEngineFor(profile)) {
+        // proxyGroupNames is the visible-only list (from queryProxyGroupNames).
+        // offlinePreviewByProfile keys include hidden too (parseProxyGroupsPreview
+        // is called with includeHidden=true), so we filter back to visible here
+        // and then surface any hidden auto-subgroups that are *direct members*
+        // of a visible group — a 1-hop traversal. Without this, kaso.fyi-style
+        // subscriptions (one visible select root + a hidden url-test/fallback
+        // tree) collapse to a single pill and a 300+ flat node list. Going
+        // deeper than 1 hop would flood the pill bar with internal infra
+        // groups (PRIMARY/FALLBACK/LAST_RESORT) the user shouldn't have to
+        // think about.
+        val offlinePreview = offlinePreviewByProfile[profile.uuid]
+        val visible = if (useEngineFor(profile)) {
             proxyGroupNames
         } else {
-            offlinePreviewByProfile[profile.uuid]?.keys?.toList().orEmpty()
+            offlinePreview?.entries
+                ?.filterNot { (_, row) -> row.hidden }
+                ?.map { (k, _) -> k }
+                ?.toList()
+                .orEmpty()
         }
+        if (offlinePreview.isNullOrEmpty()) return visible
+
+        val visibleSet = visible.toHashSet()
+        val extras = LinkedHashSet<String>()
+        for (vname in visible) {
+            val row = offlinePreview[vname]
+                ?: offlinePreview.entries.firstOrNull { groupsMatchKey(vname, it.key) }?.value
+                ?: continue
+            for (memberName in row.members) {
+                if (memberName in visibleSet || memberName in extras) continue
+                val memberRow = offlinePreview[memberName]
+                    ?: offlinePreview.entries.firstOrNull { groupsMatchKey(memberName, it.key) }?.value
+                    ?: continue
+                if (!memberRow.hidden) continue
+                // Only auto types help routing — Selector/Unknown hidden roots
+                // (e.g. mihomo's auto GLOBAL when the config defines its own)
+                // would just add noise.
+                if (memberRow.type != Proxy.Type.URLTest &&
+                    memberRow.type != Proxy.Type.Fallback &&
+                    memberRow.type != Proxy.Type.LoadBalance
+                ) continue
+                extras.add(memberName)
+            }
+        }
+        return if (extras.isEmpty()) visible else visible + extras.toList()
     }
 
     fun hasProxyGroupsFor(profile: Profile): Boolean =

@@ -158,10 +158,12 @@ object ProxyGroupsYamlPreview {
     fun parseProxyGroupsPreview(
         snapshot: ProfileSnapshot,
         profileDir: File? = null,
+        includeHidden: Boolean = false,
     ): Map<String, ProxyGroupPreviewRow> {
         val out = linkedMapOf<String, ProxyGroupPreviewRow>()
         for (g in snapshot.proxyGroups) {
-            if (g.booleanFlag("hidden")) continue
+            val hidden = g.booleanFlag("hidden")
+            if (!includeHidden && hidden) continue
             val name = g.stringField("name") ?: continue
             val type = yamlGroupType(g)
             val fromProxies = g.stringList("proxies")
@@ -179,8 +181,8 @@ object ProxyGroupsYamlPreview {
                 addAll(dynamicMembers)
             }.toList()
             when {
-                combined.isNotEmpty() -> out[name] = ProxyGroupPreviewRow(type, combined)
-                useList.isNotEmpty() -> out[name] = ProxyGroupPreviewRow(type, emptyList())
+                combined.isNotEmpty() -> out[name] = ProxyGroupPreviewRow(type, combined, hidden)
+                useList.isNotEmpty() -> out[name] = ProxyGroupPreviewRow(type, emptyList(), hidden)
                 else -> Unit
             }
         }

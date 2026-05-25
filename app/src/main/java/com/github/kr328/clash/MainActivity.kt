@@ -273,29 +273,48 @@ class MainActivity : BaseActivity<MainDesign>() {
     }
 
     /**
-     * Runs [healthCheck] on auto proxy groups. Only used in **Global** mode on connect: in **Rule**
-     * mode it would fight [ConfigurationModule] applying [SelectionDao] and flashes the first
-     * url-test/fallback hop before the user’s pick appears.
+     * Runs [healthCheck] on every auto proxy group after connect, regardless
+     * of tunnel mode.
+     *
+     * Earlier this only ran in Global mode because the original concern was
+     * that in Rule mode it would fight [ConfigurationModule] applying
+     * [SelectionDao] and flash the active card. That guard turned out to be
+     * over-conservative for two reasons:
+     *  1. [SelectionDao] only stores picks for Selector groups; auto types
+     *     (URLTest / Fallback / LoadBalance) have no user-stored selection,
+     *     so a health check on them can never overwrite a user's pick.
+     *  2. Subscriptions that wrap an entire url-test/fallback subtree behind
+     *     a single select root with `hidden: true` on the children (a very
+     *     common kaso.fyi-style layout) leave every node ping-less in Rule
+     *     mode without a warmup.
+     *
+     * A brief UI flash on connect is the acceptable trade-off for pings
+     * actually working on those subscriptions.
      */
-    private suspend fun warmUpAutoProxyGroupsForGlobalOnly() {
-        val mode = runCatching {
-            withClash { normalizeTunnelMode(queryTunnelState().mode) }
-        }.getOrNull() ?: return
-        if (mode != TunnelState.Mode.Global) return
-        warmUpAutoProxyGroups()
+    private suspend fun warmUpAutoProxyGroupsForGlobalOnly(): Set<String> {
+        return warmUpAutoProxyGroups()
     }
 
-    private suspend fun warmUpAutoProxyGroups() = coroutineScope {
+    private suspend fun warmUpAutoProxyGroups(): Set<String> = coroutineScope {
         waitForProxyEngineReady()
 
-        val groupNames = runCatching {
+        // Walk every group (including hidden) so subscriptions whose entire
+        // url-test/fallback subtree is `hidden: true` (visible root is a
+        // plain select) still get warmed up. Filtering by visibility was the
+        // bug: hidden auto-groups were skipped entirely, so pings never ran.
+        val allGroupNames = runCatching {
+            withClash { queryAllProxyGroupNamesIncludingHidden() }
+        }.getOrDefault(emptyList())
+        val visibleGroupNames = runCatching {
             withClash { queryProxyGroupNames(false) }
         }.getOrDefault(emptyList())
-        if (groupNames.isEmpty()) return@coroutineScope
+        if (allGroupNames.isEmpty() && visibleGroupNames.isEmpty()) return@coroutineScope emptySet()
 
-        val groupNameSet = groupNames.toSet()
+        val allGroupSet = allGroupNames.toSet()
         val autoGroups = linkedSetOf<String>()
-        for (groupName in groupNames) {
+        // Iterate over the union so we can both flag visible auto roots and
+        // discover hidden auto subgroups via their members.
+        for (groupName in (allGroupNames + visibleGroupNames).distinct()) {
             val group = runCatching {
                 withClash { queryProxyGroup(groupName, com.github.kr328.clash.core.model.ProxySort.Default) }
             }.getOrNull() ?: continue
@@ -303,7 +322,7 @@ class MainActivity : BaseActivity<MainDesign>() {
                 autoGroups += groupName
             }
             for (proxy in group.proxies) {
-                if (proxy.name in groupNameSet &&
+                if (proxy.name in allGroupSet &&
                     (proxy.type == Proxy.Type.URLTest ||
                         proxy.type == Proxy.Type.Fallback ||
                         proxy.type == Proxy.Type.LoadBalance)
@@ -312,7 +331,7 @@ class MainActivity : BaseActivity<MainDesign>() {
                 }
             }
         }
-        if (autoGroups.isEmpty()) return@coroutineScope
+        if (autoGroups.isEmpty()) return@coroutineScope emptySet()
 
         autoGroups.map { group ->
             launch {
@@ -321,6 +340,7 @@ class MainActivity : BaseActivity<MainDesign>() {
                 }
             }
         }.joinAll()
+        autoGroups.toSet()
     }
 
     private fun showHomeImportSheet(design: MainDesign) {
@@ -1056,6 +1076,12 @@ class MainActivity : BaseActivity<MainDesign>() {
 
         val proxyNames = if (running) {
             runCatching {
+                // Visible-only here. ProfileAdapter.effectiveGroupsForProfile
+                // applies a 1-hop heuristic on top to surface any hidden auto
+                // subgroups (URLTest/Fallback/LoadBalance) that are direct
+                // members of a visible root — covers the kaso.fyi pattern
+                // (one visible select root, hidden auto children) without
+                // flooding the pill bar with deeper internal infra.
                 withClash { queryProxyGroupNames(uiStore.proxyExcludeNotSelectable) }
             }.getOrDefault(emptyList())
         } else {
@@ -1170,8 +1196,22 @@ class MainActivity : BaseActivity<MainDesign>() {
                     waitForProxyEngineReady()
                     waitForProfileLoadEpochAfter(loadEpochSnapshot)
                     d?.fetch()
-                    warmUpAutoProxyGroupsForGlobalOnly()
+                    val warmed = warmUpAutoProxyGroupsForGlobalOnly()
                     d?.fetch()
+                    // Force-push fresh delays into the UI immediately instead
+                    // of waiting for the next dashboard ticker (interactive=2s,
+                    // idle=30s). Mihomo health-check writes delays into
+                    // proxy.LastDelayForTestUrl synchronously when warmup
+                    // finishes; without this re-query the carriage stays blank
+                    // until the timer rolls over. (FlClash side-steps the
+                    // whole class of staleness with a delay event channel —
+                    // see docs/path-b-engine-parsing.md follow-ups.)
+                    if (warmed.isNotEmpty()) {
+                        val patches = refreshRuntimeGroupDetails(warmed)
+                        if (patches.isNotEmpty()) {
+                            d?.patchProxyDetails(patches)
+                        }
+                    }
                 } finally {
                     d?.setPingingProfile(null)
                 }
@@ -1485,7 +1525,10 @@ class MainActivity : BaseActivity<MainDesign>() {
 
     private suspend fun collectRuntimeGroupTree(rootGroup: String): Set<String> {
         if (rootGroup.isBlank()) return emptySet()
-        val knownGroups = runCatching { withClash { queryProxyGroupNames(false).toSet() } }
+        // Include hidden groups too — manual ping for a subscription whose
+        // entire url-test/fallback subtree is hidden (visible root is select)
+        // would otherwise stop at the root and miss every auto child.
+        val knownGroups = runCatching { withClash { queryAllProxyGroupNamesIncludingHidden().toSet() } }
             .getOrDefault(emptySet())
         val seen = linkedSetOf<String>()
 

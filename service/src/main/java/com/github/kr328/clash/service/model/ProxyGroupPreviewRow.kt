@@ -10,6 +10,12 @@ import kotlinx.serialization.Serializable
 data class ProxyGroupPreviewRow(
     val type: Proxy.Type,
     val members: List<String>,
+    /**
+     * Mirrors mihomo's `hidden: true` flag from the YAML. Needed by the
+     * picker's 1-hop heuristic: hidden groups only surface as pills when
+     * they are direct members of a visible group's `proxies:` list.
+     */
+    val hidden: Boolean = false,
 ) : Parcelable {
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         Parcelizer.encodeToParcel(serializer(), parcel, this)

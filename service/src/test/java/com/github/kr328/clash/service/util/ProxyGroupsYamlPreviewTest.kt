@@ -78,6 +78,28 @@ class ProxyGroupsYamlPreviewTest {
     }
 
     @Test
+    fun parseProxyGroupsPreview_includeHiddenReturnsAllGroups() {
+        // Offline preview that backs the expanded-carriage pills must match
+        // the live engine's queryAllProxyGroupNamesIncludingHidden, otherwise
+        // a kaso-style subscription (visible select root + entire url-test
+        // subtree hidden) gets no rows during the warmup race.
+        val snapshot = ProfileSnapshot(
+            proxyGroups = listOf(
+                group("Visible", proxies = listOf("node-a")),
+                group("HiddenAuto", hidden = true, type = "url-test", proxies = listOf("node-b")),
+                group("HiddenFallback", hidden = true, type = "fallback", proxies = listOf("node-c")),
+            ),
+        )
+        val rows = ProxyGroupsYamlPreview.parseProxyGroupsPreview(snapshot, includeHidden = true)
+        assertEquals(setOf("Visible", "HiddenAuto", "HiddenFallback"), rows.keys)
+        // Hidden flag must round-trip — the adapter uses it for the 1-hop
+        // heuristic that decides which hidden groups to surface as pills.
+        assertFalse(rows["Visible"]!!.hidden)
+        assertTrue(rows["HiddenAuto"]!!.hidden)
+        assertTrue(rows["HiddenFallback"]!!.hidden)
+    }
+
+    @Test
     fun parseProxyGroupsPreview_decodesGroupType() {
         val snapshot = ProfileSnapshot(
             proxyGroups = listOf(
