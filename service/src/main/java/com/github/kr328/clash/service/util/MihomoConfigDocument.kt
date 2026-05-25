@@ -1,34 +1,19 @@
 package com.github.kr328.clash.service.util
 
 /**
- * Parsed mihomo config document used by ClashFest UI/editing helpers.
+ * Block-level YAML patcher used by the WRITE pipeline for partial config
+ * edits (proxy-groups, rule-providers, etc).
  *
- * This is deliberately not a Kotlin clone of mihomo's Go RawConfig. The engine
- * remains the authority for full config semantics; this layer only gives local
- * tools a single structural AST and block-level patching for sections they edit.
+ * This is deliberately not a Kotlin clone of mihomo's Go RawConfig. READ
+ * operations route through Clash.parseProfileSnapshot (engine-parsed JSON);
+ * this layer only exists so writes can replace a single top-level YAML block
+ * without re-dumping the whole file (which would lose comments, anchors,
+ * and quoting).
  */
 class MihomoConfigDocument private constructor(
     private val source: String,
     val root: MutableMap<String, Any?>,
 ) {
-    val proxyProviders: Map<*, *>?
-        get() = root["proxy-providers"] as? Map<*, *>
-
-    val ruleProviders: Map<*, *>?
-        get() = root["rule-providers"] as? Map<*, *>
-
-    val proxies: List<*>?
-        get() = root["proxies"] as? List<*>
-
-    val proxyGroups: List<*>?
-        get() = root["proxy-groups"] as? List<*>
-
-    val rules: List<*>?
-        get() = root["rules"] as? List<*>
-
-    val listeners: List<*>?
-        get() = root["listeners"] as? List<*>
-
     fun extractTopLevelBlock(key: String): String? {
         val value = root[key] ?: return null
         return YamlFormatting.blockYaml().dump(mapOf(key to value)).trimEnd()

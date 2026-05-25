@@ -207,10 +207,10 @@ class RuleApplyService(
         val mergedSnapshot = Clash.parseProfileSnapshotFromYaml(mergedYaml)
         val proxyGroups = ProxyGroupsYamlPreview.listProxyGroupNames(mergedSnapshot).toSet()
         RuleValidator.validate(normalized, proxyGroups)
-        validateMergedYaml(mergedYaml)
         // Engine veto: ask mihomo whether it would actually load this YAML.
-        // Catches anything our structural checks miss (rule grammar shifts,
-        // provider definition shape, regex compile errors, group ref cycles).
+        // Covers rule grammar, provider definition shape, regex compile, and
+        // group reference resolution - all the checks our Kotlin-side helpers
+        // used to approximate via YamlPreviewSupport.validateConfigYaml.
         Clash.validateProfileBytes(mergedYaml)?.let { engineError ->
             throw IllegalStateException("mihomo rejected merged config: $engineError")
         }
@@ -251,7 +251,11 @@ class RuleApplyService(
                 customAsn = serviceStore.geoDataCustomAsn,
             )
             val mergedYaml = RuleMapper.mergeStateIntoConfig(configText, normalized, geoDataUrls)
-            validateMergedYaml(mergedYaml)
+            // Same engine veto as dryRunState: if mihomo would refuse the reconciled
+            // YAML, abort the reconcile and leave mergeAfterFetch's output on disk.
+            Clash.validateProfileBytes(mergedYaml)?.let { engineError ->
+                throw IllegalStateException("mihomo rejected reconciled config: $engineError")
+            }
             configFile.writeText(mergedYaml)
             stateFile.writeText(stateJsonForReconcile.encodeToString(RuleState.serializer(), normalized))
             Log.d("Reconcile after subscription update applied ${normalized.rules.count { !it.deleted && it.enabled }} active rule(s)")
@@ -322,6 +326,4 @@ class RuleApplyService(
             "${rule.type},${rule.value},${rule.policy}".uppercase()
         }
     }
-
-    private fun validateMergedYaml(yaml: String) = YamlPreviewSupport.validateConfigYaml(yaml)
 }
