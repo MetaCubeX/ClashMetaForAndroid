@@ -260,6 +260,21 @@ Java_com_github_kr328_clash_core_bridge_Bridge_nativeParseProfileSnapshotFromByt
     return new_string(response);
 }
 
+JNIEXPORT jstring JNICALL
+Java_com_github_kr328_clash_core_bridge_Bridge_nativeValidateProfileBytes(JNIEnv *env, jobject thiz,
+                                                                          jstring yaml) {
+    TRACE_METHOD();
+
+    scoped_string _yaml = get_string(yaml);
+
+    scoped_string response = validateProfileBytes(_yaml);
+
+    if (response == NULL)
+        return NULL;
+
+    return new_string(response);
+}
+
 JNIEXPORT void JNICALL
 Java_com_github_kr328_clash_core_bridge_Bridge_nativeFetchAndValid(JNIEnv *env, jobject thiz,
                                                                    jobject callback,

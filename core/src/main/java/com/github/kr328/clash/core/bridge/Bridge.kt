@@ -47,6 +47,7 @@ object Bridge {
     external fun nativeValidateProfile(completable: CompletableDeferred<Unit>, path: String)
     external fun nativeParseProfileSnapshot(path: String): String
     external fun nativeParseProfileSnapshotFromBytes(yaml: String): String
+    external fun nativeValidateProfileBytes(yaml: String): String?
     external fun nativeQueryProviders(): String
     external fun nativeQueryConnectionsSnapshot(): String
     external fun nativeCloseConnection(id: String): Boolean

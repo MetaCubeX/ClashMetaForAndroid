@@ -264,24 +264,32 @@ object ProfileProcessor {
                         preserved,
                         context.processingDir,
                     )
-                    configFile.writeText(merged)
-                    Log.d("Subscription merge preserved local overlays: rules/rule-providers/proxy-providers reapplied for ${snapshot.uuid}")
+                    // Engine veto: if merging local overlays produced YAML mihomo
+                    // won't accept, keep the freshly fetched config as-is. Better
+                    // to lose user overlays than to land an unloadable profile.
+                    val engineError = Clash.validateProfileBytes(merged)
+                    if (engineError != null) {
+                        Log.w("Subscription merge rejected by mihomo, keeping fetched-only config for ${snapshot.uuid}: $engineError")
+                    } else {
+                        configFile.writeText(merged)
+                        Log.d("Subscription merge preserved local overlays: rules/rule-providers/proxy-providers reapplied for ${snapshot.uuid}")
 
-                    // Subscription providers are already on disk from the fetch above;
-                    // this second pass only downloads local-only providers reintroduced
-                    // by the merge step (force=false → skip files that already exist).
-                    Clash.fetchProvidersAndValid(
-                        context.processingDir,
-                        false,
-                        SubscriptionRequestHeaders.toNativeFetchJson(context, effectiveUserAgentOverride),
-                    ) {
-                        try {
-                            cb?.updateStatus(it)
-                        } catch (e: Exception) {
-                            cb = null
-                            Log.w("Report provider refresh status callback failed", e)
-                        }
-                    }.await()
+                        // Subscription providers are already on disk from the fetch above;
+                        // this second pass only downloads local-only providers reintroduced
+                        // by the merge step (force=false → skip files that already exist).
+                        Clash.fetchProvidersAndValid(
+                            context.processingDir,
+                            false,
+                            SubscriptionRequestHeaders.toNativeFetchJson(context, effectiveUserAgentOverride),
+                        ) {
+                            try {
+                                cb?.updateStatus(it)
+                            } catch (e: Exception) {
+                                cb = null
+                                Log.w("Report provider refresh status callback failed", e)
+                            }
+                        }.await()
+                    }
                 }
 
                 // Tier-2 rules reconciliation: if a structured state file survived from the

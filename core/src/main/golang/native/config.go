@@ -97,6 +97,15 @@ func parseProfileSnapshotFromBytes(yaml C.c_string) *C.char {
 	return C.CString(snapshot.MarshalJSONFromBytes([]byte(C.GoString(yaml))))
 }
 
+//export validateProfileBytes
+func validateProfileBytes(yaml C.c_string) *C.char {
+	errMsg := snapshot.ValidateBytes([]byte(C.GoString(yaml)))
+	if errMsg == "" {
+		return nil
+	}
+	return C.CString(errMsg)
+}
+
 //export readOverride
 func readOverride(slot C.int) *C.char {
 	return C.CString(config.ReadOverride(config.OverrideSlot(slot)))

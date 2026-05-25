@@ -48,7 +48,7 @@ class RuleApplyService(
     fun dryRunStateJson(uuid: UUID, stateJson: String): RuleDryRun? {
         val config = configFile(uuid) ?: return null
         val state = repository.parseStateJson(stateJson)
-        return dryRunState(config, state)
+        return safeDryRunState(config, state)
     }
 
     fun mergeProviderShortcut(uuid: UUID, providersYaml: String, prependRuleLine: String): Boolean {
@@ -61,7 +61,7 @@ class RuleApplyService(
     fun dryRunMergeProviderShortcut(uuid: UUID, providersYaml: String, prependRuleLine: String): RuleDryRun? {
         val config = configFile(uuid) ?: return null
         val current = repository.load(uuid, config.parentFile!!)
-        return dryRunState(config, mergeProviderShortcutState(current, providersYaml, prependRuleLine))
+        return safeDryRunState(config, mergeProviderShortcutState(current, providersYaml, prependRuleLine))
     }
 
     private fun mergeProviderShortcutState(
@@ -98,7 +98,7 @@ class RuleApplyService(
     fun dryRunAddRules(uuid: UUID, rawRules: List<String>, addMode: Boolean, insertMode: String): RuleDryRun? {
         val config = configFile(uuid) ?: return null
         val current = repository.load(uuid, config.parentFile!!)
-        return dryRunState(config, addRulesState(current, rawRules, addMode, insertMode))
+        return safeDryRunState(config, addRulesState(current, rawRules, addMode, insertMode))
     }
 
     private fun addRulesState(
@@ -142,7 +142,19 @@ class RuleApplyService(
     fun dryRunMutateRule(uuid: UUID, ruleId: String, action: String, enabled: Boolean? = null): RuleDryRun? {
         val config = configFile(uuid) ?: return null
         val state = repository.load(uuid, config.parentFile!!)
-        return dryRunState(config, mutateRuleState(state, ruleId, action, enabled))
+        return safeDryRunState(config, mutateRuleState(state, ruleId, action, enabled))
+    }
+
+    /**
+     * dryRunState now throws when the engine rejects the merged YAML (Path B
+     * Step 3 — see Clash.validateProfileBytes). Dry-run callers must surface
+     * this as "preview unavailable" rather than crashing the UI, so they go
+     * through this safe wrapper.
+     */
+    private fun safeDryRunState(config: File, state: RuleState): RuleDryRun? {
+        return runCatching { dryRunState(config, state) }
+            .onFailure { Log.w("Rule dry-run rejected by engine", it) }
+            .getOrNull()
     }
 
     private fun mutateRuleState(
@@ -196,6 +208,12 @@ class RuleApplyService(
         val proxyGroups = ProxyGroupsYamlPreview.listProxyGroupNames(mergedSnapshot).toSet()
         RuleValidator.validate(normalized, proxyGroups)
         validateMergedYaml(mergedYaml)
+        // Engine veto: ask mihomo whether it would actually load this YAML.
+        // Catches anything our structural checks miss (rule grammar shifts,
+        // provider definition shape, regex compile errors, group ref cycles).
+        Clash.validateProfileBytes(mergedYaml)?.let { engineError ->
+            throw IllegalStateException("mihomo rejected merged config: $engineError")
+        }
         return RuleDryRun(currentYaml, mergedYaml, normalized)
     }
 

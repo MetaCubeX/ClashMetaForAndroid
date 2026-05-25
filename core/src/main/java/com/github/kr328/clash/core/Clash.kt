@@ -241,6 +241,20 @@ object Clash {
         return decodeSnapshotEnvelope(Bridge.nativeParseProfileSnapshotFromBytes(yaml))
     }
 
+    /**
+     * Runs mihomo's UnmarshalRawConfig + ParseRawConfig on in-memory YAML and
+     * returns mihomo's verbatim error message, or null on success. Use this
+     * to validate edited YAML *before* committing it to disk so the user
+     * never sees "rules[N] [...]: not found" on a profile that loaded fine
+     * a second ago.
+     *
+     * No disk I/O, no network, no engine state mutation. Safe to call on a
+     * background dispatcher from the WRITE pipeline.
+     */
+    fun validateProfileBytes(yaml: String): String? {
+        return Bridge.nativeValidateProfileBytes(yaml)
+    }
+
     private fun decodeSnapshotEnvelope(rawJson: String): ProfileSnapshot {
         val envelope = ProfileSnapshotJson.decodeFromString(
             ProfileSnapshotEnvelope.serializer(),
