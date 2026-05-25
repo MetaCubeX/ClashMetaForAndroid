@@ -8,9 +8,21 @@ This document covers the things you need before opening a PR. If you are using a
 
 ## 1. Before you start
 
-- **Active branch:** `feat/init-clashfest`. Open PRs against that branch unless explicitly told otherwise.
+- **Base branch:** `feat/init-clashfest`. Cut a topic branch off it, do not commit there directly. Open PRs back into `feat/init-clashfest`.
+- **Topic branch naming:** use a conventional-commit prefix that matches the work:
+  - `feat/<slug>` — new feature.
+  - `fix/<slug>` — bug fix.
+  - `chore/<slug>` — tooling, deps, branding, non-functional cleanup.
+  - `docs/<slug>` — documentation-only changes.
+  - `refactor/<slug>` — restructure without behavior change.
+  - `ui/<slug>` — UI-only tweaks where the scope is purely visual.
+
+  Example: `fix/proxy-pill-1hop`, `feat/native-snapshot-parsing`, `chore/launcher-icon-refresh`.
+
+  One topic branch per logical change. Long-running umbrella work (e.g. Path B) lives on its own branch and ships as a series of small commits inside it; do not pile unrelated fixes on the same branch.
 - **Fork lineage:** `kr328/ClashForAndroid` → `MetaCubeX/ClashMetaForAndroid` → `Nemu-x/ClashFest`. We try not to drift further from upstream than necessary — see "Working with upstream" below.
 - **Read first:** [AGENTS.md](AGENTS.md) (security rules, UI invariants, module layout, what *not* to do) and the relevant docs under [`docs/`](docs/) for the area you are touching.
+- **Language:** every committed file — code comments, docs, KDoc, commit messages, PR descriptions — is in English. Working drafts kept locally (untracked) can be in any language while in progress; once it lands in a PR it is English.
 
 ## 2. Building
 
@@ -72,7 +84,8 @@ Common scopes: `security`, `ui`, `nav`, `proxy`, `profiles`, `geo`, `routing`, `
 Rules of thumb:
 
 - One logical change per commit. Squash WIP commits before opening the PR.
-- **No force-push** to shared branches (`main`, `feat/init-clashfest`) and **no rebases that rewrite other people's commits**.
+- Branch prefix must match the commit type: a branch called `feat/X` should not land a PR whose only commits are `fix(Y)`. Pick the prefix when you cut the branch and keep them aligned.
+- **No force-push** to shared branches (`main`, `feat/init-clashfest`) and **no rebases that rewrite other people's commits**. Force-push on your own topic branch before review is fine.
 - Do not bump the core submodule in the same commit as application changes — core updates ship in their own PR.
 - Never commit secrets, personal subscription URLs, or test profiles with real keys. The release keystore in the tree is intentional; do not add others.
 
