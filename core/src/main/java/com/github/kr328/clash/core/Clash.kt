@@ -227,9 +227,24 @@ object Clash {
      *         etc).
      */
     fun parseProfileSnapshot(path: File): ProfileSnapshot {
+        return decodeSnapshotEnvelope(Bridge.nativeParseProfileSnapshot(path.absolutePath))
+    }
+
+    /**
+     * In-memory variant of [parseProfileSnapshot] for YAML that is not yet
+     * (or no longer) on disk — dry-run previews, validation-before-commit,
+     * unit tests. Same engine path, no provider patching, no network.
+     *
+     * @throws ClashException with mihomo's verbatim error message on bad YAML.
+     */
+    fun parseProfileSnapshotFromYaml(yaml: String): ProfileSnapshot {
+        return decodeSnapshotEnvelope(Bridge.nativeParseProfileSnapshotFromBytes(yaml))
+    }
+
+    private fun decodeSnapshotEnvelope(rawJson: String): ProfileSnapshot {
         val envelope = ProfileSnapshotJson.decodeFromString(
             ProfileSnapshotEnvelope.serializer(),
-            Bridge.nativeParseProfileSnapshot(path.absolutePath),
+            rawJson,
         )
         if (!envelope.ok || envelope.snapshot == null) {
             throw ClashException(envelope.error ?: "failed to parse profile")

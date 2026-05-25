@@ -183,3 +183,45 @@ func TestMarshalJSON_ErrorEnvelopeOnBrokenYAML(t *testing.T) {
 		t.Error("expected non-empty error message describing parse failure")
 	}
 }
+
+func TestParseBytes_KeepsLogicalRulesWhole(t *testing.T) {
+	// Same coverage as the on-disk Parse path: in-memory fixture must give
+	// the same snapshot shape so callers can use either entry interchangeably.
+	snap, err := ParseBytes([]byte(fixtureProfileYAML))
+	if err != nil {
+		t.Fatalf("ParseBytes: %v", err)
+	}
+	if len(snap.Rules) != 6 {
+		t.Fatalf("expected 6 rules, got %d", len(snap.Rules))
+	}
+	if got := snap.Rules[1]; got != "AND,((NETWORK,UDP),(DST-PORT,53)),DIRECT" {
+		t.Errorf("rules[1] = %q, want logical rule whole", got)
+	}
+}
+
+func TestMarshalJSONFromBytes_SuccessEnvelope(t *testing.T) {
+	raw := MarshalJSONFromBytes([]byte(fixtureProfileYAML))
+
+	var env envelope
+	if err := json.Unmarshal([]byte(raw), &env); err != nil {
+		t.Fatalf("unmarshal envelope: %v\nraw=%s", err, raw)
+	}
+	if !env.OK || env.Snapshot == nil {
+		t.Fatalf("expected ok=true with snapshot, got %+v", env)
+	}
+}
+
+func TestMarshalJSONFromBytes_ErrorEnvelopeOnBrokenYAML(t *testing.T) {
+	raw := MarshalJSONFromBytes([]byte("rules: [\n  - unterminated"))
+
+	var env envelope
+	if err := json.Unmarshal([]byte(raw), &env); err != nil {
+		t.Fatalf("unmarshal envelope: %v\nraw=%s", err, raw)
+	}
+	if env.OK {
+		t.Errorf("expected ok=false on broken YAML, got %+v", env)
+	}
+	if env.Error == "" {
+		t.Error("expected non-empty error message")
+	}
+}

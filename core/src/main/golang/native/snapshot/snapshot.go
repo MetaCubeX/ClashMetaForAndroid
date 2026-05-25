@@ -52,6 +52,13 @@ func Parse(profileDir string) (ProfileSnapshot, error) {
 	if err != nil {
 		return ProfileSnapshot{}, err
 	}
+	return ParseBytes(data)
+}
+
+// ParseBytes is the in-memory counterpart to Parse. It exists for WRITE-side
+// flows (dry-runs, validate-before-commit, preview of edited-but-unsaved
+// config) where the YAML lives in a Kotlin String, not on disk.
+func ParseBytes(data []byte) (ProfileSnapshot, error) {
 	rawCfg, err := config.UnmarshalRawConfig(data)
 	if err != nil {
 		return ProfileSnapshot{}, err
@@ -73,6 +80,16 @@ type envelope struct {
 // { "ok": false, "error": "..." } when mihomo refuses the profile.
 func MarshalJSON(profileDir string) string {
 	snapshot, err := Parse(profileDir)
+	if err != nil {
+		return mustMarshal(envelope{OK: false, Error: err.Error()})
+	}
+	return mustMarshal(envelope{OK: true, Snapshot: &snapshot})
+}
+
+// MarshalJSONFromBytes is the in-memory variant. Same envelope contract as
+// MarshalJSON; see ParseBytes for when to use it.
+func MarshalJSONFromBytes(data []byte) string {
+	snapshot, err := ParseBytes(data)
 	if err != nil {
 		return mustMarshal(envelope{OK: false, Error: err.Error()})
 	}
