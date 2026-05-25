@@ -1,50 +1,46 @@
 package com.github.kr328.clash.service.util
 
+import com.github.kr328.clash.core.model.ProfileSnapshot
 import com.github.kr328.clash.service.model.ProxyTransportInfo
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import java.io.File
 
 /**
- * Pulls per-proxy transport metadata (network / tls / reality) from a Clash
- * config.yaml and any proxy-provider files referenced by it.
+ * Pulls per-proxy transport metadata (network / tls / reality) from a
+ * mihomo-parsed snapshot plus any proxy-provider files on disk.
  *
- * Cheap structural parse: just walks `proxies:` blocks and reads a handful of
+ * Cheap structural read: just walks `proxies:` entries and reads a handful of
  * fields. Anything we don't recognise (DNS, raw TCP, custom adapters) gets an
  * empty [ProxyTransportInfo] which UI can treat as "nothing to badge".
  */
 object ProxyTransportYamlPreview {
 
     /** name -> transport info. */
-    fun parse(text: String, profileDir: File? = null): Map<String, ProxyTransportInfo> {
-        val root = MihomoConfigDocument.parse(text)?.root ?: return emptyMap()
+    fun parse(snapshot: ProfileSnapshot, profileDir: File? = null): Map<String, ProxyTransportInfo> {
         val out = linkedMapOf<String, ProxyTransportInfo>()
-        collectInlineProxies(root, out)
-        collectProviderProxies(root, profileDir, out)
+        for (entry in snapshot.proxies) {
+            val name = entry.stringField("name")?.takeIf { it.isNotEmpty() } ?: continue
+            out[name] = extractTransportInfo(entry)
+        }
+        collectProviderProxies(snapshot, profileDir, out)
         return out
     }
 
-    private fun collectInlineProxies(
-        root: Map<String, Any?>,
-        out: MutableMap<String, ProxyTransportInfo>,
-    ) {
-        val proxies = root["proxies"] as? List<*> ?: return
-        for (raw in proxies) {
-            val p = raw as? Map<*, *> ?: continue
-            val name = p["name"]?.toString()?.trim()?.takeIf { it.isNotEmpty() } ?: continue
-            out[name] = extractTransportInfo(p)
-        }
-    }
-
+    /**
+     * Provider YAML files on disk are still walked through SnakeYAML — they
+     * are standalone provider documents (just a `proxies:` list), not full
+     * mihomo configs, so the engine snapshot does not load them.
+     */
     private fun collectProviderProxies(
-        root: Map<String, Any?>,
+        snapshot: ProfileSnapshot,
         profileDir: File?,
         out: MutableMap<String, ProxyTransportInfo>,
     ) {
         val dir = profileDir?.takeIf { it.isDirectory } ?: return
-        val providers = root["proxy-providers"] as? Map<*, *> ?: return
-        for ((_, v) in providers) {
-            val prov = v as? Map<*, *> ?: continue
-            val pathStr = prov["path"] as? String
-            val providerUrl = prov["url"] as? String
+        for ((_, prov) in snapshot.proxyProviders) {
+            val pathStr = prov.stringField("path")
+            val providerUrl = prov.stringField("url")
             val providerFile = if (!pathStr.isNullOrBlank()) {
                 ProxyDialerYamlEdit.resolveProviderPath(dir, pathStr)
             } else {
@@ -53,7 +49,19 @@ object ProxyTransportYamlPreview {
             if (!providerFile.isFile) continue
             val pRoot = runCatching { YamlFormatting.parseRootMap(providerFile.readText()) }
                 .getOrNull() ?: continue
-            collectInlineProxies(pRoot, out)
+            collectFromRawMap(pRoot, out)
+        }
+    }
+
+    private fun collectFromRawMap(
+        root: Map<String, Any?>,
+        out: MutableMap<String, ProxyTransportInfo>,
+    ) {
+        val proxies = root["proxies"] as? List<*> ?: return
+        for (raw in proxies) {
+            val p = raw as? Map<*, *> ?: continue
+            val name = p["name"]?.toString()?.trim()?.takeIf { it.isNotEmpty() } ?: continue
+            out[name] = extractTransportInfoFromRaw(p)
         }
     }
 
@@ -80,11 +88,23 @@ object ProxyTransportYamlPreview {
 
     private val HEX_CHARS = "0123456789abcdef".toCharArray()
 
-    private fun extractTransportInfo(p: Map<*, *>): ProxyTransportInfo {
-        val network = (p["network"] as? String)?.trim()?.lowercase().orEmpty()
-        val tls = truthy(p["tls"])
+    private fun extractTransportInfo(p: JsonObject): ProxyTransportInfo {
+        val network = p.stringField("network")?.trim()?.lowercase().orEmpty()
+        val tls = p.booleanField("tls")
         // Reality is signalled by a non-empty reality-opts map, with or without
         // explicit tls: true. Mihomo accepts both forms.
+        val realityOpts = p["reality-opts"] as? JsonObject
+        val reality = realityOpts != null && realityOpts.isNotEmpty()
+        return ProxyTransportInfo(
+            network = network,
+            tls = tls,
+            reality = reality,
+        )
+    }
+
+    private fun extractTransportInfoFromRaw(p: Map<*, *>): ProxyTransportInfo {
+        val network = (p["network"] as? String)?.trim()?.lowercase().orEmpty()
+        val tls = truthy(p["tls"])
         val realityOpts = p["reality-opts"] as? Map<*, *>
         val reality = realityOpts != null && realityOpts.isNotEmpty()
         return ProxyTransportInfo(
@@ -92,6 +112,24 @@ object ProxyTransportYamlPreview {
             tls = tls,
             reality = reality,
         )
+    }
+
+    private fun JsonObject.stringField(key: String): String? = runCatching {
+        this[key]?.jsonPrimitive?.content
+    }.getOrNull()
+
+    private fun JsonObject.booleanField(key: String): Boolean {
+        val element = this[key] ?: return false
+        return runCatching {
+            val prim = element.jsonPrimitive
+            when {
+                prim.content.equals("true", ignoreCase = true) -> true
+                prim.content == "1" -> true
+                prim.content.equals("yes", ignoreCase = true) -> true
+                prim.content.equals("on", ignoreCase = true) -> true
+                else -> false
+            }
+        }.getOrDefault(false)
     }
 
     private fun truthy(value: Any?): Boolean = when (value) {

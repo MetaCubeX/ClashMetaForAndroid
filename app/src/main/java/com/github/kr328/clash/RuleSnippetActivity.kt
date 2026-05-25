@@ -7,6 +7,7 @@ import android.widget.LinearLayout
 import android.widget.Spinner
 import android.widget.TextView
 import com.github.kr328.clash.common.util.intent
+import com.github.kr328.clash.core.Clash
 import com.github.kr328.clash.core.model.Provider
 import com.github.kr328.clash.design.RuleSnippetDesign
 import com.github.kr328.clash.design.R as DesignR
@@ -479,6 +480,8 @@ class RuleSnippetActivity : BaseActivity<RuleSnippetDesign>() {
         }.getOrElse { emptyList() }
         val fromYaml = runCatching {
             withProfile { readImportedConfigYaml(uuid) }
+                ?.takeIf { it.isNotBlank() }
+                ?.let { Clash.parseProfileSnapshotFromYaml(it) }
                 ?.let { ProxyGroupsYamlPreview.listProxyGroupNames(it) }
         }.getOrNull() ?: emptyList()
         return (fromRuntime + fromPreview + fromYaml).distinct().sorted()

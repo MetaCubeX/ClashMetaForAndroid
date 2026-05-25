@@ -192,7 +192,8 @@ class RuleApplyService(
             customAsn = serviceStore.geoDataCustomAsn,
         )
         val mergedYaml = RuleMapper.mergeStateIntoConfig(currentYaml, normalized, geoDataUrls)
-        val proxyGroups = ProxyGroupsYamlPreview.listProxyGroupNames(mergedYaml).toSet()
+        val mergedSnapshot = Clash.parseProfileSnapshotFromYaml(mergedYaml)
+        val proxyGroups = ProxyGroupsYamlPreview.listProxyGroupNames(mergedSnapshot).toSet()
         RuleValidator.validate(normalized, proxyGroups)
         validateMergedYaml(mergedYaml)
         return RuleDryRun(currentYaml, mergedYaml, normalized)

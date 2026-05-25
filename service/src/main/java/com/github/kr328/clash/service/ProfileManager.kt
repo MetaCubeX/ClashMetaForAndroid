@@ -6,6 +6,7 @@ import com.github.kr328.clash.common.util.MaybeBase64
 import com.github.kr328.clash.common.util.SubscriptionOverrides
 import com.github.kr328.clash.common.util.SubscriptionRequestHeaders
 import com.github.kr328.clash.common.util.SubscriptionUsage
+import com.github.kr328.clash.core.Clash
 import com.github.kr328.clash.service.data.Database
 import com.github.kr328.clash.service.data.Imported
 import com.github.kr328.clash.service.data.ImportedDao
@@ -474,8 +475,8 @@ class ProfileManager(private val context: Context) : IProfileManager,
                 return@withContext emptyMap()
             }
             try {
-                val configText = file.readText()
-                ProxyGroupsYamlPreview.parseProxyGroupsPreview(configText, file.parentFile)
+                val snapshot = Clash.parseProfileSnapshot(file.parentFile!!)
+                ProxyGroupsYamlPreview.parseProxyGroupsPreview(snapshot, file.parentFile)
             } catch (_: Exception) {
                 emptyMap()
             }
@@ -492,8 +493,8 @@ class ProfileManager(private val context: Context) : IProfileManager,
                 return@withContext emptyMap()
             }
             try {
-                val configText = file.readText()
-                ProxyTransportYamlPreview.parse(configText, file.parentFile)
+                val snapshot = Clash.parseProfileSnapshot(file.parentFile!!)
+                ProxyTransportYamlPreview.parse(snapshot, file.parentFile)
             } catch (_: Exception) {
                 emptyMap()
             }
@@ -883,7 +884,8 @@ class ProfileManager(private val context: Context) : IProfileManager,
                 return@withContext null
             }
             try {
-                ProxyYamlPreview.extractProxyEntry(file.readText(), proxyName)
+                val snapshot = Clash.parseProfileSnapshot(file.parentFile!!)
+                ProxyYamlPreview.extractProxyEntry(snapshot, proxyName)
             } catch (_: Exception) {
                 null
             }

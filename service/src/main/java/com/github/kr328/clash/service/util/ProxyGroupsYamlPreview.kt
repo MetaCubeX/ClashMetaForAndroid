@@ -1,30 +1,56 @@
 package com.github.kr328.clash.service.util
 
+import com.github.kr328.clash.core.model.ProfileSnapshot
 import com.github.kr328.clash.core.model.Proxy
 import com.github.kr328.clash.service.model.ProxyGroupPreviewRow
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.jsonPrimitive
 import java.io.File
 
-/** Reads [proxy-groups] from a Clash config.yaml without loading the engine. */
+/**
+ * Reads [proxy-groups] from a mihomo-parsed snapshot. The snapshot already
+ * went through the engine's YAML parser, so this layer only does shape
+ * projection — no string splitting, no quoting tricks.
+ *
+ * Provider YAML files on disk are still read through SnakeYAML because
+ * they're standalone provider documents (just a `proxies:` list), not
+ * full mihomo configs, so the engine snapshot does not load them.
+ */
 object ProxyGroupsYamlPreview {
-    private fun truthyHidden(value: Any?): Boolean {
-        return when (value) {
-            is Boolean -> value
-            is Number -> value.toInt() != 0
-            is String -> {
-                val t = value.trim()
-                t.equals("true", ignoreCase = true) ||
-                    t == "1" ||
-                    t.equals("yes", ignoreCase = true)
-            }
-            else -> false
+    private fun truthyHidden(value: Any?): Boolean = when (value) {
+        is Boolean -> value
+        is Number -> value.toInt() != 0
+        is String -> {
+            val t = value.trim()
+            t.equals("true", ignoreCase = true) ||
+                t == "1" ||
+                t.equals("yes", ignoreCase = true)
         }
+        else -> false
+    }
+
+    private fun JsonObject.booleanFlag(key: String): Boolean {
+        val prim = (this[key] as? JsonPrimitive) ?: return false
+        if (prim.content == "1") return true
+        return prim.content.equals("true", ignoreCase = true) ||
+            prim.content.equals("yes", ignoreCase = true)
+    }
+
+    private fun JsonObject.stringField(key: String): String? =
+        runCatching { (this[key] as? JsonPrimitive)?.content }.getOrNull()
+
+    private fun JsonObject.stringList(key: String): List<String> {
+        val arr = this[key] as? JsonArray ?: return emptyList()
+        return arr.mapNotNull { runCatching { it.jsonPrimitive.content.trim() }.getOrNull()?.takeIf { it.isNotEmpty() } }
     }
 
     /** Mihomo expands membership at runtime (`include-all-proxies`, etc.). */
-    private fun hasDynamicMembershipFromYaml(g: Map<*, *>): Boolean {
-        return truthyHidden(g["include-all-proxies"]) ||
-            truthyHidden(g["include-all"]) ||
-            truthyHidden(g["include-all-providers"])
+    private fun hasDynamicMembership(g: JsonObject): Boolean {
+        return g.booleanFlag("include-all-proxies") ||
+            g.booleanFlag("include-all") ||
+            g.booleanFlag("include-all-providers")
     }
 
     /**
@@ -32,18 +58,18 @@ object ProxyGroupsYamlPreview {
      * leaf names from each proxy-provider file on disk. Matches what mihomo would
      * resolve for `include-all-providers` / `include-all-proxies` / `include-all`.
      */
-    private fun collectAllLeafProxyNames(root: Map<String, Any?>, profileDir: File?): LinkedHashSet<String> {
+    private fun collectAllLeafProxyNames(
+        snapshot: ProfileSnapshot,
+        profileDir: File?,
+    ): LinkedHashSet<String> {
         val names = LinkedHashSet<String>()
-        (root["proxies"] as? List<*>)?.forEach { raw ->
-            val n = (raw as? Map<*, *>)?.get("name")?.toString()?.trim()?.takeIf { it.isNotEmpty() }
-            if (n != null) names.add(n)
+        for (entry in snapshot.proxies) {
+            entry.stringField("name")?.trim()?.takeIf { it.isNotEmpty() }?.let { names.add(it) }
         }
         val dir = profileDir?.takeIf { it.isDirectory } ?: return names
-        val pp = root["proxy-providers"] as? Map<*, *> ?: return names
-        for ((_, v) in pp) {
-            val prov = v as? Map<*, *> ?: continue
-            val pathStr = prov["path"] as? String
-            val providerUrl = prov["url"] as? String
+        for ((_, prov) in snapshot.proxyProviders) {
+            val pathStr = prov.stringField("path")
+            val providerUrl = prov.stringField("url")
             val providerFile = if (!pathStr.isNullOrBlank()) {
                 ProxyDialerYamlEdit.resolveProviderPath(dir, pathStr)
             } else {
@@ -86,18 +112,6 @@ object ProxyGroupsYamlPreview {
     private val HEX_CHARS = "0123456789abcdef".toCharArray()
 
     /**
-     * `include-all-proxies` / `include-all` / `include-all-providers` all ask mihomo
-     * to expand the group to the full leaf-node universe at runtime. We treat all
-     * three the same way at preview time — distinguishing them isn't useful for the
-     * UI list, the actual routing semantics stay with the engine.
-     */
-    private fun expandsInlineProxyUniverseForFilter(g: Map<*, *>): Boolean {
-        return truthyHidden(g["include-all-proxies"]) ||
-            truthyHidden(g["include-all"]) ||
-            truthyHidden(g["include-all-providers"])
-    }
-
-    /**
      * Mihomo splits [filter] on `` ` `` and ORs patterns ([outboundgroup.ParseProxyGroup]).
      */
     private fun compileFilterPatterns(filterRaw: String): List<Regex> {
@@ -106,23 +120,22 @@ object ProxyGroupsYamlPreview {
     }
 
     private fun membersForIncludeAllProxiesPreview(
-        root: Map<String, Any?>,
-        g: Map<*, *>,
+        snapshot: ProfileSnapshot,
+        g: JsonObject,
         profileDir: File?,
     ): List<String> {
-        if (!expandsInlineProxyUniverseForFilter(g)) return emptyList()
-        val universe = collectAllLeafProxyNames(root, profileDir).sorted()
-        val filterRaw = g["filter"]?.toString()?.trim().orEmpty()
+        if (!hasDynamicMembership(g)) return emptyList()
+        val universe = collectAllLeafProxyNames(snapshot, profileDir).sorted()
+        val filterRaw = g.stringField("filter")?.trim().orEmpty()
         if (filterRaw.isEmpty()) return universe
         val patterns = compileFilterPatterns(filterRaw)
         if (patterns.isEmpty()) return emptyList()
         return universe.filter { name -> patterns.any { it.containsMatchIn(name) } }
     }
 
-    private fun yamlGroupType(g: Map<*, *>): Proxy.Type {
-        val raw = g["type"] ?: return Proxy.Type.Selector
-        val s = raw.toString().trim().lowercase()
-        return when (s) {
+    private fun yamlGroupType(g: JsonObject): Proxy.Type {
+        val raw = g.stringField("type") ?: return Proxy.Type.Selector
+        return when (raw.trim().lowercase()) {
             "select" -> Proxy.Type.Selector
             "fallback" -> Proxy.Type.Fallback
             "url-test" -> Proxy.Type.URLTest
@@ -142,30 +155,22 @@ object ProxyGroupsYamlPreview {
      *   member list — provider keys like `sub1` are not dialable proxy names;
      *   live engine data fills these in on the engine path.
      */
-    fun parseProxyGroupsPreview(text: String, profileDir: File? = null): Map<String, ProxyGroupPreviewRow> {
-        val document = MihomoConfigDocument.parse(text) ?: return emptyMap()
-        val root = document.root
-        val groups = document.proxyGroups ?: return emptyMap()
+    fun parseProxyGroupsPreview(
+        snapshot: ProfileSnapshot,
+        profileDir: File? = null,
+    ): Map<String, ProxyGroupPreviewRow> {
         val out = linkedMapOf<String, ProxyGroupPreviewRow>()
-        for (raw in groups) {
-            val g = raw as? Map<*, *> ?: continue
-            if (truthyHidden(g["hidden"])) continue
-            val name = g["name"] as? String ?: continue
+        for (g in snapshot.proxyGroups) {
+            if (g.booleanFlag("hidden")) continue
+            val name = g.stringField("name") ?: continue
             val type = yamlGroupType(g)
-            val proxies = g["proxies"] as? List<*>
-            val use = g["use"] as? List<*>
-            val fromProxies = proxies?.mapNotNull { p ->
-                when (p) {
-                    is String -> p.trim().takeIf { it.isNotEmpty() }
-                    else -> p?.toString()?.trim()?.takeIf { it.isNotEmpty() }
-                }
-            }.orEmpty()
-            val useList = use?.mapNotNull { u -> u?.toString()?.trim()?.takeIf { it.isNotEmpty() } }.orEmpty()
+            val fromProxies = g.stringList("proxies")
+            val useList = g.stringList("use")
             // mihomo treats declared `proxies:` and include-all-* as additive, so a
             // group with both should expose every leaf node alongside the static
             // members. Union via LinkedHashSet to keep declared order first.
-            val dynamicMembers = if (hasDynamicMembershipFromYaml(g)) {
-                membersForIncludeAllProxiesPreview(root, g, profileDir)
+            val dynamicMembers = if (hasDynamicMembership(g)) {
+                membersForIncludeAllProxiesPreview(snapshot, g, profileDir)
             } else {
                 emptyList()
             }
@@ -183,30 +188,28 @@ object ProxyGroupsYamlPreview {
     }
 
     /** @see parseProxyGroupsPreview — members only (compatibility). */
-    fun parseProxyNamesByGroup(text: String): Map<String, List<String>> =
-        parseProxyGroupsPreview(text).mapValues { it.value.members }
+    fun parseProxyNamesByGroup(snapshot: ProfileSnapshot): Map<String, List<String>> =
+        parseProxyGroupsPreview(snapshot).mapValues { it.value.members }
 
     /**
      * Every [proxy-groups] `name` in the config (for rule policy validation / pickers).
      * Prefer this over [parseProxyGroupsPreview].keys when **hidden** groups must still appear
-     * (e.g. rule targets) — groups with empty or unusual `proxies`/`use` are still listed here. Includes **hidden** names (valid rule targets).
+     * (e.g. rule targets) — groups with empty or unusual `proxies`/`use` are still listed here.
+     * Includes **hidden** names (valid rule targets).
      */
-    fun listProxyGroupNames(text: String): List<String> {
-        val groups = MihomoConfigDocument.parse(text)?.proxyGroups ?: return emptyList()
-        return groups.mapNotNull { raw ->
-            (raw as? Map<*, *>)?.get("name")?.toString()?.trim()?.takeIf { it.isNotEmpty() }
+    fun listProxyGroupNames(snapshot: ProfileSnapshot): List<String> {
+        return snapshot.proxyGroups.mapNotNull { g ->
+            g.stringField("name")?.trim()?.takeIf { it.isNotEmpty() }
         }
     }
 
     /** Names of [proxy-groups] that reference proxy-providers via [use] (merged-style). */
-    fun listGroupNamesWithUse(text: String): List<String> {
-        val groups = MihomoConfigDocument.parse(text)?.proxyGroups ?: return emptyList()
+    fun listGroupNamesWithUse(snapshot: ProfileSnapshot): List<String> {
         val out = ArrayList<String>()
-        for (raw in groups) {
-            val g = raw as? Map<*, *> ?: continue
-            val use = g["use"] as? List<*> ?: continue
+        for (g in snapshot.proxyGroups) {
+            val use = g["use"] as? JsonArray ?: continue
             if (use.isEmpty()) continue
-            val name = g["name"] as? String ?: continue
+            val name = g.stringField("name") ?: continue
             out.add(name)
         }
         return out

@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.widget.EditText
 import androidx.core.view.WindowCompat
 import com.github.kr328.clash.common.util.uuid
+import com.github.kr328.clash.core.Clash
 import com.github.kr328.clash.design.ProxyProviderMergedGroupDesign
 import com.github.kr328.clash.design.R
 import com.github.kr328.clash.design.ui.ToastDuration
@@ -59,7 +60,13 @@ class ProxyProviderMergedGroupActivity : BaseActivity<ProxyProviderMergedGroupDe
         val labels = ProxyProvidersUi.parseLabelsJson(labelsJson)
         val rows = ProxyProvidersUi.parseRows(yaml, labels)
         val configYaml = withProfile { readImportedConfigYaml(uuid) }.orEmpty()
-        val mergedNames = ProxyGroupsYamlPreview.listGroupNamesWithUse(configYaml)
+        val mergedNames = if (configYaml.isBlank()) {
+            emptyList()
+        } else {
+            runCatching { Clash.parseProfileSnapshotFromYaml(configYaml) }
+                .map { ProxyGroupsYamlPreview.listGroupNamesWithUse(it) }
+                .getOrElse { emptyList() }
+        }
         withContext(Dispatchers.Main) {
             if (rows.isEmpty()) {
                 design.summaryKeys.text = getString(R.string.proxy_providers_keys_empty)
