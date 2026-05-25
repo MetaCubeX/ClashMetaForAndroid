@@ -11,6 +11,35 @@ plugins {
 
 val golangSource = file("src/main/golang/native")
 
+// Run pure-Go unit tests in the snapshot package before any Java/Kotlin
+// compile. Snapshot is the engine-delegated read path for ClashFest UI
+// (see docs/path-b-engine-parsing.md); we cannot afford it to silently
+// regress when we change the Go-side data shape or mihomo upgrades.
+//
+// The package is intentionally isolated from cfa/native/app, so 'go test'
+// works on any developer workstation (Windows/macOS/Linux) without
+// platform stubs or NDK.
+val goTestNativeSnapshot by tasks.registering(Exec::class) {
+    description = "Run go unit tests for the native snapshot package"
+    group = "verification"
+    workingDir = file("src/main/golang")
+    commandLine("go", "test", "./native/snapshot/...")
+
+    inputs.dir("src/main/golang/native/snapshot")
+    val marker = layout.buildDirectory.file("go-tests/snapshot.passed")
+    outputs.file(marker)
+    doLast {
+        marker.get().asFile.apply {
+            parentFile.mkdirs()
+            writeText("passed at ${System.currentTimeMillis()}\n")
+        }
+    }
+}
+
+tasks.withType(JavaCompile::class).configureEach {
+    dependsOn(goTestNativeSnapshot)
+}
+
 golang {
     sourceSets {
         create("alpha") {
