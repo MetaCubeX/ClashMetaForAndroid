@@ -1,0 +1,2172 @@
+# ClashFest canonical mihomo config fixture.
+# Source: core/src/foss/golang/clash/docs/config.yaml
+# Source submodule commit: 5e22035118d13fa609164670111cc674906bb2a4
+# This is an upstream sample used for parser/shape tests only.
+# Do not use it as ClashFest runtime defaults or as safe Android defaults.
+
+# port: 7890 # HTTP(S) 代理服务器端口
+# socks-port: 7891 # SOCKS5 代理端口
+mixed-port: 10801 # HTTP(S) 和 SOCKS 代理混合端口
+# redir-port: 7892 # 透明代理端口，用于 Linux 和 MacOS
+
+# Transparent proxy server port for Linux (TProxy TCP and TProxy UDP)
+# tproxy-port: 7893
+
+allow-lan: true # 允许局域网连接
+bind-address: "*" # 绑定 IP 地址，仅作用于 allow-lan 为 true，'*'表示所有地址
+authentication: # http,socks 入口的验证用户名，密码
+  - "username:password"
+skip-auth-prefixes: # 设置跳过验证的 IP 段
+  - 127.0.0.1/8
+  - ::1/128
+lan-allowed-ips: # 允许连接的 IP 地址段，仅作用于 allow-lan 为 true, 默认值为 0.0.0.0/0 和::/0
+  - 0.0.0.0/0
+  - ::/0
+lan-disallowed-ips: # 禁止连接的 IP 地址段，黑名单优先级高于白名单，默认值为空
+  - 192.168.0.3/32
+
+#  find-process-mode has 3 values:always, strict, off
+#  - always, 开启，强制匹配所有进程
+#  - strict, 默认，由 mihomo 判断是否开启
+#  - off, 不匹配进程，推荐在路由器上使用此模式
+find-process-mode: strict
+
+mode: rule
+
+#自定义 geodata url
+geox-url:
+  geoip: "https://fastly.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@release/geoip.dat"
+  geosite: "https://fastly.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@release/geosite.dat"
+  mmdb: "https://fastly.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@release/geoip.metadb"
+
+geo-auto-update: false # 是否自动更新 geodata
+geo-update-interval: 24 # 更新间隔，单位：小时
+
+# Matcher implementation used by GeoSite, available implementations:
+# - succinct (default, same as rule-set)
+# - mph (from V2Ray, also `hybrid` in Xray)
+# geosite-matcher: succinct
+
+log-level: debug # 日志等级 silent/error/warning/info/debug
+
+ipv6: true # 开启 IPv6 总开关，关闭阻断所有 IPv6 链接和屏蔽 DNS 请求 AAAA 记录
+
+tls:
+  certificate: string # 证书 PEM 格式，或者 证书的路径
+  private-key: string # 证书对应的私钥 PEM 格式，或者私钥路径
+  # 下面两项为mTLS配置项，如果client-auth-type设置为 "verify-if-given" 或 "require-and-verify" 则client-auth-cert必须不为空
+  # client-auth-type: "" # 可选值：""、"request"、"require-any"、"verify-if-given"、"require-and-verify"
+  # client-auth-cert: string # 证书 PEM 格式，或者 证书的路径
+  # 如果填写则开启ech（可由 mihomo generate ech-keypair <明文域名> 生成）
+  # ech-key: |
+  #   -----BEGIN ECH KEYS-----
+  #   ACATwY30o/RKgD6hgeQxwrSiApLaCgU+HKh7B6SUrAHaDwBD/g0APwAAIAAgHjzK
+  #   madSJjYQIf9o1N5GXjkW4DEEeb17qMxHdwMdNnwADAABAAEAAQACAAEAAwAIdGVz
+  #   dC5jb20AAA==
+  #   -----END ECH KEYS-----
+  custom-certifactes:
+    - |
+      -----BEGIN CERTIFICATE-----
+      format/pem...
+      -----END CERTIFICATE-----
+
+external-controller: 0.0.0.0:9093 # RESTful API 监听地址
+external-controller-tls: 0.0.0.0:9443 # RESTful API HTTPS 监听地址，需要配置 tls 部分配置文件
+# secret: "123456" # `Authorization:Bearer ${secret}`
+
+# RESTful API CORS标头配置
+external-controller-cors:
+  allow-origins:
+    - "*"
+  allow-private-network: true
+
+# RESTful API Unix socket 监听地址（ windows版本大于17063也可以使用，即大于等于1803/RS4版本即可使用 ）
+# ！！！注意： 从Unix socket访问api接口不会验证secret， 如果开启请自行保证安全问题 ！！！
+# 测试方法： curl -v --unix-socket "mihomo.sock" http://localhost/
+external-controller-unix: mihomo.sock
+
+# RESTful API Windows namedpipe 监听地址
+# ！！！注意： 从Windows namedpipe访问api接口不会验证secret， 如果开启请自行保证安全问题 ！！！
+external-controller-pipe: \\.\pipe\mihomo
+
+# tcp-concurrent: true # TCP 并发连接所有 IP, 将使用最快握手的 TCP
+
+# 配置 WEB UI 目录，使用 http://{{external-controller}}/ui 访问
+external-ui: /path/to/ui/folder/
+external-ui-name: xd
+# 目前支持下载zip,tgz格式的压缩包
+external-ui-url: "https://github.com/MetaCubeX/metacubexd/archive/refs/heads/gh-pages.zip"
+
+# 在RESTful API端口上开启DOH服务器
+# ！！！该URL不会验证secret， 如果开启请自行保证安全问题 ！！！
+external-doh-server: /dns-query
+
+# interface-name: en0 # 设置出口网卡
+
+#  TCP keep alive interval
+# disable-keep-alive: false #目前在android端强制为true
+# keep-alive-idle: 15
+# keep-alive-interval: 15
+
+# routing-mark:6666 # 配置 fwmark 仅用于 Linux
+experimental:
+  # Disable quic-go GSO support. This may result in reduced performance on Linux.
+  # This is not recommended for most users.
+  # Only users encountering issues with quic-go's internal implementation should enable this,
+  # and they should disable it as soon as the issue is resolved.
+  # This field will be removed when quic-go fixes all their issues in GSO.
+  # This equivalent to the environment variable QUIC_GO_DISABLE_GSO=1.
+  #quic-go-disable-gso: true
+
+# 类似于 /etc/hosts, 仅支持配置单个 IP
+hosts:
+# '*.mihomo.dev': 127.0.0.1
+# '.dev': 127.0.0.1
+# 'alpha.mihomo.dev': '::1'
+# test.com: [1.1.1.1, 2.2.2.2]
+# home.lan: lan # lan 为特别字段，将加入本地所有网卡的地址
+# baidu.com: google.com # 只允许配置一个别名
+
+profile: # 存储 select 选择记录
+  store-selected: false
+
+  # 持久化 fake-ip
+  store-fake-ip: true
+
+# Tun 配置
+tun:
+  enable: false
+  stack: system # gvisor/mixed
+  dns-hijack:
+    - 0.0.0.0:53 # 需要劫持的 DNS
+  # auto-detect-interface: true # 自动识别出口网卡
+  # auto-route: true # 配置路由表
+  # mtu: 9000 # 最大传输单元
+  # gso: false # 启用通用分段卸载，仅支持 Linux
+  # gso-max-size: 65536 # 通用分段卸载包的最大大小
+  auto-redirect: false # 自动配置 iptables 以重定向 TCP 连接。仅支持 Linux。带有 auto-redirect 的 auto-route 现在可以在路由器上按预期工作，无需干预。
+  # strict-route: true # 将所有连接路由到 tun 来防止泄漏，但你的设备将无法其他设备被访问
+  # disable-icmp-forwarding: true # 禁用 ICMP 转发，防止某些情况下的 ICMP 环回问题，ping 将不会显示真实的延迟
+  route-address-set: # 将指定规则集中的目标 IP CIDR 规则添加到防火墙, 不匹配的流量将绕过路由, 仅支持 Linux，且需要 nftables，`auto-route` 和 `auto-redirect` 已启用。
+    - ruleset-1
+    - ruleset-2
+  route-exclude-address-set: # 将指定规则集中的目标 IP CIDR 规则添加到防火墙, 匹配的流量将绕过路由, 仅支持 Linux，且需要 nftables，`auto-route` 和 `auto-redirect` 已启用。
+    - ruleset-3
+    - ruleset-4
+  route-address: # 启用 auto-route 时使用自定义路由而不是默认路由
+    - 0.0.0.0/1
+    - 128.0.0.0/1
+    - "::/1"
+    - "8000::/1"
+  # inet4-route-address: # 启用 auto-route 时使用自定义路由而不是默认路由（旧写法）
+  #   - 0.0.0.0/1
+  #   - 128.0.0.0/1
+  # inet6-route-address: # 启用 auto-route 时使用自定义路由而不是默认路由（旧写法）
+  #   - "::/1"
+  #   - "8000::/1"
+  # endpoint-independent-nat: false # 启用独立于端点的 NAT
+  # include-interface: # 限制被路由的接口。默认不限制，与 `exclude-interface` 冲突
+  #   - "lan0"
+  # exclude-interface: # 排除路由的接口，与 `include-interface` 冲突
+  #   - "lan1"
+  # include-uid: # UID 规则仅在 Linux 下被支持，并且需要 auto-route
+  # - 0
+  # include-uid-range: # 限制被路由的的用户范围
+  # - 1000:9999
+  # exclude-uid: # 排除路由的的用户
+  #- 1000
+  # exclude-uid-range: # 排除路由的的用户范围
+  # - 1000:9999
+  # include-mac-address:
+  # - 00:11:22:33:44:55
+  # exclude-mac-address:
+  # - 00:11:22:33:44:55
+
+  # Android 用户和应用规则仅在 Android 下被支持
+  # 并且需要 auto-route
+
+  # include-android-user: # 限制被路由的 Android 用户
+  # - 0
+  # - 10
+  # include-package: # 限制被路由的 Android 应用包名
+  # - com.android.chrome
+  # exclude-package: # 排除被路由的 Android 应用包名
+  # - com.android.captiveportallogin
+
+# 嗅探域名 可选配置
+sniffer:
+  enable: false
+  ## 对 redir-host 类型识别的流量进行强制嗅探
+  ## 如：Tun、Redir 和 TProxy 并 DNS 为 redir-host 皆属于
+  # force-dns-mapping: false
+  ## 对所有未获取到域名的流量进行强制嗅探
+  # parse-pure-ip: false
+  # 是否使用嗅探结果作为实际访问，默认 true
+  # 全局配置，优先级低于 sniffer.sniff 实际配置
+  override-destination: false
+  sniff: # TLS 和 QUIC 默认如果不配置 ports 默认嗅探 443
+    QUIC:
+    #  ports: [ 443 ]
+    TLS:
+    #  ports: [443, 8443]
+
+    # 默认嗅探 80
+    HTTP: # 需要嗅探的端口
+      ports: [80, 8080-8880]
+      # 可覆盖 sniffer.override-destination
+      override-destination: true
+  force-domain:
+    - +.v2ex.com
+  # skip-src-address: # 对于来源ip跳过嗅探
+  #   - 192.168.0.3/32
+  # skip-dst-address: # 对于目标ip跳过嗅探
+  #   - 192.168.0.3/32
+  ## 对嗅探结果进行跳过
+  # skip-domain:
+  #   - Mijia Cloud
+  # 需要嗅探协议
+  # 已废弃，若 sniffer.sniff 配置则此项无效
+  sniffing:
+    - tls
+    - http
+  # 强制对此域名进行嗅探
+
+  # 仅对白名单中的端口进行嗅探，默认为 443，80
+  # 已废弃，若 sniffer.sniff 配置则此项无效
+  port-whitelist:
+    - "80"
+    - "443"
+    # - 8000-9999
+
+tunnels: # one line config
+  - tcp/udp,127.0.0.1:6553,114.114.114.114:53,proxy
+  - tcp,127.0.0.1:6666,rds.mysql.com:3306,vpn
+  # full yaml config
+  - network: [tcp, udp]
+    address: 127.0.0.1:7777
+    target: target.com
+    proxy: proxy
+
+# DNS 配置
+dns:
+  cache-algorithm: arc
+  enable: false # 关闭将使用系统 DNS
+  prefer-h3: false # 是否开启 DoH 支持 HTTP/3，将并发尝试
+  listen: 0.0.0.0:53 # 开启 DNS 服务器监听
+  # ipv6: false # false 将返回 AAAA 的空结果
+  # ipv6-timeout: 300 # 单位：ms，内部双栈并发时，向上游查询 AAAA 时，等待 AAAA 的时间，默认 100ms
+  # 用于解析 nameserver，fallback 以及其他 DNS 服务器配置的，DNS 服务域名
+  # 只能使用纯 IP 地址，可使用加密 DNS
+  default-nameserver:
+    - 114.114.114.114
+    - 8.8.8.8
+    - tls://1.12.12.12:853
+    - tls://223.5.5.5:853
+    - system # append DNS server from system configuration. If not found, it would print an error log and skip.
+  enhanced-mode: fake-ip # or redir-host
+
+  fake-ip-range: 198.18.0.1/16 # fake-ip 池设置
+  # fake-ip-range6: fdfe:dcba:9876::1/64 # fake-ip6 池设置
+
+  # 配置不使用 fake-ip 的域名
+  fake-ip-filter:
+    - '*.lan'
+    - localhost.ptlogin2.qq.com
+    # fakeip-filter 为 rule-providers 中的名为 fakeip-filter 规则订阅，
+    # 且 behavior 必须为 domain/classical，当为 classical 时仅会生效域名类规则
+    - rule-set:fakeip-filter
+    # fakeip-filter 为 geosite 中名为 fakeip-filter 的分类（需要自行保证该分类存在）
+    - geosite:fakeip-filter
+
+    # 当 fake-ip-filter-mode: rule 时开启规则模式
+    # fake-ip 与路由 rules 匹配逻辑一致(自上而下)，语法也一致，支持GEOSITE、RuleSet、DOMAIN*、MATCH
+    - RULE-SET,reject-domain,fake-ip # 自定义 RuleSet behavior 必须为 domain/classical，当为 classical 时仅会生效域名类规则
+    - RULE-SET,proxy-domain,fake-ip
+    - GEOSITE,gfw,fake-ip
+    - DOMAIN,www.baidu.com,real-ip
+    - DOMAIN-SUFFIX,qq.com,real-ip
+    - DOMAIN-SUFFIX,jd.com,fake-ip
+    - MATCH,fake-ip # 最后 fake-ip or real-ip
+
+  # 配置fake-ip-filter的匹配模式，默认为blacklist，即如果匹配成功不返回fake-ip
+  # 可设置为whitelist，即只有匹配成功才返回fake-ip
+  # 也可配置为rule，规则模式语法见fake-ip-filter说明
+  fake-ip-filter-mode: blacklist
+  # 配置fakeip查询返回的TTL，非必要情况下请勿修改
+  fake-ip-ttl: 1
+
+  # use-hosts: true # 查询 hosts
+
+  # 配置后面的nameserver、fallback和nameserver-policy向dns服务器的连接过程是否遵守遵守rules规则
+  # 如果为false（默认值）则这三部分的dns服务器在未特别指定的情况下会直连
+  # 如果为true，将会按照rules的规则匹配链接方式（走代理或直连），如果有特别指定则任然以指定值为准
+  # 仅当proxy-server-nameserver非空时可以开启此选项, 强烈不建议和prefer-h3一起使用
+  # 此外，这三者配置中的dns服务器如果出现域名会采用default-nameserver配置项解析，也请确保正确配置default-nameserver
+  respect-rules: false
+
+  # DNS 主要域名配置
+  # 支持 UDP，TCP，DoT，DoH，DoQ
+  # 这部分为主要 DNS 配置，影响所有直连，确保使用对大陆解析精准的 DNS
+  nameserver:
+    - 114.114.114.114 # default value
+    - 8.8.8.8 # default value
+    - tls://223.5.5.5:853 # DNS over TLS
+    - https://doh.pub/dns-query # DNS over HTTPS
+    - https://dns.alidns.com/dns-query#h3=true # 强制 HTTP/3，与 perfer-h3 无关，强制开启 DoH 的 HTTP/3 支持，若不支持将无法使用
+    - https://mozilla.cloudflare-dns.com/dns-query#DNS&h3=true # 指定策略组和使用 HTTP/3
+    - dhcp://en0 # dns from dhcp
+    - quic://dns.adguard.com:784 # DNS over QUIC
+    # - ts://tailscale # 使用指定 Tailscale 出站的 DNS 配置查询
+    # - '8.8.8.8#RULES' # 效果同respect-rules，但仅对该服务器生效
+    # - '8.8.8.8#en0' # 兼容指定 DNS 出口网卡
+
+  # 当配置 fallback 时，会查询 nameserver 中返回的 IP 是否为 CN，非必要配置
+  # 当不是 CN，则使用 fallback 中的 DNS 查询结果
+  # 确保配置 fallback 时能够正常查询
+  # fallback:
+  #   - tcp://1.1.1.1
+  #   - 'tcp://1.1.1.1#ProxyGroupName' # 指定 DNS 过代理查询，ProxyGroupName 为策略组名或节点名，过代理配置优先于配置出口网卡，当找不到策略组或节点名则设置为出口网卡
+
+  # 专用于节点域名解析的 DNS 服务器，非必要配置项，如果不填则遵循nameserver-policy、nameserver和fallback的配置
+  # proxy-server-nameserver:
+  #   - https://doh.pub/dns-query
+  #   - tls://223.5.5.5:853
+  # proxy-server-nameserver-policy: # 格式同nameserver-policy，仅用于节点域名解析，当且仅当proxy-server-nameserver不为空时生效
+  #   'www.yournode.com': '114.114.114.114'
+
+  # 专用于direct出口域名解析的 DNS 服务器，非必要配置项，如果不填则遵循nameserver-policy、nameserver和fallback的配置
+  # direct-nameserver:
+  #   - system://
+  # direct-nameserver-follow-policy: false # 是否遵循nameserver-policy，默认为不遵守，仅当direct-nameserver不为空时生效
+
+  # 配置 fallback 使用条件
+  # fallback-filter:
+  #   geoip: true # 配置是否使用 geoip
+  #   geoip-code: CN # 当 nameserver 域名的 IP 查询 geoip 库为 CN 时，不使用 fallback 中的 DNS 查询结果
+  #   配置强制 fallback，优先于 IP 判断，具体分类自行查看 geosite 库
+  #   geosite:
+  #     - gfw
+  #   如果不匹配 ipcidr 则使用 nameservers 中的结果
+  #   ipcidr:
+  #     - 240.0.0.0/4
+  #   domain:
+  #     - '+.google.com'
+  #     - '+.facebook.com'
+  #     - '+.youtube.com'
+
+  # 配置查询域名使用的 DNS 服务器
+  nameserver-policy:
+    #   'www.baidu.com': '114.114.114.114'
+    #   '+.internal.crop.com': '10.0.0.1'
+    "geosite:cn,private,apple":
+      - https://doh.pub/dns-query
+      - https://dns.alidns.com/dns-query
+    "geosite:category-ads-all": rcode://success
+    "www.baidu.com,+.google.cn": [223.5.5.5, https://dns.alidns.com/dns-query]
+    ## global，dns 为 rule-providers 中的名为 global 和 dns 规则订阅，
+    ## 且 behavior 必须为 domain/classical，当为 classical 时仅会生效域名类规则
+    # "rule-set:global,dns": 8.8.8.8
+
+proxies: # socks5
+  - name: "socks"
+    type: socks5
+    server: server
+    port: 443
+    # username: username
+    # password: password
+    # tls: true
+    # fingerprint: xxxx # 配置指纹将实现 SSL Pining 效果, 可使用 openssl x509 -noout -fingerprint -sha256 -inform pem -in yourcert.pem 获取
+    # 下面两项如果填写则开启 mTLS（需要同时填写）
+    # certificate: ./client.crt # 证书 PEM 格式，或者 证书的路径
+    # private-key: ./client.key # 证书对应的私钥 PEM 格式，或者私钥路径
+    # skip-cert-verify: true
+    # udp: true
+    # ip-version: ipv6
+
+  # http
+  - name: "http"
+    type: http
+    server: server
+    port: 443
+    # username: username
+    # password: password
+    # tls: true # https
+    # skip-cert-verify: true
+    # sni: custom.com
+    # fingerprint: xxxx # 配置指纹将实现 SSL Pining 效果, 可使用 openssl x509 -noout -fingerprint -sha256 -inform pem -in yourcert.pem 获取
+    # 下面两项如果填写则开启 mTLS（需要同时填写）
+    # certificate: ./client.crt # 证书 PEM 格式，或者 证书的路径
+    # private-key: ./client.key # 证书对应的私钥 PEM 格式，或者私钥路径
+    # ip-version: dual
+
+  # Snell
+  # Beware that there's currently no UDP support yet
+  - name: "snell"
+    type: snell
+    server: server
+    port: 44046
+    psk: yourpsk
+    # version: 2
+    # obfs-opts:
+    # mode: http # or tls
+    # host: bing.com
+
+  # Shadowsocks
+  # cipher支持:
+  #   aes-128-gcm aes-192-gcm aes-256-gcm
+  #   aes-128-cfb aes-192-cfb aes-256-cfb
+  #   aes-128-ctr aes-192-ctr aes-256-ctr
+  #   rc4-md5 chacha20-ietf xchacha20
+  #   chacha20-ietf-poly1305 xchacha20-ietf-poly1305
+  #   2022-blake3-aes-128-gcm 2022-blake3-aes-256-gcm 2022-blake3-chacha20-poly1305
+  - name: "ss1"
+    type: ss
+    server: server
+    port: 443
+    cipher: chacha20-ietf-poly1305
+    password: "password"
+    # udp: true
+    # udp-over-tcp: false
+    # ip-version: ipv4 # 设置节点使用 IP 版本，可选：dual，ipv4，ipv6，ipv4-prefer，ipv6-prefer。默认使用 dual
+    # ipv4：仅使用 IPv4  ipv6：仅使用 IPv6
+    # ipv4-prefer：优先使用 IPv4 对于 TCP 会进行双栈解析，并发链接但是优先使用 IPv4 链接，
+    # UDP 则为双栈解析，获取结果中的第一个 IPv4
+    # ipv6-prefer 同 ipv4-prefer
+    # 现有协议都支持此参数，TCP 效果仅在开启 tcp-concurrent 生效
+    smux:
+      enabled: false
+      protocol: smux # smux/yamux/h2mux
+      # max-connections: 4 # Maximum connections. Conflict with max-streams.
+      # min-streams: 4 # Minimum multiplexed streams in a connection before opening a new connection. Conflict with max-streams.
+      # max-streams: 0 # Maximum multiplexed streams in a connection before opening a new connection. Conflict with max-connections and min-streams.
+      # padding: false # Enable padding. Requires sing-box server version 1.3-beta9 or later.
+      # statistic: false # 控制是否将底层连接显示在面板中，方便打断底层连接
+      # only-tcp: false # 如果设置为 true, smux 的设置将不会对 udp 生效，udp 连接会直接走底层协议
+
+  - name: "ss2"
+    type: ss
+    server: server
+    port: 443
+    cipher: chacha20-ietf-poly1305
+    password: "password"
+    plugin: obfs
+    plugin-opts:
+      mode: tls # or http
+      # host: bing.com
+
+  - name: "ss3"
+    type: ss
+    server: server
+    port: 443
+    cipher: chacha20-ietf-poly1305
+    password: "password"
+    plugin: v2ray-plugin
+    plugin-opts:
+      mode: websocket # no QUIC now
+      # tls: true # wss
+      # fingerprint: xxxx # 配置指纹将实现 SSL Pining 效果, 可使用 openssl x509 -noout -fingerprint -sha256 -inform pem -in yourcert.pem 获取
+      # 下面两项如果填写则开启 mTLS（需要同时填写）
+      # certificate: ./client.crt # 证书 PEM 格式，或者 证书的路径
+      # private-key: ./client.key # 证书对应的私钥 PEM 格式，或者私钥路径
+      # ech-opts:
+      #   enable: true # 必须手动开启
+      #   # 如果config为空则通过dns解析，不为空则通过该值指定，格式为经过base64编码的ech参数（dig +short TYPE65 tls-ech.dev）
+      #   config: AEn+DQBFKwAgACABWIHUGj4u+PIggYXcR5JF0gYk3dCRioBW8uJq9H4mKAAIAAEAAQABAANAEnB1YmxpYy50bHMtZWNoLmRldgAA
+      #   # query-server-name: xxx.com # 可选项，不为空时用于指定通过dns解析时的域名
+      # skip-cert-verify: true
+      # host: bing.com
+      # path: "/"
+      # mux: true
+      # headers:
+      #   custom: value
+      # v2ray-http-upgrade: false
+      # v2ray-http-upgrade-fast-open: false
+
+  - name: "ss4-shadow-tls"
+    type: ss
+    server: server
+    port: 443
+    cipher: chacha20-ietf-poly1305
+    password: "password"
+    plugin: shadow-tls
+    client-fingerprint: chrome
+    plugin-opts:
+      host: "cloud.tencent.com"
+      password: "shadow_tls_password"
+      version: 2 # support 1/2/3
+      # alpn: ["h2","http/1.1"]
+
+  - name: "ss5"
+    type: ss
+    server: server
+    port: 443
+    cipher: chacha20-ietf-poly1305
+    password: "password"
+    plugin: gost-plugin
+    plugin-opts:
+      mode: websocket
+      # tls: true # wss
+      # fingerprint: xxxx # 配置指纹将实现 SSL Pining 效果, 可使用 openssl x509 -noout -fingerprint -sha256 -inform pem -in yourcert.pem 获取
+      # 下面两项如果填写则开启 mTLS（需要同时填写）
+      # certificate: ./client.crt # 证书 PEM 格式，或者 证书的路径
+      # private-key: ./client.key # 证书对应的私钥 PEM 格式，或者私钥路径
+      # skip-cert-verify: true
+      # host: bing.com
+      # path: "/"
+      # mux: true
+      # headers:
+      #   custom: value
+
+  - name: "gost-relay-hop"
+    type: gost-relay
+    # Dynamic mode: relay connects to the target address requested by the upper proxy.
+    # Use this proxy through dialer-proxy to carry ss/vmess/vless/trojan/etc.
+    server: relay.example.com
+    port: 443
+    udp: true
+    tls: true
+    # mux: true # relay+mtls when tls is also true
+    # sni: relay.example.com
+    # username: user
+    # password: pass
+    # client-fingerprint: chrome
+    # fingerprint: xxxx
+    # certificate: ./client.crt
+    # private-key: ./client.key
+    # skip-cert-verify: true
+
+  - name: "ss6-gost-relay"
+    type: ss
+    # This address is dialed from the remote GOST relay server side.
+    # If the remote SS listens on 127.0.0.1:12345 on the relay server, write it here.
+    server: 127.0.0.1
+    port: 12345
+    cipher: chacha20-ietf-poly1305
+    password: "password"
+    udp: true
+    # udp-over-tcp: true # use this instead if your SS server expects UoT over TCP
+    dialer-proxy: gost-relay-hop
+
+  # - name: "gost-relay-forward-hop"
+  #   type: gost-relay
+  #   # Forward mode: relay server chooses its configured forwarding target.
+  #   server: relay.example.com
+  #   port: 443
+  #   udp: true
+  #   forward: true
+  #   tls: true
+  #   # mux: true
+  #   # sni: relay.example.com
+  #   # username: user
+  #   # password: pass
+  #
+  # - name: "ss6-gost-relay-forward"
+  #   type: ss
+  #   # In forward mode this address is only used to ask dialer-proxy for a stream.
+  #   # The GOST relay server forwards the stream to its configured target.
+  #   server: relay.example.com
+  #   port: 443
+  #   cipher: chacha20-ietf-poly1305
+  #   password: "password"
+  #   udp: true
+  #   dialer-proxy: gost-relay-forward-hop
+
+  - name: "ss-restls-tls13"
+    type: ss
+    server: [YOUR_SERVER_IP]
+    port: 443
+    cipher: chacha20-ietf-poly1305
+    password: [YOUR_SS_PASSWORD]
+    client-fingerprint:
+      chrome # One of: chrome, ios, firefox or safari
+      # 可以是 chrome, ios, firefox, safari 中的一个
+    plugin: restls
+    plugin-opts:
+      host:
+        "www.microsoft.com" # Must be a TLS 1.3 server
+        # 应当是一个 TLS 1.3 服务器
+      password: [YOUR_RESTLS_PASSWORD]
+      version-hint: "tls13"
+      # Control your post-handshake traffic through restls-script
+      # Hide proxy behaviors like "tls in tls".
+      # see https://github.com/3andne/restls/blob/main/Restls-Script:%20Hide%20Your%20Proxy%20Traffic%20Behavior.md
+      # 用 restls 剧本来控制握手后的行为，隐藏"tls in tls"等特征
+      # 详情：https://github.com/3andne/restls/blob/main/Restls-Script:%20%E9%9A%90%E8%97%8F%E4%BD%A0%E7%9A%84%E4%BB%A3%E7%90%86%E8%A1%8C%E4%B8%BA.md
+      restls-script: "300?100<1,400~100,350~100,600~100,300~200,300~100"
+
+  - name: "ss-restls-tls12"
+    type: ss
+    server: [YOUR_SERVER_IP]
+    port: 443
+    cipher: chacha20-ietf-poly1305
+    password: [YOUR_SS_PASSWORD]
+    client-fingerprint:
+      chrome # One of: chrome, ios, firefox or safari
+      # 可以是 chrome, ios, firefox, safari 中的一个
+    plugin: restls
+    plugin-opts:
+      host:
+        "vscode.dev" # Must be a TLS 1.2 server
+        # 应当是一个 TLS 1.2 服务器
+      password: [YOUR_RESTLS_PASSWORD]
+      version-hint: "tls12"
+      restls-script: "1000?100<1,500~100,350~100,600~100,400~200"
+
+  - name: "ss-kcptun"
+    type: ss
+    server: [YOUR_SERVER_IP]
+    port: 443
+    cipher: chacha20-ietf-poly1305
+    password: [YOUR_SS_PASSWORD]
+    plugin: kcptun
+    plugin-opts:
+      key: it's a secrect # pre-shared secret between client and server
+      crypt: aes # aes, aes-128, aes-128-gcm, aes-192, salsa20, blowfish, twofish, cast5, 3des, tea, xtea, xor, none, null
+      mode: fast # profiles: fast3, fast2, fast, normal, manual
+      conn: 1 # set num of UDP connections to server
+      autoexpire: 0 # set auto expiration time(in seconds) for a single UDP connection, 0 to disable
+      scavengettl: 600 # set how long an expired connection can live (in seconds)
+      mtu: 1350 # set maximum transmission unit for UDP packets
+      ratelimit: 0 # set maximum outgoing speed (in bytes per second) for a single KCP connection, 0 to disable. Also known as packet pacing
+      sndwnd: 128 # set send window size(num of packets)
+      rcvwnd: 512 # set receive window size(num of packets)
+      datashard: 10 # set reed-solomon erasure coding - datashard
+      parityshard: 3 # set reed-solomon erasure coding - parityshard
+      dscp: 0 # set DSCP(6bit)
+      nocomp: false # disable compression
+      acknodelay: false # flush ack immediately when a packet is received
+      nodelay: 0
+      interval: 50
+      resend: 0
+      sockbuf: 4194304 # per-socket buffer in bytes
+      smuxver: 1 # specify smux version, available 1,2
+      smuxbuf: 4194304 # the overall de-mux buffer in bytes
+      framesize: 8192 # smux max frame size
+      streambuf: 2097152 # per stream receive buffer in bytes, smux v2+
+      keepalive: 10 # seconds between heartbeats
+
+  # vmess
+  # cipher 支持 auto/aes-128-gcm/chacha20-poly1305/none
+  - name: "vmess"
+    type: vmess
+    server: server
+    port: 443
+    uuid: uuid
+    alterId: 32
+    cipher: auto
+    # udp: true
+    # tls: true
+    # fingerprint: xxxx # 配置指纹将实现 SSL Pining 效果, 可使用 openssl x509 -noout -fingerprint -sha256 -inform pem -in yourcert.pem 获取
+    # 下面两项如果填写则开启 mTLS（需要同时填写）
+    # certificate: ./client.crt # 证书 PEM 格式，或者 证书的路径
+    # private-key: ./client.key # 证书对应的私钥 PEM 格式，或者私钥路径
+    # client-fingerprint: chrome    # Available: "chrome","firefox","safari","ios","random", currently only support TLS transport in TCP/GRPC/WS/HTTP for VLESS/Vmess and trojan.
+    # skip-cert-verify: true
+    # servername: example.com # priority over wss host
+    # network: ws
+    # ech-opts:
+    #   enable: true # 必须手动开启
+    #   # 如果config为空则通过dns解析，不为空则通过该值指定，格式为经过base64编码的ech参数（dig +short TYPE65 tls-ech.dev）
+    #   config: AEn+DQBFKwAgACABWIHUGj4u+PIggYXcR5JF0gYk3dCRioBW8uJq9H4mKAAIAAEAAQABAANAEnB1YmxpYy50bHMtZWNoLmRldgAA
+    #   # query-server-name: xxx.com # 可选项，不为空时用于指定通过dns解析时的域名
+    # ws-opts:
+      # path: /path
+      # headers:
+      #   Host: v2ray.com
+      # max-early-data: 2048
+      # early-data-header-name: Sec-WebSocket-Protocol
+      # v2ray-http-upgrade: false
+      # v2ray-http-upgrade-fast-open: false
+
+  - name: "vmess-h2"
+    type: vmess
+    server: server
+    port: 443
+    uuid: uuid
+    alterId: 32
+    cipher: auto
+    network: h2
+    tls: true
+    # fingerprint: xxxx # 配置指纹将实现 SSL Pining 效果, 可使用 openssl x509 -noout -fingerprint -sha256 -inform pem -in yourcert.pem 获取
+    # 下面两项如果填写则开启 mTLS（需要同时填写）
+    # certificate: ./client.crt # 证书 PEM 格式，或者 证书的路径
+    # private-key: ./client.key # 证书对应的私钥 PEM 格式，或者私钥路径
+    h2-opts:
+      host:
+        - http.example.com
+        - http-alt.example.com
+      path: /
+
+  - name: "vmess-http"
+    type: vmess
+    server: server
+    port: 443
+    uuid: uuid
+    alterId: 32
+    cipher: auto
+    # udp: true
+    # network: http
+    # http-opts:
+    #   method: "GET"
+    #   path:
+    #     - '/'
+    #     - '/video'
+    #   headers:
+    #     Connection:
+    #       - keep-alive
+    # ip-version: ipv4 # 设置使用 IP 类型偏好，可选：ipv4，ipv6，dual，默认值：dual
+
+  - name: vmess-grpc
+    server: server
+    port: 443
+    type: vmess
+    uuid: uuid
+    alterId: 32
+    cipher: auto
+    network: grpc
+    tls: true
+    # fingerprint: xxxx # 配置指纹将实现 SSL Pining 效果, 可使用 openssl x509 -noout -fingerprint -sha256 -inform pem -in yourcert.pem 获取
+    # 下面两项如果填写则开启 mTLS（需要同时填写）
+    # certificate: ./client.crt # 证书 PEM 格式，或者 证书的路径
+    # private-key: ./client.key # 证书对应的私钥 PEM 格式，或者私钥路径
+    servername: example.com
+    # skip-cert-verify: true
+    grpc-opts:
+      grpc-service-name: "example"
+      # grpc-user-agent: "grpc-go/1.36.0"
+      # ping-interval: 0 # 默认关闭，单位为秒
+      # max-connections: 1 # Maximum connections. Conflict with max-streams.
+      # min-streams: 0 # Minimum multiplexed streams in a connection before opening a new connection. Conflict with max-streams.
+      # max-streams: 0 # Maximum multiplexed streams in a connection before opening a new connection. Conflict with max-connections and min-streams.
+    # ip-version: ipv4
+
+  # vless
+  - name: "vless-tcp"
+    type: vless
+    server: server
+    port: 443
+    uuid: uuid
+    network: tcp
+    servername: example.com # AKA SNI
+    # skip-cert-verify: true
+    # 下面两项如果填写则开启 mTLS（需要同时填写）
+    # certificate: ./client.crt # 证书 PEM 格式，或者 证书的路径
+    # private-key: ./client.key # 证书对应的私钥 PEM 格式，或者私钥路径
+    # fingerprint: xxxx # 配置指纹将实现 SSL Pining 效果, 可使用 openssl x509 -noout -fingerprint -sha256 -inform pem -in yourcert.pem 获取
+    # client-fingerprint: random # Available: "chrome","firefox","safari","random","none"
+    # ech-opts:
+    #   enable: true # 必须手动开启
+    #   # 如果config为空则通过dns解析，不为空则通过该值指定，格式为经过base64编码的ech参数（dig +short TYPE65 tls-ech.dev）
+    #   config: AEn+DQBFKwAgACABWIHUGj4u+PIggYXcR5JF0gYk3dCRioBW8uJq9H4mKAAIAAEAAQABAANAEnB1YmxpYy50bHMtZWNoLmRldgAA
+    #   # query-server-name: xxx.com # 可选项，不为空时用于指定通过dns解析时的域名
+
+  - name: "vless-vision"
+    type: vless
+    server: server
+    port: 443
+    uuid: uuid
+    network: tcp
+    tls: true
+    udp: true
+    flow: xtls-rprx-vision
+    client-fingerprint: chrome
+    # 下面两项如果填写则开启 mTLS（需要同时填写）
+    # certificate: ./client.crt # 证书 PEM 格式，或者 证书的路径
+    # private-key: ./client.key # 证书对应的私钥 PEM 格式，或者私钥路径
+    # fingerprint: xxxx # 配置指纹将实现 SSL Pining 效果, 可使用 openssl x509 -noout -fingerprint -sha256 -inform pem -in yourcert.pem 获取
+    # skip-cert-verify: true
+
+  - name: "vless-encryption"
+    type: vless
+    server: server
+    port: 443
+    uuid: uuid
+    network: tcp
+    # -------------------------
+    # vless encryption客户端配置：
+    # （native/xorpub 的 XTLS Vision 可以 Splice。只使用 1-RTT 模式 / 若服务端发的 ticket 中秒数不为零则 0-RTT 复用）
+    # / 是只能选一个，后面 base64 至少一个，无限串联，使用  mihomo generate vless-x25519 和 mihomo generate vless-mlkem768 生成，替换值时需去掉括号
+    #
+    # Padding 是可选的参数，仅作用于 1-RTT 以消除握手的长度特征，双端默认值均为 "100-111-1111.75-0-111.50-0-3333"：
+    # 在 1-RTT client/server hello 后以 100% 的概率粘上随机 111 到 1111 字节的 padding
+    # 以 75% 的概率等待随机 0 到 111 毫秒（"probability-from-to"）
+    # 再次以 50% 的概率发送随机 0 到 3333 字节的 padding（若为 0 则不 Write()）
+    # 服务端、客户端可以设置不同的 padding 参数，按 len、gap 的顺序无限串联，第一个 padding 需概率 100%、至少 35 字节
+    # -------------------------
+    encryption: "mlkem768x25519plus.native/xorpub/random.1rtt/0rtt.(padding len).(padding gap).(X25519 Password).(ML-KEM-768 Client)..."
+    tls: false #可以不开启tls
+    udp: true
+
+  - name: "vless-reality-vision"
+    type: vless
+    server: server
+    port: 443
+    uuid: uuid
+    network: tcp
+    tls: true
+    udp: true
+    flow: xtls-rprx-vision
+    servername: www.microsoft.com # REALITY servername
+    reality-opts:
+      public-key: xxx
+      short-id: xxx # optional
+      support-x25519mlkem768: false # 如果服务端支持可手动设置为true
+    client-fingerprint: chrome # cannot be empty
+
+  - name: "vless-reality-grpc"
+    type: vless
+    server: server
+    port: 443
+    uuid: uuid
+    network: grpc
+    tls: true
+    udp: true
+    flow:
+    # skip-cert-verify: true
+    client-fingerprint: chrome
+    servername: testingcf.jsdelivr.net
+    grpc-opts:
+      grpc-service-name: "grpc"
+      # grpc-user-agent: "grpc-go/1.36.0"
+      # ping-interval: 0 # 默认关闭，单位为秒
+      # max-connections: 1 # Maximum connections. Conflict with max-streams.
+      # min-streams: 0 # Minimum multiplexed streams in a connection before opening a new connection. Conflict with max-streams.
+      # max-streams: 0 # Maximum multiplexed streams in a connection before opening a new connection. Conflict with max-connections and min-streams.
+
+    reality-opts:
+      public-key: CrrQSjAG_YkHLwvM2M-7XkKJilgL5upBKCp0od0tLhE
+      short-id: 10f897e26c4b9478
+      support-x25519mlkem768: false # 如果服务端支持可手动设置为true
+
+  - name: "vless-ws"
+    type: vless
+    server: server
+    port: 443
+    uuid: uuid
+    udp: true
+    tls: true
+    network: ws
+    # client-fingerprint: random # Available: "chrome","firefox","safari","random","none"
+    servername: example.com # priority over wss host
+    # skip-cert-verify: true
+    # fingerprint: xxxx # 配置指纹将实现 SSL Pining 效果, 可使用 openssl x509 -noout -fingerprint -sha256 -inform pem -in yourcert.pem 获取
+    # 下面两项如果填写则开启 mTLS（需要同时填写）
+    # certificate: ./client.crt # 证书 PEM 格式，或者 证书的路径
+    # private-key: ./client.key # 证书对应的私钥 PEM 格式，或者私钥路径
+    ws-opts:
+      path: "/"
+      headers:
+        Host: example.com
+      # v2ray-http-upgrade: false
+      # v2ray-http-upgrade-fast-open: false
+
+  - name: "vless-xhttp"
+    type: vless
+    server: server
+    port: 443
+    uuid: uuid
+    udp: true
+    tls: true
+    network: xhttp
+    alpn: [h2] # 默认仅支持h2，如果开启h3模式需要设置alpn: [h3]，如果开启http1.1模式需要设置alpn: [http/1.1]
+    # ech-opts: ...
+    # reality-opts: ...
+    # skip-cert-verify: false
+    # fingerprint: ...
+    # certificate: ...
+    # private-key: ...
+    servername: xxx.com
+    client-fingerprint: chrome
+    encryption: ""
+    xhttp-opts:
+      path: "/"
+      host: xxx.com
+      # mode: "stream-one" # Available: "stream-one", "stream-up" or "packet-up"
+      # headers:
+      #   X-Forwarded-For: ""
+      # no-grpc-header: false
+      # x-padding-bytes: "100-1000"
+      # x-padding-obfs-mode: false
+      # x-padding-key: x_padding
+      # x-padding-header: Referer
+      # x-padding-placement: queryInHeader # Available: queryInHeader, cookie, header, query
+      # x-padding-method: repeat-x # Available: repeat-x, tokenish
+      # uplink-http-method: POST # Available: POST, PUT, PATCH, DELETE
+      # session-placement: path # Available: path, query, cookie, header
+      # session-key: ""
+      # seq-placement: path # Available: path, query, cookie, header
+      # seq-key: ""
+      # uplink-data-placement: body # Available: body, cookie, header
+      # uplink-data-key: ""
+      # uplink-chunk-size: 0 # only applicable when uplink-data-placement is not body
+      # sc-max-each-post-bytes: 1000000
+      # sc-min-posts-interval-ms: 30
+      # reuse-settings: # aka XMUX
+      #   max-concurrency: "16-32"
+      #   max-connections: "0"
+      #   c-max-reuse-times: "0"
+      #   h-max-request-times: "600-900"
+      #   h-max-reusable-secs: "1800-3000"
+      #   h-keep-alive-period: 0
+      # download-settings:
+      #   ## xhttp part
+      #   path: "/"
+      #   host: xxx.com
+      #   headers:
+      #     X-Forwarded-For: ""
+      #   reuse-settings: # aka XMUX
+      #     max-concurrency: "16-32"
+      #     max-connections: "0"
+      #     c-max-reuse-times: "0"
+      #     h-max-request-times: "600-900"
+      #     h-max-reusable-secs: "1800-3000"
+      #     h-keep-alive-period: 0
+      #   ## proxy part
+      #   server: server
+      #   port: 443
+      #   tls: true
+      #   alpn: ...
+      #   ech-opts: ...
+      #   reality-opts: ...
+      #   skip-cert-verify: false
+      #   fingerprint: ...
+      #   certificate: ...
+      #   private-key: ...
+      #   servername: xxx.com
+      #   client-fingerprint: chrome
+
+
+  # Trojan
+  - name: "trojan"
+    type: trojan
+    server: server
+    port: 443
+    password: yourpsk
+    # client-fingerprint: random # Available: "chrome","firefox","safari","random","none"
+    # fingerprint: xxxx # 配置指纹将实现 SSL Pining 效果, 可使用 openssl x509 -noout -fingerprint -sha256 -inform pem -in yourcert.pem 获取
+    # 下面两项如果填写则开启 mTLS（需要同时填写）
+    # certificate: ./client.crt # 证书 PEM 格式，或者 证书的路径
+    # private-key: ./client.key # 证书对应的私钥 PEM 格式，或者私钥路径
+    # udp: true
+    # sni: example.com # aka server name
+    # alpn:
+    #   - h2
+    #   - http/1.1
+    # skip-cert-verify: true
+    # ss-opts: # like trojan-go's `shadowsocks` config
+    #   enabled: false
+    #   method: aes-128-gcm # aes-128-gcm/aes-256-gcm/chacha20-ietf-poly1305
+    #   password: "example"
+    # ech-opts:
+    #   enable: true # 必须手动开启
+    #   # 如果config为空则通过dns解析，不为空则通过该值指定，格式为经过base64编码的ech参数（dig +short TYPE65 tls-ech.dev）
+    #   config: AEn+DQBFKwAgACABWIHUGj4u+PIggYXcR5JF0gYk3dCRioBW8uJq9H4mKAAIAAEAAQABAANAEnB1YmxpYy50bHMtZWNoLmRldgAA
+    #   # query-server-name: xxx.com # 可选项，不为空时用于指定通过dns解析时的域名
+
+  - name: trojan-grpc
+    server: server
+    port: 443
+    type: trojan
+    password: "example"
+    network: grpc
+    sni: example.com
+    # skip-cert-verify: true
+    # fingerprint: xxxx # 配置指纹将实现 SSL Pining 效果, 可使用 openssl x509 -noout -fingerprint -sha256 -inform pem -in yourcert.pem 获取
+    # 下面两项如果填写则开启 mTLS（需要同时填写）
+    # certificate: ./client.crt # 证书 PEM 格式，或者 证书的路径
+    # private-key: ./client.key # 证书对应的私钥 PEM 格式，或者私钥路径
+    udp: true
+    grpc-opts:
+      grpc-service-name: "example"
+      # grpc-user-agent: "grpc-go/1.36.0"
+      # ping-interval: 0 # 默认关闭，单位为秒
+      # max-connections: 1 # Maximum connections. Conflict with max-streams.
+      # min-streams: 0 # Minimum multiplexed streams in a connection before opening a new connection. Conflict with max-streams.
+      # max-streams: 0 # Maximum multiplexed streams in a connection before opening a new connection. Conflict with max-connections and min-streams.
+
+  - name: trojan-ws
+    server: server
+    port: 443
+    type: trojan
+    password: "example"
+    network: ws
+    sni: example.com
+    # skip-cert-verify: true
+    # fingerprint: xxxx # 配置指纹将实现 SSL Pining 效果, 可使用 openssl x509 -noout -fingerprint -sha256 -inform pem -in yourcert.pem 获取
+    # 下面两项如果填写则开启 mTLS（需要同时填写）
+    # certificate: ./client.crt # 证书 PEM 格式，或者 证书的路径
+    # private-key: ./client.key # 证书对应的私钥 PEM 格式，或者私钥路径
+    udp: true
+    # ws-opts:
+    #   path: /path
+    #   headers:
+    #     Host: example.com
+    #   v2ray-http-upgrade: false
+    #   v2ray-http-upgrade-fast-open: false
+
+  - name: "trojan-xtls"
+    type: trojan
+    server: server
+    port: 443
+    password: yourpsk
+    flow: "xtls-rprx-direct" # xtls-rprx-origin xtls-rprx-direct
+    flow-show: true
+    # udp: true
+    # sni: example.com # aka server name
+    # skip-cert-verify: true
+    # fingerprint: xxxx # 配置指纹将实现 SSL Pining 效果, 可使用 openssl x509 -noout -fingerprint -sha256 -inform pem -in yourcert.pem 获取
+    # 下面两项如果填写则开启 mTLS（需要同时填写）
+    # certificate: ./client.crt # 证书 PEM 格式，或者 证书的路径
+    # private-key: ./client.key # 证书对应的私钥 PEM 格式，或者私钥路径
+
+  #hysteria
+  - name: "hysteria"
+    type: hysteria
+    server: server.com
+    port: 443
+    # ports: 1000,2000-3000,5000 # port 不可省略
+    auth-str: yourpassword
+    # obfs: obfs_str
+    # alpn:
+    #   - h3
+    protocol: udp # 支持 udp/wechat-video/faketcp
+    up: "30 Mbps" # 若不写单位，默认为 Mbps
+    down: "200 Mbps" # 若不写单位，默认为 Mbps
+    # sni: server.com
+    # ech-opts:
+    #   enable: true # 必须手动开启
+    #   # 如果config为空则通过dns解析，不为空则通过该值指定，格式为经过base64编码的ech参数（dig +short TYPE65 tls-ech.dev）
+    #   config: AEn+DQBFKwAgACABWIHUGj4u+PIggYXcR5JF0gYk3dCRioBW8uJq9H4mKAAIAAEAAQABAANAEnB1YmxpYy50bHMtZWNoLmRldgAA
+    #   # query-server-name: xxx.com # 可选项，不为空时用于指定通过dns解析时的域名
+    # skip-cert-verify: false
+    # recv-window-conn: 12582912
+    # recv-window: 52428800
+    # disable-mtu-discovery: false
+    # fingerprint: xxxx # 配置指纹将实现 SSL Pining 效果, 可使用 openssl x509 -noout -fingerprint -sha256 -inform pem -in yourcert.pem 获取
+    # 下面两项如果填写则开启 mTLS（需要同时填写）
+    # certificate: ./client.crt # 证书 PEM 格式，或者 证书的路径
+    # private-key: ./client.key # 证书对应的私钥 PEM 格式，或者私钥路径
+    # fast-open: true # 支持 TCP 快速打开，默认为 false
+
+  #hysteria2
+  - name: "hysteria2"
+    type: hysteria2
+    server: server.com
+    port: 443
+    # ports: 1000,2000-3000,5000 # port 不可省略
+    # hop-interval: 15 # 支持填写"15-30"会每次随机选取其中一个值作为切换间隔，仅支持写一个范围（即不允许出现逗号）
+    #  up 和 down 均不写或为 0 则使用 BBR 流控
+    # up: "30 Mbps" # 若不写单位，默认为 Mbps
+    # down: "200 Mbps" # 若不写单位，默认为 Mbps
+    # bbr-profile: "" # Available: "standard", "conservative", "aggressive". Default: "standard"
+    password: yourpassword
+    # obfs: salamander # 默认为空，如果填写则开启 obfs，目前仅支持 salamander
+    # obfs-password: yourpassword
+    # sni: server.com
+    # ech-opts:
+    #   enable: true # 必须手动开启
+    #   # 如果config为空则通过dns解析，不为空则通过该值指定，格式为经过base64编码的ech参数（dig +short TYPE65 tls-ech.dev）
+    #   config: AEn+DQBFKwAgACABWIHUGj4u+PIggYXcR5JF0gYk3dCRioBW8uJq9H4mKAAIAAEAAQABAANAEnB1YmxpYy50bHMtZWNoLmRldgAA
+    #   # query-server-name: xxx.com # 可选项，不为空时用于指定通过dns解析时的域名
+    # skip-cert-verify: false
+    # fingerprint: xxxx # 配置指纹将实现 SSL Pining 效果, 可使用 openssl x509 -noout -fingerprint -sha256 -inform pem -in yourcert.pem 获取
+    # 下面两项如果填写则开启 mTLS（需要同时填写）
+    # certificate: ./client.crt # 证书 PEM 格式，或者 证书的路径
+    # private-key: ./client.key # 证书对应的私钥 PEM 格式，或者私钥路径
+    # alpn:
+    #   - h3
+    # realm-opts:
+    #   enable: true # 必须手动开启
+    #   server-url: https://realm.hy2.io
+    #   token: public
+    #   realm-id: my-cabin-1f3a8c2e9b
+    #   stun-servers:
+    #     - stun.nextcloud.com:3478
+    #     - stun.sip.us:3478
+    #     - global.stun.twilio.com:3478
+    #   # 下面支持填写针对server-url的TLS配置(sni, skip-cert-verify, fingerprint, certificate, private-key, alpn)
+    #   # skip-cert-verify： false
+    #   # ......
+    ###quic-go特殊配置项，不要随意修改除非你知道你在干什么###
+    # initial-stream-receive-window： 8388608
+    # max-stream-receive-window： 8388608
+    # initial-connection-receive-window： 20971520
+    # max-connection-receive-window： 20971520
+
+  # wireguard
+  - name: "wg"
+    type: wireguard
+    server: 162.159.192.1
+    port: 2480
+    ip: 172.16.0.2
+    ipv6: fd01:5ca1:ab1e:80fa:ab85:6eea:213f:f4a5
+    public-key: Cr8hWlKvtDt7nrvf+f0brNQQzabAqrjfBvas9pmowjo=
+    #    pre-shared-key: 31aIhAPwktDGpH4JDhA8GNvjFXEf/a6+UaQRyOAiyfM=
+    private-key: eCtXsJZ27+4PbhDkHnB923tkUn2Gj59wZw5wFA75MnU=
+    udp: true
+    reserved: "U4An"
+    # 数组格式也是合法的
+    # reserved: [209,98,59]
+    # persistent-keepalive: 0
+    # 一个出站代理的标识。当值不为空时，将使用指定的 proxy 发出连接
+    # dialer-proxy: "ss1"
+    # remote-dns-resolve: true # 强制 dns 远程解析，默认值为 false
+    # dns: [ 1.1.1.1, 8.8.8.8 ] # 仅在 remote-dns-resolve 为 true 时生效
+    # refresh-server-ip-interval: 60 # 重新解析server ip的间隔，单位为秒，默认值为0即仅第一次链接时解析server域名，仅应在server域名对应的IP会发生变化时启用该选项（如家宽ddns）
+    # 如果 peers 不为空，该段落中的 allowed-ips 不可为空；前面段落的 server,port,public-key,pre-shared-key 均会被忽略，但 private-key 会被保留且只能在顶层指定
+    # peers:
+    #   - server: 162.159.192.1
+    #     port: 2480
+    #     public-key: Cr8hWlKvtDt7nrvf+f0brNQQzabAqrjfBvas9pmowjo=
+    #     # pre-shared-key: 31aIhAPwktDGpH4JDhA8GNvjFXEf/a6+UaQRyOAiyfM=
+    #     allowed-ips: ['0.0.0.0/0']
+    #     reserved: [209,98,59]
+    # 如果存在则开启AmneziaWG功能
+    # amnezia-wg-option:
+    #   jc: 5
+    #   jmin: 500
+    #   jmax: 501
+    #   s1: 30
+    #   s2: 40
+    #   s3: 50                                            # AmneziaWG v1.5 and v2
+    #   s4: 5                                             # AmneziaWG v1.5 and v2
+    #   h1: 123456                                        # AmneziaWG v1.0 and v1.5
+    #   h2: 67543                                         # AmneziaWG v1.0 and v1.5
+    #   h3: 123123                                        # AmneziaWG v1.0 and v1.5
+    #   h4: 32345                                         # AmneziaWG v1.0 and v1.5
+    #   h1: 123456-123500                                 # AmneziaWG v2.0 only
+    #   h2: 67543-67550                                   # AmneziaWG v2.0 only
+    #   h3: 123123-123200                                 # AmneziaWG v2.0 only
+    #   h4: 32345-32350                                   # AmneziaWG v2.0 only
+    #   i1: <b 0xf6ab3267fa><c><b 0xf6ab><t><r 10><wt 10> # AmneziaWG v1.5 and v2
+    #   i2: <b 0xf6ab3267fa><r 100>                       # AmneziaWG v1.5 and v2
+    #   i3: ""                                            # AmneziaWG v1.5 and v2
+    #   i4: ""                                            # AmneziaWG v1.5 and v2
+    #   i5: ""                                            # AmneziaWG v1.5 and v2
+    #   j1: <b 0xffffffff><c><b 0xf6ab><t><r 10>          # AmneziaWG v1.5 only (removed in v2)
+    #   j2: <c><b 0xf6ab><t><wt 1000>                     # AmneziaWG v1.5 only (removed in v2)
+    #   j3: <t><b 0xf6ab><c><r 10>                        # AmneziaWG v1.5 only (removed in v2)
+    #   itime: 60                                         # AmneziaWG v1.5 only (removed in v2)
+
+  # tailscale
+  - name: "tailscale"
+    type: tailscale
+    # hostname: mihomo # Tailscale 设备名，默认由 tsnet 处理
+    # auth-key: tskey-auth-xxxx # 可选；不填写时首次启动会输出交互式登录 URL
+    # control-url: https://controlplane.tailscale.com # 可选；自定义 Headscale/Tailscale control server
+    # state-dir: ./tailscale # tsnet 状态目录，默认 tailscale
+    # ephemeral: false # 是否作为 ephemeral node 登录，默认 false
+    udp: true # 是否启用 UDP，默认 false
+    # accept-routes: true # 是否接受 Tailnet 中发布的 subnet routes
+    # exit-node: 100.64.0.1 # 使用指定 exit node，可填写节点 IP；也支持 auto:any
+    # exit-node-allow-lan-access: true # 使用 exit node 时是否允许访问本地 LAN
+    # 当目标不在 Tailscale 路由内时，连接会直接报错，不会回退到直连；
+    # 访问公网需要配置可用的 exit-node，或接受覆盖目标网段的 subnet routes。
+    # 一个出站代理的标识。当值不为空时，将使用指定的 proxy 发出 Tailscale 控制面和 DERP/STUN 等连接
+    # dialer-proxy: "ss1"
+    # interface-name: "WLAN" # 指定出站网卡
+    # routing-mark: 6666 # Linux 下配置 fwmark
+    # ip-version: ipv4-prefer # 可选：dual/ipv4/ipv6/ipv4-prefer/ipv6-prefer
+
+  # openvpn
+  - name: "openvpn"
+    type: openvpn
+    server: vpn.example.com
+    port: 1194
+    proto: udp # udp/tcp，默认 udp
+    # dev: tun # 目前仅支持 tun，默认 tun
+    # cipher: AES-128-GCM # 支持 AES-128-GCM / AES-256-GCM，默认 AES-128-GCM
+    # auth: SHA256 # 目前仅支持 SHA256，默认 SHA256
+    # username / password: auth-user-pass 模式（与下方 cert+key 二选一，不能都不填）
+    # username: "user"
+    # password: "pass"
+    # 从 .ovpn 中复制 <ca></ca> 内的内容，不需要保留 <ca> 标签
+    ca: |
+      -----BEGIN CERTIFICATE-----
+      MIIB...example
+      -----END CERTIFICATE-----
+    # 从 .ovpn 中复制 <cert></cert> 内的内容（auth-user-pass 时可省略 cert / key）
+    cert: |
+      -----BEGIN CERTIFICATE-----
+      MIIB...example
+      -----END CERTIFICATE-----
+    # 从 .ovpn 中复制 <key></key> 内的内容
+    key: |
+      -----BEGIN PRIVATE KEY-----
+      MIIE...example
+      -----END PRIVATE KEY-----
+    # 从 .ovpn 中复制 <tls-crypt></tls-crypt> 内的内容，不需要保留 <tls-crypt> 标签
+    tls-crypt: |
+      -----BEGIN OpenVPN Static key V1-----
+      00000000000000000000000000000000
+      ...
+      -----END OpenVPN Static key V1-----
+    # mtu: 1500
+    udp: true
+    # 一个出站代理的标识。当值不为空时，将使用指定的 proxy 发出连接
+    # dialer-proxy: "ss1"
+    # remote-dns-resolve: true # 强制 dns 远程解析，默认值为 false
+    # dns: [ 1.1.1.1, 8.8.8.8 ] # 仅在 remote-dns-resolve 为 true 时生效
+
+  # masque
+  - name: "masque"
+    type: masque
+    server: 162.159.198.1
+    port: 443
+    private-key: MHcCAQEEILI1eOtnbEIh89Fj4yNDuFR6UjayCKI3NdLl3DhetimWoAoGCCqGSM49AwEHoUQDQgAEgyXrE8v+hHsHy3ewSb3WcRjYgCrM9T9hiE0Uv6k2DZ1+4kefrDT9v1Q/8wdRigTf6t6gGNUV8W+IUMdrfUt+9g==
+    public-key: MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEIaU7MToJm9NKp8YfGxR6r+/h4mcG7SxI8tsW8OR1A5tv/zCzVbCRRh2t87/kxnP6lAy0lkr7qYwu+ox+k3dr6w==
+    ip: 172.16.0.2
+    ipv6: 2606:4700:110:84c0:163a:4914:a0ad:3342
+    mtu: 1280
+    udp: true
+    # 一个出站代理的标识。当值不为空时，将使用指定的 proxy 发出连接
+    # dialer-proxy: "ss1"
+    # remote-dns-resolve: true # 强制 dns 远程解析，默认值为 false
+    # dns: [ 1.1.1.1, 8.8.8.8 ] # 仅在 remote-dns-resolve 为 true 时生效
+    # congestion-controller: bbr # 默认不开启
+
+  # masque-h2
+  - name: "masque-h2"
+    type: masque
+    server: 162.159.198.2
+    port: 443
+    private-key: MHcCAQEEILI1eOtnbEIh89Fj4yNDuFR6UjayCKI3NdLl3DhetimWoAoGCCqGSM49AwEHoUQDQgAEgyXrE8v+hHsHy3ewSb3WcRjYgCrM9T9hiE0Uv6k2DZ1+4kefrDT9v1Q/8wdRigTf6t6gGNUV8W+IUMdrfUt+9g==
+    public-key: MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEIaU7MToJm9NKp8YfGxR6r+/h4mcG7SxI8tsW8OR1A5tv/zCzVbCRRh2t87/kxnP6lAy0lkr7qYwu+ox+k3dr6w==
+    ip: 172.16.0.2
+    ipv6: 2606:4700:110:84c0:163a:4914:a0ad:3342
+    mtu: 1280
+    udp: true
+    network: h2
+    # 一个出站代理的标识。当值不为空时，将使用指定的 proxy 发出连接
+    # dialer-proxy: "ss1"
+    # remote-dns-resolve: true # 强制 dns 远程解析，默认值为 false
+    # dns: [ 1.1.1.1, 8.8.8.8 ] # 仅在 remote-dns-resolve 为 true 时生效
+
+  # tuic
+  - name: tuic
+    server: www.example.com
+    port: 10443
+    type: tuic
+    # tuicV4 必须填写 token（不可同时填写 uuid 和 password）
+    token: TOKEN
+    # tuicV5 必须填写 uuid 和 password（不可同时填写 token）
+    uuid: 00000000-0000-0000-0000-000000000001
+    password: PASSWORD_1
+    # ip: 127.0.0.1 # for overwriting the DNS lookup result of the server address set in option 'server'
+    # heartbeat-interval: 10000
+    # alpn: [h3]
+    disable-sni: true
+    reduce-rtt: true
+    request-timeout: 8000
+    udp-relay-mode: native # Available: "native", "quic". Default: "native"
+    # congestion-controller: bbr # Available: "cubic", "new_reno", "bbr". Default: "cubic"
+    # cwnd: 10 # default: 32
+    # bbr-profile: "" # Available: "standard", "conservative", "aggressive". Default: "standard"
+    # max-udp-relay-packet-size: 1500
+    # fast-open: true
+    # skip-cert-verify: true
+    # max-open-streams: 20 # default 100, too many open streams may hurt performance
+    # sni: example.com
+    # ech-opts:
+    #   enable: true # 必须手动开启
+    #   # 如果config为空则通过dns解析，不为空则通过该值指定，格式为经过base64编码的ech参数（dig +short TYPE65 tls-ech.dev）
+    #   config: AEn+DQBFKwAgACABWIHUGj4u+PIggYXcR5JF0gYk3dCRioBW8uJq9H4mKAAIAAEAAQABAANAEnB1YmxpYy50bHMtZWNoLmRldgAA
+    #   # query-server-name: xxx.com # 可选项，不为空时用于指定通过dns解析时的域名
+    #
+    # meta 和 sing-box 私有扩展，将 ss-uot 用于 udp 中继，开启此选项后 udp-relay-mode 将失效
+    # 警告，与原版 tuic 不兼容！！！
+    # udp-over-stream: false
+    # udp-over-stream-version: 1
+
+  # ShadowsocksR
+  # The supported ciphers (encryption methods): all stream ciphers in ss
+  # The supported obfses:
+  #   plain http_simple http_post
+  #   random_head tls1.2_ticket_auth tls1.2_ticket_fastauth
+  # The supported protocols:
+  #   origin auth_sha1_v4 auth_aes128_md5
+  #   auth_aes128_sha1 auth_chain_a auth_chain_b
+  - name: "ssr"
+    type: ssr
+    server: server
+    port: 443
+    cipher: chacha20-ietf
+    password: "password"
+    obfs: tls1.2_ticket_auth
+    protocol: auth_sha1_v4
+    # obfs-param: domain.tld
+    # protocol-param: "#"
+    # udp: true
+
+  - name: "ssh-out"
+    type: ssh
+
+    server: 127.0.0.1
+    port: 22
+    username: root
+    password: password
+    privateKey: path
+
+  # mieru
+  - name: mieru
+    type: mieru
+    server: 1.2.3.4
+    port: 2999
+    # port-range: 2090-2099 #（不可同时填写 port 和 port-range）
+    transport: TCP # 支持 TCP 或者 UDP
+    udp: true # 支持 UDP over TCP
+    username: user
+    password: password
+    # 可以使用的值包括 MULTIPLEXING_OFF, MULTIPLEXING_LOW, MULTIPLEXING_MIDDLE, MULTIPLEXING_HIGH。其中 MULTIPLEXING_OFF 会关闭多路复用功能。默认值为 MULTIPLEXING_LOW。
+    # multiplexing: MULTIPLEXING_LOW
+    # 如果想开启 0-RTT 握手，请设置为 HANDSHAKE_NO_WAIT，否则请设置为 HANDSHAKE_STANDARD。默认值为 HANDSHAKE_STANDARD
+    # handshake-mode: HANDSHAKE_STANDARD
+    # 一个 base64 字符串用于微调网络行为
+    # traffic-pattern: ""
+
+  # sudoku
+  - name: sudoku
+    type: sudoku
+    server: server_ip/domain # 1.2.3.4 or domain
+    port: 443
+    key: "<client_key>" # 如果你使用sudoku生成的ED25519密钥对，请填写密钥对中的私钥，否则填入和服务端相同的uuid
+    aead-method: chacha20-poly1305 # 可选：chacha20-poly1305、aes-128-gcm、none（不建议；none 不提供 AEAD 保护）
+    padding-min: 2 # 最小填充率（0-100）
+    padding-max: 7 # 最大填充率（0-100，必须 >= padding-min）
+    table-type: prefer_ascii    # 可选值：prefer_ascii、prefer_entropy、up_ascii_down_entropy、up_entropy_down_ascii
+    # custom-table: xpxvvpvv    # 可选，自定义字节布局，必须包含2个x、2个p、4个v，可随意组合；只对 entropy 方向生效
+    # custom-tables: ["xpxvvpvv", "vxpvxvvp"] # 可选，自定义字节布局列表（x/v/p），非空时覆盖 custom-table
+    # 推荐：使用 httpmask 对象统一管理 HTTPMask 相关字段：
+    httpmask:
+      disable: false # true 禁用所有 HTTP 伪装/隧道
+      mode: legacy # 可选：legacy（默认）、stream（split-stream）、poll、auto（先 stream 再 poll）、ws（WebSocket 隧道）
+      # tls: true # 可选：按需开启 HTTPS/WSS
+      # host: "" # 可选：覆盖 Host/SNI（支持 example.com 或 example.com:443）；仅在 mode 为 stream/poll/auto/ws 时生效
+      # path-root: "" # 可选：HTTP 隧道端点一级路径前缀（双方需一致），例如 "aabbcc" 或 "/aabbcc/" => /aabbcc/session、/aabbcc/stream、/aabbcc/api/v1/upload、/aabbcc/ws
+      # multiplex: "off" # 可选字符串：off（默认）、auto（复用底层 HTTP 连接，减少建链 RTT）、on（Sudoku mux 单隧道多目标；仅在 mode=stream/poll/auto 生效；ws 强制 off）
+    enable-pure-downlink: false # 可选：false=带宽优化下行；true=纯 Sudoku 下行
+
+  # anytls
+  - name: anytls
+    type: anytls
+    server: 1.2.3.4
+    port: 443
+    password: "<your password>"
+    # client-fingerprint: chrome
+    udp: true
+    # idle-session-check-interval: 30 # seconds
+    # idle-session-timeout: 30 # seconds
+    # min-idle-session: 0
+    # sni: "example.com"
+    # alpn:
+    #   - h2
+    #   - http/1.1
+    # skip-cert-verify: true
+
+  # trusttunnel
+  - name: trusttunnel
+    type: trusttunnel
+    server: 1.2.3.4
+    port: 443
+    username: username
+    password: password
+    # client-fingerprint: chrome
+    health-check: true
+    udp: true
+    # sni: "example.com"
+    # alpn:
+    #   - h2
+    # skip-cert-verify: true
+    ### quic options
+    # quic: true # 默认为false
+    # congestion-controller: bbr
+    # bbr-profile: "" # Available: "standard", "conservative", "aggressive". Default: "standard"
+    ### reuse options
+    # max-connections: 8 # Maximum connections. Conflict with max-streams.
+    # min-streams: 5 # Minimum multiplexed streams in a connection before opening a new connection. Conflict with max-streams.
+    # max-streams: 0 # Maximum multiplexed streams in a connection before opening a new connection. Conflict with max-connections and min-streams.
+
+# dns 出站会将请求劫持到内部 dns 模块，所有请求均在内部处理
+  - name: "dns-out"
+    type: dns
+
+  # 配置指定 interface-name 和 fwmark 的 DIRECT
+  - name: en1-direct
+    type: direct
+    interface-name: en1
+    routing-mark: 6667
+proxy-groups:
+  # 代理链，目前 relay 可以支持 udp 的只有 vmess/vless/trojan/ss/ssr/tuic
+  # wireguard 目前不支持在 relay 中使用，请使用 proxy 中的 dialer-proxy 配置项
+  # Traffic: mihomo <-> http <-> vmess <-> ss1 <-> ss2 <-> Internet
+  - name: "relay"
+    type: relay
+    proxies:
+      - http
+      - vmess
+      - ss1
+      - ss2
+
+  # url-test 将按照 url 测试结果使用延迟最低节点
+  - name: "auto"
+    type: url-test
+    proxies:
+      - ss1
+      - ss2
+      - vmess1
+    # tolerance: 150
+    # lazy: true
+    # expected-status: 204 # 当健康检查返回状态码与期望值不符时，认为节点不可用
+    url: "https://cp.cloudflare.com/generate_204"
+    interval: 300
+
+  # fallback 将按照 url 测试结果按照节点顺序选择
+  - name: "fallback-auto"
+    type: fallback
+    proxies:
+      - ss1
+      - ss2
+      - vmess1
+    url: "https://cp.cloudflare.com/generate_204"
+    interval: 300
+
+  # load-balance 将按照算法随机选择节点
+  - name: "load-balance"
+    type: load-balance
+    proxies:
+      - ss1
+      - ss2
+      - vmess1
+    url: "https://cp.cloudflare.com/generate_204"
+    interval: 300
+  # strategy: consistent-hashing # 可选 round-robin 和 sticky-sessions
+
+  # select 用户自行选择节点
+  - name: Proxy
+    type: select
+    # disable-udp: true
+    proxies:
+      - ss1
+      - ss2
+      - vmess1
+      - auto
+
+  - name: UseProvider
+    type: select
+    filter: "HK|TW" # 正则表达式，过滤 provider1 中节点名包含 HK 或 TW
+    use:
+      - provider1
+    proxies:
+      - Proxy
+      - DIRECT
+
+# Mihomo 格式的节点或支持 *ray 的分享格式
+proxy-providers:
+  provider1:
+    type: http # http 的 path 可空置，默认储存路径为 homedir 的 proxies 文件夹，文件名为 url 的 md5
+    url: "url"
+    interval: 3600
+    path: ./provider1.yaml # 默认只允许存储在 mihomo 的 Home Dir，如果想存储到其他位置，请通过设置 SAFE_PATHS 环境变量指定额外的安全路径。该环境变量的语法同本操作系统的PATH环境变量解析规则（即Windows下以分号分割，其他系统下以冒号分割）
+    proxy: DIRECT
+    # size-limit: 10240 # 限制下载文件最大为10kb，默认为0即不限制文件大小
+    header:
+      User-Agent:
+      - "Clash/v1.18.0"
+      - "mihomo/1.18.3"
+      # Accept:
+      # - 'application/vnd.github.v3.raw'
+      # Authorization:
+      # - 'token 1231231'
+    health-check:
+      enable: true
+      interval: 600
+      # lazy: true
+      url: https://cp.cloudflare.com/generate_204
+      # expected-status: 204 # 当健康检查返回状态码与期望值不符时，认为节点不可用
+    override: # 覆写节点加载时的一些配置项
+      skip-cert-verify: true
+      udp: true
+      # down: "50 Mbps"
+      # up: "10 Mbps"
+      # dialer-proxy: proxy
+      # interface-name: tailscale0
+      # routing-mark: 233
+      # ip-version: ipv4-prefer
+      # additional-prefix: "[provider1]"
+      # additional-suffix: "test"
+      # # 名字替换，支持正则表达式
+      # proxy-name:
+      #   - pattern: "test"
+      #     target: "TEST"
+      #   - pattern: "IPLC-(.*?)倍"
+      #     target: "iplc x $1"
+
+  provider2:
+    type: inline
+    dialer-proxy: proxy
+    payload:
+      - name: "ss1"
+        type: ss
+        server: server
+        port: 443
+        cipher: chacha20-ietf-poly1305
+        password: "password"
+
+  test:
+    type: file
+    path: /test.yaml
+    health-check:
+      enable: true
+      interval: 36000
+      url: https://cp.cloudflare.com/generate_204
+rule-providers:
+  rule1:
+    behavior: classical # domain ipcidr
+    interval: 259200
+    path: /path/to/save/file.yaml # 默认只允许存储在 mihomo 的 Home Dir，如果想存储到其他位置，请通过设置 SAFE_PATHS 环境变量指定额外的安全路径。该环境变量的语法同本操作系统的PATH环境变量解析规则（即Windows下以分号分割，其他系统下以冒号分割）
+    type: http # http 的 path 可空置，默认储存路径为 homedir 的 rules 文件夹，文件名为 url 的 md5
+    url: "url"
+    proxy: DIRECT
+    # size-limit: 10240 # 限制下载文件最大为10kb，默认为0即不限制文件大小
+  rule2:
+    behavior: classical
+    interval: 259200
+    path: /path/to/save/file.yaml
+    type: file
+  rule3:
+    # mrs类型ruleset，目前仅支持domain和ipcidr(即不支持classical），
+    #
+    # 对于behavior=domain:
+    #  - format=yaml 可以通过“mihomo convert-ruleset domain yaml XXX.yaml XXX.mrs”转换到mrs格式
+    #  - format=text 可以通过“mihomo convert-ruleset domain text XXX.text XXX.mrs”转换到mrs格式
+    #  - XXX.mrs 可以通过"mihomo convert-ruleset domain mrs XXX.mrs XXX.text"转换回text格式（暂不支持转换回yaml格式）
+    #
+    # 对于behavior=ipcidr:
+    #  - format=yaml 可以通过“mihomo convert-ruleset ipcidr yaml XXX.yaml XXX.mrs”转换到mrs格式
+    #  - format=text 可以通过“mihomo convert-ruleset ipcidr text XXX.text XXX.mrs”转换到mrs格式
+    #  - XXX.mrs 可以通过"mihomo convert-ruleset ipcidr mrs XXX.mrs XXX.text"转换回text格式（暂不支持转换回yaml格式）
+    #
+    type: http
+    url: "url"
+    format: mrs
+    behavior: domain
+    path: /path/to/save/file.mrs
+  rule4:
+    type: inline
+    behavior: domain # classical / ipcidr
+    payload:
+      - '.blogger.com'
+      - '*.*.microsoft.com'
+      - 'books.itunes.apple.com'
+
+rules:
+  - RULE-SET,rule1,REJECT
+  - IP-ASN,1,PROXY
+  - DOMAIN-REGEX,^abc,DIRECT
+  - DOMAIN-SUFFIX,baidu.com,DIRECT
+  - DOMAIN-KEYWORD,google,ss1
+  - DOMAIN-WILDCARD,test.*.mihomo.com,ss1
+  - IP-CIDR,1.1.1.1/32,ss1
+  - IP-CIDR6,2409::/64,DIRECT
+  # 当满足条件是 TCP 或 UDP 流量时，使用名为 sub-rule-name1 的规则集
+  - SUB-RULE,(OR,((NETWORK,TCP),(NETWORK,UDP))),sub-rule-name1
+  - SUB-RULE,(AND,((NETWORK,UDP))),sub-rule-name2
+# 定义多个子规则集，规则将以分叉匹配，使用 SUB-RULE 使用
+#                                               google.com(not match)--> baidu.com(match)
+#                                                /                                ｜
+#                                               /                                 ｜
+#  https://baidu.com  --> rule1 --> rule2 --> sub-rule-name1(match tcp)          使用 DIRECT
+#
+#
+#                                              google.com(not match)--> baidu.com(not match)
+#                                                /                            ｜
+#                                               /                             ｜
+#  dns 1.1.1.1  --> rule1 --> rule2 --> sub-rule-name1(match udp)         sub-rule-name2(match udp)
+#                                                                             ｜
+#                                                                             ｜
+#                                                                 使用 REJECT <-- 1.1.1.1/32(match)
+#
+
+sub-rules:
+  sub-rule-name1:
+    - DOMAIN,google.com,ss1
+    - DOMAIN,baidu.com,DIRECT
+  sub-rule-name2:
+    - IP-CIDR,1.1.1.1/32,REJECT
+    - IP-CIDR,8.8.8.8/32,ss1
+    - DOMAIN,dns.alidns.com,REJECT
+
+# 流量入站
+listeners:
+  - name: socks5-in-1
+    type: socks
+    port: 10808 # 支持使用ports格式，例如200,302 or 200,204,401-429,501-503
+    #listen: 0.0.0.0 # 默认监听 0.0.0.0
+    # rule: sub-rule-name1 # 默认使用 rules，如果未找到 sub-rule 则直接使用 rules
+    # proxy: proxy # 如果不为空则直接将该入站流量交由指定 proxy 处理
+    # udp: false # 默认 true
+    # users: # 如果不填写users项，则遵从全局authentication设置，如果填写会忽略全局设置, 如想跳过该入站的验证可填写 users: []
+    #   - username: aaa
+    #     password: aaa
+    # 下面两项如果填写则开启 tls（需要同时填写）
+    # certificate: ./server.crt # 证书 PEM 格式，或者 证书的路径
+    # private-key: ./server.key # 证书对应的私钥 PEM 格式，或者私钥路径
+    # 下面两项为mTLS配置项，如果client-auth-type设置为 "verify-if-given" 或 "require-and-verify" 则client-auth-cert必须不为空
+    # client-auth-type: "" # 可选值：""、"request"、"require-any"、"verify-if-given"、"require-and-verify"
+    # client-auth-cert: string # 证书 PEM 格式，或者 证书的路径
+    # 如果填写则开启ech（可由 mihomo generate ech-keypair <明文域名> 生成）
+    # ech-key: |
+    #   -----BEGIN ECH KEYS-----
+    #   ACATwY30o/RKgD6hgeQxwrSiApLaCgU+HKh7B6SUrAHaDwBD/g0APwAAIAAgHjzK
+    #   madSJjYQIf9o1N5GXjkW4DEEeb17qMxHdwMdNnwADAABAAEAAQACAAEAAwAIdGVz
+    #   dC5jb20AAA==
+    #   -----END ECH KEYS-----
+
+  - name: http-in-1
+    type: http
+    port: 10809 # 支持使用ports格式，例如200,302 or 200,204,401-429,501-503
+    listen: 0.0.0.0
+    # rule: sub-rule-name1 # 默认使用 rules，如果未找到 sub-rule 则直接使用 rules
+    # proxy: proxy # 如果不为空则直接将该入站流量交由指定 proxy 处理 (当 proxy 不为空时，这里的 proxy 名称必须合法，否则会出错)
+    # users: # 如果不填写users项，则遵从全局authentication设置，如果填写会忽略全局设置, 如想跳过该入站的验证可填写 users: []
+    #   - username: aaa
+    #     password: aaa
+    # 下面两项如果填写则开启 tls（需要同时填写）
+    # certificate: ./server.crt # 证书 PEM 格式，或者 证书的路径
+    # private-key: ./server.key # 证书对应的私钥 PEM 格式，或者私钥路径
+    # 下面两项为mTLS配置项，如果client-auth-type设置为 "verify-if-given" 或 "require-and-verify" 则client-auth-cert必须不为空
+    # client-auth-type: "" # 可选值：""、"request"、"require-any"、"verify-if-given"、"require-and-verify"
+    # client-auth-cert: string # 证书 PEM 格式，或者 证书的路径
+    # 如果填写则开启ech（可由 mihomo generate ech-keypair <明文域名> 生成）
+    # ech-key: |
+    #   -----BEGIN ECH KEYS-----
+    #   ACATwY30o/RKgD6hgeQxwrSiApLaCgU+HKh7B6SUrAHaDwBD/g0APwAAIAAgHjzK
+    #   madSJjYQIf9o1N5GXjkW4DEEeb17qMxHdwMdNnwADAABAAEAAQACAAEAAwAIdGVz
+    #   dC5jb20AAA==
+    #   -----END ECH KEYS-----
+
+  - name: mixed-in-1
+    type: mixed #  HTTP(S) 和 SOCKS 代理混合
+    port: 10810 # 支持使用ports格式，例如200,302 or 200,204,401-429,501-503
+    listen: 0.0.0.0
+    # rule: sub-rule-name1 # 默认使用 rules，如果未找到 sub-rule 则直接使用 rules
+    # proxy: proxy # 如果不为空则直接将该入站流量交由指定 proxy 处理 (当 proxy 不为空时，这里的 proxy 名称必须合法，否则会出错)
+    # udp: false # 默认 true
+    # users: # 如果不填写users项，则遵从全局authentication设置，如果填写会忽略全局设置, 如想跳过该入站的验证可填写 users: []
+    #   - username: aaa
+    #     password: aaa
+    # 下面两项如果填写则开启 tls（需要同时填写）
+    # certificate: ./server.crt # 证书 PEM 格式，或者 证书的路径
+    # private-key: ./server.key # 证书对应的私钥 PEM 格式，或者私钥路径
+    # 下面两项为mTLS配置项，如果client-auth-type设置为 "verify-if-given" 或 "require-and-verify" 则client-auth-cert必须不为空
+    # client-auth-type: "" # 可选值：""、"request"、"require-any"、"verify-if-given"、"require-and-verify"
+    # client-auth-cert: string # 证书 PEM 格式，或者 证书的路径
+    # 如果填写则开启ech（可由 mihomo generate ech-keypair <明文域名> 生成）
+    # ech-key: |
+    #   -----BEGIN ECH KEYS-----
+    #   ACATwY30o/RKgD6hgeQxwrSiApLaCgU+HKh7B6SUrAHaDwBD/g0APwAAIAAgHjzK
+    #   madSJjYQIf9o1N5GXjkW4DEEeb17qMxHdwMdNnwADAABAAEAAQACAAEAAwAIdGVz
+    #   dC5jb20AAA==
+    #   -----END ECH KEYS-----
+
+  - name: redir-in-1
+    type: redir
+    port: 10811 # 支持使用ports格式，例如200,302 or 200,204,401-429,501-503
+    listen: 0.0.0.0
+    # rule: sub-rule-name1 # 默认使用 rules，如果未找到 sub-rule 则直接使用 rules
+    # proxy: proxy # 如果不为空则直接将该入站流量交由指定 proxy 处理 (当 proxy 不为空时，这里的 proxy 名称必须合法，否则会出错)
+
+  - name: tproxy-in-1
+    type: tproxy
+    port: 10812 # 支持使用ports格式，例如200,302 or 200,204,401-429,501-503
+    listen: 0.0.0.0
+    # rule: sub-rule-name1 # 默认使用 rules，如果未找到 sub-rule 则直接使用 rules
+    # proxy: proxy # 如果不为空则直接将该入站流量交由指定 proxy 处理 (当 proxy 不为空时，这里的 proxy 名称必须合法，否则会出错)
+    # udp: false # 默认 true
+
+  - name: shadowsocks-in-1
+    type: shadowsocks
+    port: 10813 # 支持使用ports格式，例如200,302 or 200,204,401-429,501-503
+    listen: 0.0.0.0
+    # rule: sub-rule-name1 # 默认使用 rules，如果未找到 sub-rule 则直接使用 rules
+    # proxy: proxy # 如果不为空则直接将该入站流量交由指定 proxy 处理 (当 proxy 不为空时，这里的 proxy 名称必须合法，否则会出错)
+    password: vlmpIPSyHH6f4S8WVPdRIHIlzmB+GIRfoH3aNJ/t9Gg=
+    cipher: 2022-blake3-aes-256-gcm
+    # simple-obfs:
+    #   enable: false # 设置为true时开启
+    #   mode: http # Available: http, tls
+    # shadow-tls:
+    #   enable: false # 设置为true时开启
+    #   version: 3 # 支持v1/v2/v3
+    #   password: password # v2设置项
+    #   users: # v3设置项
+    #     - name: 1
+    #       password: password
+    #   handshake:
+    #     dest: test.com:443
+    # kcp-tun:
+    #   enable: false
+    #   key: it's a secrect # pre-shared secret between client and server
+    #   crypt: aes # aes, aes-128, aes-128-gcm, aes-192, salsa20, blowfish, twofish, cast5, 3des, tea, xtea, xor, none, null
+    #   mode: fast # profiles: fast3, fast2, fast, normal, manual
+    #   conn: 1 # set num of UDP connections to server
+    #   autoexpire: 0 # set auto expiration time(in seconds) for a single UDP connection, 0 to disable
+    #   scavengettl: 600 # set how long an expired connection can live (in seconds)
+    #   ratelimit: 0 # set maximum outgoing speed (in bytes per second) for a single KCP connection, 0 to disable. Also known as packet pacing
+    #   mtu: 1350 # set maximum transmission unit for UDP packets
+    #   sndwnd: 128 # set send window size(num of packets)
+    #   rcvwnd: 512 # set receive window size(num of packets)
+    #   datashard: 10 # set reed-solomon erasure coding - datashard
+    #   parityshard: 3 # set reed-solomon erasure coding - parityshard
+    #   dscp: 0 # set DSCP(6bit)
+    #   nocomp: false # disable compression
+    #   acknodelay: false # flush ack immediately when a packet is received
+    #   nodelay: 0
+    #   interval: 50
+    #   resend: 0
+    #   sockbuf: 4194304 # per-socket buffer in bytes
+    #   smuxver: 1 # specify smux version, available 1,2
+    #   smuxbuf: 4194304 # the overall de-mux buffer in bytes
+    #   framesize: 8192 # smux max frame size
+    #   streambuf: 2097152 # per stream receive buffer in bytes, smux v2+
+    #   keepalive: 10 # seconds between heartbeats
+
+  - name: vmess-in-1
+    type: vmess
+    port: 10814 # 支持使用ports格式，例如200,302 or 200,204,401-429,501-503
+    listen: 0.0.0.0
+    # rule: sub-rule-name1 # 默认使用 rules，如果未找到 sub-rule 则直接使用 rules
+    # proxy: proxy # 如果不为空则直接将该入站流量交由指定 proxy 处理 (当 proxy 不为空时，这里的 proxy 名称必须合法，否则会出错)
+    users:
+      - username: 1
+        uuid: 9d0cb9d0-964f-4ef6-897d-6c6b3ccf9e68
+        alterId: 1
+    # ws-path: "/" # 如果不为空则开启 websocket 传输层
+    # grpc-service-name: "GunService" # 如果不为空则开启 grpc 传输层
+    # 下面两项如果填写则开启 tls（需要同时填写）
+    # certificate: ./server.crt # 证书 PEM 格式，或者 证书的路径
+    # private-key: ./server.key # 证书对应的私钥 PEM 格式，或者私钥路径
+    # 下面两项为mTLS配置项，如果client-auth-type设置为 "verify-if-given" 或 "require-and-verify" 则client-auth-cert必须不为空
+    # client-auth-type: "" # 可选值：""、"request"、"require-any"、"verify-if-given"、"require-and-verify"
+    # client-auth-cert: string # 证书 PEM 格式，或者 证书的路径
+    # 如果填写则开启ech（可由 mihomo generate ech-keypair <明文域名> 生成）
+    # ech-key: |
+    #   -----BEGIN ECH KEYS-----
+    #   ACATwY30o/RKgD6hgeQxwrSiApLaCgU+HKh7B6SUrAHaDwBD/g0APwAAIAAgHjzK
+    #   madSJjYQIf9o1N5GXjkW4DEEeb17qMxHdwMdNnwADAABAAEAAQACAAEAAwAIdGVz
+    #   dC5jb20AAA==
+    #   -----END ECH KEYS-----
+    # 如果填写reality-config则开启reality（注意不可与certificate和private-key同时填写）
+    # reality-config:
+    #   dest: test.com:443
+    #   private-key: jNXHt1yRo0vDuchQlIP6Z0ZvjT3KtzVI-T4E7RoLJS0 # 可由 mihomo generate reality-keypair 命令生成
+    #   short-id:
+    #     - 0123456789abcdef
+    #   server-names:
+    #     - test.com
+    #   #下列两个 limit 为选填，可对未通过验证的回落连接限速，bytesPerSec 默认为 0 即不启用
+    #   #回落限速是一种特征，不建议启用，如果您是面板/一键脚本开发者，务必让这些参数随机化
+    #   limit-fallback-upload:
+    #     after-bytes: 0 # 传输指定字节后开始限速
+    #     bytes-per-sec: 0 # 基准速率（字节/秒）
+    #     burst-bytes-per-sec: 0 # 突发速率（字节/秒），大于 bytesPerSec 时生效
+    #   limit-fallback-download:
+    #     after-bytes: 0 # 传输指定字节后开始限速
+    #     bytes-per-sec: 0 # 基准速率（字节/秒）
+    #     burst-bytes-per-sec: 0 # 突发速率（字节/秒），大于 bytesPerSec 时生效
+
+  - name: tuic-in-1
+    type: tuic
+    port: 10815 # 支持使用ports格式，例如200,302 or 200,204,401-429,501-503
+    listen: 0.0.0.0
+    # rule: sub-rule-name1 # 默认使用 rules，如果未找到 sub-rule 则直接使用 rules
+    # proxy: proxy # 如果不为空则直接将该入站流量交由指定 proxy 处理 (当 proxy 不为空时，这里的 proxy 名称必须合法，否则会出错)
+    # token:    # tuicV4 填写（可以同时填写 users）
+    #   - TOKEN
+    # users:    # tuicV5 填写（可以同时填写 token）
+    #   00000000-0000-0000-0000-000000000000: PASSWORD_0
+    #   00000000-0000-0000-0000-000000000001: PASSWORD_1
+    #  certificate: ./server.crt # 证书 PEM 格式，或者 证书的路径
+    #  private-key: ./server.key # 证书对应的私钥 PEM 格式，或者私钥路径
+    #  下面两项为mTLS配置项，如果client-auth-type设置为 "verify-if-given" 或 "require-and-verify" 则client-auth-cert必须不为空
+    #  client-auth-type: "" # 可选值：""、"request"、"require-any"、"verify-if-given"、"require-and-verify"
+    #  client-auth-cert: string # 证书 PEM 格式，或者 证书的路径
+    #  如果填写则开启ech（可由 mihomo generate ech-keypair <明文域名> 生成）
+    #  ech-key: |
+    #    -----BEGIN ECH KEYS-----
+    #    ACATwY30o/RKgD6hgeQxwrSiApLaCgU+HKh7B6SUrAHaDwBD/g0APwAAIAAgHjzK
+    #    madSJjYQIf9o1N5GXjkW4DEEeb17qMxHdwMdNnwADAABAAEAAQACAAEAAwAIdGVz
+    #    dC5jb20AAA==
+    #    -----END ECH KEYS-----
+    #  congestion-controller: bbr
+    #  bbr-profile: "" # Available: "standard", "conservative", "aggressive". Default: "standard"
+    #  max-idle-time: 15000
+    #  authentication-timeout: 1000
+    #  alpn:
+    #    - h3
+    #  max-udp-relay-packet-size: 1500
+
+  - name: tunnel-in-1
+    type: tunnel
+    port: 10816 # 支持使用ports格式，例如200,302 or 200,204,401-429,501-503
+    listen: 0.0.0.0
+    # rule: sub-rule-name1 # 默认使用 rules，如果未找到 sub-rule 则直接使用 rules
+    # proxy: proxy # 如果不为空则直接将该入站流量交由指定 proxy 处理 (当 proxy 不为空时，这里的 proxy 名称必须合法，否则会出错)
+    network: [tcp, udp]
+    target: target.com
+
+  - name: vless-in-1
+    type: vless
+    port: 10817 # 支持使用ports格式，例如200,302 or 200,204,401-429,501-503
+    listen: 0.0.0.0
+    # rule: sub-rule-name1 # 默认使用 rules，如果未找到 sub-rule 则直接使用 rules
+    # proxy: proxy # 如果不为空则直接将该入站流量交由指定 proxy 处理 (当 proxy 不为空时，这里的 proxy 名称必须合法，否则会出错)
+    users:
+      - username: 1
+        uuid: 9d0cb9d0-964f-4ef6-897d-6c6b3ccf9e68
+        flow: xtls-rprx-vision
+    # ws-path: "/" # 如果不为空则开启 websocket 传输层
+    # grpc-service-name: "GunService" # 如果不为空则开启 grpc 传输层
+    # xhttp-config: # 如果不为空则开启 xhttp 传输层
+    #   path: "/"
+    #   host: ""
+    #   mode: auto # Available: "stream-one", "stream-up" or "packet-up"
+    #   no-sse-header: false
+    #   x-padding-bytes: "100-1000"
+    #   x-padding-obfs-mode: false
+    #   x-padding-key: x_padding
+    #   x-padding-header: Referer
+    #   x-padding-placement: queryInHeader # Available: queryInHeader, cookie, header, query
+    #   x-padding-method: repeat-x # Available: repeat-x, tokenish
+    #   uplink-http-method: POST # Available: POST, PUT, PATCH, DELETE
+    #   session-placement: path # Available: path, query, cookie, header
+    #   session-key: ""
+    #   seq-placement: path # Available: path, query, cookie, header
+    #   seq-key: ""
+    #   uplink-data-placement: body # Available: body, cookie, header
+    #   uplink-data-key: ""
+    #   uplink-chunk-size: 0 # only applicable when uplink-data-placement is not body
+    #   sc-max-buffered-posts: 30
+    #   sc-stream-up-server-secs: "20-80"
+    #   sc-max-each-post-bytes: 1000000
+    # -------------------------
+    # vless encryption服务端配置：
+    # （原生外观 / 只 XOR 公钥 / 全随机数。1-RTT 每次下发随机 300 到 600 秒的 ticket 以便 0-RTT 复用 / 只允许 1-RTT）
+    # 填写 "600s" 会每次随机取 50% 到 100%，即相当于填写 "300-600s"
+    # / 是只能选一个，后面 base64 至少一个，无限串联，使用 mihomo generate vless-x25519 和 mihomo generate vless-mlkem768 生成，替换值时需去掉括号
+    #
+    # Padding 是可选的参数，仅作用于 1-RTT 以消除握手的长度特征，双端默认值均为 "100-111-1111.75-0-111.50-0-3333"：
+    # 在 1-RTT client/server hello 后以 100% 的概率粘上随机 111 到 1111 字节的 padding
+    # 以 75% 的概率等待随机 0 到 111 毫秒（"probability-from-to"）
+    # 再次以 50% 的概率发送随机 0 到 3333 字节的 padding（若为 0 则不 Write()）
+    # 服务端、客户端可以设置不同的 padding 参数，按 len、gap 的顺序无限串联，第一个 padding 需概率 100%、至少 35 字节
+    # -------------------------
+    # decryption: "mlkem768x25519plus.native/xorpub/random.600s(300-600s)/0s.(padding len).(padding gap).(X25519 PrivateKey).(ML-KEM-768 Seed)..."
+    # 下面两项如果填写则开启 tls（需要同时填写）
+    # certificate: ./server.crt # 证书 PEM 格式，或者 证书的路径
+    # private-key: ./server.key # 证书对应的私钥 PEM 格式，或者私钥路径
+    # 下面两项为mTLS配置项，如果client-auth-type设置为 "verify-if-given" 或 "require-and-verify" 则client-auth-cert必须不为空
+    # client-auth-type: "" # 可选值：""、"request"、"require-any"、"verify-if-given"、"require-and-verify"
+    # client-auth-cert: string # 证书 PEM 格式，或者 证书的路径
+    # 如果填写则开启ech（可由 mihomo generate ech-keypair <明文域名> 生成）
+    # ech-key: |
+    #   -----BEGIN ECH KEYS-----
+    #   ACATwY30o/RKgD6hgeQxwrSiApLaCgU+HKh7B6SUrAHaDwBD/g0APwAAIAAgHjzK
+    #   madSJjYQIf9o1N5GXjkW4DEEeb17qMxHdwMdNnwADAABAAEAAQACAAEAAwAIdGVz
+    #   dC5jb20AAA==
+    #   -----END ECH KEYS-----
+    # 如果填写reality-config则开启reality（注意不可与certificate和private-key同时填写）
+    reality-config:
+      dest: test.com:443
+      private-key: jNXHt1yRo0vDuchQlIP6Z0ZvjT3KtzVI-T4E7RoLJS0 # 可由 mihomo generate reality-keypair 命令生成
+      short-id:
+        - 0123456789abcdef
+      server-names:
+        - test.com
+      #下列两个 limit 为选填，可对未通过验证的回落连接限速，bytesPerSec 默认为 0 即不启用
+      #回落限速是一种特征，不建议启用，如果您是面板/一键脚本开发者，务必让这些参数随机化
+      limit-fallback-upload:
+        after-bytes: 0 # 传输指定字节后开始限速
+        bytes-per-sec: 0 # 基准速率（字节/秒）
+        burst-bytes-per-sec: 0 # 突发速率（字节/秒），大于 bytesPerSec 时生效
+      limit-fallback-download:
+        after-bytes: 0 # 传输指定字节后开始限速
+        bytes-per-sec: 0 # 基准速率（字节/秒）
+        burst-bytes-per-sec: 0 # 突发速率（字节/秒），大于 bytesPerSec 时生效
+    ### 注意，对于vless listener, 至少需要填写 “certificate和private-key” 或 “reality-config” 或 “decryption” 的其中一项 ###
+
+  - name: anytls-in-1
+    type: anytls
+    port: 10818 # 支持使用ports格式，例如200,302 or 200,204,401-429,501-503
+    listen: 0.0.0.0
+    users:
+      username1: password1
+      username2: password2
+    # "certificate" and "private-key" are required
+    certificate: ./server.crt # 证书 PEM 格式，或者 证书的路径
+    private-key: ./server.key
+    # 下面两项为mTLS配置项，如果client-auth-type设置为 "verify-if-given" 或 "require-and-verify" 则client-auth-cert必须不为空
+    # client-auth-type: "" # 可选值：""、"request"、"require-any"、"verify-if-given"、"require-and-verify"
+    # client-auth-cert: string # 证书 PEM 格式，或者 证书的路径
+    # 如果填写则开启ech（可由 mihomo generate ech-keypair <明文域名> 生成）
+    # ech-key: |
+    #   -----BEGIN ECH KEYS-----
+    #   ACATwY30o/RKgD6hgeQxwrSiApLaCgU+HKh7B6SUrAHaDwBD/g0APwAAIAAgHjzK
+    #   madSJjYQIf9o1N5GXjkW4DEEeb17qMxHdwMdNnwADAABAAEAAQACAAEAAwAIdGVz
+    #   dC5jb20AAA==
+    #   -----END ECH KEYS-----
+    # padding-scheme: "" # https://github.com/anytls/anytls-go/blob/main/docs/protocol.md#cmdupdatepaddingscheme
+
+  - name: mieru-in-1
+    type: mieru
+    port: 10818 # 支持使用ports格式，例如200,302 or 200,204,401-429,501-503
+    listen: 0.0.0.0
+    transport: TCP # 支持 TCP 或者 UDP
+    users:
+      username1: password1
+      username2: password2
+    # 一个 base64 字符串用于微调网络行为
+    # traffic-pattern: ""
+    # 如果开启，且客户端不发送用户提示，代理服务器将拒绝连接
+    # user-hint-is-mandatory: false
+
+  - name: sudoku-in-1
+    type: sudoku
+    port: 8443 # 仅支持单端口
+    listen: 0.0.0.0
+    key: "<server_key>" # 如果你使用sudoku生成的ED25519密钥对，此处是密钥对中的公钥，当然，你也可以仅仅使用任意uuid充当key
+    aead-method: chacha20-poly1305 # 可选：chacha20-poly1305、aes-128-gcm、none（不建议；none 不提供 AEAD 保护）
+    padding-min: 1 # 最小填充率（0-100）
+    padding-max: 15 # 最大填充率（0-100，必须 >= padding-min）
+    table-type: prefer_ascii # 可选值：prefer_ascii、prefer_entropy、up_ascii_down_entropy、up_entropy_down_ascii
+    # custom-table: xpxvvpvv # 可选，自定义字节布局，必须包含2个x、2个p、4个v，可随意组合；只对 entropy 方向生效
+    # custom-tables: ["xpxvvpvv", "vxpvxvvp"] # 可选，自定义字节布局列表（x/v/p），用于多表轮换；非空时覆盖 custom-table
+    handshake-timeout: 5   # 可选（秒）
+    enable-pure-downlink: false # 可选：false=带宽优化下行；true=纯 Sudoku 下行
+    # 推荐：使用 httpmask 对象统一管理 HTTPMask 相关字段：
+    httpmask:
+      disable: false # true 禁用所有 HTTP 伪装/隧道
+      mode: legacy # 可选：legacy（默认）、stream（split-stream）、poll、auto（先 stream 再 poll）、ws（WebSocket 隧道）
+      # path-root: "" # 可选：HTTP 隧道端点一级路径前缀（双方需一致），例如 "aabbcc" 或 "/aabbcc/" => /aabbcc/session、/aabbcc/stream、/aabbcc/api/v1/upload、/aabbcc/ws
+    #
+    # fallback: "127.0.0.1:80" # 可选：用于可连接请求的回落转发，可与其他服务共端口
+
+
+
+  - name: trojan-in-1
+    type: trojan
+    port: 10819 # 支持使用ports格式，例如200,302 or 200,204,401-429,501-503
+    listen: 0.0.0.0
+    # rule: sub-rule-name1 # 默认使用 rules，如果未找到 sub-rule 则直接使用 rules
+    # proxy: proxy # 如果不为空则直接将该入站流量交由指定 proxy 处理 (当 proxy 不为空时，这里的 proxy 名称必须合法，否则会出错)
+    users:
+      - username: 1
+        password: 9d0cb9d0-964f-4ef6-897d-6c6b3ccf9e68
+    # ws-path: "/" # 如果不为空则开启 websocket 传输层
+    # grpc-service-name: "GunService" # 如果不为空则开启 grpc 传输层
+    # 下面两项如果填写则开启 tls（需要同时填写）
+    certificate: ./server.crt # 证书 PEM 格式，或者 证书的路径
+    private-key: ./server.key # 证书对应的私钥 PEM 格式，或者私钥路径
+    # 下面两项为mTLS配置项，如果client-auth-type设置为 "verify-if-given" 或 "require-and-verify" 则client-auth-cert必须不为空
+    # client-auth-type: "" # 可选值：""、"request"、"require-any"、"verify-if-given"、"require-and-verify"
+    # client-auth-cert: string # 证书 PEM 格式，或者 证书的路径
+    # 如果填写则开启ech（可由 mihomo generate ech-keypair <明文域名> 生成）
+    # ech-key: |
+    #   -----BEGIN ECH KEYS-----
+    #   ACATwY30o/RKgD6hgeQxwrSiApLaCgU+HKh7B6SUrAHaDwBD/g0APwAAIAAgHjzK
+    #   madSJjYQIf9o1N5GXjkW4DEEeb17qMxHdwMdNnwADAABAAEAAQACAAEAAwAIdGVz
+    #   dC5jb20AAA==
+    #   -----END ECH KEYS-----
+    # 如果填写reality-config则开启reality（注意不可与certificate和private-key同时填写）
+    # reality-config:
+    #   dest: test.com:443
+    #   private-key: jNXHt1yRo0vDuchQlIP6Z0ZvjT3KtzVI-T4E7RoLJS0 # 可由 mihomo generate reality-keypair 命令生成
+    #   short-id:
+    #     - 0123456789abcdef
+    #   server-names:
+    #     - test.com
+    #   #下列两个 limit 为选填，可对未通过验证的回落连接限速，bytesPerSec 默认为 0 即不启用
+    #   #回落限速是一种特征，不建议启用，如果您是面板/一键脚本开发者，务必让这些参数随机化
+    #   limit-fallback-upload:
+    #     after-bytes: 0 # 传输指定字节后开始限速
+    #     bytes-per-sec: 0 # 基准速率（字节/秒）
+    #     burst-bytes-per-sec: 0 # 突发速率（字节/秒），大于 bytesPerSec 时生效
+    #   limit-fallback-download:
+    #     after-bytes: 0 # 传输指定字节后开始限速
+    #     bytes-per-sec: 0 # 基准速率（字节/秒）
+    #     burst-bytes-per-sec: 0 # 突发速率（字节/秒），大于 bytesPerSec 时生效
+    # ss-option: # like trojan-go's `shadowsocks` config
+    #   enabled: false
+    #   method: aes-128-gcm # aes-128-gcm/aes-256-gcm/chacha20-ietf-poly1305
+    #   password: "example"
+    ### 注意，对于trojan listener, 至少需要填写 “certificate和private-key” 或 “reality-config” 或 “ss-option” 的其中一项 ###
+
+  - name: hysteria2-in-1
+    type: hysteria2
+    port: 10820 # 支持使用ports格式，例如200,302 or 200,204,401-429,501-503
+    listen: 0.0.0.0
+    # rule: sub-rule-name1 # 默认使用 rules，如果未找到 sub-rule 则直接使用 rules
+    # proxy: proxy # 如果不为空则直接将该入站流量交由指定 proxy 处理 (当 proxy 不为空时，这里的 proxy 名称必须合法，否则会出错)
+    users:
+      00000000-0000-0000-0000-000000000000: PASSWORD_0
+      00000000-0000-0000-0000-000000000001: PASSWORD_1
+    #  certificate: ./server.crt # 证书 PEM 格式，或者 证书的路径
+    #  private-key: ./server.key # 证书对应的私钥 PEM 格式，或者私钥路径
+    #  下面两项为mTLS配置项，如果client-auth-type设置为 "verify-if-given" 或 "require-and-verify" 则client-auth-cert必须不为空
+    #  client-auth-type: "" # 可选值：""、"request"、"require-any"、"verify-if-given"、"require-and-verify"
+    #  client-auth-cert: string # 证书 PEM 格式，或者 证书的路径
+    #  如果填写则开启ech（可由 mihomo generate ech-keypair <明文域名> 生成）
+    #  ech-key: |
+    #    -----BEGIN ECH KEYS-----
+    #    ACATwY30o/RKgD6hgeQxwrSiApLaCgU+HKh7B6SUrAHaDwBD/g0APwAAIAAgHjzK
+    #    madSJjYQIf9o1N5GXjkW4DEEeb17qMxHdwMdNnwADAABAAEAAQACAAEAAwAIdGVz
+    #    dC5jb20AAA==
+    #    -----END ECH KEYS-----
+    ##  up 和 down 均不写或为 0 则使用 BBR 流控
+    #  up: "30 Mbps" # 若不写单位，默认为 Mbps
+    #  down: "200 Mbps" # 若不写单位，默认为 Mbps
+    #  obfs: salamander # 默认为空，如果填写则开启 obfs，目前仅支持 salamander
+    #  obfs-password: yourpassword
+    #  bbr-profile: "" # Available: "standard", "conservative", "aggressive". Default: "standard"
+    #  max-idle-time: 15000
+    #  alpn:
+    #    - h3
+    #  ignore-client-bandwidth: false
+    # HTTP3 服务器认证失败时的行为 （URL 字符串配置）,如果 masquerade 未配置，则返回 404 页
+    #  masquerade: file:///var/www # 作为文件服务器
+    #  masquerade: http://127.0.0.1:8080	#作为反向代理
+    #  masquerade: https://127.0.0.1:8080	#作为反向代理
+    #  realm-opts:
+    #    enable: true # 必须手动开启
+    #    server-url: https://realm.hy2.io
+    #    token: public
+    #    realm-id: my-cabin-1f3a8c2e9b
+    #    stun-servers:
+    #      - stun.nextcloud.com:3478
+    #      - stun.sip.us:3478
+    #      - global.stun.twilio.com:3478
+    #    # proxy: DIRECT # 设置server-url通过哪个代理进行连接
+    #    # 下面支持填写针对server-url的TLS配置(sni, skip-cert-verify, fingerprint, certificate, private-key, alpn)
+    #    # skip-cert-verify： false
+    #    # ......
+
+  # 注意，这是用于自建hysteria2入站和出站中realm-opts中server-url的HTTP/HTTPS服务器，请勿混淆
+  - name: hysteria2-realm-in-1
+    type: hysteria2-realm
+    port: 10820 # 支持使用ports格式，例如200,302 or 200,204,401-429,501-503
+    listen: 0.0.0.0
+    token: public # hysteria2入站和出站通过 `Authorization: Bearer <token>` 出示的 Bearer 令牌。
+    max-realms: 65536 # maximum total realms (0 = unlimited)
+    max-realms-per-ip: 4 # maximum realms per client IP (0 = unlimited)
+    trusted-proxy-header: "" # header to read real client IP from (e.g. X-Forwarded-For)
+    realm-name-pattern: "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$" # regex realm names must match
+    # # 下面内容如果配置， realm 将通过 TLS 提供 HTTPS 服务；否则提供明文 HTTP
+    # certificate: ./server.crt # 证书 PEM 格式，或者 证书的路径
+    # private-key: ./server.key # 证书对应的私钥 PEM 格式，或者私钥路径
+    # 下面两项为mTLS配置项，如果client-auth-type设置为 "verify-if-given" 或 "require-and-verify" 则client-auth-cert必须不为空
+    # client-auth-type: "" # 可选值：""、"request"、"require-any"、"verify-if-given"、"require-and-verify"
+    # client-auth-cert: string # 证书 PEM 格式，或者 证书的路径
+    # 如果填写则开启ech（可由 mihomo generate ech-keypair <明文域名> 生成）
+    # ech-key: |
+    #   -----BEGIN ECH KEYS-----
+    #   ACATwY30o/RKgD6hgeQxwrSiApLaCgU+HKh7B6SUrAHaDwBD/g0APwAAIAAgHjzK
+    #   madSJjYQIf9o1N5GXjkW4DEEeb17qMxHdwMdNnwADAABAAEAAQACAAEAAwAIdGVz
+    #   dC5jb20AAA==
+    #   -----END ECH KEYS-----
+    # alpn: ["h2", "http/1.1"]
+
+  - name: trusttunnel-in-1
+    type: trusttunnel
+    port: 10821 # 支持使用ports格式，例如200,302 or 200,204,401-429,501-503
+    listen: 0.0.0.0
+    # rule: sub-rule-name1 # 默认使用 rules，如果未找到 sub-rule 则直接使用 rules
+    # proxy: proxy # 如果不为空则直接将该入站流量交由指定 proxy 处理 (当 proxy 不为空时，这里的 proxy 名称必须合法，否则会出错)
+    users:
+      - username: 1
+        password: 9d0cb9d0-964f-4ef6-897d-6c6b3ccf9e68
+    certificate: ./server.crt # 证书 PEM 格式，或者 证书的路径
+    private-key: ./server.key # 证书对应的私钥 PEM 格式，或者私钥路径
+    network: ["tcp", "udp"] # http2+http3
+    congestion-controller: bbr
+    # bbr-profile: "" # Available: "standard", "conservative", "aggressive". Default: "standard"
+    # 下面两项为mTLS配置项，如果client-auth-type设置为 "verify-if-given" 或 "require-and-verify" 则client-auth-cert必须不为空
+    # client-auth-type: "" # 可选值：""、"request"、"require-any"、"verify-if-given"、"require-and-verify"
+    # client-auth-cert: string # 证书 PEM 格式，或者 证书的路径
+    # 如果填写则开启ech（可由 mihomo generate ech-keypair <明文域名> 生成）
+    # ech-key: |
+    #   -----BEGIN ECH KEYS-----
+    #   ACATwY30o/RKgD6hgeQxwrSiApLaCgU+HKh7B6SUrAHaDwBD/g0APwAAIAAgHjzK
+    #   madSJjYQIf9o1N5GXjkW4DEEeb17qMxHdwMdNnwADAABAAEAAQACAAEAAwAIdGVz
+    #   dC5jb20AAA==
+    #   -----END ECH KEYS-----
+
+  # 注意，listeners中的tun仅提供给高级用户使用，普通用户应使用顶层配置中的tun
+  - name: tun-in-1
+    type: tun
+    # rule: sub-rule-name1 # 默认使用 rules，如果未找到 sub-rule 则直接使用 rules
+    # proxy: proxy # 如果不为空则直接将该入站流量交由指定 proxy 处理 (当 proxy 不为空时，这里的 proxy 名称必须合法，否则会出错)
+    stack: system # gvisor / mixed
+    dns-hijack:
+    - 0.0.0.0:53 # 需要劫持的 DNS
+    # auto-detect-interface: false # 自动识别出口网卡
+    # auto-route: false # 配置路由表
+    # mtu: 9000 # 最大传输单元
+    inet4-address: # 必须手动设置 ipv4 地址段
+    - 198.19.0.1/30
+    inet6-address: # 必须手动设置 ipv6 地址段
+    - "fdfe:dcba:9877::1/126"
+    # strict-route: true # 将所有连接路由到 tun 来防止泄漏，但你的设备将无法其他设备被访问
+    # inet4-route-address: # 启用 auto-route 时使用自定义路由而不是默认路由
+    # - 0.0.0.0/1
+    # - 128.0.0.0/1
+    # inet6-route-address: # 启用 auto-route 时使用自定义路由而不是默认路由
+    # - "::/1"
+    # - "8000::/1"
+    # endpoint-independent-nat: false # 启用独立于端点的 NAT
+    # include-uid: # UID 规则仅在 Linux 下被支持，并且需要 auto-route
+    # - 0
+    # include-uid-range: # 限制被路由的的用户范围
+    # - 1000:99999
+    # exclude-uid: # 排除路由的的用户
+    # - 1000
+    # exclude-uid-range: # 排除路由的的用户范围
+    # - 1000:99999
+    # include-mac-address:
+    # - 00:11:22:33:44:55
+    # exclude-mac-address:
+    # - 00:11:22:33:44:55
+
+    # Android 用户和应用规则仅在 Android 下被支持
+    # 并且需要 auto-route
+
+    # include-android-user: # 限制被路由的 Android 用户
+    # - 0
+    # - 10
+    # include-package: # 限制被路由的 Android 应用包名
+    # - com.android.chrome
+    # exclude-package: # 排除被路由的 Android 应用包名
+    # - com.android.captiveportallogin
+    # disable-icmp-forwarding: true # 禁用 ICMP 转发，防止某些情况下的 ICMP 环回问题，ping 将不会显示真实的延迟
+# 入口配置与 Listener 等价，传入流量将和 socks,mixed 等入口一样按照 mode 所指定的方式进行匹配处理
+# shadowsocks,vmess 入口配置（传入流量将和 socks,mixed 等入口一样按照 mode 所指定的方式进行匹配处理）
+# ss-config: ss://2022-blake3-aes-256-gcm:vlmpIPSyHH6f4S8WVPdRIHIlzmB+GIRfoH3aNJ/t9Gg=@:23456
+# vmess-config: vmess://1:9d0cb9d0-964f-4ef6-897d-6c6b3ccf9e68@:12345
+
+# tuic 服务器入口（传入流量将和 socks,mixed 等入口一样按照 mode 所指定的方式进行匹配处理）
+# tuic-server:
+#  enable: true
+#  listen: 127.0.0.1:10443
+#  token:    # tuicV4 填写（可以同时填写 users）
+#    - TOKEN
+#  users:    # tuicV5 填写（可以同时填写 token）
+#    00000000-0000-0000-0000-000000000000: PASSWORD_0
+#    00000000-0000-0000-0000-000000000001: PASSWORD_1
+#  certificate: ./server.crt
+#  private-key: ./server.key
+#  congestion-controller: bbr
+#  bbr-profile: "" # Available: "standard", "conservative", "aggressive". Default: "standard"
+#  max-idle-time: 15000
+#  authentication-timeout: 1000
+#  alpn:
+#    - h3
+#  max-udp-relay-packet-size: 1500

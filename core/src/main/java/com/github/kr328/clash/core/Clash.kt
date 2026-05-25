@@ -205,6 +205,12 @@ object Clash {
         }
     }
 
+    fun validateProfile(path: File): CompletableDeferred<Unit> {
+        return CompletableDeferred<Unit>().apply {
+            Bridge.nativeValidateProfile(this, path.absolutePath)
+        }
+    }
+
     fun queryProviders(): List<Provider> {
         val providers =
             Json.Default.decodeFromString(JsonArray.serializer(), Bridge.nativeQueryProviders())

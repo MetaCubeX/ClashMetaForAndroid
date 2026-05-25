@@ -13,14 +13,15 @@ object RuleMapper {
     private val DEFAULT_GEOSITE_URL = GeoMirrors.primaryGeoSiteDat()
 
     fun parseStateFromConfig(configText: String): RuleState {
-        val root = YamlFormatting.parseRootMap(configText) ?: return RuleState()
-        val providers = parseProviders(root["rule-providers"])
-        val rules = parseRules(root["rules"])
+        val document = MihomoConfigDocument.parse(configText) ?: return RuleState()
+        val providers = parseProviders(document.ruleProviders)
+        val rules = parseRules(document.rules)
         return RuleState(providers = providers, rules = rules)
     }
 
     fun mergeStateIntoConfig(configText: String, state: RuleState, geoDataUrls: GeoDataUrls): String {
-        val root = YamlFormatting.parseRootMap(configText) ?: mutableMapOf()
+        val document = MihomoConfigDocument.parseOrEmpty(configText)
+        val root = document.root
         root["rule-providers"] = state.providers
             .filter { it.enabled }
             .associate { p ->
@@ -40,7 +41,7 @@ object RuleMapper {
             .distinct()
         ensureGeositeConnectivity(root, state.rules, geoDataUrls)
 
-        return YamlFormatting.blockYaml().dump(root)
+        return document.renderReplacing("rule-providers", "rules", "geodata-mode", "geox-url")
     }
 
     private fun ensureGeositeConnectivity(

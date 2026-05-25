@@ -32,11 +32,11 @@ object SubscriptionUpdateMerge {
     }
 
     fun extractPreserved(configYaml: String): PreservedOverlay {
-        val root = YamlFormatting.parseRootMap(configYaml) ?: return PreservedOverlay.EMPTY
-        val rp = root["rule-providers"]
-        val rules = root["rules"]
-        val pp = root["proxy-providers"]
-        val pg = root["proxy-groups"]
+        val document = MihomoConfigDocument.parse(configYaml) ?: return PreservedOverlay.EMPTY
+        val rp = document.ruleProviders
+        val rules = document.rules
+        val pp = document.proxyProviders
+        val pg = document.proxyGroups
         if (rp == null && rules == null && pp == null && pg == null) return PreservedOverlay.EMPTY
         return PreservedOverlay(rp, rules, pp, pg)
     }
@@ -47,7 +47,8 @@ object SubscriptionUpdateMerge {
      */
     fun mergeAfterFetch(fetchedYaml: String, preserved: PreservedOverlay, profileDir: File? = null): String {
         if (preserved.isEmpty()) return fetchedYaml
-        val root = YamlFormatting.parseRootMap(fetchedYaml) ?: return fetchedYaml
+        val document = MihomoConfigDocument.parse(fetchedYaml) ?: return fetchedYaml
+        val root = document.root
         if (preserved.ruleProviders != null) {
             root["rule-providers"] = mergeRuleProviderMaps(root["rule-providers"], preserved.ruleProviders)
         }
@@ -61,7 +62,7 @@ object SubscriptionUpdateMerge {
         if (preserved.proxyGroups != null) {
             root["proxy-groups"] = mergeProxyGroupsLists(root, preserved, profileDir)
         }
-        return YamlFormatting.blockYaml().dump(root)
+        return document.renderReplacing("rule-providers", "rules", "proxy-providers", "proxy-groups")
     }
 
     /** Start from fetched map, overlay preserved entries (local wins on same key). */

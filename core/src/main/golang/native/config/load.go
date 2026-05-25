@@ -85,6 +85,26 @@ func Load(path string) error {
 	return nil
 }
 
+func Validate(path string) error {
+	rawCfg, err := UnmarshalAndPatch(path)
+	if err != nil {
+		log.Errorln("Validate %s: %s", path, err.Error())
+
+		return err
+	}
+
+	cfg, err := Parse(rawCfg)
+	if err != nil {
+		log.Errorln("Validate %s: %s", path, err.Error())
+
+		return err
+	}
+
+	destroyProviders(cfg)
+
+	return nil
+}
+
 func LoadDefault() {
 	cfg, err := config.Parse([]byte{})
 	if err != nil {
