@@ -4,6 +4,15 @@ import (
 	"io"
 
 	"github.com/metacubex/mihomo/config"
+
+	// config.ParseRawConfig declares temporaryUpdateGeneral via go:linkname;
+	// the actual implementation lives in mihomo/hub/executor. Importing it
+	// blank pulls the symbol into the link graph so go test (and any other
+	// consumer of this package) resolves the relocation. The production
+	// libclash.so build already pulls hub/executor transitively via
+	// cfa/native/config -> mihomo/hub; we make it explicit here so the
+	// isolated snapshot package stays self-sufficient.
+	_ "github.com/metacubex/mihomo/hub/executor"
 )
 
 // ValidateBytes runs the engine's full UnmarshalRawConfig + ParseRawConfig

@@ -23,7 +23,11 @@ val goTestNativeSnapshot by tasks.registering(Exec::class) {
     description = "Run go unit tests for the native snapshot package"
     group = "verification"
     workingDir = file("src/main/golang")
-    commandLine("go", "test", "./native/snapshot/...")
+    // Same build tags Gradle uses to compile the native libclash.so (see the
+    // golang { } block below). config.ParseRawConfig pulls in symbols that
+    // only exist under these tags (temporaryUpdateGeneral, etc), so go test
+    // fails with "relocation target ... not defined" without them.
+    commandLine("go", "test", "-tags", "foss,with_gvisor,cmfa", "./native/snapshot/...")
 
     inputs.dir("src/main/golang/native/snapshot")
     val marker = layout.buildDirectory.file("go-tests/snapshot.passed")
