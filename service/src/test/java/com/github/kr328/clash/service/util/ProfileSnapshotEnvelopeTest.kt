@@ -16,8 +16,13 @@ import org.junit.Test
  * covered by Go tests in core/src/main/golang/native/config/snapshot_test.go.
  */
 class ProfileSnapshotEnvelopeTest {
+    // Same Json config as Clash.parseProfileSnapshot uses. coerceInputValues
+    // is required because mihomo marshals absent sections as JSON `null`, not
+    // missing keys, and kotlinx.serialization will throw "Expected start of
+    // object '{', but had 'n' instead" without it.
     private val json = Json {
         ignoreUnknownKeys = true
+        coerceInputValues = true
     }
 
     @Test
@@ -72,6 +77,43 @@ class ProfileSnapshotEnvelopeTest {
         assertEquals(false, envelope.ok)
         assertEquals("yaml: line 3: did not find expected key", envelope.error)
         assertNull(envelope.snapshot)
+    }
+
+    @Test
+    fun nullOptionalSectionsCoerceToDefaults() {
+        // Regression: mihomo's json.Marshal of a RawConfig with no
+        // proxy-providers / proxy-groups / etc emits literal `null` for
+        // those keys, not "omit". Without coerceInputValues kotlinx.serialization
+        // crashed the rules screen with:
+        //   "Expected start of the object '{', but had 'n' instead
+        //    at path: $.snapshot.proxy-providers"
+        // Cover this shape so the regression cannot creep back in.
+        val raw = """
+            {
+              "ok": true,
+              "snapshot": {
+                "rules": ["MATCH,DIRECT"],
+                "proxies": null,
+                "proxy-groups": null,
+                "proxy-providers": null,
+                "rule-providers": null,
+                "sub-rules": null,
+                "listeners": null
+              }
+            }
+        """.trimIndent()
+
+        val envelope = json.decodeFromString(ProfileSnapshotEnvelope.serializer(), raw)
+
+        assertTrue(envelope.ok)
+        val snapshot = envelope.snapshot!!
+        assertEquals(1, snapshot.rules.size)
+        assertTrue(snapshot.proxies.isEmpty())
+        assertTrue(snapshot.proxyGroups.isEmpty())
+        assertTrue(snapshot.proxyProviders.isEmpty())
+        assertTrue(snapshot.ruleProviders.isEmpty())
+        assertTrue(snapshot.subRules.isEmpty())
+        assertTrue(snapshot.listeners.isEmpty())
     }
 
     @Test

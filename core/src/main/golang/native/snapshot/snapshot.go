@@ -20,13 +20,19 @@ import (
 
 // ProfileSnapshot is the wire shape sent to Kotlin via JNI. Field names
 // match mihomo's YAML keys so that the JSON is recognisable at a glance.
+//
+// All sections are omitempty: nil Go maps/slices marshal as `null` by default,
+// and kotlinx.serialization on the Kotlin side won't accept `null` for a
+// non-nullable Map/List with a default value — it expects either the key
+// missing or a real value. Omitting the key entirely lets the Kotlin
+// data class default (emptyMap/emptyList) take over cleanly.
 type ProfileSnapshot struct {
-	Rules          []string                  `json:"rules"`
+	Rules          []string                  `json:"rules,omitempty"`
 	SubRules       map[string][]string       `json:"sub-rules,omitempty"`
-	Proxies        []map[string]any          `json:"proxies"`
-	ProxyGroups    []map[string]any          `json:"proxy-groups"`
-	ProxyProviders map[string]map[string]any `json:"proxy-providers"`
-	RuleProviders  map[string]map[string]any `json:"rule-providers"`
+	Proxies        []map[string]any          `json:"proxies,omitempty"`
+	ProxyGroups    []map[string]any          `json:"proxy-groups,omitempty"`
+	ProxyProviders map[string]map[string]any `json:"proxy-providers,omitempty"`
+	RuleProviders  map[string]map[string]any `json:"rule-providers,omitempty"`
 	Listeners      []map[string]any          `json:"listeners,omitempty"`
 }
 

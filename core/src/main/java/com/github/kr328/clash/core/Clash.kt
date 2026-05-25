@@ -268,6 +268,11 @@ object Clash {
 
     private val ProfileSnapshotJson = Json {
         ignoreUnknownKeys = true
+        // mihomo marshals absent sections as JSON `null` rather than omitting
+        // them. coerceInputValues lets the default values on ProfileSnapshot
+        // (empty map / empty list) win over an incoming null, so the data
+        // class stays non-nullable and UI code doesn't have to null-check.
+        coerceInputValues = true
     }
 
     fun queryProviders(): List<Provider> {
