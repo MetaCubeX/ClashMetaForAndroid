@@ -15,6 +15,15 @@ object SubscriptionUpdateMerge {
         val rules: Any?,
         val proxyProviders: Any?,
         val proxyGroups: Any?,
+        /**
+         * User-authored entries from the top-level `listeners:` block.
+         * Carried across subscription refreshes so an advanced user who
+         * configured e.g. an authenticated local SOCKS doesn't lose it on
+         * every fetch. YamlHardener still runs afterwards, so the
+         * loopback-only invariants stay enforced even if the preserved
+         * entries originally bound to a remote interface.
+         */
+        val listeners: Any? = null,
     ) {
         fun isEmpty(): Boolean {
             val rpEmpty =
@@ -24,11 +33,12 @@ object SubscriptionUpdateMerge {
                 proxyProviders == null || (proxyProviders is Map<*, *> && proxyProviders.isEmpty())
             val pgEmpty =
                 proxyGroups == null || (proxyGroups is List<*> && proxyGroups.isEmpty())
-            return rpEmpty && rEmpty && ppEmpty && pgEmpty
+            val lEmpty = listeners == null || (listeners is List<*> && listeners.isEmpty())
+            return rpEmpty && rEmpty && ppEmpty && pgEmpty && lEmpty
         }
 
         companion object {
-            val EMPTY = PreservedOverlay(null, null, null, null)
+            val EMPTY = PreservedOverlay(null, null, null, null, null)
         }
     }
 
@@ -48,8 +58,12 @@ object SubscriptionUpdateMerge {
             ?.let { JsonElementToYaml.convertObjectMap(it) }
         val pg = snapshot.proxyGroups.takeIf { it.isNotEmpty() }
             ?.let { JsonElementToYaml.convertObjectList(it) }
-        if (rp == null && rules == null && pp == null && pg == null) return PreservedOverlay.EMPTY
-        return PreservedOverlay(rp, rules, pp, pg)
+        val listeners = snapshot.listeners.takeIf { it.isNotEmpty() }
+            ?.let { JsonElementToYaml.convertObjectList(it) }
+        if (rp == null && rules == null && pp == null && pg == null && listeners == null) {
+            return PreservedOverlay.EMPTY
+        }
+        return PreservedOverlay(rp, rules, pp, pg, listeners)
     }
 
     /**
@@ -73,6 +87,9 @@ object SubscriptionUpdateMerge {
         if (preserved.proxyGroups != null) {
             root["proxy-groups"] = mergeProxyGroupsLists(root, preserved, profileDir)
         }
+        if (preserved.listeners != null) {
+            root["listeners"] = mergeListenersLists(root["listeners"], preserved.listeners)
+        }
         // Garbage-collect providers nothing references. After overlaying the
         // pre-fetch state on top of the fresh subscription, a rule-provider
         // may exist that no `RULE-SET,name,...` rule mentions, or a
@@ -83,7 +100,35 @@ object SubscriptionUpdateMerge {
         // must be re-added too.
         gcUnusedRuleProviders(root)
         gcUnusedProxyProviders(root)
-        return document.renderReplacing("rule-providers", "rules", "proxy-providers", "proxy-groups")
+        return document.renderReplacing(
+            "rule-providers",
+            "rules",
+            "proxy-providers",
+            "proxy-groups",
+            "listeners",
+        )
+    }
+
+    /**
+     * Union fetched + preserved listener entries on `name` (mihomo's
+     * identity key for listeners). Preserved entries override fetched
+     * ones — local edits win — but unknown listeners shipped with the
+     * subscription are still kept. YamlHardener.hardenProfile runs after
+     * the merge so any non-loopback bind ultimately gets sanitised.
+     */
+    private fun mergeListenersLists(fetched: Any?, preserved: Any?): Any? {
+        val fetchedList = fetched as? List<*> ?: emptyList<Any?>()
+        val preservedList = preserved as? List<*> ?: emptyList<Any?>()
+        if (preservedList.isEmpty()) return fetched
+        val byName = LinkedHashMap<String, Any?>()
+        val anonymous = mutableListOf<Any?>()
+        fun add(entry: Any?) {
+            val name = (entry as? Map<*, *>)?.get("name")?.toString()
+            if (name.isNullOrBlank()) anonymous.add(entry) else byName[name] = entry
+        }
+        fetchedList.forEach(::add)
+        preservedList.forEach(::add)
+        return byName.values.toMutableList<Any?>().apply { addAll(anonymous) }
     }
 
     /**

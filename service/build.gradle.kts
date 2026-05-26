@@ -30,6 +30,16 @@ dependencies {
     testImplementation(kotlin("test"))
 }
 
+android {
+    // Stub Android APIs (android.util.Log etc.) called from production code
+    // return default values inside JVM unit tests instead of throwing
+    // "Method X not mocked". Lets YamlHardener / SubscriptionUpdateMerge
+    // tests cover the real production code path including its log lines.
+    testOptions {
+        unitTests.isReturnDefaultValues = true
+    }
+}
+
 afterEvaluate {
     android {
         libraryVariants.forEach {
