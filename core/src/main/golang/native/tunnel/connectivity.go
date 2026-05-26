@@ -33,18 +33,27 @@ const perProxyHealthCheckTimeout = 5 * time.Second
 // engine's own cap keeps per-proxy push results comparable.
 const perGroupConcurrencyLimit = 10
 
-// extractHealthCheckSettings pulls the configured health-check timeout and
-// expected-status range out of a ProxyProvider so per-proxy URLTest can
-// honour the subscription's settings instead of hard-coding defaults.
-// mihomo only exposes HealthCheckURL() through the ProxyProvider interface
-// — timeout / expectedStatus live on the private baseProvider.healthCheck
-// field. Reflection is the least invasive workaround: a submodule patch
-// adding public getters would be cleaner but requires forking mihomo
-// (the current submodule points at upstream MetaCubeX/mihomo).
+// extractHealthCheckSettings pulls the configured health-check timeout off
+// a ProxyProvider so per-proxy URLTest can honour the subscription's
+// `health-check.timeout` instead of hard-coding 5s. mihomo only exposes
+// HealthCheckURL() through the ProxyProvider interface — timeout lives on
+// the private baseProvider.healthCheck field. Reflection is the least
+// invasive workaround until we fork mihomo and add a public getter
+// (recorded in project memory).
 //
-// If the field layout shifts in a future mihomo bump the function falls
-// back to mihomo's own defaults — timeout = perProxyHealthCheckTimeout,
-// expectedStatus = nil (match any 2xx) — keeping the call path safe.
+// expectedStatus extraction is intentionally NOT attempted via reflection:
+// reflect.Value.Interface() panics unconditionally on values obtained from
+// unexported fields, regardless of IsNil/IsValid guards, so any subscription
+// with a non-default `health-check.expected-status` would crash the Go
+// runtime through SIGABRT — observed in the wild on user reports. Until the
+// submodule getter lands we always pass nil to URLTest, which matches
+// mihomo's own default (accept any 2xx) for subscriptions that do not set
+// the field. Custom expected-status ranges silently degrade to that default
+// instead of panicking — acceptable; the affected configurations are rare.
+//
+// If the field layout shifts in a future mihomo bump this falls back to
+// timeout = perProxyHealthCheckTimeout (the mihomo default), keeping the
+// call path safe.
 func extractHealthCheckSettings(prov provider.ProxyProvider) (time.Duration, utils.IntRanges[uint16]) {
 	timeout := perProxyHealthCheckTimeout
 	var expectedStatus utils.IntRanges[uint16]
@@ -69,11 +78,6 @@ func extractHealthCheckSettings(prov provider.ProxyProvider) (time.Duration, uti
 	if t := hc.FieldByName("timeout"); t.IsValid() && t.Kind() == reflect.Uint {
 		if tval := t.Uint(); tval > 0 {
 			timeout = time.Duration(tval) * time.Millisecond
-		}
-	}
-	if es := hc.FieldByName("expectedStatus"); es.IsValid() {
-		if v, ok := es.Interface().(utils.IntRanges[uint16]); ok {
-			expectedStatus = v
 		}
 	}
 	return timeout, expectedStatus
