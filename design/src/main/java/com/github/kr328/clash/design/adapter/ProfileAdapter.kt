@@ -292,11 +292,26 @@ class ProfileAdapter(
             previousActiveUuid?.let(affected::add)
             activeProfileUuid?.let(affected::add)
         }
-        // Engine identity (running/group set) influences the active card's
+        // Engine identity (running/group set/mode) influences the active card's
         // expanded carriage (engine path vs offline preview). Other cards
-        // never consult these fields so they don't need a rebind.
-        if (runningChanged || groupSetChanged || previousLastGroupHint != lastGroupHint || previousMode != tunnelMode) {
+        // consult these fields only via useEngineFor() which short-circuits to
+        // false for non-active profiles, so they don't need a rebind here.
+        if (runningChanged || groupSetChanged || previousMode != tunnelMode) {
             activeProfileUuid?.let(affected::add)
+        }
+        // lastGroupHint is global — resolvePreferredGroupFromList() consults it
+        // for every profile that hasn't yet cached a selectedGroupIndex (cards
+        // that were never bound, e.g. still below the scroll viewport). If we
+        // only touch the active card, a later scroll-into-view of card C would
+        // bind it against the new hint while card A still shows the old one,
+        // leaving the list with two different preferred groups across cards.
+        // Hint changes are not on a hot path — they only fire when the user
+        // explicitly switches the visible group — so rebinding every imported
+        // card here is cheap insurance against that inconsistency.
+        if (previousLastGroupHint != lastGroupHint) {
+            for (p in profiles) {
+                if (p.imported) affected.add(p.uuid)
+            }
         }
         // Per-profile maps only affect the profile whose UUID actually moved.
         previousOfflinePreview.collectDiffKeys(offlinePreviewByProfile, affected)
