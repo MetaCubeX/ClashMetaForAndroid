@@ -32,6 +32,22 @@ class MihomoConfigDocument private constructor(
         return rendered
     }
 
+    /**
+     * Strip the named top-level blocks from the rendered output. Used by
+     * sanitisers that need to *delete* a section (e.g. dropping `listeners:`
+     * outright in security hardening) rather than rewrite it — [renderReplacing]
+     * intentionally short-circuits when the root key is absent, so a plain
+     * `root.remove(key)` followed by replacement render leaves the block
+     * untouched in the source text.
+     */
+    fun renderRemoving(vararg keys: String): String {
+        var rendered = source
+        for (key in keys) {
+            rendered = TopLevelYamlBlockPatcher.remove(text = rendered, key = key)
+        }
+        return rendered
+    }
+
     fun requireSupportedShape() {
         root["rule-providers"]?.let {
             require(it is Map<*, *>) { "Generated rule-providers must be a map" }
@@ -122,6 +138,22 @@ private object TopLevelYamlBlockPatcher {
             }
         }
         return if (lineSeparator == "\r\n") patched.replace("\n", "\r\n") else patched
+    }
+
+    /** Drop the named top-level block from [text] entirely. No-op if absent. */
+    fun remove(text: String, key: String): String {
+        val lineSeparator = if (text.contains("\r\n")) "\r\n" else "\n"
+        val normalized = text.replace("\r\n", "\n")
+        val lines = normalized.split('\n')
+        val range = findBlockRange(lines, key) ?: return text
+        val before = lines.take(range.first).joinToString("\n")
+        val after = lines.drop(range.lastExclusive).joinToString("\n")
+        val joined = when {
+            before.isEmpty() -> after
+            after.isEmpty() -> before
+            else -> "$before\n$after"
+        }
+        return if (lineSeparator == "\r\n") joined.replace("\n", "\r\n") else joined
     }
 
     private fun appendBlock(text: String, replacement: String): String {

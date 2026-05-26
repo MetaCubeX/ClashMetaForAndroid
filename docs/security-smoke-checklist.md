@@ -9,6 +9,36 @@ Run this checklist before cutting a release tag.
 - Verify local listeners remain loopback-only under session overrides.
 - Verify no static auth/secret values are written to profile files after restart.
 
+## Imported YAML hardening (`YamlHardener`)
+
+Import a profile whose `config.yaml` contains a hostile-looking surface — e.g.:
+
+```yaml
+allow-lan: true
+external-controller: 0.0.0.0:9090
+bind-address: '*'
+listeners:
+  - name: leaky-socks
+    type: socks
+    listen: 0.0.0.0
+    port: 1080
+```
+
+After the import completes, open the on-disk `config.yaml` under
+`<filesDir>/clash/profiles/<uuid>/config.yaml` and confirm:
+
+- `listeners:` block is **absent** when hardening mode is `Strict` (default on Android 10+).
+- `listeners:` block keeps every entry with `listen: 127.0.0.1` when hardening mode is `Compat`.
+- `allow-lan` is `false` regardless of mode (when mode != `Off`).
+- `bind-address` is `127.0.0.1`.
+- `external-controller` host is `127.0.0.1` (port preserved).
+- A `config.original.yaml` sibling file exists with the **unmodified** subscription YAML.
+
+Trigger a subscription refresh and re-check: hardening must be re-applied (idempotent),
+and the user's original snapshot in `config.original.yaml` must remain untouched
+from the first import. A custom user-edited listener bound to `127.0.0.1` with
+auth must survive the refresh (see `SubscriptionUpdateMerge.listeners` preservation).
+
 ## Functional regression
 
 - Start/stop VPN five times in a row (no crash, no stuck "starting" state).

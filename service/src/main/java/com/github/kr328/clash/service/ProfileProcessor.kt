@@ -15,6 +15,7 @@ import com.github.kr328.clash.service.store.ServiceStore
 import com.github.kr328.clash.service.util.GeoUrlSanitizer
 import com.github.kr328.clash.service.util.RuleApplyService
 import com.github.kr328.clash.service.util.SubscriptionUpdateMerge
+import com.github.kr328.clash.service.util.YamlHardener
 import com.github.kr328.clash.service.util.importedDir
 import com.github.kr328.clash.service.util.pendingDir
 import com.github.kr328.clash.service.util.processingDir
@@ -95,6 +96,10 @@ object ProfileProcessor {
                 }
 
                 GeoUrlSanitizer.sanitizeProfile(context.processingDir)
+                YamlHardener.hardenProfile(
+                    context.processingDir,
+                    ServiceStore(context).proxyHardeningMode,
+                )
 
                 withContext(NonCancellable) {
                     profileLock.withLock {
@@ -304,6 +309,10 @@ object ProfileProcessor {
                 }
 
                 GeoUrlSanitizer.sanitizeProfile(context.processingDir)
+                YamlHardener.hardenProfile(
+                    context.processingDir,
+                    ServiceStore(context).proxyHardeningMode,
+                )
 
                 withContext(NonCancellable) {
                     profileLock.withLock {

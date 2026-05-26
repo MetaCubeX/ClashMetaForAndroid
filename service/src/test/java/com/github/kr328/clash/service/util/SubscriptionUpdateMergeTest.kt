@@ -18,11 +18,13 @@ class SubscriptionUpdateMergeTest {
         ruleProviders: Map<String, JsonObject> = emptyMap(),
         proxyProviders: Map<String, JsonObject> = emptyMap(),
         proxyGroups: List<JsonObject> = emptyList(),
+        listeners: List<JsonObject> = emptyList(),
     ) = ProfileSnapshot(
         rules = rules,
         ruleProviders = ruleProviders,
         proxyProviders = proxyProviders,
         proxyGroups = proxyGroups,
+        listeners = listeners,
     )
 
     private fun jsonObj(vararg pairs: Pair<String, JsonElement>): JsonObject =
@@ -336,5 +338,66 @@ class SubscriptionUpdateMergeTest {
             "logical AND should be dropped during subscription merge per policy",
             merged.contains("AND,((NETWORK,UDP),(DST-PORT,53)),DIRECT"),
         )
+    }
+
+    @Test
+    fun extractPreserved_carriesListenersFromSnapshot() {
+        val preserved = SubscriptionUpdateMerge.extractPreserved(
+            snapshot(listeners = listOf(
+                jsonObj(
+                    "name" to JsonPrimitive("local-socks"),
+                    "type" to JsonPrimitive("socks"),
+                    "listen" to JsonPrimitive("127.0.0.1"),
+                    "port" to JsonPrimitive(1080),
+                ),
+            )),
+        )
+        assertNotNull(preserved.listeners)
+        @Suppress("UNCHECKED_CAST")
+        val list = preserved.listeners as List<Any?>
+        assertEquals(1, list.size)
+        @Suppress("UNCHECKED_CAST")
+        val entry = list[0] as Map<String, Any?>
+        assertEquals("local-socks", entry["name"])
+        assertEquals(1080L, entry["port"])
+    }
+
+    @Test
+    fun mergeAfterFetch_preservesLocalListenersAcrossRefresh() {
+        // User added a custom listener with auth — subscription refresh ships a
+        // YAML without listeners. The pre-fetch snapshot must carry it over so
+        // the user's edit isn't silently wiped. YamlHardener runs after this
+        // merge and would force any non-loopback bind to 127.0.0.1, so it's
+        // safe to merge first and harden later.
+        val preserved = SubscriptionUpdateMerge.extractPreserved(
+            snapshot(listeners = listOf(
+                jsonObj(
+                    "name" to JsonPrimitive("user-mixed"),
+                    "type" to JsonPrimitive("mixed"),
+                    "listen" to JsonPrimitive("127.0.0.1"),
+                    "port" to JsonPrimitive(7890),
+                    "users" to JsonPrimitive("redacted"),
+                ),
+            )),
+        )
+
+        val fetched = """
+            mixed-port: 0
+            proxies:
+              - name: node-a
+                type: ss
+                server: 1.2.3.4
+                port: 8388
+                cipher: aes-256-gcm
+                password: x
+        """.trimIndent()
+
+        val merged = SubscriptionUpdateMerge.mergeAfterFetch(fetched, preserved)
+        assertTrue(
+            "merged config must keep user's listener entry, was:\n$merged",
+            merged.contains("user-mixed"),
+        )
+        assertTrue(merged.contains("listen: 127.0.0.1"))
+        assertTrue(merged.contains("port: 7890"))
     }
 }
