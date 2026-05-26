@@ -440,13 +440,13 @@ class ProfileAdapter(
         // proxyGroupNames is the visible-only list (from queryProxyGroupNames).
         // offlinePreviewByProfile keys include hidden too (parseProxyGroupsPreview
         // is called with includeHidden=true), so we filter back to visible here
-        // and then surface any hidden auto-subgroups that are *direct members*
-        // of a visible group — a 1-hop traversal. Without this, kaso.fyi-style
-        // subscriptions (one visible select root + a hidden url-test/fallback
-        // tree) collapse to a single pill and a 300+ flat node list. Going
-        // deeper than 1 hop would flood the pill bar with internal infra
-        // groups (PRIMARY/FALLBACK/LAST_RESORT) the user shouldn't have to
-        // think about.
+        // and then narrowly surface a hidden auto-subgroup only when the
+        // visible parent is a pure dispatch shell — i.e. all of its declared
+        // members are themselves group names, none are dialable leaf nodes.
+        // That catches the kaso.fyi pattern (one visible select root whose
+        // only members are hidden url-test/fallback subgroups) without
+        // polluting the pill bar of typical mixed configs that legitimately
+        // reference hidden auto groups as backup paths alongside leaf nodes.
         val offlinePreview = offlinePreviewByProfile[profile.uuid]
         val visible = if (useEngineFor(profile)) {
             proxyGroupNames
@@ -460,12 +460,33 @@ class ProfileAdapter(
         if (offlinePreview.isNullOrEmpty()) return visible
 
         val visibleSet = visible.toHashSet()
+        // Global pure-shell test: every visible root must reference *only*
+        // other proxy-groups (no leaves, no special targets like DIRECT /
+        // REJECT). That uniquely identifies a kaso-style config whose top
+        // level is a dispatch tree delegating routing to hidden auto
+        // subgroups. A standard subscription will have at least one visible
+        // root with concrete leaf nodes in its `proxies:`, which fails the
+        // shell test and short-circuits the heuristic — its hidden auto
+        // backups stay hidden, which is what the user expects.
+        val configIsPureShell = visible.isNotEmpty() && visible.all { vname ->
+            val row = offlinePreview[vname]
+                ?: offlinePreview.entries.firstOrNull { groupsMatchKey(vname, it.key) }?.value
+                ?: return@all false
+            val staticRefs = row.staticProxies
+            if (staticRefs.isEmpty()) return@all false
+            staticRefs.all { memberName ->
+                offlinePreview[memberName] != null ||
+                    offlinePreview.entries.any { groupsMatchKey(memberName, it.key) }
+            }
+        }
+        if (!configIsPureShell) return visible
+
         val extras = LinkedHashSet<String>()
         for (vname in visible) {
             val row = offlinePreview[vname]
                 ?: offlinePreview.entries.firstOrNull { groupsMatchKey(vname, it.key) }?.value
                 ?: continue
-            for (memberName in row.members) {
+            for (memberName in row.staticProxies) {
                 if (memberName in visibleSet || memberName in extras) continue
                 val memberRow = offlinePreview[memberName]
                     ?: offlinePreview.entries.firstOrNull { groupsMatchKey(memberName, it.key) }?.value
