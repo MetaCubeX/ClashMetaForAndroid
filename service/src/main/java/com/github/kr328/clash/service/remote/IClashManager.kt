@@ -26,6 +26,8 @@ interface IClashManager {
 
     suspend fun healthCheck(group: String)
 
+    suspend fun healthCheckPerProxy(group: String, observer: IProxyDelayObserver)
+
     fun healthCheckAll()
     suspend fun updateProvider(type: Provider.Type, name: String)
 

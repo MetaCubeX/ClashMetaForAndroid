@@ -11,6 +11,10 @@ void (*fetch_report_func)(void *fetch_callback, const char *status_json);
 
 void (*fetch_complete_func)(void *fetch_callback, const char *error);
 
+void (*proxy_delay_report_func)(void *callback, const char *proxy_name, int delay_ms, const char *err_msg);
+
+void (*proxy_delay_complete_func)(void *callback, const char *error);
+
 int (*logcat_received_func)(void *logcat_interface, const char *payload);
 
 int (*open_content_func)(const char *url, char *error, int error_length);
@@ -56,6 +60,23 @@ void fetch_report(void *fetch_callback, char *json_status) {
     fetch_report_func(fetch_callback, json_status);
 
     free(json_status);
+}
+
+void proxy_delay_report(void *callback, char *proxy_name, int delay_ms, char *err_msg) {
+    TRACE_METHOD();
+
+    proxy_delay_report_func(callback, proxy_name, delay_ms, err_msg);
+
+    free(proxy_name);
+    free(err_msg);
+}
+
+void proxy_delay_complete(void *callback, char *error) {
+    TRACE_METHOD();
+
+    proxy_delay_complete_func(callback, error);
+
+    free(error);
 }
 
 int logcat_received(void *logcat_interface, char *payload) {

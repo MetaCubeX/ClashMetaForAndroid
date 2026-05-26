@@ -53,6 +53,7 @@ import com.github.kr328.clash.remote.StatusClient
 import com.github.kr328.clash.service.model.AccessControlMode
 import com.github.kr328.clash.service.model.Profile
 import com.github.kr328.clash.service.model.ProxyGroupPreviewRow
+import com.github.kr328.clash.service.remote.IProxyDelayObserver
 import com.github.kr328.clash.service.store.ServiceStore
 import com.github.kr328.clash.util.RussianBypassDefaults
 import com.github.kr328.clash.util.GitHubReleaseUpdate
@@ -295,6 +296,50 @@ class MainActivity : BaseActivity<MainDesign>() {
         return warmUpAutoProxyGroups()
     }
 
+    /**
+     * Run a per-proxy health check on [group] and stream each proxy's delay
+     * into the active card as soon as URLTest resolves. Suspends until every
+     * proxy has reported (or the call early-outed because the group is
+     * missing / wrong type).
+     *
+     * UI patches are dispatched on the activity's MainScope and target the
+     * design property — if the activity has already torn down the design by
+     * the time a result lands, the patch is silently dropped. Callers that
+     * need `now` / `alive` state should still issue a closing
+     * refreshRuntimeGroupDetails — per-proxy push only carries the delay
+     * measurement itself.
+     */
+    private suspend fun runPerProxyHealthCheck(group: String) {
+        runCatching {
+            withClash {
+                healthCheckPerProxy(
+                    group,
+                    object : IProxyDelayObserver {
+                        override fun onDelay(
+                            grp: String,
+                            proxy: String,
+                            delayMs: Int,
+                            errMsg: String,
+                        ) {
+                            // Failed URLTest carries errMsg + delayMs == 0. Showing 0 would
+                            // render as "0ms" — engine convention is Int.MAX_VALUE for
+                            // unreachable, so coerce before the patch.
+                            val effective = if (errMsg.isNotEmpty()) Int.MAX_VALUE else delayMs
+                            this@MainActivity.launch {
+                                this@MainActivity.design?.patchSingleProxyDelay(grp, proxy, effective)
+                            }
+                        }
+
+                        override fun onComplete(error: String?) {
+                            // No-op: the outer suspend returns via await() in
+                            // ClashManager.healthCheckPerProxy.
+                        }
+                    },
+                )
+            }
+        }
+    }
+
     private suspend fun warmUpAutoProxyGroups(): Set<String> = coroutineScope {
         waitForProxyEngineReady()
 
@@ -333,12 +378,16 @@ class MainActivity : BaseActivity<MainDesign>() {
         }
         if (autoGroups.isEmpty()) return@coroutineScope emptySet()
 
+        // Prime engine state so per-proxy push has rows to land on. Without
+        // this, the first warmup cycle on cold start would have nowhere to
+        // write — proxyDetails is empty until the user scrolls into a group.
+        val primed = refreshRuntimeGroupDetails(autoGroups)
+        if (primed.isNotEmpty()) {
+            design?.patchProxyDetails(primed)
+        }
+
         autoGroups.map { group ->
-            launch {
-                runCatching {
-                    withClash { healthCheck(group) }
-                }
-            }
+            launch { runPerProxyHealthCheck(group) }
         }.joinAll()
         autoGroups.toSet()
     }
@@ -668,21 +717,22 @@ class MainActivity : BaseActivity<MainDesign>() {
                                 waitForProxyEngineReady()
                                 val groupsToRefresh = collectRuntimeGroupTree(group)
                                     .ifEmpty { linkedSetOf(group).filter { it.isNotBlank() }.toSet() }
-                                val jobs = groupsToRefresh.map { groupName ->
-                                    launch {
-                                        runCatching {
-                                            withClash { healthCheck(groupName) }
-                                        }
-                                    }
+                                // Prime live engine state so per-proxy push has rows to land on.
+                                // healthCheckPerProxy only updates delays for proxies already
+                                // present in proxyDetails — without an initial query the very
+                                // first ping cycle would be a silent no-op until the closing
+                                // refresh below.
+                                val primed = refreshRuntimeGroupDetails(groupsToRefresh)
+                                if (primed.isNotEmpty()) {
+                                    design.patchProxyDetails(primed)
                                 }
-                                while (isActive && jobs.any { !it.isCompleted }) {
-                                    delay(350L)
-                                    val partial = refreshRuntimeGroupDetails(groupsToRefresh)
-                                    if (partial.isNotEmpty()) {
-                                        design.patchProxyDetails(partial)
-                                    }
+                                val jobs = groupsToRefresh.map { groupName ->
+                                    launch { runPerProxyHealthCheck(groupName) }
                                 }
                                 jobs.forEach { it.join() }
+                                // Closing refresh captures `now` / `alive` fields the per-proxy
+                                // push doesn't carry, plus any auto-group selection that the
+                                // engine's url-test logic flipped after the ping cycle.
                                 val refreshed = refreshRuntimeGroupDetails(groupsToRefresh)
                                 if (refreshed.isNotEmpty()) {
                                     design.patchProxyDetails(refreshed)

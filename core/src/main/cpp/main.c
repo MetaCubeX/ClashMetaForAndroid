@@ -206,6 +206,18 @@ Java_com_github_kr328_clash_core_bridge_Bridge_nativeHealthCheck(JNIEnv *env, jo
 }
 
 JNIEXPORT void JNICALL
+Java_com_github_kr328_clash_core_bridge_Bridge_nativeHealthCheckWithCallback(JNIEnv *env, jobject thiz,
+                                                                              jobject callback,
+                                                                              jstring name) {
+    TRACE_METHOD();
+
+    jobject _callback = new_global(callback);
+    scoped_string _name = get_string(name);
+
+    healthCheckWithCallback(_callback, _name);
+}
+
+JNIEXPORT void JNICALL
 Java_com_github_kr328_clash_core_bridge_Bridge_nativeHealthCheckAll(JNIEnv *env, jobject thiz) {
     TRACE_METHOD();
 
@@ -435,6 +447,8 @@ static jmethodID m_logcat_interface_received;
 static jmethodID m_clash_exception;
 static jmethodID m_fetch_callback_report;
 static jmethodID m_fetch_callback_complete;
+static jmethodID m_proxy_delay_callback_report;
+static jmethodID m_proxy_delay_callback_complete;
 static jmethodID m_open;
 static jmethodID m_get_message;
 static jclass c_clash_exception;
@@ -518,6 +532,38 @@ static void call_fetch_callback_complete_impl(void *fetch_callback, const char *
                            (jstring) _error);
 }
 
+static void call_proxy_delay_callback_report_impl(void *callback, const char *proxy_name, int delay_ms, const char *err_msg) {
+    TRACE_METHOD();
+
+    ATTACH_JNI();
+
+    jstring _proxy_name = new_string(proxy_name);
+    jstring _err_msg = err_msg != NULL ? new_string(err_msg) : new_string("");
+
+    (*env)->CallVoidMethod(env,
+                           (jobject) callback,
+                           (jmethodID) m_proxy_delay_callback_report,
+                           (jstring) _proxy_name,
+                           (jint) delay_ms,
+                           (jstring) _err_msg);
+}
+
+static void call_proxy_delay_callback_complete_impl(void *callback, const char *error) {
+    TRACE_METHOD();
+
+    ATTACH_JNI();
+
+    jstring _error = NULL;
+
+    if (error != NULL)
+        _error = new_string(error);
+
+    (*env)->CallVoidMethod(env,
+                           (jobject) callback,
+                           (jmethodID) m_proxy_delay_callback_complete,
+                           (jstring) _error);
+}
+
 static int call_logcat_interface_received_impl(void *callback, const char *payload) {
     TRACE_METHOD();
 
@@ -589,6 +635,7 @@ JNI_OnLoad(JavaVM *vm, void *reserved) {
     jclass c_tun_interface = find_class("com/github/kr328/clash/core/bridge/TunInterface");
     jclass c_completable = find_class("kotlinx/coroutines/CompletableDeferred");
     jclass c_fetch_callback = find_class("com/github/kr328/clash/core/bridge/FetchCallback");
+    jclass c_proxy_delay_callback = find_class("com/github/kr328/clash/core/bridge/ProxyDelayCallback");
     jclass c_logcat_interface = find_class("com/github/kr328/clash/core/bridge/LogcatInterface");
     jclass _c_clash_exception = find_class("com/github/kr328/clash/core/bridge/ClashException");
     jclass _c_content = find_class("com/github/kr328/clash/core/bridge/Content");
@@ -605,6 +652,10 @@ JNI_OnLoad(JavaVM *vm, void *reserved) {
                                           "(Ljava/lang/String;)V");
     m_fetch_callback_complete = find_method(c_fetch_callback, "complete",
                                             "(Ljava/lang/String;)V");
+    m_proxy_delay_callback_report = find_method(c_proxy_delay_callback, "report",
+                                                "(Ljava/lang/String;ILjava/lang/String;)V");
+    m_proxy_delay_callback_complete = find_method(c_proxy_delay_callback, "complete",
+                                                  "(Ljava/lang/String;)V");
     m_completable_complete_exceptionally = find_method(c_completable, "completeExceptionally",
                                                        "(Ljava/lang/Throwable;)Z");
     m_logcat_interface_received = find_method(c_logcat_interface, "received",
@@ -629,6 +680,8 @@ JNI_OnLoad(JavaVM *vm, void *reserved) {
     complete_func = &call_completable_complete_impl;
     fetch_report_func = &call_fetch_callback_report_impl;
     fetch_complete_func = &call_fetch_callback_complete_impl;
+    proxy_delay_report_func = &call_proxy_delay_callback_report_impl;
+    proxy_delay_complete_func = &call_proxy_delay_callback_complete_impl;
     logcat_received_func = &call_logcat_interface_received_impl;
     open_content_func = &open_content_impl;
     release_object_func = &release_jni_object_impl;
