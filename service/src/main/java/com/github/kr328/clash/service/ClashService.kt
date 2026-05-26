@@ -71,8 +71,13 @@ class ClashService : BaseService() {
         super.onCreate()
         ProxyPropertyGuard.clearGlobalProxyProperties()
 
-        if (StatusProvider.serviceRunning)
+        // See TunService.onCreate — same handoff window applies when the
+        // app starts the headless service variant. Brief wait turns the
+        // racing onCreate/onDestroy pair into a deterministic restart.
+        if (!StatusProvider.awaitServiceShutdown()) {
+            Log.w("ClashService: previous instance still alive after handoff timeout, aborting")
             return stopSelf()
+        }
 
         StatusProvider.serviceRunning = true
 

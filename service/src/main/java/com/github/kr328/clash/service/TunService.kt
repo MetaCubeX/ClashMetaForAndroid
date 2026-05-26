@@ -87,8 +87,15 @@ class TunService : VpnService(), CoroutineScope by CoroutineScope(Dispatchers.De
         super.onCreate()
         ProxyPropertyGuard.clearGlobalProxyProperties()
 
-        if (StatusProvider.serviceRunning)
+        // Rapid Disconnect→Connect from the UI used to commit suicide here:
+        // the previous instance was still inside onDestroy → cancelAndJoinBlocking,
+        // so serviceRunning was true and the new instance stopSelf'd, leaving
+        // the user disconnected silently. awaitServiceShutdown gives the
+        // previous onDestroy up to 500ms to flip the flag back.
+        if (!StatusProvider.awaitServiceShutdown()) {
+            Log.w("TunService: previous instance still alive after handoff timeout, aborting")
             return stopSelf()
+        }
 
         StatusProvider.serviceRunning = true
 
