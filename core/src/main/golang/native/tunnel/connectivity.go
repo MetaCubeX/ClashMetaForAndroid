@@ -11,6 +11,7 @@ import (
 	"github.com/metacubex/mihomo/constant/provider"
 	"github.com/metacubex/mihomo/log"
 	"github.com/metacubex/mihomo/tunnel"
+	"golang.org/x/sync/errgroup"
 )
 
 // defaultHealthCheckURL is mihomo's stock generate_204 endpoint. Used as a
@@ -23,6 +24,14 @@ const defaultHealthCheckURL = "http://www.gstatic.com/generate_204"
 // mihomo default so behaviour matches a vanilla provider.HealthCheck()
 // for subscriptions that don't override `health-check.timeout`.
 const perProxyHealthCheckTimeout = 5 * time.Second
+
+// perGroupConcurrencyLimit mirrors the cap mihomo's provider.HealthCheck
+// imposes via errgroup.SetLimit(10) in adapter/provider/healthcheck.go.
+// Without it, a group with 100+ proxies fires 100+ simultaneous URLTest
+// goroutines — TLS handshake storming + local socket pressure inflates
+// every reported delay 2-3x compared to the vanilla path. Matching the
+// engine's own cap keeps per-proxy push results comparable.
+const perGroupConcurrencyLimit = 10
 
 // extractHealthCheckSettings pulls the configured health-check timeout and
 // expected-status range out of a ProxyProvider so per-proxy URLTest can
@@ -135,7 +144,11 @@ func HealthCheckWithCallback(
 		return "invalid group type"
 	}
 
-	var wg sync.WaitGroup
+	// Bound concurrent URLTests across the whole group, not per provider —
+	// a kaso-style config can stack several providers behind one group and
+	// each one's leaf count adds to the outgoing socket pressure.
+	eg := new(errgroup.Group)
+	eg.SetLimit(perGroupConcurrencyLimit)
 	for _, prov := range g.Providers() {
 		url := prov.HealthCheckURL()
 		if url == "" {
@@ -149,20 +162,22 @@ func HealthCheckWithCallback(
 		timeout, expectedStatus := extractHealthCheckSettings(prov)
 		for _, target := range prov.Proxies() {
 			target := target
-			wg.Add(1)
-			go func() {
-				defer wg.Done()
+			url := url
+			timeout := timeout
+			expectedStatus := expectedStatus
+			eg.Go(func() error {
 				ctx, cancel := context.WithTimeout(context.Background(), timeout)
 				defer cancel()
 				delay, err := target.URLTest(ctx, url, expectedStatus)
 				if err != nil {
 					onDelay(target.Name(), 0, err.Error())
-					return
+					return nil
 				}
 				onDelay(target.Name(), int(delay), "")
-			}()
+				return nil
+			})
 		}
 	}
-	wg.Wait()
+	_ = eg.Wait()
 	return ""
 }
