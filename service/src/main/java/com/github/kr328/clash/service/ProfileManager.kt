@@ -7,6 +7,7 @@ import com.github.kr328.clash.common.util.SubscriptionOverrides
 import com.github.kr328.clash.common.util.SubscriptionRequestHeaders
 import com.github.kr328.clash.common.util.SubscriptionUsage
 import com.github.kr328.clash.core.Clash
+import com.github.kr328.clash.core.model.ProfileSnapshot
 import com.github.kr328.clash.service.data.Database
 import com.github.kr328.clash.service.data.Imported
 import com.github.kr328.clash.service.data.ImportedDao
@@ -60,6 +61,30 @@ class ProfileManager(private val context: Context) : IProfileManager,
     private val ruleApplyService = RuleApplyService(context)
     private val previewJson = Json { ignoreUnknownKeys = true }
     private val previewCache = LinkedHashMap<String, CachedPreview>()
+
+    /**
+     * In-memory cache of parsed [ProfileSnapshot] keyed by profile UUID.
+     * The dashboard ticker re-queries readProxyGroupsPreview /
+     * readProxyTransports / readProxyEntryYaml on every tick — without
+     * caching, each tick re-runs mihomo's full ParseRawConfig pipeline
+     * over a multi-MB config.yaml, which is the dominant cost on the
+     * service IPC path for users with heavy subscriptions.
+     *
+     * Invalidation is automatic via the config.yaml lastModified
+     * timestamp — subscription updates / re-imports rewrite the file,
+     * the next reader sees a fresh mtime and re-parses. The entry
+     * itself only needs explicit removal on profile delete (memory
+     * hygiene; nothing else reads it after deletion).
+     *
+     * Access guarded by [snapshotCacheLock]. Parse runs *outside* the
+     * lock so concurrent readers of different profiles never block on
+     * each other — a race between two readers of the same profile
+     * just causes a redundant parse (parse is idempotent, last writer
+     * to the map wins).
+     */
+    private data class CachedSnapshot(val lastModified: Long, val snapshot: ProfileSnapshot)
+    private val snapshotCache = LinkedHashMap<UUID, CachedSnapshot>()
+    private val snapshotCacheLock = Any()
     // Serializes nextProfileOrder() + Pending insert pairs. Without it, two concurrent
     // imports (e.g. auto-update + manual click) can both read the same MAX(profileOrder)
     // and produce duplicate ordering values that compare non-deterministically.
@@ -93,6 +118,48 @@ class ProfileManager(private val context: Context) : IProfileManager,
 
             ProfileReceiver.rescheduleAll(context)
         }
+    }
+
+    /**
+     * Return a parsed ProfileSnapshot for [configFile], reusing the cached
+     * one when the file's lastModified hasn't advanced. Callers can hand
+     * this to YAML preview helpers (ProxyGroupsYamlPreview /
+     * ProxyTransportYamlPreview / ProxyYamlPreview) without re-running
+     * mihomo's parser on every dashboard tick.
+     */
+    private fun getOrParseSnapshot(uuid: UUID, configFile: File): ProfileSnapshot {
+        val lastMod = configFile.lastModified()
+        synchronized(snapshotCacheLock) {
+            val cached = snapshotCache[uuid]
+            if (cached != null && cached.lastModified == lastMod) {
+                // LRU touch — promote to most-recently-used.
+                snapshotCache.remove(uuid)
+                snapshotCache[uuid] = cached
+                return cached.snapshot
+            }
+        }
+        val parsed = Clash.parseProfileSnapshot(configFile.parentFile!!)
+        synchronized(snapshotCacheLock) {
+            snapshotCache[uuid] = CachedSnapshot(lastMod, parsed)
+            while (snapshotCache.size > SNAPSHOT_CACHE_MAX) {
+                snapshotCache.remove(snapshotCache.keys.first())
+            }
+        }
+        return parsed
+    }
+
+    private fun invalidateSnapshotCache(uuid: UUID) {
+        synchronized(snapshotCacheLock) {
+            snapshotCache.remove(uuid)
+        }
+    }
+
+    companion object {
+        // Power users may juggle a handful of subscriptions; keep enough
+        // headroom that switching between them stays hot, but bound the
+        // total memory cost — parsed snapshots can reach a few hundred KB
+        // on heavy configs.
+        private const val SNAPSHOT_CACHE_MAX = 4
     }
 
     override suspend fun create(type: Profile.Type, name: String, source: String): UUID {
@@ -406,6 +473,7 @@ class ProfileManager(private val context: Context) : IProfileManager,
         ProfileProcessor.delete(context, uuid)
         BrandRefresh.onProfileDeleted(context, uuid)
         store.clearSubscriptionShareLinksLockedFor(uuid)
+        invalidateSnapshotCache(uuid)
     }
 
     override suspend fun queryByUUID(uuid: UUID): Profile? {
@@ -475,7 +543,7 @@ class ProfileManager(private val context: Context) : IProfileManager,
                 return@withContext emptyMap()
             }
             try {
-                val snapshot = Clash.parseProfileSnapshot(file.parentFile!!)
+                val snapshot = getOrParseSnapshot(uuid, file)
                 // includeHidden = true: when the live engine path serves the
                 // UI, the picker pills walk every group (visible + hidden) via
                 // Clash.queryAllProxyGroupNamesIncludingHidden, so the offline
@@ -504,7 +572,7 @@ class ProfileManager(private val context: Context) : IProfileManager,
                 return@withContext emptyMap()
             }
             try {
-                val snapshot = Clash.parseProfileSnapshot(file.parentFile!!)
+                val snapshot = getOrParseSnapshot(uuid, file)
                 ProxyTransportYamlPreview.parse(snapshot, file.parentFile)
             } catch (_: Exception) {
                 emptyMap()
@@ -895,7 +963,7 @@ class ProfileManager(private val context: Context) : IProfileManager,
                 return@withContext null
             }
             try {
-                val snapshot = Clash.parseProfileSnapshot(file.parentFile!!)
+                val snapshot = getOrParseSnapshot(uuid, file)
                 ProxyYamlPreview.extractProxyEntry(snapshot, proxyName)
             } catch (_: Exception) {
                 null
