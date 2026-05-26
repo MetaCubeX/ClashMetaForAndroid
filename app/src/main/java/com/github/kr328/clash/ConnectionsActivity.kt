@@ -29,10 +29,17 @@ class ConnectionsActivity : BaseActivity<ConnectionsDesign>() {
 
         val refresh = launch {
             var lastRawSnapshot: String? = null
-            val activeDelayMs = 2000L
+            // Base interval for a quiet device with a handful of connections.
+            val baseDelayMs = 2000L
             // Bumped from 7s -> 30s. While the activity is in background or screen is off,
             // the live list is invisible; reduce wakeups and avoid pulling JSON snapshots.
             val idleDelayMs = 30_000L
+            // Last observed connection count — drives the adaptive throttle on the
+            // next iteration so a torrenting user (hundreds of live connections)
+            // doesn't burn CPU/GC reparsing a multi-MB JSON every 2s. Updated only
+            // when the snapshot actually decoded, so transient parse failures
+            // don't shrink the interval back to the base.
+            var lastConnectionCount = 0
             while (isActive) {
                 val interactive = getSystemService<PowerManager>()?.isInteractive ?: true
                 if (!activityStarted || !interactive) {
@@ -43,7 +50,7 @@ class ConnectionsActivity : BaseActivity<ConnectionsDesign>() {
                 try {
                     val raw = withClash { queryConnectionsSnapshot() }
                     if (raw == lastRawSnapshot) {
-                        delay(activeDelayMs)
+                        delay(scaledDelayFor(baseDelayMs, lastConnectionCount))
                         continue
                     }
                     lastRawSnapshot = raw
@@ -59,12 +66,13 @@ class ConnectionsActivity : BaseActivity<ConnectionsDesign>() {
                         if (snap.connections.isEmpty() && raw.length > 64) {
                             Log.w("Connections snapshot parsed but empty list; raw size=${raw.length}")
                         }
+                        lastConnectionCount = snap.connections.size
                         design.patchSnapshot(snap)
                     }
                 } catch (e: Exception) {
                     Log.w("Connections refresh query failed", e)
                 }
-                delay(activeDelayMs)
+                delay(scaledDelayFor(baseDelayMs, lastConnectionCount))
             }
         }
 
@@ -122,5 +130,20 @@ class ConnectionsActivity : BaseActivity<ConnectionsDesign>() {
         } finally {
             refresh.cancel()
         }
+    }
+
+    /**
+     * Adaptive snapshot interval. For a handful of connections we stay at
+     * the base 2s (the list stays "live"); above the user-visible noise
+     * floor we slow down so the JSON payload + parse stop being a hot
+     * loop on CPU/GC. Thresholds were picked empirically: torrenting
+     * sessions easily hit 200+ live connections, sustained P2P / scraping
+     * workloads cross 500. Snapshots above that no longer feel "live" to
+     * a human reader either way, so the slower cadence isn't a UX loss.
+     */
+    private fun scaledDelayFor(baseDelayMs: Long, connectionCount: Int): Long = when {
+        connectionCount > 500 -> baseDelayMs * 4
+        connectionCount > 200 -> baseDelayMs * 2
+        else -> baseDelayMs
     }
 }
