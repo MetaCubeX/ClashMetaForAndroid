@@ -79,6 +79,27 @@ func healthCheck(completable unsafe.Pointer, name C.c_string) {
 	}(C.GoString(name))
 }
 
+//export healthCheckWithCallback
+func healthCheckWithCallback(callback unsafe.Pointer, name C.c_string) {
+	go func(name string, callback unsafe.Pointer) {
+		earlyErr := tunnel.HealthCheckWithCallback(name, func(proxyName string, delayMs int, errMsg string) {
+			var errCStr *C.char
+			if errMsg != "" {
+				errCStr = marshalString(errMsg)
+			}
+			C.proxy_delay_report(callback, marshalString(proxyName), C.int(delayMs), errCStr)
+		})
+
+		var earlyErrCStr *C.char
+		if earlyErr != "" {
+			earlyErrCStr = marshalString(earlyErr)
+		}
+		C.proxy_delay_complete(callback, earlyErrCStr)
+
+		C.release_object(callback)
+	}(C.GoString(name), callback)
+}
+
 //export healthCheckAll
 func healthCheckAll() {
 	tunnel.HealthCheckAll()

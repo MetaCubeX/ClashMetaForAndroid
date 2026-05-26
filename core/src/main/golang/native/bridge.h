@@ -19,6 +19,10 @@ extern void (*fetch_report_func)(void *fetch_callback, const char *status_json);
 
 extern void (*fetch_complete_func)(void *fetch_callback, const char *error);
 
+extern void (*proxy_delay_report_func)(void *callback, const char *proxy_name, int delay_ms, const char *err_msg);
+
+extern void (*proxy_delay_complete_func)(void *callback, const char *error);
+
 extern int (*logcat_received_func)(void *logcat_interface, const char *payload);
 
 extern void (*release_object_func)(void *obj);
@@ -35,6 +39,10 @@ extern void complete(void *obj, char *error);
 extern void fetch_complete(void *completable, char *exception);
 
 extern void fetch_report(void *fetch_callback, char *status_json);
+
+extern void proxy_delay_report(void *callback, char *proxy_name, int delay_ms, char *err_msg);
+
+extern void proxy_delay_complete(void *callback, char *error);
 
 extern int logcat_received(void *logcat_interface, char *payload);
 

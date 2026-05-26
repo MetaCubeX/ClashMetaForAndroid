@@ -142,6 +142,42 @@ object Clash {
         }
     }
 
+    /**
+     * Per-proxy health check with push delivery. [onProxyDelay] is invoked
+     * from a JNI thread for each proxy in the group as soon as its URLTest
+     * resolves — call sites that touch UI state must marshal back to the
+     * main thread themselves. The returned deferred completes after every
+     * proxy has reported, or with a ClashException if the group lookup
+     * itself failed (group not found / invalid type).
+     *
+     * Unlike [healthCheck] this avoids a polling loop in the caller: a
+     * single UI patch fires per proxy at its natural resolution time
+     * instead of every poll tick.
+     */
+    fun healthCheckPerProxy(
+        name: String,
+        onProxyDelay: (proxyName: String, delayMs: Int, errMsg: String) -> Unit,
+    ): CompletableDeferred<Unit> {
+        val deferred = CompletableDeferred<Unit>()
+        Bridge.nativeHealthCheckWithCallback(
+            object : ProxyDelayCallback {
+                override fun report(proxyName: String, delayMs: Int, errMsg: String) {
+                    onProxyDelay(proxyName, delayMs, errMsg)
+                }
+
+                override fun complete(error: String?) {
+                    if (error != null) {
+                        deferred.completeExceptionally(ClashException(error))
+                    } else {
+                        deferred.complete(Unit)
+                    }
+                }
+            },
+            name,
+        )
+        return deferred
+    }
+
     fun healthCheckAll() {
         Bridge.nativeHealthCheckAll()
     }
