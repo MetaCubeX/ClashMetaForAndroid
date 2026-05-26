@@ -986,6 +986,12 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         }
     }
 
+    suspend fun patchSingleProxyDelay(group: String, proxy: String, delayMs: Int) {
+        withContext(Dispatchers.Main) {
+            profileAdapter.patchSingleProxyDelay(group, proxy, delayMs)
+        }
+    }
+
     suspend fun clearProxyDetails() {
         withContext(Dispatchers.Main) {
             profileAdapter.clearProxyDetails()

@@ -53,6 +53,7 @@ import com.github.kr328.clash.remote.StatusClient
 import com.github.kr328.clash.service.model.AccessControlMode
 import com.github.kr328.clash.service.model.Profile
 import com.github.kr328.clash.service.model.ProxyGroupPreviewRow
+import com.github.kr328.clash.service.remote.IProxyDelayObserver
 import com.github.kr328.clash.service.store.ServiceStore
 import com.github.kr328.clash.util.RussianBypassDefaults
 import com.github.kr328.clash.util.GitHubReleaseUpdate
@@ -668,21 +669,56 @@ class MainActivity : BaseActivity<MainDesign>() {
                                 waitForProxyEngineReady()
                                 val groupsToRefresh = collectRuntimeGroupTree(group)
                                     .ifEmpty { linkedSetOf(group).filter { it.isNotBlank() }.toSet() }
+                                // Prime live engine state so per-proxy push has rows to land on.
+                                // healthCheckPerProxy only updates delays for proxies already
+                                // present in proxyDetails — without an initial query the very
+                                // first ping cycle would be a silent no-op until the closing
+                                // refresh below.
+                                val primed = refreshRuntimeGroupDetails(groupsToRefresh)
+                                if (primed.isNotEmpty()) {
+                                    design.patchProxyDetails(primed)
+                                }
                                 val jobs = groupsToRefresh.map { groupName ->
                                     launch {
                                         runCatching {
-                                            withClash { healthCheck(groupName) }
+                                            withClash {
+                                                healthCheckPerProxy(
+                                                    groupName,
+                                                    object : IProxyDelayObserver {
+                                                        override fun onDelay(
+                                                            group: String,
+                                                            proxy: String,
+                                                            delayMs: Int,
+                                                            errMsg: String,
+                                                        ) {
+                                                            // Failed URLTest carries errMsg + delayMs == 0.
+                                                            // Surfacing 0 would render as "0ms" in the
+                                                            // pill — engine convention is Int.MAX_VALUE
+                                                            // for unreachable, so coerce here.
+                                                            val effective = if (errMsg.isNotEmpty()) {
+                                                                Int.MAX_VALUE
+                                                            } else {
+                                                                delayMs
+                                                            }
+                                                            this@MainActivity.launch {
+                                                                design.patchSingleProxyDelay(group, proxy, effective)
+                                                            }
+                                                        }
+
+                                                        override fun onComplete(error: String?) {
+                                                            // Logged-only — the outer launch's join()
+                                                            // is what completes the suspend call.
+                                                        }
+                                                    },
+                                                )
+                                            }
                                         }
                                     }
                                 }
-                                while (isActive && jobs.any { !it.isCompleted }) {
-                                    delay(350L)
-                                    val partial = refreshRuntimeGroupDetails(groupsToRefresh)
-                                    if (partial.isNotEmpty()) {
-                                        design.patchProxyDetails(partial)
-                                    }
-                                }
                                 jobs.forEach { it.join() }
+                                // Closing refresh captures `now` / `alive` fields the per-proxy
+                                // push doesn't carry, plus any auto-group selection that the
+                                // engine's url-test logic flipped after the ping cycle.
                                 val refreshed = refreshRuntimeGroupDetails(groupsToRefresh)
                                 if (refreshed.isNotEmpty()) {
                                     design.patchProxyDetails(refreshed)

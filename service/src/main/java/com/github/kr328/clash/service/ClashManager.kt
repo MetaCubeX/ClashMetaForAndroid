@@ -10,6 +10,7 @@ import com.github.kr328.clash.service.model.RequestHistoryRepository
 import com.github.kr328.clash.service.model.RequestHistorySnapshot
 import com.github.kr328.clash.service.remote.IClashManager
 import com.github.kr328.clash.service.remote.ILogObserver
+import com.github.kr328.clash.service.remote.IProxyDelayObserver
 import com.github.kr328.clash.service.store.ServiceStore
 import com.github.kr328.clash.service.util.ProxyHardener
 import com.github.kr328.clash.service.util.sendOverrideChanged
@@ -169,6 +170,23 @@ class ClashManager(private val context: Context) : IClashManager,
 
     override suspend fun healthCheck(group: String) {
         return Clash.healthCheck(group).await()
+    }
+
+    override suspend fun healthCheckPerProxy(group: String, observer: IProxyDelayObserver) {
+        // JNI fires onProxyDelay from arbitrary worker threads. AIDL stubs are
+        // not thread-safe across simultaneous calls, so the observer must
+        // tolerate concurrent onDelay() — IPC marshals them serially through
+        // the binder transaction queue, but a DeadObjectException from a
+        // crashed activity must not kill the whole health-check pipeline.
+        val finalErr: String? = runCatching {
+            Clash.healthCheckPerProxy(group) { name, ms, err ->
+                runCatching { observer.onDelay(group, name, ms, err) }
+            }.await()
+            null
+        }.getOrElse { e ->
+            e.message ?: e::class.simpleName ?: "unknown"
+        }
+        runCatching { observer.onComplete(finalErr) }
     }
 
     override fun healthCheckAll() {

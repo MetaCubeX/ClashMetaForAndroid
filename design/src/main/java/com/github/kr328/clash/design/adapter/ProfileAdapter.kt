@@ -377,6 +377,41 @@ class ProfileAdapter(
         }
     }
 
+    /**
+     * Update a single proxy's delay inside the active profile's live group
+     * map. Receives one push per proxy from the per-proxy health-check path
+     * — bypasses the full setProxyDetails merge so we don't trigger pending /
+     * disk-overlay reconciliation on every URLTest tick.
+     *
+     * No-ops if the proxy or group isn't tracked yet (the live engine map
+     * hasn't been populated for this group, or the active profile changed
+     * between the request and the callback). The caller is responsible for
+     * the eventual full refresh that fills in `now` / `alive` fields the
+     * per-proxy push doesn't carry.
+     */
+    fun patchSingleProxyDelay(groupName: String, proxyName: String, delayMs: Int) {
+        if (groupName.isBlank() || proxyName.isBlank()) return
+        val active = activeProfileUuid ?: return
+        val current = proxyDetails
+        val key = if (current.containsKey(groupName)) {
+            groupName
+        } else {
+            current.entries.firstOrNull { groupsMatchKey(groupName, it.key) }?.key ?: return
+        }
+        val existing = current[key] ?: return
+        val proxyIdx = existing.proxies.indexOfFirst { it.name == proxyName }
+        if (proxyIdx < 0) return
+        if (existing.proxies[proxyIdx].delay == delayMs) return
+        val updatedProxies = existing.proxies.toMutableList().also { list ->
+            list[proxyIdx] = list[proxyIdx].copy(delay = delayMs)
+        }
+        proxyDetails = current.toMutableMap().apply {
+            this[key] = existing.copy(proxies = updatedProxies)
+        }
+        val i = profiles.indexOfFirst { it.uuid == active }
+        if (i >= 0) notifyItemChanged(i)
+    }
+
     fun clearProxyDetails() {
         if (proxyDetails.isEmpty()) return
         proxyDetails = emptyMap()
