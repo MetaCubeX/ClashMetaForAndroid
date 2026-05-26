@@ -149,6 +149,12 @@ class ProfileAdapter(
     }
 
     fun updateElapsed() {
+        // Full rebind is acceptable here: this is invoked from the profile
+        // ticker (TimeUnit.MINUTES.toMillis(2)) — every two minutes, not on a
+        // scroll-sensitive cadence. Moving it to a payload-based partial bind
+        // would require splitting onBindViewHolder into time-dependent / time-
+        // independent halves, which is not worth the maintenance cost for a
+        // 0.5/min event.
         notifyDataSetChanged()
     }
 
@@ -203,6 +209,18 @@ class ProfileAdapter(
         ) {
             return
         }
+        // Capture what was here so we can compute which profile cards actually
+        // need a rebind. Doing a full notifyDataSetChanged from this hot path
+        // (interactive dashboard ticker fires it every ~2s) was the main scroll
+        // jank source: every visible card got rebound from scratch even when
+        // only one profile's selection map changed.
+        val previousActiveUuid = this.activeProfileUuid
+        val previousMode = this.tunnelMode
+        val previousLastGroupHint = this.lastGroupHint
+        val previousOfflinePreview = this.offlinePreviewByProfile
+        val previousOfflineSelections = this.offlineSelectionsByProfile
+        val previousTransportInfo = this.transportInfoByProfile
+
         this.transportInfoByProfile = transportInfoByProfile
         // Only reset runtime proxies when identity actually changes. The core may return the
         // same selector list in a different order after patchSelector; treating that like a
@@ -234,7 +252,85 @@ class ProfileAdapter(
         clashRunning = running
         tunnelMode = mode
         this.lastGroupHint = lastGroupHint
-        notifyDataSetChanged()
+        dispatchProxyContextChanges(
+            previousActiveUuid = previousActiveUuid,
+            previousMode = previousMode,
+            previousLastGroupHint = previousLastGroupHint,
+            previousOfflinePreview = previousOfflinePreview,
+            previousOfflineSelections = previousOfflineSelections,
+            previousTransportInfo = previousTransportInfo,
+            runningChanged = runningChanged,
+            groupSetChanged = groupSetChanged,
+        )
+    }
+
+    /**
+     * Computes the set of profile cards actually affected by a setProxyContext
+     * batch and issues a single notifyItemChanged per affected position.
+     *
+     * The rules are intentionally conservative — when in doubt we still notify,
+     * because a missed update would look like a stale card. The point is to
+     * avoid full notifyDataSetChanged for the common case where only the
+     * active profile's selection / transport map changed: that case used to
+     * rebind every visible card and was the dominant cause of scroll jank.
+     */
+    private fun dispatchProxyContextChanges(
+        previousActiveUuid: UUID?,
+        previousMode: TunnelState.Mode?,
+        previousLastGroupHint: String?,
+        previousOfflinePreview: Map<UUID, Map<String, ProxyGroupPreviewRow>>,
+        previousOfflineSelections: Map<UUID, Map<String, String>>,
+        previousTransportInfo: Map<UUID, Map<String, ProxyTransportInfo>>,
+        runningChanged: Boolean,
+        groupSetChanged: Boolean,
+    ) {
+        val affected = HashSet<UUID>()
+
+        // Active-profile identity flips both the visual "this card is on" badge
+        // and engine/offline routing — touch the old card and the new one.
+        if (previousActiveUuid != activeProfileUuid) {
+            previousActiveUuid?.let(affected::add)
+            activeProfileUuid?.let(affected::add)
+        }
+        // Engine identity (running/group set/mode) influences the active card's
+        // expanded carriage (engine path vs offline preview). Other cards
+        // consult these fields only via useEngineFor() which short-circuits to
+        // false for non-active profiles, so they don't need a rebind here.
+        if (runningChanged || groupSetChanged || previousMode != tunnelMode) {
+            activeProfileUuid?.let(affected::add)
+        }
+        // lastGroupHint is global — resolvePreferredGroupFromList() consults it
+        // for every profile that hasn't yet cached a selectedGroupIndex (cards
+        // that were never bound, e.g. still below the scroll viewport). If we
+        // only touch the active card, a later scroll-into-view of card C would
+        // bind it against the new hint while card A still shows the old one,
+        // leaving the list with two different preferred groups across cards.
+        // Hint changes are not on a hot path — they only fire when the user
+        // explicitly switches the visible group — so rebinding every imported
+        // card here is cheap insurance against that inconsistency.
+        if (previousLastGroupHint != lastGroupHint) {
+            for (p in profiles) {
+                if (p.imported) affected.add(p.uuid)
+            }
+        }
+        // Per-profile maps only affect the profile whose UUID actually moved.
+        previousOfflinePreview.collectDiffKeys(offlinePreviewByProfile, affected)
+        previousOfflineSelections.collectDiffKeys(offlineSelectionsByProfile, affected)
+        previousTransportInfo.collectDiffKeys(transportInfoByProfile, affected)
+
+        if (affected.isEmpty()) return
+        for (i in profiles.indices) {
+            if (profiles[i].uuid in affected) notifyItemChanged(i)
+        }
+    }
+
+    private fun <K, V> Map<K, V>.collectDiffKeys(other: Map<K, V>, into: HashSet<K>) {
+        for ((key, value) in this) {
+            if (other[key] != value) into.add(key)
+        }
+        for ((key, value) in other) {
+            if (this[key] != value) into.add(key)
+        }
     }
 
     fun setProxyDetails(details: Map<String, ProxyGroup>) {
@@ -284,10 +380,14 @@ class ProfileAdapter(
     fun clearProxyDetails() {
         if (proxyDetails.isEmpty()) return
         proxyDetails = emptyMap()
-        activeProfileUuid?.let { uuid ->
-            val i = profiles.indexOfFirst { it.uuid == uuid }
-            if (i >= 0) notifyItemChanged(i)
-        } ?: notifyDataSetChanged()
+        // Only the active card reads proxyDetails — clearing it cannot change
+        // anything on the other rows. If we don't know who the active profile
+        // is right now (rare race during VPN off→on), no card depends on the
+        // stale details either; skipping the rebind here avoids the same
+        // scroll-jank pattern setProxyContext used to cause.
+        val uuid = activeProfileUuid ?: return
+        val i = profiles.indexOfFirst { it.uuid == uuid }
+        if (i >= 0) notifyItemChanged(i)
     }
 
     fun setPendingProxySelection(uuid: UUID, groupName: String, proxyName: String) {
@@ -355,13 +455,13 @@ class ProfileAdapter(
         // proxyGroupNames is the visible-only list (from queryProxyGroupNames).
         // offlinePreviewByProfile keys include hidden too (parseProxyGroupsPreview
         // is called with includeHidden=true), so we filter back to visible here
-        // and then surface any hidden auto-subgroups that are *direct members*
-        // of a visible group — a 1-hop traversal. Without this, kaso.fyi-style
-        // subscriptions (one visible select root + a hidden url-test/fallback
-        // tree) collapse to a single pill and a 300+ flat node list. Going
-        // deeper than 1 hop would flood the pill bar with internal infra
-        // groups (PRIMARY/FALLBACK/LAST_RESORT) the user shouldn't have to
-        // think about.
+        // and then narrowly surface a hidden auto-subgroup only when the
+        // visible parent is a pure dispatch shell — i.e. all of its declared
+        // members are themselves group names, none are dialable leaf nodes.
+        // That catches the kaso.fyi pattern (one visible select root whose
+        // only members are hidden url-test/fallback subgroups) without
+        // polluting the pill bar of typical mixed configs that legitimately
+        // reference hidden auto groups as backup paths alongside leaf nodes.
         val offlinePreview = offlinePreviewByProfile[profile.uuid]
         val visible = if (useEngineFor(profile)) {
             proxyGroupNames
@@ -375,12 +475,33 @@ class ProfileAdapter(
         if (offlinePreview.isNullOrEmpty()) return visible
 
         val visibleSet = visible.toHashSet()
+        // Global pure-shell test: every visible root must reference *only*
+        // other proxy-groups (no leaves, no special targets like DIRECT /
+        // REJECT). That uniquely identifies a kaso-style config whose top
+        // level is a dispatch tree delegating routing to hidden auto
+        // subgroups. A standard subscription will have at least one visible
+        // root with concrete leaf nodes in its `proxies:`, which fails the
+        // shell test and short-circuits the heuristic — its hidden auto
+        // backups stay hidden, which is what the user expects.
+        val configIsPureShell = visible.isNotEmpty() && visible.all { vname ->
+            val row = offlinePreview[vname]
+                ?: offlinePreview.entries.firstOrNull { groupsMatchKey(vname, it.key) }?.value
+                ?: return@all false
+            val staticRefs = row.staticProxies
+            if (staticRefs.isEmpty()) return@all false
+            staticRefs.all { memberName ->
+                offlinePreview[memberName] != null ||
+                    offlinePreview.entries.any { groupsMatchKey(memberName, it.key) }
+            }
+        }
+        if (!configIsPureShell) return visible
+
         val extras = LinkedHashSet<String>()
         for (vname in visible) {
             val row = offlinePreview[vname]
                 ?: offlinePreview.entries.firstOrNull { groupsMatchKey(vname, it.key) }?.value
                 ?: continue
-            for (memberName in row.members) {
+            for (memberName in row.staticProxies) {
                 if (memberName in visibleSet || memberName in extras) continue
                 val memberRow = offlinePreview[memberName]
                     ?: offlinePreview.entries.firstOrNull { groupsMatchKey(memberName, it.key) }?.value

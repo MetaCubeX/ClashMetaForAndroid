@@ -181,8 +181,10 @@ object ProxyGroupsYamlPreview {
                 addAll(dynamicMembers)
             }.toList()
             when {
-                combined.isNotEmpty() -> out[name] = ProxyGroupPreviewRow(type, combined, hidden)
-                useList.isNotEmpty() -> out[name] = ProxyGroupPreviewRow(type, emptyList(), hidden)
+                combined.isNotEmpty() ->
+                    out[name] = ProxyGroupPreviewRow(type, combined, hidden, fromProxies)
+                useList.isNotEmpty() ->
+                    out[name] = ProxyGroupPreviewRow(type, emptyList(), hidden, fromProxies)
                 else -> Unit
             }
         }

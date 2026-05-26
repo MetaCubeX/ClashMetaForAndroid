@@ -150,6 +150,12 @@ class ProxyGroupsYamlPreviewTest {
         assertEquals(listOf("node-a", "node-b", "node-c"), rows["All"]?.members)
         // "Mixed" gets declared first, then universe.
         assertEquals(listOf("manual-x", "node-a", "node-b", "node-c"), rows["Mixed"]?.members)
+        // staticProxies must reflect ONLY the YAML `proxies:` list, never the
+        // include-all-* expansion. The 1-hop pill-bar heuristic relies on this
+        // to tell a kaso-style dispatch shell from a normal group whose member
+        // list happens to be all leaves due to dynamic expansion.
+        assertEquals(emptyList<String>(), rows["All"]?.staticProxies)
+        assertEquals(listOf("manual-x"), rows["Mixed"]?.staticProxies)
     }
 
     @Test

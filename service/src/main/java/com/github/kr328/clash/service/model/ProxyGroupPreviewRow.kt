@@ -16,6 +16,15 @@ data class ProxyGroupPreviewRow(
      * they are direct members of a visible group's `proxies:` list.
      */
     val hidden: Boolean = false,
+    /**
+     * Static `proxies:` entries straight from the YAML — never includes
+     * names expanded by `include-all-proxies` / `include-all-providers` /
+     * `include-all`. The 1-hop heuristic uses this to tell a kaso-style
+     * pure dispatch shell (static refs to hidden auto subgroups only)
+     * from a normal group whose `members` happens to be a flat leaf list
+     * because of dynamic expansion.
+     */
+    val staticProxies: List<String> = emptyList(),
 ) : Parcelable {
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         Parcelizer.encodeToParcel(serializer(), parcel, this)
