@@ -296,6 +296,50 @@ class MainActivity : BaseActivity<MainDesign>() {
         return warmUpAutoProxyGroups()
     }
 
+    /**
+     * Run a per-proxy health check on [group] and stream each proxy's delay
+     * into the active card as soon as URLTest resolves. Suspends until every
+     * proxy has reported (or the call early-outed because the group is
+     * missing / wrong type).
+     *
+     * UI patches are dispatched on the activity's MainScope and target the
+     * design property — if the activity has already torn down the design by
+     * the time a result lands, the patch is silently dropped. Callers that
+     * need `now` / `alive` state should still issue a closing
+     * refreshRuntimeGroupDetails — per-proxy push only carries the delay
+     * measurement itself.
+     */
+    private suspend fun runPerProxyHealthCheck(group: String) {
+        runCatching {
+            withClash {
+                healthCheckPerProxy(
+                    group,
+                    object : IProxyDelayObserver {
+                        override fun onDelay(
+                            grp: String,
+                            proxy: String,
+                            delayMs: Int,
+                            errMsg: String,
+                        ) {
+                            // Failed URLTest carries errMsg + delayMs == 0. Showing 0 would
+                            // render as "0ms" — engine convention is Int.MAX_VALUE for
+                            // unreachable, so coerce before the patch.
+                            val effective = if (errMsg.isNotEmpty()) Int.MAX_VALUE else delayMs
+                            this@MainActivity.launch {
+                                this@MainActivity.design?.patchSingleProxyDelay(grp, proxy, effective)
+                            }
+                        }
+
+                        override fun onComplete(error: String?) {
+                            // No-op: the outer suspend returns via await() in
+                            // ClashManager.healthCheckPerProxy.
+                        }
+                    },
+                )
+            }
+        }
+    }
+
     private suspend fun warmUpAutoProxyGroups(): Set<String> = coroutineScope {
         waitForProxyEngineReady()
 
@@ -334,12 +378,16 @@ class MainActivity : BaseActivity<MainDesign>() {
         }
         if (autoGroups.isEmpty()) return@coroutineScope emptySet()
 
+        // Prime engine state so per-proxy push has rows to land on. Without
+        // this, the first warmup cycle on cold start would have nowhere to
+        // write — proxyDetails is empty until the user scrolls into a group.
+        val primed = refreshRuntimeGroupDetails(autoGroups)
+        if (primed.isNotEmpty()) {
+            design?.patchProxyDetails(primed)
+        }
+
         autoGroups.map { group ->
-            launch {
-                runCatching {
-                    withClash { healthCheck(group) }
-                }
-            }
+            launch { runPerProxyHealthCheck(group) }
         }.joinAll()
         autoGroups.toSet()
     }
@@ -679,41 +727,7 @@ class MainActivity : BaseActivity<MainDesign>() {
                                     design.patchProxyDetails(primed)
                                 }
                                 val jobs = groupsToRefresh.map { groupName ->
-                                    launch {
-                                        runCatching {
-                                            withClash {
-                                                healthCheckPerProxy(
-                                                    groupName,
-                                                    object : IProxyDelayObserver {
-                                                        override fun onDelay(
-                                                            group: String,
-                                                            proxy: String,
-                                                            delayMs: Int,
-                                                            errMsg: String,
-                                                        ) {
-                                                            // Failed URLTest carries errMsg + delayMs == 0.
-                                                            // Surfacing 0 would render as "0ms" in the
-                                                            // pill — engine convention is Int.MAX_VALUE
-                                                            // for unreachable, so coerce here.
-                                                            val effective = if (errMsg.isNotEmpty()) {
-                                                                Int.MAX_VALUE
-                                                            } else {
-                                                                delayMs
-                                                            }
-                                                            this@MainActivity.launch {
-                                                                design.patchSingleProxyDelay(group, proxy, effective)
-                                                            }
-                                                        }
-
-                                                        override fun onComplete(error: String?) {
-                                                            // Logged-only — the outer launch's join()
-                                                            // is what completes the suspend call.
-                                                        }
-                                                    },
-                                                )
-                                            }
-                                        }
-                                    }
+                                    launch { runPerProxyHealthCheck(groupName) }
                                 }
                                 jobs.forEach { it.join() }
                                 // Closing refresh captures `now` / `alive` fields the per-proxy
