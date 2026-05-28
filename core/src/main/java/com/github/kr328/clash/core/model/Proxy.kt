@@ -40,6 +40,9 @@ data class Proxy(
         Sudoku(false),
         Masque(false),
         TrustTunnel(false),
+        OpenVPN(false),
+        Tailscale(false),
+        GostRelay(false),
 
 
         Relay(true),

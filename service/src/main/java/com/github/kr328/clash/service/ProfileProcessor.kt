@@ -73,6 +73,7 @@ object ProfileProcessor {
                         var download: Long = 0
                         var total: Long = 0
                         var expire: Long = 0
+                        var updateInterval: Long = snapshot.interval
                         if (snapshot?.type == Profile.Type.Url) {
                             if (snapshot.source.startsWith("https://", true)) {
                                 val client = OkHttpClient()
@@ -103,6 +104,19 @@ object ProfileProcessor {
                                             }
                                         }
                                     }
+
+                                    val updateIntervalHeader = response.headers["profile-update-interval"]
+                                    if (response.isSuccessful && updateIntervalHeader != null) {
+                                        val intervalHours = updateIntervalHeader.toLongOrNull()
+                                        if (intervalHours != null) {
+                                            updateInterval = if (intervalHours > 0) {
+                                                java.util.concurrent.TimeUnit.HOURS.toMillis(intervalHours)
+                                                    .coerceAtLeast(java.util.concurrent.TimeUnit.MINUTES.toMillis(15))
+                                            } else {
+                                                0L
+                                            }
+                                        }
+                                    }
                                 }
                             }
                             val new = Imported(
@@ -110,7 +124,7 @@ object ProfileProcessor {
                                 snapshot.name,
                                 snapshot.type,
                                 snapshot.source,
-                                snapshot.interval,
+                                updateInterval,
                                 upload,
                                 download,
                                 total,
