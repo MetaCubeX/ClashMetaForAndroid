@@ -35,9 +35,14 @@ fun CoroutineScope.clashRuntime(block: suspend ClashRuntimeScope.() -> Unit): Cl
                             override fun <E, T : Module<E>> install(module: T): T {
                                 launch {
                                     modules.add(module)
-                                    runCatching {
+                                    try {
                                         module.execute()
-                                    }.onFailure { e ->
+                                    } catch (e: CancellationException) {
+                                        // Normal stop/shutdown cancels the runtime scope.
+                                        // Re-throw so structured cancellation works and so
+                                        // this is never logged/surfaced as a crash.
+                                        throw e
+                                    } catch (e: Throwable) {
                                         Log.e("Module ${module.javaClass.simpleName} crashed", e)
                                     }
                                 }
