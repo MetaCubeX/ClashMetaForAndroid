@@ -9,10 +9,10 @@ ClashFest — Android-клиент на базе ядра **Clash.Meta (mihomo)*
 Цепочка форков:
 ```
 xuhaoyang/ClashForAndroid
-└── MetaCubeX/ClashMetaForAndroid (ядро + базовый клиент)
-    └── Nemu-x/ClashFest (ребрендинг, UI-редизайн)
-        └── Rerowros/ClashFest  ← мы здесь
+└── MetaCubeX/ClashMetaForAndroid (ядро + базовый клиент, remote `upstream`)
+    └── Nemu-x/ClashFest (ребрендинг, UI-редизайн)  ← мы здесь (origin)
 ```
+`Rerowros/ClashFest` — параллельный форк, подключён отдельным remote `rerowros` (не вверх по цепочке).
 
 Активная ветка разработки: `feat/init-clashfest`.
 
@@ -35,15 +35,15 @@ xuhaoyang/ClashForAndroid
 
 При обработке профилей и сетевых настроек агент **обязан**:
 
-- **Санитизировать импортируемый YAML** (см. `service/.../profile`):
-  - Удалять или принудительно биндить к `127.0.0.1` поля: `port`, `socks-port`, `mixed-port`, `redir-port`, `tproxy-port`.
-  - Удалять записи в `listeners:` типа `socks`/`mixed`/`http` без `authentication`.
-  - Принудительно `allow-lan: false`, если пользователь явно не включил «Расширенный режим».
-  - Принудительно биндить `external-controller` к `127.0.0.1`.
-  - Защищать всё это поведение флагом `ProxyHardeningMode` в `ServiceStore` (значения: `Strict` (default, Android 10+), `Compat`, `Off`).
-- **Не открывать SOCKS5 без auth наружу никогда.** SOCKS5 без `authentication` на Android 10+ должен быть отключён по умолчанию (фикс уязвимости описан в `https://publish.obsidian.md/zapret/VLESS-SOCKS5-vulnerability`).
-- **TUN0 защита** (Android 10+): использовать `ConnectivityManager.getConnectionOwnerUid()` (уже подключён в `TunModule.queryUid`) для фильтрации соединений к адресам tun-интерфейса и loopback-портам прокси, исходящих от чужих UID.
-- **Любые сетевые загрузки** (geoip/geosite/подписки) идут только через явные whitelisted-зеркала (см. п. 4) и с таймаутами + ретраями.
+- **Санитизировать импортируемый YAML.** Два слоя: file-level `service/util/YamlHardener.kt` (при импорте/обновлении подписки) + override `service/util/ProxyHardener.kt` (рантайм), оба вызываются из `ProfileProcessor`:
+  - Глобальные порты `port`/`socks-port`/`mixed-port`/`redir-port`/`tproxy-port` гасятся (в Strict — в `0`) через `ConfigurationOverride`.
+  - `listeners:` в Strict — удаляются целиком; в Compat — каждый `listen:` принудительно биндится к `127.0.0.1`.
+  - Принудительно `allow-lan: false` (если был явно `true`), `bind-address` и `external-controller` — к `127.0.0.1`.
+  - Поведение управляется `ProxyHardeningMode` в `ServiceStore`: `Strict` (default на Android 10+), `Compat` (default ниже 10), `Off`.
+- **Не открывать SOCKS5 без auth наружу никогда.** SOCKS5 без `authentication` на Android 10+ отключён по умолчанию (фикс уязвимости: `https://publish.obsidian.md/zapret/VLESS-SOCKS5-vulnerability`).
+- **Защита tun0 от чужих UID — на уровне ОС, не в ядре.** Гейт доступа — per-app VPN: `TunService` через `addAllowedApplication`/`addDisallowedApplication` (по `accessControlMode`/`accessControlPackages`) задаёт, чей трафик вообще попадает в туннель. `ConnectivityManager.getConnectionOwnerUid()` (в `TunModule.queryUid`) НЕ является гейтом — он лишь резолвит имя пакета (`app.QueryAppByUid`) для правил `PROCESS-NAME` и логов; `uid == -1` (lookup не удался / API<29) означает «пакет не определён», а не «разрешить».
+- **Внешнее управление VPN** (`ExternalControlActivity`, экшены `START/STOP/TOGGLE_CLASH`) гейтится настройкой `allowExternalControl` (default on); внешний стоп показывает нотификацию (не сайлентный). Экшены — в неймспейсе `${applicationId}.action.*` (а не upstream `com.github.metacubex.clash.meta.action.*`).
+- **Любые сетевые загрузки** (geoip/geosite/подписки) — только с доверенных хостов из allowlist (см. п. 4), fail-closed, с таймаутами + ретраями.
 
 ## 3. Стиль кода
 
@@ -57,19 +57,19 @@ xuhaoyang/ClashForAndroid
 
 ## 4. Сеть и внешние ресурсы
 
-Разрешённые источники для GeoIP/GeoSite (в порядке fallback):
+`geox-url` принимается **только из allowlist доверенных хостов** (`GeoMirrors.TRUSTED_HOSTS`, derived из курируемых mirror-списков) — **fail-closed**: любой хост вне allowlist (включая пустой/битый) переписывается на доверенный primary. Это заменило прежний denylist. Доверенные хосты:
 
 ```
-https://github.com/MetaCubeX/meta-rules-dat/raw/release/geoip.dat
-https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/release/geoip.dat
-https://gh.zukijourney.com/MetaCubeX/meta-rules-dat/release/geoip.dat
-https://github.com/Loyalsoldier/v2ray-rules-dat/raw/release/geoip.dat
+github.com
+raw.githubusercontent.com
+cdn.jsdelivr.net
+fastly.jsdelivr.net
 ```
-(аналогично для `geosite.dat`).
+(см. `service/util/GeoMirrors.kt` — единственный источник истины; `service/util/GeoUrlSanitizer.kt` и `ProxyHardener.kt` используют `isTrusted`/`primaryFor`.)
 
 При импорте подписки агент **обязан**:
-1. Проверять, что `geox-url` валиден; если ядро жалуется на «cant download geoip.dat» — подменять на дефолтный набор зеркал из настроек.
-2. Кэшировать gzip-варианты в `files/providers/geo/`.
+1. Любой `geox-url` с недоверенного хоста — переписать на доверенный primary (а не «проверять валидность»); пустой/малформед — тоже fail-closed на primary.
+2. Bundled geo-ассеты (`geoip.metadb`, `geoip.dat`, …) ставятся в `files/clash/` через `ensureBundledGeoAssets` (`GeoAssetInstaller`); периодический онлайн-апдейт ядром гасится (`geo-auto-update: false` в `GeoUrlSanitizer`).
 3. Никогда не блокировать UI-поток на сетевых операциях.
 
 ## 5. UI / UX правила
@@ -88,11 +88,8 @@ https://github.com/Loyalsoldier/v2ray-rules-dat/raw/release/geoip.dat
 
 ## 6. Изменения в YAML/конфигах
 
-- Источник истины — текст профиля на диске. Любая «hardening»-логика применяется как пост-процессинг при сохранении/обновлении профиля и помечается комментарием:
-  ```
-  # ClashFest hardening applied (vN) — DO NOT EDIT THIS BLOCK
-  ```
-- Оригинальный пользовательский YAML сохраняется рядом как `*.original.yaml` для возможности восстановления.
+- Источник истины — текст профиля на диске. «Hardening»-логика применяется как пост-процессинг при сохранении/обновлении профиля (`YamlHardener.hardenProfile`).
+- Оригинальный пользовательский YAML сохраняется рядом как `config.original.yaml` (создаётся при первой правке, далее не перезаписывается) для возможности восстановления.
 
 ## 7. Git / Workflow
 
@@ -102,13 +99,14 @@ https://github.com/Loyalsoldier/v2ray-rules-dat/raw/release/geoip.dat
   - `fix(geo): fallback mirrors for geoip download`
   - `ui(nav): merge rules+routing into single hub screen`
 - Никаких force-push, rebase или удаления чужих коммитов без явного запроса пользователя.
-- Submodules (`core/src/foss/golang/clash`) трогаем только при необходимости — обновление ядра делается отдельным PR.
+- Submodules (`core/src/foss/golang/clash`) трогаем только при необходимости — обновление ядра делается отдельным PR. Текущее ядро запинено на `v1.19.26`. При bump'е: `go mod tidy` в `core/src/main/golang` и `core/src/foss/golang`, и учитывай, что golang-таск не трекает submodule как input → закэшированная `libclash.so` может не пересобраться (чистить `core/build` при необходимости).
+- **Сборка требует JDK 21** (Java/Kotlin target 21). Старый JDK падает с `invalid source release: 21` — в Android Studio выставить Gradle JDK 21, в CLI `JAVA_HOME` на JDK 21.
 - Перед push агент должен убедиться, что `./gradlew.bat assembleAlphaDebug` собирается локально (если нет — пометить TODO в сообщении пользователю).
 
 ## 8. Разрешения и системные API
 
 - Целевая Android API: 35, минимальная: 21.
-- Новые опасные permissions (например, `QUERY_ALL_PACKAGES`) добавлять только если без них функция нереализуема, и обосновывать в коммите.
+- Новые опасные permissions добавлять только если без них функция нереализуема, и обосновывать в коммите. Уже объявлены и ожидаемы: `QUERY_ALL_PACKAGES` (per-app routing), `REQUEST_INSTALL_PACKAGES` (self-update APK).
 - `BIND_VPN_SERVICE` уже есть. Не запрашивать root.
 
 ## 9. Что агент НЕ ДОЛЖЕН делать
@@ -126,4 +124,4 @@ https://github.com/Loyalsoldier/v2ray-rules-dat/raw/release/geoip.dat
 
 ---
 
-Файл версии: 1. Любые изменения этих правил — отдельным PR с явным согласованием.
+Файл версии: 2. Любые изменения этих правил — отдельным PR с явным согласованием.
