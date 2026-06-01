@@ -21,6 +21,7 @@ import com.github.kr328.clash.util.stopClashService
 import com.github.kr328.clash.util.withProfile
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import java.util.*
 import com.github.kr328.clash.design.R
@@ -39,21 +40,23 @@ class ExternalControlActivity : Activity(), CoroutineScope by MainScope() {
 
                 launch {
                     val uuid = withProfile {
-                        val type = when (uri.getQueryParameter("type")?.lowercase(Locale.getDefault())) {
-                            "url" -> Profile.Type.Url
-                            "file" -> Profile.Type.File
-                            else -> Profile.Type.Url
-                        }
+                        // DL-1: external deeplinks only create a URL-source profile.
+                        // File import must come from the in-app picker (which grants
+                        // a content-URI), never from an untrusted deeplink path.
                         val name = uri.getQueryParameter("name")
                             ?: getString(R.string.subscription_default_name)
 
-                        create(type, name).also {
+                        create(Profile.Type.Url, name).also {
                             patch(it, name, url, 0)
                         }
                     }
                     startActivity(PropertiesActivity::class.intent.setUUID(uuid))
                     finish()
                 }
+                // Don't fall through to the synchronous finish() below — the
+                // activity must stay alive until the coroutine completes (then
+                // it finishes itself; onDestroy cancels the scope).
+                return
             }
 
             Intents.ACTION_TOGGLE_CLASH -> if (externalControlAllowed()) {
@@ -84,10 +87,6 @@ class ExternalControlActivity : Activity(), CoroutineScope by MainScope() {
     }
 
     private fun startClash() {
-//        if (currentProfile == null) {
-//            Toast.makeText(this, R.string.no_profile_selected, Toast.LENGTH_LONG).show()
-//            return
-//        }
         val vpnRequest = startClashService()
         if (vpnRequest != null) {
             Toast.makeText(this, R.string.unable_to_start_vpn, Toast.LENGTH_LONG).show()
@@ -156,5 +155,12 @@ class ExternalControlActivity : Activity(), CoroutineScope by MainScope() {
         super.finish()
         @Suppress("DEPRECATION")
         overridePendingTransition(0, 0)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        // Q-1: the install-config branch launches on this MainScope; cancel it
+        // so the scope doesn't outlive the (immediately finishing) activity.
+        cancel()
     }
 }
