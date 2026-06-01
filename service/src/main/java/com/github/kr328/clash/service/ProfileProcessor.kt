@@ -106,7 +106,7 @@ object ProfileProcessor {
                                     }
 
                                     val updateIntervalHeader = response.headers["profile-update-interval"]
-                                    if (response.isSuccessful && updateIntervalHeader != null) {
+                                    if (old == null && snapshot.interval == 0L && response.isSuccessful && updateIntervalHeader != null) {
                                         val intervalHours = updateIntervalHeader.toLongOrNull()
                                         if (intervalHours != null) {
                                             updateInterval = if (intervalHours > 0) {
