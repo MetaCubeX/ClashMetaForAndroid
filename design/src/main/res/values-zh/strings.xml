@@ -328,6 +328,12 @@
     <string name="external_control_activity">外部控制</string>
     <string name="external_control_started">Clash.Meta 服务已启动</string>
     <string name="external_control_stopped">Clash.Meta 服务已停止</string>
+    <string name="allow_external_control_title">允许外部控制</string>
+    <string name="allow_external_control_summary">允许其他应用启动、停止或切换 VPN（如 Tasker、快捷方式）。关闭后将忽略外部请求。</string>
+    <string name="external_control_disabled">外部控制已禁用</string>
+    <string name="external_stop_channel">外部控制</string>
+    <string name="external_stop_title">VPN 已停止</string>
+    <string name="external_stop_text">VPN 被外部请求停止</string>
     <string name="import_from_qr_no_permission">相机权限受限，请前往设置开启。</string>
     <string name="import_from_qr_exception">发生系统未知异常，操作失败。</string>
 

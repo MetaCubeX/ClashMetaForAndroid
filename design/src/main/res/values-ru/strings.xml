@@ -782,6 +782,12 @@
     <string name="external_control_activity">External Control</string>
     <string name="external_control_started">Clash.Meta service started</string>
     <string name="external_control_stopped">Clash.Meta service stopped</string>
+    <string name="allow_external_control_title">Разрешить внешнее управление</string>
+    <string name="allow_external_control_summary">Позволяет другим приложениям запускать, останавливать и переключать VPN (например, Tasker, ярлыки). Когда выключено — внешние запросы игнорируются.</string>
+    <string name="external_control_disabled">Внешнее управление отключено</string>
+    <string name="external_stop_channel">Внешнее управление</string>
+    <string name="external_stop_title">VPN остановлен</string>
+    <string name="external_stop_text">VPN был остановлен внешним запросом</string>
     <string name="force_dns_mapping">Force DNS Mapping</string>
     <string name="parse_pure_ip">Parse Pure IP</string>
     <string name="override_destination">Override Destination</string>
