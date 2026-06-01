@@ -64,7 +64,14 @@ func (t *remoteTun) close() {
 }
 
 //export startTun
-func startTun(fd C.int, stack, gateway, portal, dns C.c_string, callback unsafe.Pointer) C.int {
+func startTun(fd C.int, stack, gateway, portal, dns C.c_string, callback unsafe.Pointer) (result C.int) {
+	// On panic return a failure code (1), not the success value (0).
+	defer func() {
+		if r := recover(); r != nil {
+			logRecover("startTun", r)
+			result = 1
+		}
+	}()
 	rTunLock.Lock()
 	defer rTunLock.Unlock()
 
@@ -99,6 +106,7 @@ func startTun(fd C.int, stack, gateway, portal, dns C.c_string, callback unsafe.
 
 //export stopTun
 func stopTun() {
+	defer guard("stopTun")()
 	rTunLock.Lock()
 	defer rTunLock.Unlock()
 
