@@ -100,7 +100,15 @@ class MainApplication : Application() {
             .setRank(2)
             .build()
 
-        ShortcutManagerCompat.setDynamicShortcuts(this, listOf(toggle, start, stop))
+        // Dynamic shortcuts are a convenience and MUST NOT crash app startup.
+        // When the launcher icon is hidden (MainActivityAlias disabled) the
+        // package has no launcher activity and setDynamicShortcuts throws
+        // IllegalStateException("Launcher activity not found") — swallow it.
+        runCatching {
+            ShortcutManagerCompat.setDynamicShortcuts(this, listOf(toggle, start, stop))
+        }.onFailure {
+            Log.w("setupShortcuts: skipped dynamic shortcuts (no launcher activity?)", it)
+        }
     }
 
 }
