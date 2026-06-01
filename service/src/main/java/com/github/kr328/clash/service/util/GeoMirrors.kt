@@ -45,45 +45,65 @@ object GeoMirrors {
     fun primaryGeoIpMmdb(): String = GEOIP_MMDB.first()
 
     /**
-     * Hostnames of public GitHub proxies that we observed to be unstable or
-     * blocked: connections terminate with `io: read/write on closed pipe` or
-     * timeout. When a profile's `geox-url` points at one of these we silently
-     * rewrite it to a primary mirror so the import succeeds.
+     * Allowlist of trusted hosts, derived from the curated mirror lists above.
+     *
+     * AGENTS.md §4 requires geo downloads only from whitelisted mirrors, so any
+     * `geox-url` whose host is not in this set is treated as untrusted and
+     * rewritten to a trusted primary (fail-closed) — see [GeoUrlSanitizer] and
+     * [ProxyHardener]. This replaces the previous denylist of broken GitHub
+     * proxies: a host being absent from a denylist must never imply trust.
+     *
+     * Note (DOC-1): AGENTS.md §4 also lists public GitHub proxies (e.g.
+     * `gh.zukijourney.com`) as fallbacks. Those were observed unstable and are
+     * intentionally NOT trusted here; AGENTS.md §4 should be reconciled in a
+     * separate rules PR.
      */
-    private val BROKEN_HOSTS: List<String> = listOf(
-        "mirror.ghproxy.com",
-        "ghproxy.com",
-        "ghproxy.net",
-        "ghproxy.io",
-        "ghproxy.homeboyc.cn",
-        "gh-proxy.com",
-        "gh.api.99988866.xyz",
-        "hub.gitmirror.com",
-        "ghps.cc",
-        "ghfast.top",
-        "gh.zukijourney.com",
-    )
-
-    fun isBroken(url: String?): Boolean {
-        if (url.isNullOrBlank()) return false
-        val lower = url.lowercase()
-        // Match either as the URL host or as a "https://<broken>/<real-url>" prefix.
-        return BROKEN_HOSTS.any { host ->
-            lower.startsWith("https://$host/") ||
-                lower.startsWith("http://$host/") ||
-                lower.contains("://$host/")
-        }
-    }
+    val TRUSTED_HOSTS: Set<String> =
+        (GEOIP_DAT + GEOSITE_DAT + GEOIP_MMDB).mapNotNull(::extractHost).toSet()
 
     enum class GeoKind { GeoIp, GeoSite, GeoIpMmdb }
 
-    /** Returns a known-good replacement for [url] when it points at a broken mirror. */
-    fun sanitize(url: String?, kind: GeoKind): String? {
-        if (!isBroken(url)) return url
-        return when (kind) {
-            GeoKind.GeoIp -> primaryGeoIpDat()
-            GeoKind.GeoSite -> primaryGeoSiteDat()
-            GeoKind.GeoIpMmdb -> primaryGeoIpMmdb()
+    /** Primary trusted mirror for [kind]. */
+    fun primaryFor(kind: GeoKind): String = when (kind) {
+        GeoKind.GeoIp -> primaryGeoIpDat()
+        GeoKind.GeoSite -> primaryGeoSiteDat()
+        GeoKind.GeoIpMmdb -> primaryGeoIpMmdb()
+    }
+
+    /**
+     * True only when [url]'s host is in [TRUSTED_HOSTS]. Fail-closed: blank,
+     * unparseable, or hostless values are never trusted.
+     */
+    fun isTrusted(url: String?): Boolean {
+        val host = extractHost(url) ?: return false
+        return host in TRUSTED_HOSTS
+    }
+
+    /**
+     * Returns [url] when it is trusted; otherwise the trusted primary for
+     * [kind]. Untrusted / blank / malformed input always fails closed to a
+     * trusted mirror.
+     */
+    fun sanitize(url: String?, kind: GeoKind): String =
+        if (isTrusted(url)) url!! else primaryFor(kind)
+
+    /**
+     * Extracts the lowercased host from [url], tolerating a missing scheme,
+     * userinfo, port, path/query/fragment, and IPv6 brackets. Returns null
+     * when no host can be determined (caller treats null as untrusted).
+     */
+    fun extractHost(url: String?): String? {
+        val raw = url?.trim().orEmpty()
+        if (raw.isEmpty()) return null
+        var s = raw.substringAfter("://", raw)             // strip scheme if present
+        s = s.substringBefore('/').substringBefore('?').substringBefore('#')
+        s = s.substringAfterLast('@')                      // strip userinfo
+        if (s.isEmpty()) return null
+        if (s.startsWith("[")) {                           // IPv6 literal, e.g. [::1]:443
+            val end = s.indexOf(']')
+            if (end <= 1) return null
+            return s.substring(1, end).lowercase()
         }
+        return s.substringBefore(':').lowercase().ifEmpty { null }
     }
 }

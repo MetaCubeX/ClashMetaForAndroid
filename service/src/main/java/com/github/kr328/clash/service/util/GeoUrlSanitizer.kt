@@ -87,13 +87,18 @@ object GeoUrlSanitizer {
             "mmdb" to GeoMirrors.GeoKind.GeoIpMmdb,
             "asn" to GeoMirrors.GeoKind.GeoIpMmdb,
         ).forEach { (key, kind) ->
-            val current = mutable[key]?.toString()
-            if (GeoMirrors.isBroken(current)) {
-                val replacement = GeoMirrors.sanitize(current, kind)
-                if (!replacement.isNullOrBlank() && replacement != current) {
+            // Only sanitize entries the profile actually set; absent keys are
+            // left to mihomo's own defaults / ProxyHardener seeding.
+            val current = mutable[key]?.toString() ?: return@forEach
+            // Allowlist (fail-closed): any host not in the trusted mirror set —
+            // including blank/malformed — is rewritten to the trusted primary so
+            // a hostile subscription cannot point geo downloads at its own host.
+            if (!GeoMirrors.isTrusted(current)) {
+                val replacement = GeoMirrors.primaryFor(kind)
+                if (replacement != current) {
                     mutable[key] = replacement
                     changed = true
-                    Log.i("GeoUrlSanitizer: $key '$current' -> '$replacement'")
+                    Log.i("GeoUrlSanitizer: $key '$current' -> '$replacement' (untrusted host)")
                 }
             }
         }
