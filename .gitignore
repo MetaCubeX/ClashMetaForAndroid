@@ -64,3 +64,8 @@ google-services.json
 
 # MacOS
 .DS_Store
+
+# AI agent tooling (local, not shared)
+.claude/
+.cursor/
+openspec/
