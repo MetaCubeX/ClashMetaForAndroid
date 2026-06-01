@@ -142,6 +142,55 @@ class YamlHardenerTest {
         assertEquals("127.0.0.1", parse(hardened!!)["bind-address"])
     }
 
+    // -- SEC-1: global proxy ports stripped in Strict ---------------------
+
+    @Test
+    fun strict_stripsAllGlobalProxyPorts() {
+        val input = """
+            port: 7892
+            socks-port: 7891
+            mixed-port: 7890
+            redir-port: 7893
+            tproxy-port: 7894
+            proxies: []
+        """.trimIndent()
+        val hardened = YamlHardener.hardenYaml(input, ProxyHardeningMode.Strict)
+        assertNotNull(hardened)
+        val root = parse(hardened!!)
+        for (key in listOf("port", "socks-port", "mixed-port", "redir-port", "tproxy-port")) {
+            assertNull("Strict must strip $key from the model", root[key])
+            assertFalse("Strict must strip $key from the source text", hardened.contains(key))
+        }
+        // unrelated keys survive
+        assertTrue(root.containsKey("proxies"))
+    }
+
+    @Test
+    fun strict_portStripIsIdempotent() {
+        val input = "mixed-port: 7890\nproxies: []\n"
+        val first = YamlHardener.hardenYaml(input, ProxyHardeningMode.Strict)
+        assertNotNull(first)
+        assertFalse(first!!.contains("mixed-port"))
+        val second = YamlHardener.hardenYaml(first, ProxyHardeningMode.Strict)
+        assertEquals("second pass on already-stripped YAML must be a no-op", first, second)
+    }
+
+    @Test
+    fun compat_keepsGlobalProxyPorts() {
+        val input = "mixed-port: 7890\nsocks-port: 7891\nproxies: []\n"
+        val hardened = YamlHardener.hardenYaml(input, ProxyHardeningMode.Compat)
+        // Compat must not strip global ports (loopback bind + RuntimeSocksAuth).
+        assertEquals(7890, parse(hardened!!)["mixed-port"])
+        assertEquals(7891, parse(hardened)["socks-port"])
+    }
+
+    @Test
+    fun off_keepsGlobalProxyPorts() {
+        val input = "mixed-port: 7890\nproxies: []\n"
+        val hardened = YamlHardener.hardenYaml(input, ProxyHardeningMode.Off)
+        assertEquals(input, hardened)
+    }
+
     @Test
     fun isIdempotent_secondPassNoChange() {
         val dirty = """

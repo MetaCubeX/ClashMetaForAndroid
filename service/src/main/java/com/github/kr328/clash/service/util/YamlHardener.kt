@@ -39,6 +39,10 @@ import java.io.File
 object YamlHardener {
     private const val ORIGINAL_FILENAME = "config.original.yaml"
 
+    /** Global proxy listener ports; stripped at file level in Strict (SEC-1). */
+    private val GLOBAL_PORT_KEYS =
+        listOf("port", "socks-port", "mixed-port", "redir-port", "tproxy-port")
+
     /**
      * Apply the requested [mode] to `config.yaml` inside [profileDir].
      *
@@ -96,18 +100,34 @@ object YamlHardener {
         val document = MihomoConfigDocument.parse(text) ?: return null
         val root = document.root
         var changed = false
-        // listeners hardening is a *removal* in Strict — the model mutation
-        // does root.remove("listeners"), which renderReplacing intentionally
-        // skips. Track it separately so the renderer can strip the block
-        // from the source text via renderRemoving.
-        var dropListenersFromSource = false
+        // Removals in Strict (listeners block, global port keys) do
+        // root.remove(...), which renderReplacing intentionally skips. Collect
+        // such keys so the renderer can strip them from the source text via
+        // renderRemoving.
+        val removeFromSource = mutableListOf<String>()
 
-        when (val listenersChange = hardenListeners(root, mode)) {
+        when (hardenListeners(root, mode)) {
             ListenersChange.None -> Unit
             ListenersChange.Rewritten -> changed = true
             ListenersChange.Dropped -> {
                 changed = true
-                dropListenersFromSource = true
+                removeFromSource += "listeners"
+            }
+        }
+        // SEC-1: in Strict the global proxy ports must not survive into the
+        // config the engine loads. The runtime override (ports=0) is applied
+        // after Clash.load, never reloaded, and cleared on each runtime start,
+        // so a YAML-declared mixed-port/socks-port stays open (cross-UID
+        // reachable on loopback) on every connect. File-level removal is the
+        // only reliable close. Compat keeps them (loopback bind via
+        // bind-address + RuntimeSocksAuth credential).
+        if (mode == ProxyHardeningMode.Strict) {
+            for (key in GLOBAL_PORT_KEYS) {
+                if (root.containsKey(key)) {
+                    root.remove(key)
+                    changed = true
+                    removeFromSource += key
+                }
             }
         }
         changed = forceFalse(root, "allow-lan") || changed
@@ -122,12 +142,11 @@ object YamlHardener {
             "bind-address",
             "external-controller",
         )
-        if (dropListenersFromSource) {
-            rendered = MihomoConfigDocument.parseOrEmpty(rendered).let {
-                // Re-render through the cleaner so the second pass produces
-                // a document with the listeners block actually stripped.
-                it.renderRemoving("listeners")
-            }
+        if (removeFromSource.isNotEmpty()) {
+            // Re-render through the cleaner so this pass produces a document
+            // with the removed blocks/keys actually stripped from the source.
+            rendered = MihomoConfigDocument.parseOrEmpty(rendered)
+                .renderRemoving(*removeFromSource.toTypedArray())
         }
         return rendered
     }
