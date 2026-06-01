@@ -24,6 +24,7 @@ func main() {
 
 //export coreInit
 func coreInit(home, versionName, gitVersion C.c_string, sdkVersion C.int) {
+	defer guard("coreInit")()
 	h := C.GoString(home)
 	v := C.GoString(versionName)
 	g := C.GoString(gitVersion)
@@ -36,6 +37,7 @@ func coreInit(home, versionName, gitVersion C.c_string, sdkVersion C.int) {
 
 //export reset
 func reset() {
+	defer guard("reset")()
 	config.LoadDefault()
 	tunnel.ResetStatistic()
 	tunnel.CloseAllConnections()
@@ -47,6 +49,8 @@ func reset() {
 //export forceGc
 func forceGc() {
 	go func() {
+		defer guard("forceGc")()
+
 		log.Infoln("[APP] request force GC")
 
 		runtime.GC()

@@ -4,6 +4,7 @@ package main
 import "C"
 
 import (
+	"fmt"
 	"runtime"
 	"sync"
 	"unsafe"
@@ -29,6 +30,17 @@ func fetchAndValid(callback unsafe.Pointer, path, url C.c_string, force C.int, h
 		subscriptionFetchSessionMu.Lock()
 		defer subscriptionFetchSessionMu.Unlock()
 
+		completed := false
+		defer func() {
+			if r := recover(); r != nil {
+				logRecover("fetchAndValid", r)
+				if !completed {
+					C.fetch_complete(callback, marshalString(fmt.Sprintf("native panic: %v", r)))
+					C.release_object(callback)
+				}
+			}
+		}()
+
 		app.SetSubscriptionFetchHeadersJSON(headers)
 		defer app.ClearSubscriptionFetchHeaders()
 
@@ -39,6 +51,7 @@ func fetchAndValid(callback unsafe.Pointer, path, url C.c_string, force C.int, h
 		C.fetch_complete(callback, marshalString(err))
 
 		C.release_object(callback)
+		completed = true
 
 		runtime.GC()
 	}(C.GoString(path), C.GoString(url), C.GoString(headersJson), callback)
@@ -50,6 +63,17 @@ func fetchProvidersAndValid(callback unsafe.Pointer, path C.c_string, force C.in
 		subscriptionFetchSessionMu.Lock()
 		defer subscriptionFetchSessionMu.Unlock()
 
+		completed := false
+		defer func() {
+			if r := recover(); r != nil {
+				logRecover("fetchProvidersAndValid", r)
+				if !completed {
+					C.fetch_complete(callback, marshalString(fmt.Sprintf("native panic: %v", r)))
+					C.release_object(callback)
+				}
+			}
+		}()
+
 		app.SetSubscriptionFetchHeadersJSON(headers)
 		defer app.ClearSubscriptionFetchHeaders()
 
@@ -60,6 +84,7 @@ func fetchProvidersAndValid(callback unsafe.Pointer, path C.c_string, force C.in
 		C.fetch_complete(callback, marshalString(err))
 
 		C.release_object(callback)
+		completed = true
 
 		runtime.GC()
 	}(C.GoString(path), C.GoString(headersJson), callback)
@@ -68,9 +93,21 @@ func fetchProvidersAndValid(callback unsafe.Pointer, path C.c_string, force C.in
 //export load
 func load(completable unsafe.Pointer, path C.c_string) {
 	go func(path string) {
+		completed := false
+		defer func() {
+			if r := recover(); r != nil {
+				logRecover("load", r)
+				if !completed {
+					C.complete(completable, marshalString(fmt.Sprintf("native panic: %v", r)))
+					C.release_object(completable)
+				}
+			}
+		}()
+
 		C.complete(completable, marshalString(config.Load(path)))
 
 		C.release_object(completable)
+		completed = true
 
 		runtime.GC()
 	}(C.GoString(path))
@@ -79,9 +116,21 @@ func load(completable unsafe.Pointer, path C.c_string) {
 //export validateProfile
 func validateProfile(completable unsafe.Pointer, path C.c_string) {
 	go func(path string) {
+		completed := false
+		defer func() {
+			if r := recover(); r != nil {
+				logRecover("validateProfile", r)
+				if !completed {
+					C.complete(completable, marshalString(fmt.Sprintf("native panic: %v", r)))
+					C.release_object(completable)
+				}
+			}
+		}()
+
 		C.complete(completable, marshalString(config.Validate(path)))
 
 		C.release_object(completable)
+		completed = true
 
 		runtime.GC()
 	}(C.GoString(path))
@@ -89,16 +138,19 @@ func validateProfile(completable unsafe.Pointer, path C.c_string) {
 
 //export parseProfileSnapshot
 func parseProfileSnapshot(path C.c_string) *C.char {
+	defer guard("parseProfileSnapshot")()
 	return C.CString(snapshot.MarshalJSON(C.GoString(path)))
 }
 
 //export parseProfileSnapshotFromBytes
 func parseProfileSnapshotFromBytes(yaml C.c_string) *C.char {
+	defer guard("parseProfileSnapshotFromBytes")()
 	return C.CString(snapshot.MarshalJSONFromBytes([]byte(C.GoString(yaml))))
 }
 
 //export validateProfileBytes
 func validateProfileBytes(yaml C.c_string) *C.char {
+	defer guard("validateProfileBytes")()
 	errMsg := snapshot.ValidateBytes([]byte(C.GoString(yaml)))
 	if errMsg == "" {
 		return nil
@@ -108,11 +160,13 @@ func validateProfileBytes(yaml C.c_string) *C.char {
 
 //export readOverride
 func readOverride(slot C.int) *C.char {
+	defer guard("readOverride")()
 	return C.CString(config.ReadOverride(config.OverrideSlot(slot)))
 }
 
 //export writeOverride
 func writeOverride(slot C.int, content C.c_string) {
+	defer guard("writeOverride")()
 	c := C.GoString(content)
 
 	config.WriteOverride(config.OverrideSlot(slot), c)
@@ -120,5 +174,6 @@ func writeOverride(slot C.int, content C.c_string) {
 
 //export clearOverride
 func clearOverride(slot C.int) {
+	defer guard("clearOverride")()
 	config.ClearOverride(config.OverrideSlot(slot))
 }

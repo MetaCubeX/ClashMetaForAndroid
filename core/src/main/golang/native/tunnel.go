@@ -4,6 +4,7 @@ package main
 import "C"
 
 import (
+	"fmt"
 	"unsafe"
 
 	"cfa/native/app"
@@ -12,6 +13,7 @@ import (
 
 //export queryTunnelState
 func queryTunnelState() *C.char {
+	defer guard("queryTunnelState")()
 	mode := tunnel.QueryMode()
 
 	response := &struct {
@@ -23,6 +25,7 @@ func queryTunnelState() *C.char {
 
 //export queryNow
 func queryNow(upload, download *C.uint64_t) {
+	defer guard("queryNow")()
 	up, down := tunnel.Now()
 
 	*upload = C.uint64_t(up)
@@ -31,6 +34,7 @@ func queryNow(upload, download *C.uint64_t) {
 
 //export queryTotal
 func queryTotal(upload, download *C.uint64_t) {
+	defer guard("queryTotal")()
 	up, down := tunnel.Total()
 
 	*upload = C.uint64_t(up)
@@ -39,16 +43,19 @@ func queryTotal(upload, download *C.uint64_t) {
 
 //export queryGroupNames
 func queryGroupNames(excludeNotSelectable C.int) *C.char {
+	defer guard("queryGroupNames")()
 	return marshalJson(tunnel.QueryProxyGroupNames(excludeNotSelectable != 0))
 }
 
 //export queryAllGroupNamesIncludingHidden
 func queryAllGroupNamesIncludingHidden() *C.char {
+	defer guard("queryAllGroupNamesIncludingHidden")()
 	return marshalJson(tunnel.QueryAllProxyGroupNamesIncludingHidden())
 }
 
 //export queryGroup
 func queryGroup(name C.c_string, sortMode C.c_string) *C.char {
+	defer guard("queryGroup")()
 	n := C.GoString(name)
 	s := C.GoString(sortMode)
 
@@ -73,15 +80,37 @@ func queryGroup(name C.c_string, sortMode C.c_string) *C.char {
 //export healthCheck
 func healthCheck(completable unsafe.Pointer, name C.c_string) {
 	go func(name string) {
+		completed := false
+		defer func() {
+			if r := recover(); r != nil {
+				logRecover("healthCheck", r)
+				if !completed {
+					C.complete(completable, marshalString(fmt.Sprintf("native panic: %v", r)))
+				}
+			}
+		}()
+
 		tunnel.HealthCheck(name)
 
 		C.complete(completable, nil)
+		completed = true
 	}(C.GoString(name))
 }
 
 //export healthCheckWithCallback
 func healthCheckWithCallback(callback unsafe.Pointer, name C.c_string) {
 	go func(name string, callback unsafe.Pointer) {
+		completed := false
+		defer func() {
+			if r := recover(); r != nil {
+				logRecover("healthCheckWithCallback", r)
+				if !completed {
+					C.proxy_delay_complete(callback, marshalString(fmt.Sprintf("native panic: %v", r)))
+					C.release_object(callback)
+				}
+			}
+		}()
+
 		earlyErr := tunnel.HealthCheckWithCallback(name, func(proxyName string, delayMs int, errMsg string) {
 			var errCStr *C.char
 			if errMsg != "" {
@@ -97,16 +126,19 @@ func healthCheckWithCallback(callback unsafe.Pointer, name C.c_string) {
 		C.proxy_delay_complete(callback, earlyErrCStr)
 
 		C.release_object(callback)
+		completed = true
 	}(C.GoString(name), callback)
 }
 
 //export healthCheckAll
 func healthCheckAll() {
+	defer guard("healthCheckAll")()
 	tunnel.HealthCheckAll()
 }
 
 //export patchSelector
 func patchSelector(selector, name C.c_string) C.int {
+	defer guard("patchSelector")()
 	s := C.GoString(selector)
 	n := C.GoString(name)
 
@@ -119,16 +151,19 @@ func patchSelector(selector, name C.c_string) C.int {
 
 //export queryProviders
 func queryProviders() *C.char {
+	defer guard("queryProviders")()
 	return marshalJson(tunnel.QueryProviders())
 }
 
 //export queryConnectionsSnapshot
 func queryConnectionsSnapshot() *C.char {
+	defer guard("queryConnectionsSnapshot")()
 	return marshalJson(tunnel.QueryConnectionsSnapshot())
 }
 
 //export closeConnection
 func closeConnection(id C.c_string) C.int {
+	defer guard("closeConnection")()
 	if tunnel.CloseConnection(C.GoString(id)) {
 		return 1
 	}
@@ -137,19 +172,33 @@ func closeConnection(id C.c_string) C.int {
 
 //export closeAllConnections
 func closeAllConnections() C.int {
+	defer guard("closeAllConnections")()
 	return C.int(tunnel.CloseAllConnections())
 }
 
 //export updateProvider
 func updateProvider(completable unsafe.Pointer, pType C.c_string, name C.c_string) {
 	go func(pType, name string) {
+		completed := false
+		defer func() {
+			if r := recover(); r != nil {
+				logRecover("updateProvider", r)
+				if !completed {
+					C.complete(completable, marshalString(fmt.Sprintf("native panic: %v", r)))
+					C.release_object(completable)
+				}
+			}
+		}()
+
 		C.complete(completable, marshalString(tunnel.UpdateProvider(pType, name)))
 
 		C.release_object(completable)
+		completed = true
 	}(C.GoString(pType), C.GoString(name))
 }
 
 //export suspend
 func suspend(suspended C.int) {
+	defer guard("suspend")()
 	tunnel.Suspend(suspended != 0)
 }

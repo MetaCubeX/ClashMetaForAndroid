@@ -31,6 +31,7 @@ func openRemoteContent(url string) (int, error) {
 
 //export notifyDnsChanged
 func notifyDnsChanged(dnsList C.c_string) {
+	defer guard("notifyDnsChanged")()
 	d := C.GoString(dnsList)
 
 	app.NotifyDnsChanged(d)
@@ -38,6 +39,7 @@ func notifyDnsChanged(dnsList C.c_string) {
 
 //export notifyInstalledAppsChanged
 func notifyInstalledAppsChanged(uids C.c_string) {
+	defer guard("notifyInstalledAppsChanged")()
 	u := C.GoString(uids)
 
 	app.NotifyInstallAppsChanged(u)
@@ -45,12 +47,14 @@ func notifyInstalledAppsChanged(uids C.c_string) {
 
 //export notifyTimeZoneChanged
 func notifyTimeZoneChanged(name C.c_string, offset C.int) {
+	defer guard("notifyTimeZoneChanged")()
 	app.NotifyTimeZoneChanged(C.GoString(name), int(offset))
 }
 
 
 //export queryConfiguration
 func queryConfiguration() *C.char {
+	defer guard("queryConfiguration")()
 	response := &struct{}{}
 
 	return marshalJson(&response)
