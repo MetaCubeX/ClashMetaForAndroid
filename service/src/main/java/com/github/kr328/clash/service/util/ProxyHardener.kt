@@ -94,24 +94,17 @@ object ProxyHardener {
         var changed = false
         val geo = configuration.geoxurl
 
-        if (geo.geoip.isNullOrBlank()) {
-            geo.geoip = GeoMirrors.primaryGeoIpDat()
-            changed = true
-        } else if (GeoMirrors.isBroken(geo.geoip)) {
+        // Allowlist (fail-closed): seed when absent, and rewrite any host that
+        // is not a trusted mirror to the trusted primary.
+        if (geo.geoip.isNullOrBlank() || !GeoMirrors.isTrusted(geo.geoip)) {
             geo.geoip = GeoMirrors.primaryGeoIpDat()
             changed = true
         }
-        if (geo.geosite.isNullOrBlank()) {
-            geo.geosite = GeoMirrors.primaryGeoSiteDat()
-            changed = true
-        } else if (GeoMirrors.isBroken(geo.geosite)) {
+        if (geo.geosite.isNullOrBlank() || !GeoMirrors.isTrusted(geo.geosite)) {
             geo.geosite = GeoMirrors.primaryGeoSiteDat()
             changed = true
         }
-        if (geo.mmdb.isNullOrBlank()) {
-            geo.mmdb = GeoMirrors.primaryGeoIpMmdb()
-            changed = true
-        } else if (GeoMirrors.isBroken(geo.mmdb)) {
+        if (geo.mmdb.isNullOrBlank() || !GeoMirrors.isTrusted(geo.mmdb)) {
             geo.mmdb = GeoMirrors.primaryGeoIpMmdb()
             changed = true
         }
