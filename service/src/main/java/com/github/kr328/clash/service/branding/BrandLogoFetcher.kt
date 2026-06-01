@@ -3,6 +3,7 @@ package com.github.kr328.clash.service.branding
 import android.content.Context
 import android.graphics.BitmapFactory
 import com.github.kr328.clash.common.log.Log
+import com.github.kr328.clash.common.log.LogRedaction
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -40,18 +41,20 @@ object BrandLogoFetcher {
     )
 
     suspend fun fetch(context: Context, urlString: String): String? = withContext(Dispatchers.IO) {
+        // LOG-1: never log the full URL (may carry operator tokens / query
+        // params) — log only host/scheme, or redact when there's no host.
         val parsed = runCatching { URL(urlString) }.getOrNull()
         if (parsed == null) {
-            Log.w("BrandLogoFetcher: malformed URL: $urlString")
+            Log.w("BrandLogoFetcher: malformed URL: ${LogRedaction.redactSuspicious(urlString)}")
             return@withContext null
         }
         if (!parsed.protocol.equals("https", ignoreCase = true)) {
-            Log.w("BrandLogoFetcher: rejected non-https URL: $urlString")
+            Log.w("BrandLogoFetcher: rejected non-https URL (scheme=${parsed.protocol}, host=${parsed.host})")
             return@withContext null
         }
         if (!isPublicHost(parsed.host)) {
             Log.w(
-                "BrandLogoFetcher: SSRF guard rejected $urlString — host '${parsed.host}' " +
+                "BrandLogoFetcher: SSRF guard rejected host '${parsed.host}' — " +
                     "resolves to a private/loopback/link-local IP (this can happen when the " +
                     "VPN tunnel is active and DNS resolves through it)",
             )
