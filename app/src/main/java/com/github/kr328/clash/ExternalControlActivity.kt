@@ -5,12 +5,15 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.app.NotificationChannelCompat
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 import com.github.kr328.clash.common.constants.Intents
+import com.github.kr328.clash.service.store.ServiceStore
 import com.github.kr328.clash.common.util.intent
 import com.github.kr328.clash.common.util.setUUID
 import com.github.kr328.clash.design.MainDesign
 import com.github.kr328.clash.design.ui.ToastDuration
-import com.github.kr328.clash.remote.Remote
 import com.github.kr328.clash.remote.StatusClient
 import com.github.kr328.clash.service.model.Profile
 import com.github.kr328.clash.util.startClashService
@@ -53,25 +56,28 @@ class ExternalControlActivity : Activity(), CoroutineScope by MainScope() {
                 }
             }
 
-            Intents.ACTION_TOGGLE_CLASH -> if(Remote.broadcasts.clashRunning) {
-                stopClash()
-            }
-            else {
-                startClash()
-            }
-
-            Intents.ACTION_START_CLASH -> if(!Remote.broadcasts.clashRunning) {
-                startClash()
-            }
-            else {
-                Toast.makeText(this, R.string.external_control_started, Toast.LENGTH_LONG).show()
+            Intents.ACTION_TOGGLE_CLASH -> if (externalControlAllowed()) {
+                if (isServiceRunning()) {
+                    stopClash()
+                } else {
+                    startClash()
+                }
             }
 
-            Intents.ACTION_STOP_CLASH -> if(Remote.broadcasts.clashRunning) {
-                stopClash()
+            Intents.ACTION_START_CLASH -> if (externalControlAllowed()) {
+                if (!isServiceRunning()) {
+                    startClash()
+                } else {
+                    Toast.makeText(this, R.string.external_control_started, Toast.LENGTH_LONG).show()
+                }
             }
-            else {
-                Toast.makeText(this, R.string.external_control_stopped, Toast.LENGTH_LONG).show()
+
+            Intents.ACTION_STOP_CLASH -> if (externalControlAllowed()) {
+                if (isServiceRunning()) {
+                    stopClash()
+                } else {
+                    Toast.makeText(this, R.string.external_control_stopped, Toast.LENGTH_LONG).show()
+                }
             }
         }
         return finish()
@@ -93,6 +99,57 @@ class ExternalControlActivity : Activity(), CoroutineScope by MainScope() {
     private fun stopClash() {
         stopClashService()
         Toast.makeText(this, R.string.external_control_stopped, Toast.LENGTH_LONG).show()
+        // SEC-3: an external stop must never be silent — let the user know the
+        // VPN was stopped by something other than their own action.
+        notifyExternalStop()
+    }
+
+    /**
+     * Fresh, authoritative running state via the status ContentProvider —
+     * unlike Remote.broadcasts.clashRunning, this is never stale when the
+     * activity is (cold-)started by an external intent, so external
+     * START/STOP/TOGGLE act on the real VPN state.
+     */
+    private fun isServiceRunning(): Boolean =
+        StatusClient(this).statusSnapshot().serviceRunning
+
+    /**
+     * SEC-3 gate. External control actions are honored only when the user has
+     * not disabled them. When disabled, give brief feedback and do nothing.
+     */
+    private fun externalControlAllowed(): Boolean {
+        if (ServiceStore(this).allowExternalControl) return true
+        Toast.makeText(this, R.string.external_control_disabled, Toast.LENGTH_LONG).show()
+        return false
+    }
+
+    private fun notifyExternalStop() {
+        val manager = NotificationManagerCompat.from(this)
+        // Best-effort: on Android 13+ without POST_NOTIFICATIONS this is a no-op;
+        // the allow-external-control setting is the guaranteed control.
+        if (!manager.areNotificationsEnabled()) return
+
+        manager.createNotificationChannel(
+            NotificationChannelCompat.Builder(
+                EXTERNAL_STOP_CHANNEL_ID,
+                NotificationManagerCompat.IMPORTANCE_DEFAULT,
+            ).setName(getString(R.string.external_stop_channel)).build()
+        )
+
+        val notification = NotificationCompat.Builder(this, EXTERNAL_STOP_CHANNEL_ID)
+            .setSmallIcon(android.R.drawable.stat_sys_warning)
+            .setContentTitle(getString(R.string.external_stop_title))
+            .setContentText(getString(R.string.external_stop_text))
+            .setAutoCancel(true)
+            .setOnlyAlertOnce(true)
+            .build()
+
+        manager.notify(EXTERNAL_STOP_NOTIFICATION_ID, notification)
+    }
+
+    private companion object {
+        const val EXTERNAL_STOP_CHANNEL_ID = "external_control_channel"
+        const val EXTERNAL_STOP_NOTIFICATION_ID = 0x4543 // 'EC'
     }
 
     override fun finish() {

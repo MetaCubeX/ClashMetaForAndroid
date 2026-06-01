@@ -82,6 +82,19 @@ class ServiceStore(context: Context) {
     )
 
     /**
+     * When true, externally-originated control intents (START/STOP/TOGGLE_CLASH
+     * via the exported ExternalControlActivity) are honored. Default true so
+     * existing automation (Tasker, launcher shortcuts) keeps working; when the
+     * user turns it off, external apps cannot drive the VPN at all. An external
+     * stop is always surfaced via a notification regardless of this flag (see
+     * SEC-3 / external-control-policy).
+     */
+    var allowExternalControl by store.boolean(
+        key = "allow_external_control",
+        defaultValue = true
+    )
+
+    /**
      * Hardening level applied at runtime against SOCKS5/HTTP/Mixed listener
      * leaks and direct access to the TUN interface from other apps. See
      * [ProxyHardeningMode]. Default is [ProxyHardeningMode.Strict] on Android

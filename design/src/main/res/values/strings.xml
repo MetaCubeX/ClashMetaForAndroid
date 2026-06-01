@@ -934,6 +934,12 @@ Presets only change <b>where</b> files are downloaded from (CDN / host). It is s
     <string name="external_control_activity">External Control</string>
     <string name="external_control_started">Clash.Meta service started</string>
     <string name="external_control_stopped">Clash.Meta service stopped</string>
+    <string name="allow_external_control_title">Allow external control</string>
+    <string name="allow_external_control_summary">Let other apps start, stop or toggle the VPN (e.g. Tasker, shortcuts). When off, external requests are ignored.</string>
+    <string name="external_control_disabled">External control is disabled</string>
+    <string name="external_stop_channel">External control</string>
+    <string name="external_stop_title">VPN stopped</string>
+    <string name="external_stop_text">The VPN was stopped by an external request</string>
 
     <string name="hide_app_icon_title">Hide App Icon</string>
     <string name="hide_app_icon_desc">You can dial *#*#252746382#*#* to open this App</string>

@@ -100,6 +100,13 @@ class AppSettingsDesign(
             ) {
                 enabled = !running
             }
+
+            switch(
+                value = srvStore::allowExternalControl,
+                icon = R.drawable.ic_baseline_stack,
+                title = R.string.allow_external_control_title,
+                summary = R.string.allow_external_control_summary,
+            )
         }
 
         binding.content.addView(screen.root)
