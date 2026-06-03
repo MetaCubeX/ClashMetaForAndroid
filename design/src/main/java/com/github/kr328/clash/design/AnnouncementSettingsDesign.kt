@@ -37,10 +37,7 @@ class AnnouncementSettingsDesign(
 
     init {
         binding.surface = surface
-        binding.toolbar.title = (context as? Activity)?.title?.toString().orEmpty()
-        binding.toolbar.setNavigationOnClickListener {
-            (context as? AppCompatActivity)?.onBackPressedDispatcher?.onBackPressed()
-        }
+        binding.header.screenTitle.text = (context as? Activity)?.title?.toString().orEmpty()
 
         // Bridge non-null UiStore strings to nullable properties expected by editableText.
         val supportUrlNullable = NullableStringProperty(uiStore::supportUrl)

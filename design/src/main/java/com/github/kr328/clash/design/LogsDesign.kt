@@ -51,11 +51,6 @@ class LogsDesign(context: Context) : Design<LogsDesign.Request>(context) {
     init {
         binding.self = this
 
-        binding.toolbar.title = context.getString(R.string.logs)
-        binding.toolbar.setNavigationOnClickListener {
-            (context as? AppCompatActivity)?.onBackPressedDispatcher?.onBackPressed()
-        }
-
         binding.recyclerList.applyLinearAdapter(context, adapter)
     }
 }

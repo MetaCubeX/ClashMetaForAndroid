@@ -53,10 +53,7 @@ class ThemeSettingsDesign(
 
     init {
         binding.surface = surface
-        binding.toolbar.title = context.getString(R.string.theme_settings)
-        binding.toolbar.setNavigationOnClickListener {
-            (context as? AppCompatActivity)?.onBackPressedDispatcher?.onBackPressed()
-        }
+        binding.header.screenTitle.text = context.getString(R.string.theme_settings)
 
         setupThemeMode()
         setupDynamicColors()

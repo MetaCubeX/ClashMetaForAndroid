@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data />
+
+    <TextView
+        android:id="@+id/screen_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="6dp"
+        android:paddingBottom="12dp"
+        android:textAppearance="@style/TextAppearance.App.TitleLarge"
+        android:textColor="?attr/colorOnSurface"
+        android:textStyle="bold"
+        tools:text="Routing" />
+</layout>

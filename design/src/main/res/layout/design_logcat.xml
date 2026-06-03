@@ -19,12 +19,17 @@
         android:paddingStart="@{self.surface.insets.start}"
         android:paddingEnd="@{self.surface.insets.end}">
 
-        <com.google.android.material.appbar.MaterialToolbar
-            android:id="@+id/toolbar"
-            style="@style/AppToolbar"
-            android:layout_width="match_parent"
+        <TextView
+            android:id="@+id/screen_title"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:paddingTop="@{self.surface.insets.top}" />
+            android:paddingStart="16dp"
+            android:paddingTop="@{self.surface.insets.top}"
+            android:paddingBottom="12dp"
+            android:text="@string/logcat"
+            android:textAppearance="@style/TextAppearance.App.TitleLarge"
+            android:textColor="?attr/colorOnSurface"
+            android:textStyle="bold" />
 
         <com.github.kr328.clash.design.view.AppRecyclerView
             android:id="@+id/recycler_list"

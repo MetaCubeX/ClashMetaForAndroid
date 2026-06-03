@@ -48,10 +48,7 @@ class MetaFeatureSettingsDesign(
     init {
         binding.self = this
 
-        binding.toolbar.title = context.getString(R.string.meta_features)
-        binding.toolbar.setNavigationOnClickListener {
-            (context as? AppCompatActivity)?.onBackPressedDispatcher?.onBackPressed()
-        }
+        binding.header.screenTitle.text = context.getString(R.string.meta_features)
 
         val booleanValues: Array<Boolean?> = arrayOf(
             null,

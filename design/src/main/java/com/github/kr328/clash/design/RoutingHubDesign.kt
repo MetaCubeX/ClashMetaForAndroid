@@ -22,7 +22,7 @@ class RoutingHubDesign(context: Context) : Design<RoutingHubDesign.Request>(cont
 
     init {
         binding.self = this
-        binding.toolbar.title = context.getString(R.string.nav_routing)
+        binding.header.screenTitle.text = context.getString(R.string.nav_routing)
 
         binding.cardEffectiveRules.setOnClickListener { requests.trySend(Request.OpenEffectiveRules) }
         binding.cardRuleSnippets.setOnClickListener { requests.trySend(Request.OpenRules) }

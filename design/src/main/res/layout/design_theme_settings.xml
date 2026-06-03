@@ -16,19 +16,12 @@
         android:paddingStart="@{surface.insets.start}"
         android:paddingEnd="@{surface.insets.end}">
 
-        <com.google.android.material.appbar.MaterialToolbar
-            android:id="@+id/toolbar"
-            style="@style/AppToolbar"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingTop="@{surface.insets.top}" />
-
         <com.github.kr328.clash.design.view.ObservableScrollView
             android:id="@+id/scroll_root"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:clipToPadding="false"
-            app:marginTopPx="@{BindingExpressions.marginBelowToolbarPx(context, surface.insets.top)}"
+            app:marginTopPx="@{surface.insets.top}"
             android:scrollbars="none">
 
             <LinearLayout
@@ -36,8 +29,12 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:paddingHorizontal="16dp"
-                android:paddingTop="@dimen/theme_screen_top_extra"
+                android:paddingTop="12dp"
                 android:paddingBottom="@{surface.insets.bottom + context.resources.getDimensionPixelSize(com.github.kr328.clash.design.R.dimen.theme_screen_bottom_extra)}">
+
+                <include
+                    android:id="@+id/header"
+                    layout="@layout/include_screen_header" />
 
                 <com.google.android.material.button.MaterialButtonToggleGroup
                     android:id="@+id/theme_mode_group"

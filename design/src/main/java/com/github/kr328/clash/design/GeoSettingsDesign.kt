@@ -29,10 +29,7 @@ class GeoSettingsDesign(
 
     init {
         binding.surface = surface
-        binding.toolbar.title = (context as? Activity)?.title?.toString().orEmpty()
-        binding.toolbar.setNavigationOnClickListener {
-            (context as? AppCompatActivity)?.onBackPressedDispatcher?.onBackPressed()
-        }
+        binding.header.screenTitle.text = (context as? Activity)?.title?.toString().orEmpty()
 
         val booleanValues: Array<Boolean?> = arrayOf(
             null,

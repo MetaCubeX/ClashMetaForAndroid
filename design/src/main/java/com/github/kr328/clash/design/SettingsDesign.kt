@@ -23,10 +23,7 @@ class SettingsDesign(context: Context) : Design<SettingsDesign.Request>(context)
 
     init {
         binding.self = this
-        binding.toolbar.title = context.getString(R.string.main_advanced_settings)
-        binding.toolbar.setNavigationOnClickListener {
-            (context as? AppCompatActivity)?.onBackPressedDispatcher?.onBackPressed()
-        }
+        binding.header.screenTitle.text = context.getString(R.string.main_advanced_settings)
     }
 
     fun request(request: Request) {
