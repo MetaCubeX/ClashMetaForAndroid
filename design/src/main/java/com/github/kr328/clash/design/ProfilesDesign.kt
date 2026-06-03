@@ -4,6 +4,7 @@ import android.app.Dialog
 import android.content.Context
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.widget.PopupMenu
 import androidx.databinding.Observable
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
@@ -105,7 +106,6 @@ class ProfilesDesign(context: Context) : Design<ProfilesDesign.Request>(context)
 
         withContext(Dispatchers.Main) {
             binding.headerUpdateButton.visibility = if (updatable) View.VISIBLE else View.GONE
-            binding.headerTitle.visibility = View.GONE
             binding.headerCount.text = context.getString(R.string.profiles_header_total_fmt, profiles.size)
             binding.headerActive.text = context.getString(R.string.profiles_header_active_fmt, activeCount)
             binding.headerSubtitle.text = context.getString(
@@ -133,27 +133,10 @@ class ProfilesDesign(context: Context) : Design<ProfilesDesign.Request>(context)
 
     init {
         binding.self = this
-        binding.toolbar.title = context.getString(R.string.main_open_profiles)
         configureSortMenu()
 
         binding.recyclerList.applyLinearAdapter(context, adapter)
         itemTouchHelper.attachToRecyclerView(binding.recyclerList)
-        surface.addOnPropertyChangedCallback(object : Observable.OnPropertyChangedCallback() {
-            override fun onPropertyChanged(sender: Observable?, propertyId: Int) {
-                if (propertyId == BR.insets) {
-                    applyHeaderTopInset()
-                }
-            }
-        })
-        applyHeaderTopInset()
-    }
-
-    private fun applyHeaderTopInset() {
-        val lp = binding.profilesHeaderCard.layoutParams as? ViewGroup.MarginLayoutParams ?: return
-        val target = context.getPixels(R.dimen.toolbar_height) + surface.insets.top
-        if (lp.topMargin == target) return
-        lp.topMargin = target
-        binding.profilesHeaderCard.layoutParams = lp
     }
 
     private fun showMenu(profile: Profile, @Suppress("UNUSED_PARAMETER") anchor: View) {
@@ -186,33 +169,26 @@ class ProfilesDesign(context: Context) : Design<ProfilesDesign.Request>(context)
     }
 
     private fun configureSortMenu() {
-        val sortMenu = binding.toolbar.menu.addSubMenu(R.string.profiles_sort)
-        ProfileSortMode.values().forEach { mode ->
-            sortMenu.add(0, SORT_ITEM_ID_BASE + mode.ordinal, mode.ordinal, sortModeTitle(mode))
-                .setCheckable(true)
-        }
-        sortMenu.item.setIcon(R.drawable.ic_baseline_swap_vert)
-        sortMenu.item.setShowAsAction(android.view.MenuItem.SHOW_AS_ACTION_ALWAYS)
-        binding.toolbar.setOnMenuItemClickListener { item ->
-            val mode = ProfileSortMode.values().getOrNull(item.itemId - SORT_ITEM_ID_BASE)
-                ?: return@setOnMenuItemClickListener false
-            uiStore.profileSortMode = mode
-            updateSortMenuChecks()
-            adapter.profiles = sortProfilesForDisplay(manualProfiles)
-            adapter.notifyDataSetChanged()
-            true
-        }
-        updateSortMenuChecks()
-    }
-
-    private fun updateSortMenuChecks() {
-        val mode = uiStore.profileSortMode
-        val menu = binding.toolbar.menu
-        for (i in 0 until menu.size()) {
-            val sub = menu.getItem(i).subMenu ?: continue
-            for (j in 0 until sub.size()) {
-                sub.getItem(j).isChecked = sub.getItem(j).itemId == SORT_ITEM_ID_BASE + mode.ordinal
+        binding.btnSort.setOnClickListener { anchor ->
+            val popup = PopupMenu(context, anchor)
+            ProfileSortMode.values().forEach { mode ->
+                popup.menu.add(0, SORT_ITEM_ID_BASE + mode.ordinal, mode.ordinal, sortModeTitle(mode))
+                    .isCheckable = true
             }
+            val current = uiStore.profileSortMode
+            for (i in 0 until popup.menu.size()) {
+                popup.menu.getItem(i).isChecked =
+                    popup.menu.getItem(i).itemId == SORT_ITEM_ID_BASE + current.ordinal
+            }
+            popup.setOnMenuItemClickListener { item ->
+                val mode = ProfileSortMode.values().getOrNull(item.itemId - SORT_ITEM_ID_BASE)
+                    ?: return@setOnMenuItemClickListener false
+                uiStore.profileSortMode = mode
+                adapter.profiles = sortProfilesForDisplay(manualProfiles)
+                adapter.notifyDataSetChanged()
+                true
+            }
+            popup.show()
         }
     }
 
