@@ -16,92 +16,58 @@
         android:paddingStart="@{self.surface.insets.start}"
         android:paddingEnd="@{self.surface.insets.end}">
 
-        <com.google.android.material.appbar.MaterialToolbar
-            android:id="@+id/toolbar"
-            style="@style/AppToolbar"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingTop="@{self.surface.insets.top}" />
-
-        <com.github.kr328.clash.design.view.AppRecyclerView
-            android:id="@+id/recycler_list"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:clipToPadding="false"
-            android:paddingHorizontal="4dp"
-            android:paddingTop="@{self.surface.insets.top + context.resources.getDimensionPixelSize(com.github.kr328.clash.design.R.dimen.toolbar_height) + context.resources.getDimensionPixelSize(com.github.kr328.clash.design.R.dimen.profiles_header_height)}"
-            android:paddingBottom="@{self.surface.insets.bottom}" />
-
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/profiles_header_card"
-            style="@style/AppCard.Filled"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
-            android:layout_marginTop="@dimen/toolbar_height"
-            android:layout_marginEnd="12dp"
-            app:cardBackgroundColor="?attr/colorSurfaceContainer"
-            app:cardCornerRadius="20dp"
-            app:cardElevation="0dp">
+            android:orientation="vertical"
+            android:paddingTop="@{self.surface.insets.top}"
+            android:paddingBottom="@{self.surface.insets.bottom}">
 
             <LinearLayout
+                android:id="@+id/profiles_header_card"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:paddingStart="16dp"
-                android:paddingTop="0dp"
                 android:paddingEnd="16dp"
-                android:paddingBottom="12dp">
+                android:paddingTop="12dp"
+                android:paddingBottom="8dp">
 
-                <TextView
-                    android:id="@+id/header_title"
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:text="@string/nav_subscriptions"
-                    android:textAppearance="@style/TextAppearance.App.TitleMedium"
-                    android:textColor="?attr/colorOnSurface"
-                    android:textStyle="bold" />
+                    android:baselineAligned="false"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/header_title"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/main_open_profiles"
+                        android:textAppearance="@style/TextAppearance.App.TitleLarge"
+                        android:textColor="?attr/colorOnSurface"
+                        android:textStyle="bold" />
+
+                    <ImageButton
+                        android:id="@+id/btn_sort"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:contentDescription="@string/profiles_sort"
+                        android:padding="8dp"
+                        android:src="@drawable/ic_baseline_swap_vert"
+                        app:tint="?attr/colorOnSurfaceVariant" />
+                </LinearLayout>
 
                 <TextView
                     android:id="@+id/header_subtitle"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
+                    android:layout_marginTop="2dp"
                     android:textAppearance="@style/TextAppearance.App.BodySmall"
                     android:textColor="?attr/colorOnSurfaceVariant" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:id="@+id/header_count"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:background="@drawable/bg_m3_status_chip_neutral"
-                        android:gravity="center"
-                        android:paddingHorizontal="10dp"
-                        android:paddingVertical="6dp"
-                        android:textAppearance="@style/TextAppearance.App.LabelMedium"
-                        android:textColor="?attr/colorOnSurfaceVariant" />
-
-                    <TextView
-                        android:id="@+id/header_active"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="8dp"
-                        android:background="@drawable/bg_m3_status_chip_neutral"
-                        android:gravity="center"
-                        android:paddingHorizontal="10dp"
-                        android:paddingVertical="6dp"
-                        android:textAppearance="@style/TextAppearance.App.LabelMedium"
-                        android:textColor="?attr/colorOnSurfaceVariant" />
-                </LinearLayout>
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -114,7 +80,7 @@
                         style="@style/AppButton"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1.25"
+                        android:layout_weight="1.4"
                         android:minHeight="44dp"
                         android:onClick="@{() -> self.requestCreate()}"
                         android:text="@string/main_add_subscription"
@@ -145,24 +111,63 @@
                         app:iconPadding="6dp"
                         app:iconSize="18dp" />
                 </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/header_count"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/bg_m3_status_chip_neutral"
+                        android:gravity="center"
+                        android:paddingHorizontal="12dp"
+                        android:paddingVertical="6dp"
+                        android:textAppearance="@style/TextAppearance.App.LabelMedium"
+                        android:textColor="?attr/colorOnSurfaceVariant" />
+
+                    <TextView
+                        android:id="@+id/header_active"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:background="@drawable/bg_m3_status_chip_neutral"
+                        android:gravity="center"
+                        android:paddingHorizontal="12dp"
+                        android:paddingVertical="6dp"
+                        android:textAppearance="@style/TextAppearance.App.LabelMedium"
+                        android:textColor="?attr/colorOnSurfaceVariant" />
+                </LinearLayout>
             </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
+
+            <com.github.kr328.clash.design.view.AppRecyclerView
+                android:id="@+id/recycler_list"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:clipToPadding="false"
+                android:paddingHorizontal="4dp"
+                android:paddingBottom="8dp" />
+        </LinearLayout>
 
         <LinearLayout
             android:id="@+id/empty_state"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:gravity="top|center_horizontal"
+            android:gravity="center"
             android:orientation="vertical"
             android:paddingHorizontal="28dp"
-            android:paddingTop="@{self.surface.insets.top + context.resources.getDimensionPixelSize(com.github.kr328.clash.design.R.dimen.toolbar_height)}"
+            android:paddingTop="@{self.surface.insets.top}"
             android:visibility="gone">
 
             <com.google.android.material.card.MaterialCardView
                 style="@style/AppCard.Filled"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
                 app:cardBackgroundColor="?attr/colorSurfaceContainer"
                 app:cardCornerRadius="20dp"
                 app:cardElevation="0dp">
