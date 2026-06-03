@@ -4,6 +4,7 @@ import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ArrayAdapter
 import android.widget.ImageButton
 import android.widget.TextView
 import androidx.appcompat.widget.PopupMenu
@@ -59,7 +60,6 @@ class EffectiveRulesDesign(context: Context) : Design<EffectiveRulesDesign.Reque
 
     init {
         binding.self = this
-        binding.toolbar.title = ""
         binding.ruleList.layoutManager = LinearLayoutManager(context)
         binding.ruleList.adapter = adapter
         binding.btnOpenLogcat.setOnClickListener {
@@ -69,13 +69,24 @@ class EffectiveRulesDesign(context: Context) : Design<EffectiveRulesDesign.Reque
             searchQuery = it?.toString().orEmpty()
             renderRules()
         }
-        binding.ruleFilterChips.setOnCheckedChangeListener { _, checkedId ->
-            filterMode = when (checkedId) {
-                R.id.filter_active -> FilterMode.ACTIVE
-                R.id.filter_disabled -> FilterMode.DISABLED
-                R.id.filter_deleted -> FilterMode.DELETED
-                else -> FilterMode.ALL
-            }
+        val filterModes = listOf(
+            FilterMode.ALL,
+            FilterMode.ACTIVE,
+            FilterMode.DISABLED,
+            FilterMode.DELETED,
+        )
+        val filterLabels = listOf(
+            context.getString(R.string.effective_rules_filter_all),
+            context.getString(R.string.effective_rules_filter_active),
+            context.getString(R.string.effective_rules_filter_disabled),
+            context.getString(R.string.effective_rules_filter_deleted),
+        )
+        binding.ruleFilterDropdown.setAdapter(
+            ArrayAdapter(context, android.R.layout.simple_dropdown_item_1line, filterLabels),
+        )
+        binding.ruleFilterDropdown.setText(filterLabels[filterModes.indexOf(filterMode)], false)
+        binding.ruleFilterDropdown.setOnItemClickListener { _, _, position, _ ->
+            filterMode = filterModes.getOrElse(position) { FilterMode.ALL }
             renderRules()
         }
     }
@@ -220,6 +231,12 @@ class EffectiveRulesDesign(context: Context) : Design<EffectiveRulesDesign.Reque
         override fun getItemCount(): Int = rules.size
 
         private fun buildRuleLine(item: RuleItem): String {
+            // Logical/opaque rules (AND/OR/NOT/SUB-RULE/SCRIPT) keep the whole
+            // line in `raw` with empty value/policy — reconstructing them from
+            // fields yields "AND,,". Show the raw line verbatim instead.
+            if (item.value.isBlank() && item.policy.isBlank() && item.raw.isNotBlank()) {
+                return item.raw
+            }
             return if (item.type.equals("MATCH", true)) {
                 "MATCH,${item.policy}"
             } else if (item.type == "LEGACY") {
