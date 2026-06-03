@@ -125,7 +125,7 @@
     <string name="routing_hub_category_traffic">Маршрутизация трафика</string>
     <string name="routing_hub_category_apps">По приложениям</string>
     <string name="routing_hub_effective_summary">Активные правила маршрутизации из текущего профиля</string>
-    <string name="routing_hub_rules_summary">Редактирование наборов правил и провайдеров</string>
+    <string name="routing_hub_rules_summary">Просмотр и обновление провайдеров правил</string>
     <string name="routing_hub_per_app_summary">Какие приложения идут через VPN-туннель</string>
     <string name="effective_rules_title">Routing Rules</string>
     <string name="effective_rules_intro">Правила активного профиля в порядке YAML.</string>
@@ -139,6 +139,7 @@
     <string name="effective_rules_no_profile">Сначала выберите импортированный профиль</string>
     <string name="effective_rules_search_hint">Поиск по правилам, политикам, провайдерам…</string>
     <string name="effective_rules_summary_fmt">Показано: %1$d · активно: %2$d · отключено: %3$d · удалено: %4$d</string>
+    <string name="effective_rules_count_fmt">Правил: %1$d</string>
     <string name="effective_rules_source_manual">Вручную</string>
     <string name="effective_rules_source_provider">Провайдер</string>
     <string name="rule_action_enable">Включить</string>
@@ -974,7 +975,7 @@
     <string name="rule_snippet_overflow_cd">Ещё действия</string>
     <string name="rule_snippet_policy_for_ruleset">Отправлять подходящий трафик через</string>
     <string name="rule_snippet_provider_key">Имя провайдера (ключ RULE-SET)</string>
-    <string name="rule_snippet_title">Правила</string>
+    <string name="rule_snippet_title">Провайдеры правил</string>
     <string name="rule_snippet_url">Ссылка на файл правил (https)</string>
     <string name="script_mode">Режим скрипта</string>
     <string name="secret">Секрет</string>

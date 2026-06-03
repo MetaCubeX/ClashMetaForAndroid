@@ -6,7 +6,6 @@ import com.github.kr328.clash.design.R
 import com.github.kr328.clash.design.ui.ToastDuration
 import com.github.kr328.clash.service.model.RuleProviderItem
 import com.github.kr328.clash.service.model.RuleState
-import com.github.kr328.clash.util.showYamlPreview
 import com.github.kr328.clash.util.withProfile
 import kotlinx.serialization.json.Json
 import kotlinx.coroutines.isActive
@@ -40,38 +39,9 @@ class EffectiveRulesActivity : BaseActivity<EffectiveRulesDesign>() {
                     when (it) {
                         is EffectiveRulesDesign.Request.OpenLogcat ->
                             startActivity(LogcatActivity::class.intent)
-                        is EffectiveRulesDesign.Request.ToggleRule -> launch {
-                            val p = withProfile { queryActive() } ?: return@launch
-                            val preview = withProfile { previewMutateRule(p.uuid, it.ruleId, "toggle", it.enabled) }
-                            showYamlPreview(preview) {
-                                reloadRules(design)
-                            }
-                        }
-                        is EffectiveRulesDesign.Request.DeleteRule -> launch {
-                            val p = withProfile { queryActive() } ?: return@launch
-                            val preview = withProfile { previewMutateRule(p.uuid, it.ruleId, "delete", false) }
-                            showYamlPreview(preview) {
-                                reloadRules(design)
-                            }
-                        }
-                        is EffectiveRulesDesign.Request.RestoreRule -> launch {
-                            val p = withProfile { queryActive() } ?: return@launch
-                            val preview = withProfile { previewMutateRule(p.uuid, it.ruleId, "restore", true) }
-                            showYamlPreview(preview) {
-                                reloadRules(design)
-                            }
-                        }
                     }
                 }
             }
         }
-    }
-
-    private suspend fun reloadRules(design: EffectiveRulesDesign) {
-        val active = withProfile { queryActive() } ?: return
-        val stateJson = withProfile { readRuleState(active.uuid) } ?: return
-        val state = runCatching { json.decodeFromString(RuleState.serializer(), stateJson) }.getOrNull() ?: return
-        val providers = state.providers.associateBy(RuleProviderItem::name)
-        design.patchRules(state.rules.sortedBy { it.order }, providers)
     }
 }

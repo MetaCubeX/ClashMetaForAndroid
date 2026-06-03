@@ -45,12 +45,6 @@ class RuleApplyService(
         repository.save(uuid, repository.parseStateJson(stateJson))
     }
 
-    fun dryRunStateJson(uuid: UUID, stateJson: String): RuleDryRun? {
-        val config = configFile(uuid) ?: return null
-        val state = repository.parseStateJson(stateJson)
-        return safeDryRunState(config, state)
-    }
-
     fun mergeProviderShortcut(uuid: UUID, providersYaml: String, prependRuleLine: String): Boolean {
         val config = configFile(uuid) ?: return false
         val current = repository.load(uuid, config.parentFile!!)
@@ -89,62 +83,6 @@ class RuleApplyService(
         return current.copy(providers = mergedProviders, rules = mergedRules)
     }
 
-    fun addRules(uuid: UUID, rawRules: List<String>, addMode: Boolean, insertMode: String): Boolean {
-        val config = configFile(uuid) ?: return false
-        val current = repository.load(uuid, config.parentFile!!)
-        return applyState(uuid, config, addRulesState(current, rawRules, addMode, insertMode))
-    }
-
-    fun dryRunAddRules(uuid: UUID, rawRules: List<String>, addMode: Boolean, insertMode: String): RuleDryRun? {
-        val config = configFile(uuid) ?: return null
-        val current = repository.load(uuid, config.parentFile!!)
-        return safeDryRunState(config, addRulesState(current, rawRules, addMode, insertMode))
-    }
-
-    private fun addRulesState(
-        current: RuleState,
-        rawRules: List<String>,
-        addMode: Boolean,
-        insertMode: String,
-    ): RuleState {
-        val incoming = rawRules.mapIndexedNotNull { idx, line ->
-            RuleMapper.parseRuleLine(line, idx)
-        }
-        if (incoming.isEmpty()) return current
-
-        return if (addMode) {
-            val existing = current.rules.filterNot { it.deleted }.map { ruleLineKey(it) }.toMutableSet()
-            val added = incoming.filter { existing.add(ruleLineKey(it)) }
-            val base = current.rules.toMutableList()
-            when {
-                insertMode.equals("prepend", true) -> base.addAll(0, added)
-                insertMode.startsWith("index:", true) -> {
-                    val idx = insertMode.substringAfter(":").toIntOrNull() ?: base.size
-                    val target = idx.coerceIn(0, base.size)
-                    base.addAll(target, added)
-                }
-                else -> base.addAll(added)
-            }
-            val rules = base.mapIndexed { i, r -> r.copy(order = i) }
-            current.copy(rules = rules)
-        } else {
-            val rules = incoming.mapIndexed { i, r -> r.copy(order = i) }
-            current.copy(rules = rules)
-        }
-    }
-
-    fun mutateRule(uuid: UUID, ruleId: String, action: String, enabled: Boolean? = null): Boolean {
-        val config = configFile(uuid) ?: return false
-        val state = repository.load(uuid, config.parentFile!!)
-        return applyState(uuid, config, mutateRuleState(state, ruleId, action, enabled))
-    }
-
-    fun dryRunMutateRule(uuid: UUID, ruleId: String, action: String, enabled: Boolean? = null): RuleDryRun? {
-        val config = configFile(uuid) ?: return null
-        val state = repository.load(uuid, config.parentFile!!)
-        return safeDryRunState(config, mutateRuleState(state, ruleId, action, enabled))
-    }
-
     /**
      * dryRunState now throws when the engine rejects the merged YAML (Path B
      * Step 3 — see Clash.validateProfileBytes). Dry-run callers must surface
@@ -155,27 +93,6 @@ class RuleApplyService(
         return runCatching { dryRunState(config, state) }
             .onFailure { Log.w("Rule dry-run rejected by engine", it) }
             .getOrNull()
-    }
-
-    private fun mutateRuleState(
-        state: RuleState,
-        ruleId: String,
-        action: String,
-        enabled: Boolean?,
-    ): RuleState {
-        val updatedRules = state.rules.mapNotNull { r ->
-            if (r.id != ruleId) return@mapNotNull r
-            when (action) {
-                "toggle" -> r.copy(enabled = enabled ?: r.enabled)
-                "delete" -> {
-                    if (r.source == RuleSource.PROVIDER) r.copy(deleted = true, enabled = false, isRestorable = true)
-                    else null
-                }
-                "restore" -> r.copy(deleted = false, enabled = true)
-                else -> r
-            }
-        }.mapIndexed { i, r -> r.copy(order = i) }
-        return state.copy(rules = updatedRules)
     }
 
     private fun applyState(uuid: UUID, config: File, state: RuleState): Boolean {
@@ -322,11 +239,4 @@ class RuleApplyService(
         return file.takeIf { it.isFile }
     }
 
-    private fun ruleLineKey(rule: RuleItem): String {
-        return if (rule.type.equals("MATCH", true)) {
-            "MATCH,${rule.policy}".uppercase()
-        } else {
-            "${rule.type},${rule.value},${rule.policy}".uppercase()
-        }
-    }
 }
