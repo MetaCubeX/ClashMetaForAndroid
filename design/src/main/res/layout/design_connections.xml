@@ -28,8 +28,12 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:paddingHorizontal="16dp"
-                android:paddingTop="10dp"
+                android:paddingTop="12dp"
                 android:paddingBottom="10dp">
+
+                <include
+                    android:id="@+id/header"
+                    layout="@layout/include_screen_header" />
 
                 <com.google.android.material.card.MaterialCardView
                     style="@style/AppCard.Filled"
@@ -47,25 +51,11 @@
                         android:orientation="vertical"
                         android:padding="16dp">
 
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="@string/connections_title"
-                            android:textAppearance="@style/TextAppearance.App.TitleMedium"
-                            android:textColor="?attr/colorOnSurface"
-                            android:textStyle="bold" />
-
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
                             android:gravity="center_vertical"
                             android:orientation="horizontal">
-
-                            <View
-                                android:layout_width="0dp"
-                                android:layout_height="1dp"
-                                android:layout_weight="1" />
 
                             <com.google.android.material.button.MaterialButton
                                 android:id="@+id/btn_connections_open_log"
@@ -202,82 +192,54 @@
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
-                <com.google.android.material.textfield.TextInputLayout
-                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
-                    android:hint="@string/connections_search_hint"
-                    app:endIconMode="clear_text"
-                    app:startIconDrawable="@drawable/ic_baseline_search">
+                    android:baselineAligned="false"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
 
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/connections_search"
-                        android:layout_width="match_parent"
+                    <com.google.android.material.textfield.TextInputLayout
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:imeOptions="actionSearch"
-                        android:inputType="text"
-                        android:maxLines="1" />
-                </com.google.android.material.textfield.TextInputLayout>
+                        android:layout_weight="1"
+                        android:hint="@string/connections_search_hint"
+                        app:endIconMode="clear_text"
+                        app:startIconDrawable="@drawable/ic_baseline_search">
 
-                <HorizontalScrollView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
-                    android:overScrollMode="never"
-                    android:scrollbars="none">
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/connections_search"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:minHeight="0dp"
+                            android:paddingTop="9dp"
+                            android:paddingBottom="9dp"
+                            android:imeOptions="actionSearch"
+                            android:inputType="text"
+                            android:maxLines="1" />
+                    </com.google.android.material.textfield.TextInputLayout>
 
-                    <com.google.android.material.chip.ChipGroup
-                        android:id="@+id/connections_filter_chips"
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/connections_filter_layout"
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        app:singleLine="true"
-                        app:singleSelection="true">
+                        android:layout_marginStart="8dp">
 
-                        <com.google.android.material.chip.Chip
-                            android:id="@+id/filter_all"
-                            style="@style/Widget.Material3.Chip.Filter"
+                        <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                            android:id="@+id/connections_filter_dropdown"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:checked="true"
-                            android:text="@string/connections_filter_all" />
-
-                        <com.google.android.material.chip.Chip
-                            android:id="@+id/filter_tcp"
-                            style="@style/Widget.Material3.Chip.Filter"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/connections_filter_tcp" />
-
-                        <com.google.android.material.chip.Chip
-                            android:id="@+id/filter_udp"
-                            style="@style/Widget.Material3.Chip.Filter"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/connections_filter_udp" />
-
-                        <com.google.android.material.chip.Chip
-                            android:id="@+id/filter_direct"
-                            style="@style/Widget.Material3.Chip.Filter"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/connections_filter_direct" />
-
-                        <com.google.android.material.chip.Chip
-                            android:id="@+id/filter_proxy"
-                            style="@style/Widget.Material3.Chip.Filter"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/connections_filter_proxy" />
-
-                        <com.google.android.material.chip.Chip
-                            android:id="@+id/filter_reject"
-                            style="@style/Widget.Material3.Chip.Filter"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/connections_filter_reject" />
-                    </com.google.android.material.chip.ChipGroup>
-                </HorizontalScrollView>
+                            android:minHeight="0dp"
+                            android:paddingTop="9dp"
+                            android:paddingBottom="9dp"
+                            android:inputType="none"
+                            android:minWidth="112dp"
+                            tools:ignore="LabelFor" />
+                    </com.google.android.material.textfield.TextInputLayout>
+                </LinearLayout>
             </LinearLayout>
 
             <FrameLayout

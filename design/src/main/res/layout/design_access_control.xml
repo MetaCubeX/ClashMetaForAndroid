@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
     <data>
         <variable
             name="self"
@@ -36,11 +37,19 @@
                     android:gravity="center_vertical"
                     android:orientation="horizontal">
 
-                    <include
-                        layout="@layout/common_activity_bar"
+                    <TextView
+                        android:id="@+id/screen_title"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1" />
+                        android:layout_weight="1"
+                        android:paddingStart="16dp"
+                        android:paddingTop="4dp"
+                        android:paddingBottom="4dp"
+                        android:ellipsize="end"
+                        android:maxLines="1"
+                        android:textAppearance="@style/TextAppearance.App.TitleLarge"
+                        android:textColor="?attr/colorOnSurface"
+                        android:textStyle="bold" />
 
                     <ImageView
                         android:id="@+id/menu_view"
@@ -107,69 +116,54 @@
                         android:text="@string/deny_selected_apps" />
                 </com.google.android.material.button.MaterialButtonToggleGroup>
 
-                <com.google.android.material.textfield.TextInputLayout
-                    style="@style/AppTextInputLayout"
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginHorizontal="@dimen/item_tailing_margin"
                     android:layout_marginTop="@dimen/item_text_margin"
-                    android:hint="@string/search"
-                    app:startIconDrawable="@drawable/ic_baseline_search">
+                    android:baselineAligned="false"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
 
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/search_input"
-                        android:layout_width="match_parent"
+                    <com.google.android.material.textfield.TextInputLayout
+                        style="@style/AppTextInputLayout"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:imeOptions="actionDone"
-                        android:inputType="text"
-                        android:maxLines="1" />
-                </com.google.android.material.textfield.TextInputLayout>
+                        android:layout_weight="1"
+                        android:hint="@string/search"
+                        app:startIconDrawable="@drawable/ic_baseline_search">
 
-                <com.google.android.material.chip.ChipGroup
-                    android:id="@+id/namespace_filter_group"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginHorizontal="@dimen/item_tailing_margin"
-                    android:layout_marginTop="@dimen/item_text_margin"
-                    app:singleSelection="true"
-                    app:selectionRequired="true">
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/search_input"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:minHeight="0dp"
+                            android:paddingTop="9dp"
+                            android:paddingBottom="9dp"
+                            android:imeOptions="actionDone"
+                            android:inputType="text"
+                            android:maxLines="1" />
+                    </com.google.android.material.textfield.TextInputLayout>
 
-                    <com.google.android.material.chip.Chip
-                        android:id="@+id/filter_all_chip"
-                        style="@style/AppChip.Filter"
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/namespace_filter_layout"
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:checked="true"
-                        android:text="@string/filter" />
+                        android:layout_marginStart="8dp">
 
-                    <com.google.android.material.chip.Chip
-                        android:id="@+id/filter_ru_chip"
-                        style="@style/AppChip.Filter"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/app_routing_filter_ru" />
-
-                    <com.google.android.material.chip.Chip
-                        android:id="@+id/filter_cn_chip"
-                        style="@style/AppChip.Filter"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/app_routing_filter_cn" />
-
-                    <com.google.android.material.chip.Chip
-                        android:id="@+id/filter_com_chip"
-                        style="@style/AppChip.Filter"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/app_routing_filter_com" />
-
-                    <com.google.android.material.chip.Chip
-                        android:id="@+id/filter_other_chip"
-                        style="@style/AppChip.Filter"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/app_routing_filter_other" />
-                </com.google.android.material.chip.ChipGroup>
+                        <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                            android:id="@+id/namespace_filter_dropdown"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:minHeight="0dp"
+                            android:paddingTop="9dp"
+                            android:paddingBottom="9dp"
+                            android:inputType="none"
+                            android:minWidth="100dp"
+                            tools:ignore="LabelFor" />
+                    </com.google.android.material.textfield.TextInputLayout>
+                </LinearLayout>
 
                 <TextView
                     android:id="@+id/counter_view"

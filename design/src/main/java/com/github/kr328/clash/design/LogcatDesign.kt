@@ -56,11 +56,6 @@ class LogcatDesign(
         binding.self = this
         binding.streaming = streaming
 
-        binding.toolbar.title = context.getString(R.string.logcat)
-        binding.toolbar.setNavigationOnClickListener {
-            (context as? AppCompatActivity)?.onBackPressedDispatcher?.onBackPressed()
-        }
-
         binding.recyclerList.layoutManager = LinearLayoutManager(context).apply {
             if (streaming) {
                 reverseLayout = true

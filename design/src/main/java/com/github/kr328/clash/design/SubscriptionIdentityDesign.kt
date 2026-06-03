@@ -42,10 +42,7 @@ class SubscriptionIdentityDesign(context: Context) : Design<SubscriptionIdentity
 
     init {
         binding.self = this
-        binding.toolbar.title = context.getString(R.string.subscription_identity)
-        binding.toolbar.setNavigationOnClickListener {
-            (context as? AppCompatActivity)?.onBackPressedDispatcher?.onBackPressed()
-        }
+        binding.header.screenTitle.text = context.getString(R.string.subscription_identity)
         binding.textSupportedResponseHeaders.text = buildSupportedResponseHeadersText(context)
         renderDocsRows()
     }

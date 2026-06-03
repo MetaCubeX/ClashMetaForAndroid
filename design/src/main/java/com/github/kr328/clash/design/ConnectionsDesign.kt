@@ -2,6 +2,7 @@ package com.github.kr328.clash.design
 
 import android.content.Context
 import android.view.View
+import android.widget.ArrayAdapter
 import androidx.core.widget.addTextChangedListener
 import com.github.kr328.clash.core.model.ConnectionTracker
 import com.github.kr328.clash.core.model.ConnectionsSnapshot
@@ -48,6 +49,7 @@ class ConnectionsDesign(context: Context) : Design<ConnectionsDesign.Request>(co
 
     init {
         binding.self = this
+        binding.header.screenTitle.text = context.getString(R.string.connections_title)
         binding.connectionsList.adapter = adapter
         binding.btnConnectionsOpenLog.setOnClickListener {
             requests.trySend(Request.OpenLogcat)
@@ -68,15 +70,21 @@ class ConnectionsDesign(context: Context) : Design<ConnectionsDesign.Request>(co
             searchQuery = it?.toString().orEmpty()
             applyFilteredList()
         }
-        binding.connectionsFilterChips.setOnCheckedChangeListener { _, checkedId ->
-            filterMode = when (checkedId) {
-                R.id.filter_tcp -> FilterMode.TCP
-                R.id.filter_udp -> FilterMode.UDP
-                R.id.filter_direct -> FilterMode.DIRECT
-                R.id.filter_proxy -> FilterMode.PROXY
-                R.id.filter_reject -> FilterMode.REJECT
-                else -> FilterMode.ALL
-            }
+        val filterModes = FilterMode.values().toList()
+        val filterLabels = listOf(
+            context.getString(R.string.connections_filter_all),
+            context.getString(R.string.connections_filter_tcp),
+            context.getString(R.string.connections_filter_udp),
+            context.getString(R.string.connections_filter_direct),
+            context.getString(R.string.connections_filter_proxy),
+            context.getString(R.string.connections_filter_reject),
+        )
+        binding.connectionsFilterDropdown.setAdapter(
+            ArrayAdapter(context, android.R.layout.simple_dropdown_item_1line, filterLabels),
+        )
+        binding.connectionsFilterDropdown.setText(filterLabels[filterModes.indexOf(filterMode)], false)
+        binding.connectionsFilterDropdown.setOnItemClickListener { _, _, position, _ ->
+            filterMode = filterModes.getOrElse(position) { FilterMode.ALL }
             applyFilteredList()
         }
         renderSnapshot(ConnectionsSnapshot())

@@ -25,7 +25,6 @@ class ProxyProviderMergedGroupDesign(
         false,
     )
 
-    private val toolbar: MaterialToolbar = rootView.findViewById(R.id.toolbar)
     val summaryKeys: TextView = rootView.findViewById(R.id.provider_keys_summary)
     private val mergedExistingEmpty: TextView = rootView.findViewById(R.id.merged_existing_empty)
     private val mergedExistingList: LinearLayout = rootView.findViewById(R.id.merged_existing_list)
@@ -34,16 +33,13 @@ class ProxyProviderMergedGroupDesign(
         get() = rootView
 
     init {
-        ViewCompat.setOnApplyWindowInsetsListener(toolbar) { v, insets ->
+        ViewCompat.setOnApplyWindowInsetsListener(rootView) { v, insets ->
             val top = insets.getInsets(WindowInsetsCompat.Type.statusBars()).top
             v.setPadding(v.paddingLeft, top, v.paddingRight, v.paddingBottom)
             insets
         }
         rootView.post { ViewCompat.requestApplyInsets(rootView) }
 
-        toolbar.setNavigationOnClickListener {
-            (context as? AppCompatActivity)?.onBackPressedDispatcher?.onBackPressed()
-        }
         rootView.findViewById<View>(R.id.btn_add_merged_select).setOnClickListener {
             requests.trySend(Request.AddMergedSelectGroup)
         }

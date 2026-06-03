@@ -25,10 +25,7 @@ class LanguageSettingsDesign(
 
     init {
         binding.self = this
-        binding.toolbar.title = context.getString(R.string.app_language)
-        binding.toolbar.setNavigationOnClickListener {
-            (context as? AppCompatActivity)?.onBackPressedDispatcher?.onBackPressed()
-        }
+        binding.header.screenTitle.text = context.getString(R.string.app_language)
         applyCheckedLanguage()
         binding.languageGroup.setOnCheckedChangeListener { _, checkedId ->
             val lang = when (checkedId) {

@@ -6,13 +6,6 @@
     android:background="?attr/colorSurface"
     android:orientation="vertical">
 
-    <com.google.android.material.appbar.MaterialToolbar
-        android:id="@+id/toolbar"
-        style="@style/AppToolbar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:title="" />
-
     <androidx.core.widget.NestedScrollView
         android:id="@+id/proxy_chain_scroll"
         android:layout_width="match_parent"
@@ -26,6 +19,17 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/screen_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="18dp"
+                android:paddingBottom="12dp"
+                android:text="@string/proxy_chain_title"
+                android:textAppearance="@style/TextAppearance.App.TitleLarge"
+                android:textColor="?attr/colorOnSurface"
+                android:textStyle="bold" />
 
             <com.google.android.material.card.MaterialCardView
                 style="@style/AppCard.Filled"

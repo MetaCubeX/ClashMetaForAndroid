@@ -32,16 +32,9 @@
                 android:paddingTop="12dp"
                 android:paddingBottom="8dp">
 
-                <TextView
-                    android:id="@+id/screen_title"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:paddingTop="4dp"
-                    android:paddingBottom="12dp"
-                    android:text="@string/effective_rules_title"
-                    android:textAppearance="@style/TextAppearance.App.TitleLarge"
-                    android:textColor="?attr/colorOnSurface"
-                    android:textStyle="bold" />
+                <include
+                    android:id="@+id/header"
+                    layout="@layout/include_screen_header" />
 
                 <LinearLayout
                     android:layout_width="match_parent"

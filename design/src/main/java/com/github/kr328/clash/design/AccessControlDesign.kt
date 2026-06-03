@@ -2,6 +2,7 @@ package com.github.kr328.clash.design
 
 import android.content.Context
 import android.view.View
+import android.widget.ArrayAdapter
 import androidx.core.view.updatePadding
 import androidx.core.widget.addTextChangedListener
 import com.github.kr328.clash.design.adapter.AppAdapter
@@ -138,6 +139,7 @@ class AccessControlDesign(
         binding.self = this
 
         binding.activityBarLayout.applyFrom(context)
+        binding.screenTitle.text = (context as? android.app.Activity)?.title?.toString().orEmpty()
 
         binding.mainList.recyclerList.also {
             it.bindAppBarElevation(binding.activityBarLayout)
@@ -164,14 +166,20 @@ class AccessControlDesign(
             launchApplyFilteredList()
         }
 
-        binding.namespaceFilterGroup.setOnCheckedStateChangeListener { _, checkedIds ->
-            namespaceFilter = when (checkedIds.firstOrNull()) {
-                binding.filterRuChip.id -> NamespaceFilter.Ru
-                binding.filterCnChip.id -> NamespaceFilter.Cn
-                binding.filterComChip.id -> NamespaceFilter.Com
-                binding.filterOtherChip.id -> NamespaceFilter.Other
-                else -> NamespaceFilter.All
-            }
+        val nsModes = NamespaceFilter.values().toList()
+        val nsLabels = listOf(
+            context.getString(R.string.filter),
+            context.getString(R.string.app_routing_filter_ru),
+            context.getString(R.string.app_routing_filter_cn),
+            context.getString(R.string.app_routing_filter_com),
+            context.getString(R.string.app_routing_filter_other),
+        )
+        binding.namespaceFilterDropdown.setAdapter(
+            ArrayAdapter(context, android.R.layout.simple_dropdown_item_1line, nsLabels),
+        )
+        binding.namespaceFilterDropdown.setText(nsLabels[nsModes.indexOf(namespaceFilter)], false)
+        binding.namespaceFilterDropdown.setOnItemClickListener { _, _, position, _ ->
+            namespaceFilter = nsModes.getOrElse(position) { NamespaceFilter.All }
             launchApplyFilteredList()
         }
 
