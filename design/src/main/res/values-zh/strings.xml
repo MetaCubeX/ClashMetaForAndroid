@@ -583,7 +583,7 @@
     <string name="rule_snippet_overflow_cd">更多操作</string>
     <string name="rule_snippet_policy_for_ruleset">匹配流量走</string>
     <string name="rule_snippet_provider_key">提供商名称（RULE-SET 键）</string>
-    <string name="rule_snippet_title">规则</string>
+    <string name="rule_snippet_title">规则提供商</string>
     <string name="rule_snippet_url">规则文件链接（https）</string>
     <string name="sniff_http_override_destination">HTTP 嗅探覆盖目标</string>
     <string name="sniff_http_ports">HTTP 嗅探端口</string>
@@ -745,6 +745,7 @@
     <string name="effective_rules_source_manual">手动</string>
     <string name="effective_rules_source_provider">提供方</string>
     <string name="effective_rules_summary_fmt">显示 %1$d · 启用 %2$d · 禁用 %3$d · 删除 %4$d</string>
+    <string name="effective_rules_count_fmt">%1$d 条规则</string>
     <string name="expires_on">到期 %1$s</string>
     <string name="external_controller">外部控制器</string>
     <string name="home_background">主页背景</string>
@@ -859,7 +860,7 @@
     <string name="routing_hub_category_traffic">流量路由</string>
     <string name="routing_hub_effective_summary">当前配置生效的路由规则</string>
     <string name="routing_hub_per_app_summary">选择哪些应用通过 VPN 隧道</string>
-    <string name="routing_hub_rules_summary">编辑可复用的规则片段与提供方</string>
+    <string name="routing_hub_rules_summary">查看并更新规则集提供方</string>
     <string name="routing_hub_tips">管理流量的路由方式:规则片段、生效规则列表,以及按应用的包含/排除。</string>
     <string name="ru_bypass_prompt_apply">应用</string>
     <string name="ru_bypass_prompt_message">你的按应用排除列表为空。是否让已安装的俄罗斯应用(银行、Госуслуги、电商、运营商)直接走运营商网络,不进入 VPN 隧道?之后可在“路由 → 按应用”中编辑列表。</string>

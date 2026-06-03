@@ -926,7 +926,7 @@
                         <ImageView
                             android:layout_width="30dp"
                             android:layout_height="30dp"
-                            android:contentDescription="@string/rules"
+                            android:contentDescription="@string/rule_snippet_title"
                             android:src="@drawable/ic_baseline_article"
                             app:tint="?attr/colorPrimary" />
 
@@ -940,7 +940,7 @@
                             <TextView
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:text="@string/rules"
+                                android:text="@string/rule_snippet_title"
                                 android:textAppearance="@style/TextAppearance.App.TitleSmall"
                                 android:textColor="?attr/colorOnSurface"
                                 android:textStyle="bold" />

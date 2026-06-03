@@ -129,28 +129,6 @@ interface IProfileManager {
     /** Validates, stores structured state, regenerates YAML, and applies profile change. */
     suspend fun applyRuleState(uuid: UUID, stateJson: String): Boolean
 
-    suspend fun previewApplyRuleState(uuid: UUID, stateJson: String): String?
-
-    /** Add raw rules lines with insertion mode: append/prepend/index:<n>. */
-    suspend fun addRules(
-        uuid: UUID,
-        rawRules: List<String>,
-        addMode: Boolean,
-        insertMode: String = "append",
-    ): Boolean
-
-    suspend fun previewAddRules(
-        uuid: UUID,
-        rawRules: List<String>,
-        addMode: Boolean,
-        insertMode: String = "append",
-    ): String?
-
-    /** mutate rule by id: toggle/delete/restore. */
-    suspend fun mutateRule(uuid: UUID, ruleId: String, action: String, enabled: Boolean): Boolean
-
-    suspend fun previewMutateRule(uuid: UUID, ruleId: String, action: String, enabled: Boolean): String?
-
     suspend fun applyYamlPreview(previewId: String): Boolean
 
     /** Single entry from `proxies:` as YAML, for display. */

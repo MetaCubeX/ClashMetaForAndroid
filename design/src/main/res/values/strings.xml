@@ -117,7 +117,7 @@ Presets only change <b>where</b> files are downloaded from (CDN / host). It is s
     <string name="routing_hub_category_traffic">Traffic routing</string>
     <string name="routing_hub_category_apps">Per-app routing</string>
     <string name="routing_hub_effective_summary">Active routing rules from the current profile</string>
-    <string name="routing_hub_rules_summary">Edit reusable rule snippets and providers</string>
+    <string name="routing_hub_rules_summary">View and update rule-set providers</string>
     <string name="routing_hub_per_app_summary">Choose which apps go through the VPN tunnel</string>
 
     <!-- Announcement settings -->
@@ -181,6 +181,7 @@ Presets only change <b>where</b> files are downloaded from (CDN / host). It is s
     <string name="effective_rules_no_profile">Select an imported profile first</string>
     <string name="effective_rules_search_hint">Search rules, policies, providers…</string>
     <string name="effective_rules_summary_fmt">%1$d shown · %2$d active · %3$d disabled · %4$d deleted</string>
+    <string name="effective_rules_count_fmt">%1$d rules</string>
     <string name="effective_rules_source_manual">Manual</string>
     <string name="effective_rules_source_provider">Provider</string>
     <string name="rule_action_enable">Enable</string>
@@ -257,7 +258,7 @@ Presets only change <b>where</b> files are downloaded from (CDN / host). It is s
     <string name="import_failed_open_editor">Edit subscription</string>
     <string name="import_done_named">Imported as "%s"</string>
 
-    <string name="rule_snippet_title">Rules</string>
+    <string name="rule_snippet_title">Rule providers</string>
     <string name="rule_snippet_help_short">Connect a rules list from the web, or add one-off lines. Then copy the text into your profile (Edit / YAML).</string>
     <string name="rule_provider_easy_intro">Paste provider URL, confirm fields, preview result, then apply safely to existing rules.</string>
     <string name="rule_snippet_policy_for_ruleset">Send matching traffic via</string>

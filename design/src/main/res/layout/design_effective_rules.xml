@@ -64,55 +64,27 @@
                         app:iconGravity="textStart" />
                 </LinearLayout>
 
-                <LinearLayout
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/rule_search_layout"
+                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
-                    android:baselineAligned="false"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
+                    android:hint="@string/effective_rules_search_hint"
+                    app:endIconMode="clear_text"
+                    app:startIconDrawable="@drawable/ic_baseline_search">
 
-                    <com.google.android.material.textfield.TextInputLayout
-                        android:id="@+id/rule_search_layout"
-                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-                        android:layout_width="0dp"
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/rule_search"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:hint="@string/effective_rules_search_hint"
-                        app:endIconMode="clear_text"
-                        app:startIconDrawable="@drawable/ic_baseline_search">
-
-                        <com.google.android.material.textfield.TextInputEditText
-                            android:id="@+id/rule_search"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:minHeight="0dp"
-                            android:paddingTop="9dp"
-                            android:paddingBottom="9dp"
-                            android:imeOptions="actionSearch"
-                            android:inputType="text"
-                            android:maxLines="1" />
-                    </com.google.android.material.textfield.TextInputLayout>
-
-                    <com.google.android.material.textfield.TextInputLayout
-                        android:id="@+id/rule_filter_layout"
-                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="8dp">
-
-                        <com.google.android.material.textfield.MaterialAutoCompleteTextView
-                            android:id="@+id/rule_filter_dropdown"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:minHeight="0dp"
-                            android:paddingTop="9dp"
-                            android:paddingBottom="9dp"
-                            android:inputType="none"
-                            android:minWidth="128dp"
-                            tools:ignore="LabelFor" />
-                    </com.google.android.material.textfield.TextInputLayout>
-                </LinearLayout>
+                        android:minHeight="0dp"
+                        android:paddingTop="9dp"
+                        android:paddingBottom="9dp"
+                        android:imeOptions="actionSearch"
+                        android:inputType="text"
+                        android:maxLines="1" />
+                </com.google.android.material.textfield.TextInputLayout>
             </LinearLayout>
 
             <androidx.recyclerview.widget.RecyclerView

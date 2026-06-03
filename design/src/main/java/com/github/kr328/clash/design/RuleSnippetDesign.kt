@@ -18,8 +18,6 @@ import kotlin.math.roundToInt
 
 class RuleSnippetDesign(context: Context) : Design<RuleSnippetDesign.Request>(context) {
     sealed class Request {
-        object OpenCreateSheet : Request()
-        object OpenManualRules : Request()
         object UpdateAllRuleSets : Request()
         data class UpdateProvider(val name: String) : Request()
     }
@@ -35,8 +33,6 @@ class RuleSnippetDesign(context: Context) : Design<RuleSnippetDesign.Request>(co
     init {
         binding.self = this
         binding.header.screenTitle.text = context.getString(R.string.rule_snippet_title)
-        binding.btnOpenCreateSheet.setOnClickListener { requests.trySend(Request.OpenCreateSheet) }
-        binding.btnOpenManualRules.setOnClickListener { requests.trySend(Request.OpenManualRules) }
         binding.btnUpdateAllRuleSets.setOnClickListener { requests.trySend(Request.UpdateAllRuleSets) }
     }
 

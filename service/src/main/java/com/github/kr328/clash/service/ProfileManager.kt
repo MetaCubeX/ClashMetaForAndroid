@@ -866,41 +866,6 @@ class ProfileManager(private val context: Context) : IProfileManager,
         }
     }
 
-    override suspend fun previewApplyRuleState(uuid: UUID, stateJson: String): String? =
-        previewRuleDryRun(uuid, "Rules", ruleApplyService.dryRunStateJson(uuid, stateJson))
-
-    override suspend fun addRules(
-        uuid: UUID,
-        rawRules: List<String>,
-        addMode: Boolean,
-        insertMode: String,
-    ): Boolean {
-        return withContext(Dispatchers.IO) {
-            if (ImportedDao().queryByUUID(uuid) == null) return@withContext false
-            val ok = ruleApplyService.addRules(uuid, rawRules, addMode, insertMode)
-            Log.d("addRules addMode=$addMode insertMode=$insertMode count=${rawRules.size} ok=$ok")
-            ok
-        }
-    }
-
-    override suspend fun previewAddRules(
-        uuid: UUID,
-        rawRules: List<String>,
-        addMode: Boolean,
-        insertMode: String,
-    ): String? = previewRuleDryRun(uuid, "Rules", ruleApplyService.dryRunAddRules(uuid, rawRules, addMode, insertMode))
-
-    override suspend fun mutateRule(uuid: UUID, ruleId: String, action: String, enabled: Boolean): Boolean {
-        return withContext(Dispatchers.IO) {
-            if (ImportedDao().queryByUUID(uuid) == null) return@withContext false
-            val ok = ruleApplyService.mutateRule(uuid, ruleId, action, enabled)
-            Log.d("mutateRule action=$action enabled=$enabled ok=$ok")
-            ok
-        }
-    }
-
-    override suspend fun previewMutateRule(uuid: UUID, ruleId: String, action: String, enabled: Boolean): String? =
-        previewRuleDryRun(uuid, "Rules", ruleApplyService.dryRunMutateRule(uuid, ruleId, action, enabled))
 
     override suspend fun applyYamlPreview(previewId: String): Boolean {
         return withContext(Dispatchers.IO) {
