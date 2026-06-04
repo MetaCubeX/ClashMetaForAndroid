@@ -106,6 +106,9 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
     /** Fires when user expands/collapses any profile panel so the host can reload proxy previews. */
     val profileExpandChanged = Channel<Unit>(Channel.CONFLATED)
     val profileVisibleGroupChanged = Channel<Pair<Profile, String>>(Channel.CONFLATED)
+    /** Profiles-tab manager: drag-reorder committed + update-all tapped. */
+    val profileReorderRequests = Channel<List<Profile>>(Channel.UNLIMITED)
+    val profileUpdateAllRequests = Channel<Unit>(Channel.UNLIMITED)
 
     private val binding = DesignMainBinding
         .inflate(context.layoutInflater, context.root, false)
@@ -140,6 +143,8 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         com.github.kr328.clash.design.branding.BrandHolder.EMPTY
     private val uiStore = UiStore(context)
     private val expandedProfileUuids: LinkedHashSet<UUID> = linkedSetOf()
+    /** Profiles-tab cards expanded into their proxy groups (independent of the Home set). */
+    private val tabExpandedProfileUuids: LinkedHashSet<UUID> = linkedSetOf()
     private var currentModeSegment: TunnelState.Mode = TunnelState.Mode.Rule
     private var activeProfileForQuickActions: Profile? = null
     private var activeAnnouncementSupportUrl: String? = null
@@ -223,10 +228,93 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         expandOnProfileClick = true,
     )
 
+    /**
+     * Profiles-tab manager list: all profiles. Tap = activate (no "Use" button); the chevron
+     * expands the card into its proxy groups (rich dashboard); per-profile actions via ⋮ menu.
+     */
+    private val tabProfileAdapter = ProfileAdapter(
+        { profile -> profileActivateRequests.trySend(profile) },
+        { profile, anchor -> profileMenuRequests.trySend(profile to anchor) },
+        { profile -> toggleTabProfileExpand(profile) },
+        { profile, group, proxyName ->
+            patchHomeProxyRequests.trySend(Triple(profile, group, proxyName))
+        },
+        { profile, group, proxyNames -> profilePingAllRequests.trySend(Triple(profile, group, proxyNames)) },
+        { profile ->
+            if (profile.imported && profile.type != Profile.Type.File) {
+                profileForceUpdateRequests.trySend(profile)
+            }
+        },
+        { profile, group, proxy -> profileProxyYamlRequests.trySend(Triple(profile, group, proxy)) },
+        { profile, group -> profileVisibleGroupChanged.trySend(profile to group) },
+        expandOnProfileClick = false,
+        showServerChooserInCard = true,
+        showActivateButton = false,
+    )
+    private var tabProfilesAll: List<Profile> = emptyList()
+    private val tabItemTouchHelper = androidx.recyclerview.widget.ItemTouchHelper(
+        object : androidx.recyclerview.widget.ItemTouchHelper.SimpleCallback(
+            androidx.recyclerview.widget.ItemTouchHelper.UP or androidx.recyclerview.widget.ItemTouchHelper.DOWN,
+            0,
+        ) {
+            override fun isLongPressDragEnabled(): Boolean =
+                uiStore.profileSortMode == com.github.kr328.clash.design.model.ProfileSortMode.Manual
+
+            override fun onMove(
+                rv: RecyclerView,
+                vh: RecyclerView.ViewHolder,
+                target: RecyclerView.ViewHolder,
+            ): Boolean = tabProfileAdapter.moveProfile(vh.bindingAdapterPosition, target.bindingAdapterPosition)
+
+            override fun onSwiped(vh: RecyclerView.ViewHolder, dir: Int) {}
+
+            override fun clearView(rv: RecyclerView, vh: RecyclerView.ViewHolder) {
+                super.clearView(rv, vh)
+                profileReorderRequests.trySend(tabProfileAdapter.profiles.toList())
+            }
+        },
+    )
+
+    private fun sortTabProfiles(profiles: List<Profile>): List<Profile> =
+        com.github.kr328.clash.design.util.ProfileOrdering.sortForDisplay(
+            profiles = profiles,
+            mode = uiStore.profileSortMode,
+            active = Profile::active,
+            name = Profile::name,
+            updatedAt = Profile::updatedAt,
+        )
+
+    private fun tabSortModeTitle(mode: com.github.kr328.clash.design.model.ProfileSortMode): String =
+        context.getString(
+            when (mode) {
+                com.github.kr328.clash.design.model.ProfileSortMode.Manual -> R.string.profiles_sort_manual
+                com.github.kr328.clash.design.model.ProfileSortMode.ActiveFirst -> R.string.profiles_sort_active_first
+                com.github.kr328.clash.design.model.ProfileSortMode.Name -> R.string.profiles_sort_name
+                com.github.kr328.clash.design.model.ProfileSortMode.LastUpdated -> R.string.profiles_sort_last_updated
+            },
+        )
+
+    private fun showProfilesTabSort(anchor: View) {
+        val popup = android.widget.PopupMenu(context, anchor)
+        val modes = com.github.kr328.clash.design.model.ProfileSortMode.values()
+        modes.forEachIndexed { i, m -> popup.menu.add(0, i, i, tabSortModeTitle(m)).isCheckable = true }
+        val current = uiStore.profileSortMode.ordinal
+        for (i in 0 until popup.menu.size()) popup.menu.getItem(i).isChecked = i == current
+        popup.setOnMenuItemClickListener { item ->
+            uiStore.profileSortMode = modes.getOrElse(item.itemId) {
+                com.github.kr328.clash.design.model.ProfileSortMode.Manual
+            }
+            tabProfileAdapter.profiles = sortTabProfiles(tabProfilesAll)
+            tabProfileAdapter.notifyDataSetChanged()
+            true
+        }
+        popup.show()
+    }
+
     override val root: View
         get() = binding.root
 
-    fun getExpandedProfileUuids(): Set<UUID> = expandedProfileUuids.toSet()
+    fun getExpandedProfileUuids(): Set<UUID> = (expandedProfileUuids + tabExpandedProfileUuids).toSet()
 
     /**
      * Pushes operator-pushed subscription metadata into the home UI and the active profile card.
@@ -620,6 +708,7 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
     suspend fun setPingingProfile(uuid: UUID?) {
         withContext(Dispatchers.Main) {
             profileAdapter.setPingingUuid(uuid)
+            tabProfileAdapter.setPingingUuid(uuid)
         }
     }
 
@@ -901,6 +990,19 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
                 patchDataSet(this::profiles, homeProfiles, id = { it.uuid })
             }
             profileAdapter.setExpandedUuids(expandedProfileUuids.toSet())
+
+            tabProfilesAll = profiles
+            tabProfileAdapter.apply {
+                val ids = profiles.map { it.uuid }.toSet()
+                val activeIds = profiles.filter { it.active }.map { it.uuid }.toSet()
+                tabExpandedProfileUuids.retainAll { it in ids && it in activeIds }
+                patchDataSet(this::profiles, sortTabProfiles(profiles), id = { it.uuid })
+            }
+            tabProfileAdapter.setExpandedUuids(tabExpandedProfileUuids.toSet())
+            binding.profilesTabList.visibility = if (profiles.isEmpty()) View.GONE else View.VISIBLE
+            binding.profilesTabEmpty.visibility = if (profiles.isEmpty()) View.VISIBLE else View.GONE
+            val tabUpdatable = profiles.any { it.imported && it.type != Profile.Type.File }
+            binding.profilesTabUpdate.visibility = if (tabUpdatable) View.VISIBLE else View.GONE
         }
     }
 
@@ -977,18 +1079,31 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
                 transportInfoByProfile,
             )
             profileAdapter.setExpandedUuids(expandedProfileUuids.toSet())
+            tabProfileAdapter.setProxyContext(
+                names,
+                running,
+                mode,
+                lastGroupHint,
+                offlinePreviewByProfile,
+                activeProfileUuid,
+                offlineSelectionsByProfile,
+                transportInfoByProfile,
+            )
+            tabProfileAdapter.setExpandedUuids(tabExpandedProfileUuids.toSet())
         }
     }
 
     suspend fun patchProxyDetails(details: Map<String, ProxyGroup>) {
         withContext(Dispatchers.Main) {
             profileAdapter.setProxyDetails(details)
+            tabProfileAdapter.setProxyDetails(details)
         }
     }
 
     suspend fun patchSingleProxyDelay(group: String, proxy: String, delayMs: Int) {
         withContext(Dispatchers.Main) {
             profileAdapter.patchSingleProxyDelay(group, proxy, delayMs)
+            tabProfileAdapter.patchSingleProxyDelay(group, proxy, delayMs)
         }
     }
 
@@ -1007,12 +1122,14 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
     suspend fun clearStandalonePingForProfile(uuid: UUID) {
         withContext(Dispatchers.Main) {
             profileAdapter.clearStandalonePingDelays(uuid)
+            tabProfileAdapter.clearStandalonePingDelays(uuid)
         }
     }
 
     suspend fun patchStandalonePingResults(uuid: UUID, results: Map<String, Int>) {
         withContext(Dispatchers.Main) {
             profileAdapter.setStandalonePingResults(uuid, results)
+            tabProfileAdapter.setStandalonePingResults(uuid, results)
         }
     }
 
@@ -1027,6 +1144,21 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
             profileExpandChanged.trySend(Unit)
         }
         openProxySheetWhenReady(profile)
+    }
+
+    /**
+     * Profiles-tab card expand: toggles the inline proxy-group panel (no bottom sheet, unlike Home).
+     * A reload is requested so an expanding card gets its proxy groups loaded.
+     */
+    private fun toggleTabProfileExpand(profile: Profile) {
+        if (!profile.imported || !profile.active) {
+            return
+        }
+        if (!tabExpandedProfileUuids.add(profile.uuid)) {
+            tabExpandedProfileUuids.remove(profile.uuid)
+        }
+        tabProfileAdapter.setExpandedUuids(tabExpandedProfileUuids.toSet())
+        profileExpandChanged.trySend(Unit)
     }
 
     private fun openProxySheetWhenReady(profile: Profile, attempt: Int = 0) {
@@ -1397,12 +1529,20 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         binding.mainHeaderUpdateBadge.visibility = if (visible) View.VISIBLE else View.GONE
     }
 
+    /** Switch to the Profiles tab (the in-app profile manager) instead of opening a separate screen. */
+    fun openProfilesTab() = selectMainTab(MainTab.Profiles)
+
     private fun selectMainTab(tab: MainTab) {
         val logicalIndex = activeTabs.indexOf(tab)
         if (logicalIndex < 0) return
         val targetItem = logicalIndex + 1
         if (binding.mainPager.currentItem == targetItem) {
-            pageForMainTab(tab).smoothScrollTo(0, 0)
+            val page = pageForMainTab(tab)
+            if (page is androidx.core.widget.NestedScrollView) {
+                page.smoothScrollTo(0, 0)
+            } else if (tab == MainTab.Profiles) {
+                binding.profilesTabList.smoothScrollToPosition(0)
+            }
             return
         }
         binding.mainPager.setCurrentItem(targetItem, true)
@@ -1450,6 +1590,18 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
                 moveDuration = 0
             }
         }
+
+        binding.profilesTabList.also {
+            it.applyLinearAdapter(context, tabProfileAdapter)
+            it.itemAnimator = DefaultItemAnimator().apply {
+                supportsChangeAnimations = false
+                changeDuration = 0
+                moveDuration = 0
+            }
+        }
+        tabItemTouchHelper.attachToRecyclerView(binding.profilesTabList)
+        binding.profilesTabSort.setOnClickListener { showProfilesTabSort(it) }
+        binding.profilesTabUpdate.setOnClickListener { profileUpdateAllRequests.trySend(Unit) }
 
         val card = binding.mainPowerCard
         card.setOnClickListener {

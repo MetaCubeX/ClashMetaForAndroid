@@ -769,8 +769,6 @@
     <string name="main_open_language_summary">无需进入深层设置即可切换应用语言</string>
     <string name="main_open_logs">打开日志</string>
     <string name="main_open_logs_summary">连接失败时的诊断信息</string>
-    <string name="main_open_profiles">管理配置</string>
-    <string name="main_open_profiles_summary">订阅、更新与文件</string>
     <string name="main_open_settings_summary">主题、网络、更新及高级选项</string>
     <string name="main_open_subscription_identity_summary">HWID、clashfest:// 方案与复制按钮</string>
     <string name="main_open_theme_summary">深色模式、配色与文字大小</string>
@@ -781,7 +779,6 @@
     <string name="main_profile_title">配置</string>
     <string name="main_routing_summary">规则、应用与路由提供方</string>
     <string name="main_select_server">服务器</string>
-    <string name="main_select_server_group">选择服务器或分组</string>
     <string name="main_session_title">会话</string>
     <string name="main_settings_summary">应用偏好、诊断与其他工具</string>
     <string name="main_status_connected">已连接</string>
@@ -802,7 +799,6 @@
     <string name="profile_auto_refresh_failed_starting_saved">暂时无法刷新。将使用已保存的订阅启动。</string>
     <string name="profile_auto_refreshing">启动前正在检查订阅…</string>
     <string name="profile_inactive_status">就绪</string>
-    <string name="profile_nodes">节点</string>
     <string name="profile_ping_all_short">测速</string>
     <string name="profile_proxy_empty_filtered">没有匹配的节点。请清除搜索或筛选。</string>
     <string name="profile_proxy_filter_all">全部</string>

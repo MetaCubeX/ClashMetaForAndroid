@@ -25,7 +25,6 @@ import com.github.kr328.clash.common.branding.BrandManifest
 import com.github.kr328.clash.service.model.Profile
 import com.github.kr328.clash.service.model.ProxyGroupPreviewRow
 import com.github.kr328.clash.service.model.ProxyTransportInfo
-import com.google.android.material.chip.Chip
 import com.google.android.material.color.MaterialColors
 import java.util.UUID
 
@@ -41,6 +40,7 @@ class ProfileAdapter(
     private val onVisibleGroupChanged: (Profile, String) -> Unit = { _, _ -> },
     private val expandOnProfileClick: Boolean = false,
     private val showServerChooserInCard: Boolean = true,
+    private val showActivateButton: Boolean = true,
 ) : RecyclerView.Adapter<ProfileAdapter.Holder>() {
     class Holder(val binding: AdapterProfileBinding) : RecyclerView.ViewHolder(binding.root)
 
@@ -186,7 +186,6 @@ class ProfileAdapter(
     override fun onViewRecycled(holder: Holder) {
         holder.binding.activeStatusChip.alpha = 1f
         holder.binding.pingProgress.visibility = View.GONE
-        holder.binding.pingGroupProgress.visibility = View.GONE
         super.onViewRecycled(holder)
     }
 
@@ -1126,7 +1125,7 @@ class ProfileAdapter(
         // tick yanks scroll back to the selected pill mid-drag, making it impossible to
         // browse far-away groups.
         val scroller = container.parent as? android.widget.HorizontalScrollView ?: return
-        val lastIdxTagKey = R.id.proxy_sheet_group_segments
+        val lastIdxTagKey = scroller.id.takeIf { it != View.NO_ID } ?: return
         val lastIdx = scroller.getTag(lastIdxTagKey) as? Int
         if (lastIdx == selectedIndex) return
         scroller.setTag(lastIdxTagKey, selectedIndex)
@@ -1241,7 +1240,7 @@ class ProfileAdapter(
             }
         }
         binding.activateButton.text = context.getString(R.string.profile_use)
-        binding.activateButton.visibility = if (current.active) View.GONE else View.VISIBLE
+        binding.activateButton.visibility = if (current.active || !showActivateButton) View.GONE else View.VISIBLE
         binding.activateButton.isEnabled = true
         binding.activateButton.setOnClickListener {
             if (!current.active) onClicked(current)
@@ -1255,21 +1254,23 @@ class ProfileAdapter(
             binding.usageProgress.visibility = View.GONE
         }
 
+        val canExpandProxiesInline =
+            !compactHomeCard && showServerChooserInCard && current.imported && current.active
         val groupNames = effectiveGroupsForProfile(current)
-        val expanded = current.uuid in expandedUuids && current.imported
+        val expanded = current.uuid in expandedUuids && canExpandProxiesInline
 
         binding.pingSlot.visibility = View.GONE
-        val showServerChooser = !compactHomeCard && showServerChooserInCard && current.imported
+        val showServerChooser = canExpandProxiesInline
         binding.chevronSlot.visibility = if (showServerChooser) View.VISIBLE else View.GONE
         binding.chevronView.visibility = if (showServerChooser) View.VISIBLE else View.GONE
-        binding.chevronView.rotation = -90f
+        binding.chevronView.rotation = if (expanded) 0f else -90f
+        val expandToggle: (View) -> Unit = expandToggle@{
+            if (!showServerChooser) return@expandToggle
+            onExpandToggle(current)
+        }
         binding.chevronSlot.isClickable = showServerChooser
-        binding.chevronSlot.setOnClickListener {
-            if (showServerChooser) onExpandToggle(current)
-        }
-        binding.serverButton.setOnClickListener {
-            if (showServerChooser) onExpandToggle(current)
-        }
+        binding.chevronSlot.setOnClickListener(expandToggle)
+        binding.serverButton.setOnClickListener(expandToggle)
         val selectedGroup = selectedGroupForSummary(current)
         val selectionSummary = selectedGroup?.let { group ->
             if (compactHomeCard) {
@@ -1310,27 +1311,6 @@ class ProfileAdapter(
             reportVisibleGroup(current, selectedGroup)
         }
 
-        val showPing = expanded && current.imported
-        binding.pingGroupSlot.visibility = if (showPing) View.VISIBLE else View.GONE
-        val pinging = states.pingingUuid == current.uuid && showPing
-        if (pinging) {
-            binding.pingGroupProgress.visibility = View.VISIBLE
-            binding.pingGroupView.visibility = View.INVISIBLE
-        } else {
-            binding.pingGroupProgress.visibility = View.GONE
-            binding.pingGroupView.visibility = if (showPing) View.VISIBLE else View.INVISIBLE
-        }
-        binding.pingGroupView.isClickable = false
-        binding.pingGroupView.isFocusable = false
-        binding.pingGroupSlot.isClickable = showPing
-        binding.pingGroupSlot.setOnClickListener {
-            if (!showPing) return@setOnClickListener
-            val ix = selectedGroupIndex[current.uuid] ?: 0
-            val groupName = groupNames.getOrNull(ix) ?: return@setOnClickListener
-            val pg = proxyGroupForRow(current, groupName) ?: return@setOnClickListener
-            onPingAll(current, groupName, pg.proxies.map { it.name })
-        }
-
         val showForceUpdate = !compactHomeCard && current.imported && current.type != Profile.Type.File
         binding.forceUpdateSlot.visibility = if (showForceUpdate) View.VISIBLE else View.GONE
         binding.forceUpdateView.visibility = if (showForceUpdate) View.VISIBLE else View.INVISIBLE
@@ -1343,84 +1323,124 @@ class ProfileAdapter(
 
         binding.chevronView.isClickable = false
 
-        binding.proxyExpandPanel.visibility = View.GONE
+        val showInlineExpandPanel = expanded && !compactHomeCard
+        binding.proxyExpandPanel.visibility =
+            if (showInlineExpandPanel) View.VISIBLE else View.GONE
         if (!expanded) return
+        if (compactHomeCard) return
 
-        if (groupNames.isEmpty()) {
-            binding.proxyGroupChips.visibility = View.GONE
-            binding.proxyGroupTypeLabel.visibility = View.GONE
-            if (binding.proxyNodesList.childCount == 0) {
-                addEmptyProxyHint(binding.proxyNodesList, context)
-            }
-            return
-        }
-        binding.proxyGroupChips.visibility = View.VISIBLE
-
-        val picked = resolvePreferredGroupFromList(current, groupNames)
-        var idx = selectedGroupIndex[current.uuid]
-            ?: groupNames.indexOf(picked).takeIf { i -> i >= 0 }
-            ?: 0
-        if (idx >= groupNames.size) idx = 0
-        selectedGroupIndex[current.uuid] = idx
-
-        bindGroupType(binding.proxyGroupTypeLabel, current, groupNames.getOrNull(idx).orEmpty())
-
-        renderGroupChips(holder, current, groupNames, idx)
-        fillProxyRows(holder, current, groupNames, idx)
-        reportVisibleGroup(current, groupNames[idx])
+        renderGroupAccordion(binding.proxyGroupsAccordion, current, groupNames)
     }
 
-    private fun renderGroupChips(
-        holder: Holder,
-        profile: Profile,
-        groupNames: List<String>,
-        selectedIndex: Int,
-    ) {
-        renderGroupChipsInto(holder.binding.proxyGroupChips, profile, groupNames, selectedIndex) { index, groupName ->
-            selectedGroupIndex[profile.uuid] = index
-            fillProxyRows(holder, profile, groupNames, index)
-            reportVisibleGroup(profile, groupName, force = true)
-        }
-    }
+    /** Per-profile set of group names currently expanded in the inline accordion (multi-open). */
+    private val inlineExpandedGroups = HashMap<UUID, MutableSet<String>>()
+    /** Which group's "ping all" is in-flight per profile, so the spinner shows on the right block. */
+    private val pingingGroupByUuid = HashMap<UUID, String>()
 
-    private fun renderGroupChipsInto(
+    /**
+     * FlClash-style vertical accordion of proxy-group blocks for the Profiles-tab inline panel.
+     * Each block header toggles its own node list; several can stay open at once.
+     */
+    private fun renderGroupAccordion(
         container: ViewGroup,
         profile: Profile,
         groupNames: List<String>,
-        selectedIndex: Int,
-        onSelected: (Int, String) -> Unit,
     ) {
         val context = container.context
-        container.removeAllViews()
-        groupNames.forEachIndexed { index, groupName ->
-            val chip = Chip(context).apply {
-                text = displayGroupName(groupName)
-                isCheckable = true
-                isChecked = index == selectedIndex
-                setEnsureMinTouchTargetSize(false)
-                minHeight = context.dp(30)
-                maxWidth = context.dp(200)
-                chipMinHeight = context.dp(30).toFloat()
-                chipStartPadding = context.dp(9).toFloat()
-                chipEndPadding = context.dp(9).toFloat()
-                textStartPadding = 0f
-                textEndPadding = 0f
-                isSingleLine = true
-                ellipsize = android.text.TextUtils.TruncateAt.END
-                setTextAppearance(R.style.TextAppearance_App_LabelMedium)
-            }
-            container.addView(chip)
+        val inflater = context.layoutInflater
+
+        if (groupNames.isEmpty()) {
+            container.tag = null
+            container.removeAllViews()
+            addEmptyProxyHint(container, context)
+            return
         }
-        for (i in 0 until container.childCount) {
-            val chip = container.getChildAt(i) as Chip
-            val index = i
-            val groupName = groupNames[index]
-            chip.setOnClickListener {
-                for (j in 0 until container.childCount) {
-                    (container.getChildAt(j) as Chip).isChecked = j == index
-                }
-                onSelected(index, groupName)
+
+        val expandedGroups = inlineExpandedGroups.getOrPut(profile.uuid) {
+            // First open: reveal the preferred (active/selected) group so nodes show immediately.
+            val preferred = resolvePreferredGroupFromList(profile, groupNames)
+            linkedSetOf(preferred.takeIf { it.isNotBlank() } ?: groupNames.first())
+        }
+        expandedGroups.retainAll(groupNames.toSet())
+
+        // Rebuild the block list only when the group set changes; otherwise update in place so the
+        // per-second refresh tick doesn't tear down every block (matches renderGroupSegmentsInto).
+        val structureTag = "acc:" + groupNames.joinToString("|")
+        if (container.tag != structureTag || container.childCount != groupNames.size) {
+            container.removeAllViews()
+            repeat(groupNames.size) {
+                container.addView(inflater.inflate(R.layout.item_proxy_group_block, container, false))
             }
+            container.tag = structureTag
+        }
+
+        groupNames.forEachIndexed { index, _ ->
+            val block = container.getChildAt(index) ?: return@forEachIndexed
+            bindGroupBlock(block, profile, groupNames, index, expandedGroups)
+        }
+
+        // Keep the engine feeding at least the primary group's live detail.
+        reportVisibleGroup(profile, resolvePreferredGroupFromList(profile, groupNames))
+    }
+
+    private fun bindGroupBlock(
+        block: View,
+        profile: Profile,
+        groupNames: List<String>,
+        index: Int,
+        expandedGroups: MutableSet<String>,
+    ) {
+        val groupName = groupNames[index]
+        val header = block.findViewById<View>(R.id.group_block_header)
+        val nameView = block.findViewById<TextView>(R.id.group_block_name)
+        val typeView = block.findViewById<TextView>(R.id.group_block_type)
+        val summaryView = block.findViewById<TextView>(R.id.group_block_summary)
+        val countView = block.findViewById<TextView>(R.id.group_block_count)
+        val chevron = block.findViewById<View>(R.id.group_block_chevron)
+        val pingView = block.findViewById<View>(R.id.group_block_ping)
+        val pingProgress = block.findViewById<View>(R.id.group_block_ping_progress)
+        val nodesList = block.findViewById<ViewGroup>(R.id.group_block_nodes)
+
+        val pg = proxyGroupForRow(profile, groupName)
+        nameView.text = displayGroupName(groupName)
+        bindGroupType(typeView, profile, groupName)
+
+        val pendingChoice = pendingMapValueForGroup(profile.uuid, groupName)?.takeIf { it.isNotBlank() }
+        val selectedName = pendingChoice ?: pg?.now
+        val selectedDisplay = selectedName?.takeIf { it.isNotBlank() }?.let { name ->
+            pg?.proxies?.firstOrNull { it.name == name }?.let { it.title.ifBlank { it.name } } ?: name
+        }
+        summaryView.text = selectedDisplay.orEmpty()
+        summaryView.visibility = if (selectedDisplay.isNullOrBlank()) View.GONE else View.VISIBLE
+
+        val count = pg?.proxies?.count { !shouldHideProxyOption(groupName, it) } ?: 0
+        countView.text = count.toString()
+
+        val isExpanded = groupName in expandedGroups
+        chevron.rotation = if (isExpanded) 0f else -90f
+        nodesList.visibility = if (isExpanded) View.VISIBLE else View.GONE
+
+        val pinging = states.pingingUuid == profile.uuid && pingingGroupByUuid[profile.uuid] == groupName
+        pingProgress.visibility = if (pinging) View.VISIBLE else View.GONE
+        pingView.visibility = if (pinging) View.INVISIBLE else View.VISIBLE
+        pingView.setOnClickListener {
+            pingingGroupByUuid[profile.uuid] = groupName
+            val names = proxyGroupForRow(profile, groupName)?.proxies?.map { it.name }.orEmpty()
+            onPingAll(profile, groupName, names)
+        }
+
+        header.setOnClickListener {
+            if (!expandedGroups.remove(groupName)) {
+                expandedGroups.add(groupName)
+                if (useEngineFor(profile)) reportVisibleGroup(profile, groupName, force = true)
+            }
+            bindGroupBlock(block, profile, groupNames, index, expandedGroups)
+        }
+
+        if (isExpanded) {
+            fillProxyRowsInto(nodesList, profile, groupNames, index)
+        } else {
+            nodesList.removeAllViews()
         }
     }
 
@@ -1429,15 +1449,6 @@ class ProfileAdapter(
         if (!force && lastReportedVisibleGroup[profile.uuid] == groupName) return
         lastReportedVisibleGroup[profile.uuid] = groupName
         onVisibleGroupChanged(profile, groupName)
-    }
-
-    private fun fillProxyRows(
-        holder: Holder,
-        profile: Profile,
-        groupNames: List<String>,
-        groupIndex: Int,
-    ) {
-        fillProxyRowsInto(holder.binding.proxyNodesList, profile, groupNames, groupIndex)
     }
 
     private fun fillProxyRowsInto(

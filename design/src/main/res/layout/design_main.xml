@@ -668,13 +668,11 @@
         </LinearLayout>
         </androidx.core.widget.NestedScrollView>
 
-        <androidx.core.widget.NestedScrollView
+        <LinearLayout
             android:id="@+id/main_profiles_page"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:clipToPadding="false"
-            android:fillViewport="false"
-            android:overScrollMode="never"
+            android:orientation="vertical"
             android:paddingTop="@{self.surface.insets.top}"
             android:paddingBottom="@{self.surface.insets.bottom + context.resources.getDimensionPixelSize(com.github.kr328.clash.design.R.dimen.main_bottom_nav_reserved_space)}"
             android:visibility="gone">
@@ -685,135 +683,126 @@
                 android:orientation="vertical"
                 android:paddingHorizontal="20dp"
                 android:paddingTop="18dp"
-                android:paddingBottom="24dp">
+                android:paddingBottom="8dp">
 
-                <TextView
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/nav_subscriptions"
-                    android:textAppearance="@style/TextAppearance.App.TitleLarge"
-                    android:textColor="?attr/colorOnSurface"
-                    android:textStyle="bold" />
+                    android:baselineAligned="false"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
 
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:text="@string/main_open_profiles_summary"
-                    android:textAppearance="@style/TextAppearance.App.BodyMedium"
-                    android:textColor="?attr/colorOnSurfaceVariant" />
-
-                <com.google.android.material.card.MaterialCardView
-                    style="@style/AppCard.Filled"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="18dp"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:foreground="?attr/selectableItemBackground"
-                    android:onClick="@{() -> self.request(Request.OpenProfiles)}"
-                    app:cardBackgroundColor="?attr/colorPrimaryContainer"
-                    app:cardCornerRadius="24dp"
-                    app:cardElevation="0dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
+                    <TextView
+                        android:id="@+id/profiles_tab_title"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal"
-                        android:padding="18dp">
+                        android:layout_weight="1"
+                        android:text="@string/nav_subscriptions"
+                        android:textAppearance="@style/TextAppearance.App.TitleLarge"
+                        android:textColor="?attr/colorOnSurface"
+                        android:textStyle="bold" />
 
-                        <ImageView
-                            android:layout_width="34dp"
-                            android:layout_height="34dp"
-                            android:contentDescription="@string/nav_subscriptions"
-                            android:src="@drawable/ic_baseline_subscriptions"
-                            app:tint="?attr/colorOnPrimaryContainer" />
+                    <ImageButton
+                        android:id="@+id/profiles_tab_sort"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:contentDescription="@string/profiles_sort"
+                        android:padding="8dp"
+                        android:src="@drawable/ic_baseline_swap_vert"
+                        app:tint="?attr/colorOnSurfaceVariant" />
+                </LinearLayout>
 
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="16dp"
-                            android:layout_weight="1"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:text="@string/main_open_profiles"
-                                android:textAppearance="@style/TextAppearance.App.TitleMedium"
-                                android:textColor="?attr/colorOnPrimaryContainer"
-                                android:textStyle="bold" />
-
-                            <TextView
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="4dp"
-                                android:text="@string/main_open_profiles_summary"
-                                android:textAppearance="@style/TextAppearance.App.BodySmall"
-                                android:textColor="?attr/colorOnPrimaryContainer" />
-                        </LinearLayout>
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
-
-
-
-
-                <com.google.android.material.card.MaterialCardView
-                    style="@style/AppCard.Filled"
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:foreground="?attr/selectableItemBackground"
-                    android:onClick="@{() -> self.request(Request.OpenNewProfile)}"
-                    app:cardBackgroundColor="?attr/colorSurfaceContainer"
-                    app:cardCornerRadius="22dp"
-                    app:cardElevation="0dp">
+                    android:layout_marginTop="10dp"
+                    android:orientation="horizontal">
 
-                    <LinearLayout
-                        android:layout_width="match_parent"
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/profiles_tab_add"
+                        style="@style/AppButton"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal"
-                        android:padding="16dp">
+                        android:layout_weight="1.4"
+                        android:minHeight="44dp"
+                        android:onClick="@{() -> self.request(Request.OpenNewProfile)}"
+                        android:text="@string/main_add_subscription"
+                        android:textAllCaps="false"
+                        android:maxLines="1"
+                        android:ellipsize="end"
+                        app:icon="@drawable/ic_baseline_add"
+                        app:iconGravity="textStart"
+                        app:iconPadding="6dp"
+                        app:iconSize="18dp" />
 
-                        <ImageView
-                            android:layout_width="30dp"
-                            android:layout_height="30dp"
-                            android:contentDescription="@string/main_add_subscription"
-                            android:src="@drawable/ic_baseline_add"
-                            app:tint="?attr/colorPrimary" />
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="14dp"
-                            android:layout_weight="1"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:text="@string/main_add_subscription"
-                                android:textAppearance="@style/TextAppearance.App.TitleSmall"
-                                android:textColor="?attr/colorOnSurface"
-                                android:textStyle="bold" />
-
-                            <TextView
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="3dp"
-                                android:text="@string/main_no_profiles_subtitle"
-                                android:textAppearance="@style/TextAppearance.App.BodySmall"
-                                android:textColor="?attr/colorOnSurfaceVariant" />
-                        </LinearLayout>
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
-
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/profiles_tab_update"
+                        style="@style/AppButton.Outlined"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:layout_weight="1"
+                        android:minHeight="44dp"
+                        android:text="@string/update"
+                        android:textAllCaps="false"
+                        android:maxLines="1"
+                        android:ellipsize="end"
+                        android:visibility="gone"
+                        app:icon="@drawable/ic_baseline_sync"
+                        app:iconGravity="textStart"
+                        app:iconPadding="6dp"
+                        app:iconSize="18dp" />
+                </LinearLayout>
             </LinearLayout>
-        </androidx.core.widget.NestedScrollView>
+
+                <com.github.kr328.clash.design.view.AppRecyclerView
+                    android:id="@+id/profiles_tab_list"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:clipToPadding="false"
+                    android:paddingHorizontal="4dp" />
+
+
+
+
+                <LinearLayout
+                    android:id="@+id/profiles_tab_empty"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:paddingHorizontal="28dp"
+                    android:visibility="gone">
+
+                    <ImageView
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:contentDescription="@string/nav_subscriptions"
+                        android:src="@drawable/ic_baseline_subscriptions"
+                        app:tint="?attr/colorOnSurfaceVariant" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:gravity="center"
+                        android:text="@string/main_no_profiles_title"
+                        android:textAppearance="@style/TextAppearance.App.TitleMedium"
+                        android:textColor="?attr/colorOnSurface" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:gravity="center"
+                        android:text="@string/main_no_profiles_subtitle"
+                        android:textAppearance="@style/TextAppearance.App.BodyMedium"
+                        android:textColor="?attr/colorOnSurfaceVariant" />
+                </LinearLayout>
+        </LinearLayout>
 
         <androidx.core.widget.NestedScrollView
             android:id="@+id/main_routing_page"
