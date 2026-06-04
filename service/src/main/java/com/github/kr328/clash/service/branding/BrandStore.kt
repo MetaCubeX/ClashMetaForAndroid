@@ -57,7 +57,21 @@ class BrandStore(context: Context) {
             .remove(manifestKey(uuid))
             .remove(logoKey(uuid))
             .remove(logoLightKey(uuid))
+            .remove(emptyStreakKey(uuid))
             .apply()
+    }
+
+    /**
+     * Count of consecutive *confirmed* (HTTP 200) subscription responses that carried no brand
+     * headers. Used to debounce clearing a brand: a one-off deploy that drops the headers must
+     * not strip a brand, but a panel that permanently stops sending them eventually should.
+     */
+    fun emptyStreakFor(uuid: UUID): Int = prefs.getInt(emptyStreakKey(uuid), 0)
+
+    fun setEmptyStreak(uuid: UUID, value: Int) {
+        prefs.edit().also { e ->
+            if (value <= 0) e.remove(emptyStreakKey(uuid)) else e.putInt(emptyStreakKey(uuid), value)
+        }.apply()
     }
 
     /**
@@ -77,11 +91,13 @@ class BrandStore(context: Context) {
     private fun manifestKey(uuid: UUID) = "${KEY_PREFIX_MANIFEST}_$uuid"
     private fun logoKey(uuid: UUID) = "${KEY_PREFIX_LOGO}_$uuid"
     private fun logoLightKey(uuid: UUID) = "${KEY_PREFIX_LOGO_LIGHT}_$uuid"
+    private fun emptyStreakKey(uuid: UUID) = "${KEY_PREFIX_EMPTY_STREAK}_$uuid"
 
     companion object {
         private const val KEY_PREFIX_MANIFEST = "brand_manifest"
         private const val KEY_PREFIX_LOGO = "brand_logo"
         private const val KEY_PREFIX_LOGO_LIGHT = "brand_logo_light"
+        private const val KEY_PREFIX_EMPTY_STREAK = "brand_empty_streak"
         private const val KEY_LAST_APPLIED_ACCENT = "brand_last_applied_accent"
     }
 }
