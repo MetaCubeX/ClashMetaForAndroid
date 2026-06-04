@@ -14,13 +14,46 @@ import java.util.UUID
  */
 object BrandRefresh {
 
+    /** Consecutive confirmed-empty responses before a previously-applied brand is cleared. */
+    const val EMPTY_STREAK_TO_CLEAR = 3
+
+    internal data class EmptyAction(val clear: Boolean, val newStreak: Int, val streakChanged: Boolean)
+
     /**
-     * Apply [manifest] for [sourceProfile]'s subscription. Empty manifest
-     * means "operator stopped sending brand headers" — clear the entry.
+     * Decide what to do with a previously-applied brand when the fresh manifest is empty.
+     * Pure (no I/O) so it is unit-testable.
      *
+     * - [confirmed] is true only for an empty parsed from a *successful* (HTTP 2xx) subscription
+     *   response — i.e. the operator served the subscription but sent no `X-Brand-*` headers.
+     *   An unconfirmed empty (opportunistic fetch that may have just failed) never counts.
+     * - Clearing is debounced: only after [threshold] consecutive confirmed-empty responses, so a
+     *   one-off deploy that drops the headers doesn't strip a brand the user already saw.
+     */
+    internal fun decideOnEmpty(confirmed: Boolean, isActive: Boolean, streak: Int, threshold: Int): EmptyAction {
+        if (!confirmed) return EmptyAction(clear = false, newStreak = streak, streakChanged = false)
+        if (!isActive) return EmptyAction(clear = false, newStreak = 0, streakChanged = streak != 0)
+        val next = streak + 1
+        return if (next >= threshold) {
+            EmptyAction(clear = true, newStreak = 0, streakChanged = true)
+        } else {
+            EmptyAction(clear = false, newStreak = next, streakChanged = true)
+        }
+    }
+
+    /**
+     * Apply [manifest] for [sourceProfile]'s subscription.
+     *
+     * @param confirmedResponse true when [manifest] was parsed from a confirmed successful (HTTP
+     *   2xx) subscription response, so an empty manifest genuinely means "operator served the sub
+     *   without brand headers" (not a transient fetch failure). Drives debounced clearing.
      * @return true when [BrandStore] state changed for this profile.
      */
-    suspend fun apply(context: Context, sourceProfile: UUID, manifest: BrandManifest): Boolean {
+    suspend fun apply(
+        context: Context,
+        sourceProfile: UUID,
+        manifest: BrandManifest,
+        confirmedResponse: Boolean = false,
+    ): Boolean {
         val store = BrandStore(context)
         val previous = store.manifestFor(sourceProfile)
 
@@ -35,12 +68,26 @@ object BrandRefresh {
             return false
         }
 
-        // Completely empty response (operator briefly stopped sending any
-        // X-Brand-* / X-Branding-Enabled header) — do NOT wipe cached state.
-        // A flaky deploy that omits the headers for one fetch shouldn't drop
-        // a brand the user already saw. Only explicit `false` kills the brand.
+        // Empty response. An UNCONFIRMED empty (opportunistic fetch that may have just failed, or
+        // a flaky deploy) never drops a brand the user already saw. A CONFIRMED empty (operator
+        // served the subscription over HTTP 2xx with no X-Brand-* headers) is debounced: after
+        // EMPTY_STREAK_TO_CLEAR consecutive confirmed-empties the brand is cleared, so a panel that
+        // permanently stops branding eventually resets instead of sticking forever.
         if (manifest.isEmpty()) {
-            Log.d("BrandRefresh: empty manifest from $sourceProfile, keeping cached state")
+            val action = decideOnEmpty(
+                confirmed = confirmedResponse,
+                isActive = store.isActiveFor(sourceProfile),
+                streak = store.emptyStreakFor(sourceProfile),
+                threshold = EMPTY_STREAK_TO_CLEAR,
+            )
+            if (action.clear) {
+                store.clearFor(sourceProfile)
+                pruneOrphanLogos(context)
+                Log.d("BrandRefresh: cleared brand after $EMPTY_STREAK_TO_CLEAR confirmed empty responses for $sourceProfile")
+                return true
+            }
+            if (action.streakChanged) store.setEmptyStreak(sourceProfile, action.newStreak)
+            Log.d("BrandRefresh: empty manifest from $sourceProfile (confirmed=$confirmedResponse, streak=${action.newStreak}), keeping cached state")
             return false
         }
 
@@ -68,6 +115,8 @@ object BrandRefresh {
 
         store.setManifest(sourceProfile, manifest)
         store.setLogoPaths(sourceProfile, primaryPath, lightPath)
+        // Headers are back (non-empty) → reset the confirmed-empty debounce counter.
+        store.setEmptyStreak(sourceProfile, 0)
         pruneOrphanLogos(context)
 
         val changed = previous != manifest

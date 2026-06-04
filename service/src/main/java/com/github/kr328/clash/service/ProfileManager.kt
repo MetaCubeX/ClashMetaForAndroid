@@ -388,7 +388,10 @@ class ProfileManager(private val context: Context) : IProfileManager,
                 val brand = com.github.kr328.clash.common.branding.BrandManifestParser.parse { key ->
                     response.headers[key]
                 }
-                BrandRefresh.apply(context, old.uuid, brand)
+                // confirmedResponse=true: we're past `if (!response.isSuccessful) return`, so an
+                // empty brand here is a real "served the sub with no X-Brand-* headers" signal
+                // (not a transient failure) and feeds the debounced auto-clear.
+                BrandRefresh.apply(context, old.uuid, brand, confirmedResponse = true)
 
                 if (response.headers["subscription-userinfo"] == null) return
 

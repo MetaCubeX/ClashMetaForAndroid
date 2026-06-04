@@ -42,8 +42,10 @@ object BrandThemeApplier {
             store.lastAppliedAccent = ""
             return
         }
-        val hex = store.manifestFor(activeUuid).accentColor
-        val accent = parseHexColor(hex)
+        // Derive the applicable accent through the SAME helper maybeRecreateOnAccentChange uses,
+        // so "what is applied" and "what is desired" can never disagree on parseability.
+        val hex = applicableAccent(store.manifestFor(activeUuid).accentColor)
+        val accent = if (hex.isNotEmpty()) runCatching { Color.parseColor(hex) }.getOrNull() else null
         if (accent == null) {
             store.lastAppliedAccent = ""
             return
@@ -66,7 +68,7 @@ object BrandThemeApplier {
         // Mark the accent that's now baked into this Activity's theme.
         // [maybeRecreateOnAccentChange] reads this on the next dashboard tick
         // and compares to the desired-for-active-profile accent.
-        store.lastAppliedAccent = hex.orEmpty()
+        store.lastAppliedAccent = hex
 
         com.github.kr328.clash.common.log.Log.d(
             "BrandThemeApplier: harmonised palette from accent=$hex + neutral surfaces overlay applied to ${activity::class.java.simpleName}",
@@ -93,7 +95,7 @@ object BrandThemeApplier {
         val activeUuid = com.github.kr328.clash.service.store.ServiceStore(activity).activeProfile
         val store = com.github.kr328.clash.service.branding.BrandStore(activity)
         val desired = if (activeUuid != null && store.isActiveFor(activeUuid)) {
-            store.manifestFor(activeUuid).accentColor.orEmpty()
+            applicableAccent(store.manifestFor(activeUuid).accentColor)
         } else {
             ""
         }
@@ -105,8 +107,16 @@ object BrandThemeApplier {
         activity.recreate()
     }
 
-    private fun parseHexColor(hex: String?): Int? {
-        if (hex.isNullOrBlank()) return null
-        return runCatching { Color.parseColor(hex) }.getOrNull()
-    }
+    private val HEX_COLOR = Regex("^#[0-9A-Fa-f]{6}$")
+
+    /**
+     * The accent that can actually be baked into the theme: a `#RRGGBB` hex, or "" otherwise.
+     * BOTH [applyToActivity] (what is applied) and [maybeRecreateOnAccentChange] (what is desired)
+     * MUST derive their accent through this. Otherwise a non-blank-but-unapplicable accent would
+     * ping-pong applied="" vs desired=raw and recreate the Activity on every dashboard tick
+     * (a recreate storm). Pure + matches BrandValidation.cleanHexColor's accepted form, so it is
+     * unit-testable without android.graphics.Color (stubbed in JVM tests).
+     */
+    internal fun applicableAccent(hex: String?): String =
+        if (hex != null && HEX_COLOR.matches(hex)) hex else ""
 }
