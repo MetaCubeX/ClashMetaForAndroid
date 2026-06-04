@@ -792,15 +792,23 @@
 
     <string name="proxy_chain_menu">Цепочка прокси…</string>
     <string name="proxy_chain_title">Цепочка прокси</string>
-    <string name="proxy_chain_intro">Путь трафика: Dialer → исходящий → интернет. Сначала выберите dialer (первый хоп от приложения), затем исходящий (выходной узел, чей регион видят сайты). В конфиг пишется dialer-proxy. Обновление подписки может перезаписать файлы провайдеров — при необходимости настройте снова.</string>
+    <string name="proxy_chain_use_proxy_label">Первый хоп (вход)</string>
+    <string name="proxy_chain_through_label">Выход (видимый IP)</string>
+    <string name="proxy_chain_search_hint">Поиск прокси</string>
+    <string name="proxy_chain_use_now">Использовать сейчас (Global)</string>
+    <string name="proxy_chain_use_now_summary">Записывает цепочку, переключает туннель в режим Global и выбирает этот прокси.</string>
+    <string name="proxy_chain_save_chain">Сохранить цепочку</string>
+    <string name="proxy_chain_save_chain_summary">Записывает цепочку, не меняя режим туннеля и выбор.</string>
+    <string name="proxy_chain_preview">Показать изменение</string>
+    <string name="proxy_chain_intro">Цепочка из двух прокси: сначала выберите первый хоп (вход), затем выход. Трафик идёт первый хоп → выход, а выход — это IP, который видят сайты. В конфиг пишется dialer-proxy. Обновление подписки может перезаписать файлы провайдеров — при необходимости настройте снова.</string>
     <string name="proxy_chain_transport_hint">Для стабильной цепочки обычно нужны совместимые транспорты на обоих узлах (например оба TCP/TLS). Смешение разных стеков (QUIC и только TCP, разные ожидания TLS и т.д.) часто ломает цепочку — при сомнении подбирайте одинаковый тип инбаунда.</string>
-    <string name="proxy_chain_usage_hint">«Использовать цепочку»: сохраняет dialer-proxy, включает Global и выбирает этот исходящий — как «Connect» на десктопе. «Только в профиль»: только запись в YAML без смены режима и селектора. В Rule по-прежнему действуют правила; для цепочки нужен Global или правила, ведущие на этот узел.</string>
+    <string name="proxy_chain_usage_hint">«Сохранить цепочку»: только запись в YAML. «Использовать сейчас»: ещё и переключает в Global и выбирает выход.</string>
     <string name="proxy_chain_dialer_label">Шаг 1 — Dialer (первый хоп)</string>
     <string name="proxy_chain_outbound_label">Шаг 2 — Исходящий (выход)</string>
     <string name="proxy_chain_connect">Использовать цепочку</string>
     <string name="proxy_chain_connecting">Выполняется…</string>
     <string name="proxy_chain_status_working">Сохраняем dialer-proxy, перезагрузка профиля, переключение в Global…</string>
-    <string name="proxy_chain_status_success">Готово — режим Global и исходящий выбраны.\nDialer (в YAML): %2$s\nИсходящий: %1$s</string>
+    <string name="proxy_chain_status_success">Готово — режим Global, выход выбран.\nВыход: %1$s\nПервый хоп: %2$s</string>
     <string name="proxy_chain_status_saved_only">YAML обновлён (dialer-proxy). Режим туннеля и селекторы не менялись.</string>
     <string name="proxy_chain_save_only_summary">Нужно только если сохранить цепочку без переключения в Global — например остаетесь в Rule или правите офлайн и выберете узел позже.</string>
     <string name="proxy_chain_save_only">Только сохранить в профиль</string>
@@ -813,7 +821,9 @@
     <string name="proxy_chain_no_groups">Сначала запустите VPN и загрузите профиль.</string>
     <string name="proxy_chain_pick_outbound">Выберите исходящий прокси.</string>
     <string name="proxy_chain_pick_dialer">Выберите прокси-dialer.</string>
-    <string name="proxy_chain_same_proxy">Исходящий и dialer должны различаться.</string>
+    <string name="proxy_chain_pick_firsthop">Выберите первый хоп.</string>
+    <string name="proxy_chain_pick_exit">Выберите выход.</string>
+    <string name="proxy_chain_same_proxy">Первый хоп и выход должны различаться.</string>
     <string name="proxy_chain_applied">Цепочка сохранена. Конфиг перезагрузится.</string>
     <string name="proxy_chain_cleared">Dialer снят с исходящего.</string>
     <string name="proxy_chain_not_found">Узел не найден в config или файлах провайдеров.</string>

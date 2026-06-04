@@ -6,12 +6,10 @@ import android.widget.ArrayAdapter
 import android.widget.AutoCompleteTextView
 import androidx.core.widget.NestedScrollView
 import android.widget.TextView
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.github.kr328.clash.design.util.layoutInflater
 import com.github.kr328.clash.design.util.root
-import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.card.MaterialCardView
 import com.google.android.material.color.MaterialColors
@@ -20,9 +18,12 @@ class ProxyChainDesign(
     context: Context,
 ) : Design<ProxyChainDesign.Request>(context) {
     sealed class Request {
-        /** Save dialer-proxy to YAML, switch to Global, select outbound (desktop-style). */
-        object Connect : Request()
-        object Apply : Request()
+        /** Write the chain only — no tunnel-mode / selection change. */
+        object SaveChain : Request()
+        /** Write the chain, switch tunnel to Global, select the proxy in GLOBAL (stated to the user). */
+        object UseNow : Request()
+        /** Show the pending YAML change (optional). */
+        object Preview : Request()
         object Clear : Request()
         object ClearAllDiskChains : Request()
         object ClearSelectedDiskChain : Request()
@@ -45,18 +46,16 @@ class ProxyChainDesign(
     private val diskChainSpinner: AutoCompleteTextView = rootView.findViewById(R.id.disk_chain_spinner)
     private val runtimeOfflineNotice: TextView = rootView.findViewById(R.id.runtime_offline_notice)
     private val runtimeProxySection: View = rootView.findViewById(R.id.runtime_proxy_section)
-    val outboundGroupSpinner: AutoCompleteTextView = rootView.findViewById(R.id.outbound_group_spinner)
-    val outboundProxySpinner: AutoCompleteTextView = rootView.findViewById(R.id.outbound_proxy_spinner)
-    val dialerGroupSpinner: AutoCompleteTextView = rootView.findViewById(R.id.dialer_group_spinner)
-    val dialerProxySpinner: AutoCompleteTextView = rootView.findViewById(R.id.dialer_proxy_spinner)
+    private val outboundProxySpinner: AutoCompleteTextView = rootView.findViewById(R.id.outbound_proxy_spinner)
+    private val dialerProxySpinner: AutoCompleteTextView = rootView.findViewById(R.id.dialer_proxy_spinner)
     private val chainStatusCard: MaterialCardView = rootView.findViewById(R.id.chain_status_card)
     private val chainStatusText: TextView = rootView.findViewById(R.id.chain_status_text)
-    private val btnConnect: MaterialButton = rootView.findViewById(R.id.btn_connect)
-    private val btnApply: MaterialButton = rootView.findViewById(R.id.btn_apply)
-    private val connectLabel: String = rootView.context.getString(R.string.proxy_chain_connect)
+    private val btnUseNow: MaterialButton = rootView.findViewById(R.id.btn_use_now)
+    private val btnSaveChain: MaterialButton = rootView.findViewById(R.id.btn_save_chain)
+    private val useNowLabel: String = rootView.context.getString(R.string.proxy_chain_use_now)
 
     private var diskRows: List<DiskRow> = emptyList()
-    private var runtimeGroups: List<String> = emptyList()
+    private var allProxies: List<String> = emptyList()
 
     override val root: View
         get() = rootView
@@ -70,11 +69,10 @@ class ProxyChainDesign(
         }
         rootView.post { ViewCompat.requestApplyInsets(rootView) }
 
-        btnConnect.setOnClickListener {
-            requests.trySend(Request.Connect)
-        }
-        btnApply.setOnClickListener {
-            requests.trySend(Request.Apply)
+        btnUseNow.setOnClickListener { requests.trySend(Request.UseNow) }
+        btnSaveChain.setOnClickListener { requests.trySend(Request.SaveChain) }
+        rootView.findViewById<MaterialButton>(R.id.btn_preview).setOnClickListener {
+            requests.trySend(Request.Preview)
         }
         rootView.findViewById<MaterialButton>(R.id.btn_clear).setOnClickListener {
             requests.trySend(Request.Clear)
@@ -121,59 +119,37 @@ class ProxyChainDesign(
         return diskRows[ix].targetYamlName
     }
 
+    /**
+     * Bind both searchable proxy fields to one flat, de-duplicated list across all runtime groups —
+     * the user picks proxies by name, not by group. Empty groups ⇒ offline notice.
+     */
     fun bindRuntime(
         groups: List<String>,
         proxiesByGroup: Map<String, List<String>>,
     ) {
         val ctx = rootView.context
         if (groups.isEmpty()) {
-            runtimeGroups = emptyList()
+            allProxies = emptyList()
             runtimeOfflineNotice.visibility = View.VISIBLE
             runtimeProxySection.visibility = View.GONE
             return
         }
-        runtimeGroups = groups
+        allProxies = proxiesByGroup.values.flatten().distinct().sorted()
         runtimeOfflineNotice.visibility = View.GONE
         runtimeProxySection.visibility = View.VISIBLE
 
-        outboundGroupSpinner.setAdapter(ArrayAdapter(ctx, android.R.layout.simple_dropdown_item_1line, groups))
-        dialerGroupSpinner.setAdapter(
-            ArrayAdapter(ctx, android.R.layout.simple_dropdown_item_1line, groups))
-
-        fun fillProxies(sp: AutoCompleteTextView, group: String) {
-            val names = proxiesByGroup[group].orEmpty()
-            sp.setAdapter(ArrayAdapter(ctx, android.R.layout.simple_dropdown_item_1line, names))
-        }
-
-        outboundGroupSpinner.setOnItemClickListener { _, _, position, _ ->
-            val name = groups.getOrNull(position) ?: return@setOnItemClickListener
-            fillProxies(outboundProxySpinner, name)
-        }
-        dialerGroupSpinner.setOnItemClickListener { _, _, position, _ ->
-            val name = groups.getOrNull(position) ?: return@setOnItemClickListener
-            fillProxies(dialerProxySpinner, name)
-        }
-
-        if (groups.isNotEmpty()) {
-            fillProxies(outboundProxySpinner, groups[0])
-            fillProxies(dialerProxySpinner, groups[0])
-        }
+        val adapter = ArrayAdapter(ctx, android.R.layout.simple_dropdown_item_1line, allProxies)
+        outboundProxySpinner.setAdapter(adapter)
+        dialerProxySpinner.setAdapter(ArrayAdapter(ctx, android.R.layout.simple_dropdown_item_1line, allProxies))
     }
 
-    fun selectedOutboundGroupName(): String? {
-        if (runtimeGroups.isEmpty()) return null
-        return outboundGroupSpinner.text?.toString()?.takeIf { it in runtimeGroups }
-    }
+    /** Top field — the FIRST hop (entry / intermediate). Becomes the `dialer-proxy` value. */
+    fun selectedFirstHopName(): String? =
+        outboundProxySpinner.text?.toString()?.trim()?.takeIf { it in allProxies }
 
-    fun selectedOutboundProxyName(): String? {
-        val adapter = outboundProxySpinner.adapter ?: return null
-        return outboundProxySpinner.text?.toString()?.takeIf { (adapter as ArrayAdapter<String>).getPosition(it) >= 0 }
-    }
-
-    fun selectedDialerProxyName(): String? {
-        val adapter = dialerProxySpinner.adapter ?: return null
-        return dialerProxySpinner.text?.toString()?.takeIf { (adapter as ArrayAdapter<String>).getPosition(it) >= 0 }
-    }
+    /** Bottom field — the EXIT (visible IP). The `dialer-proxy` is written onto this proxy. */
+    fun selectedExitName(): String? =
+        dialerProxySpinner.text?.toString()?.trim()?.takeIf { it in allProxies }
 
     enum class ChainStatusKind {
         Progress,
@@ -182,7 +158,7 @@ class ProxyChainDesign(
         Error,
     }
 
-    /** Shows last connect/save outcome; persists until the next action. */
+    /** Shows last action outcome; persists until the next action. */
     fun showChainStatus(kind: ChainStatusKind, message: String) {
         chainStatusCard.visibility = View.VISIBLE
         chainStatusText.text = message
@@ -212,9 +188,9 @@ class ProxyChainDesign(
     }
 
     fun setChainBusy(busy: Boolean) {
-        btnConnect.isEnabled = !busy
-        btnApply.isEnabled = !busy
-        btnConnect.text =
-            if (busy) rootView.context.getString(R.string.proxy_chain_connecting) else connectLabel
+        btnUseNow.isEnabled = !busy
+        btnSaveChain.isEnabled = !busy
+        btnUseNow.text =
+            if (busy) rootView.context.getString(R.string.proxy_chain_connecting) else useNowLabel
     }
 }
