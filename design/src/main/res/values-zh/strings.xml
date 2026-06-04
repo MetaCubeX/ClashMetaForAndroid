@@ -2,6 +2,7 @@
 <resources>
     <string name="access_control_packages_summary">选择哪些应用通过 VPN 路由</string>
     <string name="about">关于</string>
+    <string name="about_updates_title">关于与更新</string>
     <string name="access_control_mode">访问控制模式</string>
     <string name="access_control_packages">应用路由</string>
     <string name="append_system_dns">追加系统 DNS</string>

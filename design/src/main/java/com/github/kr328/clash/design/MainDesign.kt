@@ -1188,6 +1188,7 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
     suspend fun showAbout(
         versionName: String,
         coreVersion: String,
+        initialUpdateStatus: String? = null,
         onCheckUpdates: (((Boolean) -> Unit, (String?) -> Unit) -> Unit)? = null,
     ) {
         withContext(Dispatchers.Main) {
@@ -1233,34 +1234,31 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
             }
 
             if (onCheckUpdates != null) {
+                // Status line shows the current/known update state up front (so "About & updates"
+                // reflects a cached update without re-checking); the button is the action.
+                val statusLine = binding.aboutUpdateStatus
+                fun showStatus(text: String?) {
+                    statusLine.text = text.orEmpty()
+                    statusLine.visibility = if (text.isNullOrBlank()) View.GONE else View.VISIBLE
+                }
+                showStatus(initialUpdateStatus)
+
                 binding.aboutCheckUpdatesButton.apply {
                     visibility = View.VISIBLE
-                    var statusText: String? = null
-
-                    fun render(loading: Boolean) {
-                        isEnabled = !loading
-                        alpha = if (loading) 0.65f else 1f
-                        text = when {
-                            loading -> context.getString(R.string.about_checking_updates)
-                            !statusText.isNullOrBlank() -> statusText
-                            else -> context.getString(R.string.about_check_updates)
-                        }
-                    }
 
                     fun setLoading(loading: Boolean) {
-                        render(loading)
-                    }
-
-                    fun setStatus(text: String?) {
-                        statusText = text
-                        render(loading = false)
+                        isEnabled = !loading
+                        alpha = if (loading) 0.65f else 1f
+                        text = context.getString(
+                            if (loading) R.string.about_checking_updates else R.string.about_check_updates,
+                        )
                     }
 
                     setOnClickListener {
                         if (!isEnabled) return@setOnClickListener
-                        statusText = null
-                        render(loading = true)
-                        onCheckUpdates(::setLoading, ::setStatus)
+                        showStatus(null)
+                        setLoading(true)
+                        onCheckUpdates(::setLoading) { text -> showStatus(text) }
                     }
                 }
             }
