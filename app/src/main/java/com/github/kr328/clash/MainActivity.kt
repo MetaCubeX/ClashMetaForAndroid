@@ -874,13 +874,8 @@ class MainActivity : BaseActivity<MainDesign>() {
         val m = popup.menu
         m.findItem(R.id.profile_menu_set_active).isVisible =
             profile.imported && !profile.active
-        m.findItem(R.id.profile_menu_update).isVisible =
-            profile.imported && profile.type != Profile.Type.File
         m.findItem(R.id.profile_menu_subscription_sources).isVisible = profile.imported
         m.findItem(R.id.profile_menu_duplicate).isVisible = profile.imported
-        val shareLocked = ServiceStore(this).subscriptionShareLinksLockedFor(profile.uuid)
-        m.findItem(R.id.profile_menu_share).isVisible =
-            profile.imported && profile.type == Profile.Type.Url && !shareLocked
         popup.setOnMenuItemClickListener { item ->
             when (item.itemId) {
                 R.id.profile_menu_set_active -> {
@@ -897,31 +892,6 @@ class MainActivity : BaseActivity<MainDesign>() {
                     }
                     true
                 }
-                R.id.profile_menu_update -> {
-                    launch {
-                        // Success / failure toast is driven by the
-                        // Profile-Update-Completed / Failed broadcast in
-                        // onProfileUpdateCompleted / onProfileUpdateFailed —
-                        // no manual toast here, otherwise the user gets a
-                        // stale "started" message *after* the actual result.
-                        runCatching { updateProfileWithProgress(profile.uuid) }
-                        design.fetch()
-                    }
-                    true
-                }
-                R.id.profile_menu_share -> {
-                    val text = profile.source.takeIf { it.isNotBlank() } ?: return@setOnMenuItemClickListener false
-                    startActivity(
-                        Intent.createChooser(
-                            Intent(Intent.ACTION_SEND).apply {
-                                type = "text/plain"
-                                putExtra(Intent.EXTRA_TEXT, text)
-                            },
-                            getString(R.string.profile_menu_share),
-                        ),
-                    )
-                    true
-                }
                 R.id.profile_menu_edit -> {
                     showProfileQuickEditSheet(design, profile) { design.fetch() }
                     true
@@ -930,6 +900,10 @@ class MainActivity : BaseActivity<MainDesign>() {
                     if (profile.imported) {
                         startActivity(ProxyProvidersEditorActivity::class.intent.setUUID(profile.uuid))
                     }
+                    true
+                }
+                R.id.profile_menu_view_config -> {
+                    startActivity(ProfileConfigActivity::class.intent.setUUID(profile.uuid))
                     true
                 }
                 R.id.profile_menu_duplicate -> {

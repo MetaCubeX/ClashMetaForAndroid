@@ -75,6 +75,9 @@ interface IProfileManager {
     /** `rule-providers` YAML block or null. */
     suspend fun readRuleProvidersYaml(uuid: UUID): String?
 
+    /** Full processed `config.yaml` text for [uuid], or null if missing. Read-only. */
+    suspend fun readConfigYaml(uuid: UUID): String?
+
     suspend fun replaceRuleProvidersYaml(uuid: UUID, yaml: String): Boolean
 
     suspend fun previewReplaceRuleProvidersYaml(uuid: UUID, yaml: String): String?

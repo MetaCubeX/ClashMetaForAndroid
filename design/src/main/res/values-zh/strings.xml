@@ -319,7 +319,6 @@
     <string name="profile_quick_edit_title">快速编辑订阅</string>
     <string name="profile_quick_open_advanced">打开完整编辑器</string>
     <string name="profile_quick_saved">订阅已更新</string>
-    <string name="profile_menu_share">分享订阅链接</string>
     <string name="subscription_source_locked">根据运营商策略，无法编辑此订阅 URL。</string>
     <string name="sub_meta_allow_http">允许通过 HTTP 拉取订阅元数据</string>
     <string name="sub_meta_allow_http_summary">关闭时仅通过 HTTPS 获取元数据头。仅在面板使用 HTTP（明文）时开启。</string>
@@ -438,6 +437,10 @@
     <string name="profile_force_update">从 URL 更新订阅</string>
     <string name="profile_menu_set_active">设为活动</string>
     <string name="profile_menu_subscription_sources">订阅源</string>
+    <string name="profile_menu_view_config">查看配置</string>
+    <string name="profile_config_empty">该配置文件尚未生成配置。</string>
+    <string name="profile_config_copy">复制配置</string>
+    <string name="profile_config_download">下载配置</string>
     <string name="profile_menu_sheet_subtitle">为此配置选择操作</string>
     <string name="profile_ping_all">延迟测试（全部节点）</string>
     <string name="profile_ping_ms_result">延迟约 %d ms（直连）</string>

@@ -597,6 +597,23 @@ class ProfileManager(private val context: Context) : IProfileManager,
         }
     }
 
+    override suspend fun readConfigYaml(uuid: UUID): String? {
+        return withContext(Dispatchers.IO) {
+            if (ImportedDao().queryByUUID(uuid) == null) {
+                return@withContext null
+            }
+            val file = File(context.importedDir, "$uuid/config.yaml")
+            if (!file.isFile) {
+                return@withContext null
+            }
+            try {
+                file.readText()
+            } catch (_: Exception) {
+                null
+            }
+        }
+    }
+
     override suspend fun replaceRuleProvidersYaml(uuid: UUID, yaml: String): Boolean {
         return withContext(Dispatchers.IO) {
             if (ImportedDao().queryByUUID(uuid) == null) {

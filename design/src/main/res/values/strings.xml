@@ -395,7 +395,6 @@ Presets only change <b>where</b> files are downloaded from (CDN / host). It is s
     <string name="profile_quick_edit_title">Quick edit subscription</string>
     <string name="profile_quick_open_advanced">Open full editor</string>
     <string name="profile_quick_saved">Subscription updated</string>
-    <string name="profile_menu_share">Share subscription link</string>
     <string name="subscription_source_locked">This subscription URL cannot be edited (operator policy).</string>
     <string name="sub_meta_allow_http">Allow HTTP for subscription metadata probe</string>
     <string name="sub_meta_allow_http_summary">When off, metadata headers are only fetched over HTTPS. Enable only if your panel uses HTTP (cleartext).</string>
@@ -782,6 +781,10 @@ Presets only change <b>where</b> files are downloaded from (CDN / host). It is s
     <string name="proxy_providers_merged_remove_confirm">Remove proxy-group \"%s\" from this profile?</string>
     <string name="proxy_providers_merged_removed_ok">Group removed from config.</string>
     <string name="profile_menu_subscription_sources">Subscription sources</string>
+    <string name="profile_menu_view_config">View config</string>
+    <string name="profile_config_empty">This profile has no generated config yet.</string>
+    <string name="profile_config_copy">Copy config</string>
+    <string name="profile_config_download">Download config</string>
     <string name="profile_menu_sheet_subtitle">Choose an action for this profile</string>
     <string name="properties_section_subscription">Subscription</string>
     <string name="properties_editor_intro">Paste the subscription link, set a name and interval, then tap save.</string>

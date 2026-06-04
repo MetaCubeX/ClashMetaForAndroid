@@ -368,7 +368,6 @@
     <string name="profile_quick_edit_title">Быстрое редактирование подписки</string>
     <string name="profile_quick_open_advanced">Открыть полный редактор</string>
     <string name="profile_quick_saved">Подписка обновлена</string>
-    <string name="profile_menu_share">Поделиться ссылкой подписки</string>
     <string name="subscription_source_locked">URL этой подписки нельзя менять (политика оператора).</string>
     <string name="sub_meta_allow_http">Разрешить HTTP для запроса метаданных подписки</string>
     <string name="sub_meta_allow_http_summary">Если выключено, метаданные запрашиваются только по HTTPS. Включайте только если панель отдаёт метаданные по HTTP (небезопасно).</string>
@@ -671,6 +670,10 @@
     <string name="proxy_providers_merged_remove_confirm">Удалить proxy-group «%s» из этого профиля?</string>
     <string name="proxy_providers_merged_removed_ok">Группа удалена из конфига.</string>
     <string name="profile_menu_subscription_sources">Источники подписок</string>
+    <string name="profile_menu_view_config">Посмотреть конфиг</string>
+    <string name="profile_config_empty">У этого профиля ещё нет сгенерированного конфига.</string>
+    <string name="profile_config_copy">Скопировать конфиг</string>
+    <string name="profile_config_download">Скачать конфиг</string>
     <string name="profile_menu_sheet_subtitle">Выберите действие для этого профиля</string>
     <string name="properties_section_subscription">Подписка</string>
     <string name="properties_editor_intro">Вставьте ссылку подписки, задайте имя и интервал обновления, затем сохраните.</string>
