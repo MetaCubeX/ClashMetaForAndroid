@@ -115,11 +115,6 @@
             android:label="@string/application_crashed"
             android:launchMode="singleTask" />
         <activity
-            android:name=".ProfilesActivity"
-            android:configChanges="uiMode"
-            android:exported="false"
-            android:label="@string/main_open_profiles" />
-        <activity
             android:name=".NewProfileActivity"
             android:configChanges="uiMode"
             android:exported="false"

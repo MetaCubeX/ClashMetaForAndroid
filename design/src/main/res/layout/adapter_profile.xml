@@ -273,16 +273,17 @@
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/server_button"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
-                        android:contentDescription="@string/main_select_server_group"
-                        android:text="@string/main_select_server_group"
+                        android:contentDescription="@string/profile_expand_proxies"
+                        android:minHeight="40dp"
+                        android:text="@string/profile_expand_proxies"
                         android:textAllCaps="false"
                         android:textAppearance="@style/TextAppearance.App.LabelMedium"
+                        android:textColor="?attr/colorOnSurface"
                         app:cornerRadius="16dp"
-                        app:icon="@drawable/ic_baseline_swap_vert"
-                        app:iconGravity="textStart"
-                        app:iconPadding="8dp" />
+                        app:strokeColor="?attr/colorOutlineVariant" />
 
                     <ImageView
                         android:id="@+id/chevron_view"
@@ -297,7 +298,7 @@
                         android:rotation="-90"
                         android:scaleType="centerInside"
                         android:src="@drawable/ic_baseline_expand_more"
-                        app:tint="?attr/colorOnPrimaryContainer" />
+                        app:tint="?attr/colorOnSurfaceVariant" />
                 </FrameLayout>
 
                 <TextView
@@ -348,97 +349,16 @@
                 android:orientation="vertical"
                 android:padding="14dp">
 
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="@string/profile_expand_proxies"
-                        android:textAppearance="@style/TextAppearance.App.TitleSmall"
-                        android:textColor="?attr/colorOnSurface"
-                        android:textStyle="bold" />
-
-                    <FrameLayout
-                        android:id="@+id/ping_group_slot"
-                        android:layout_width="84dp"
-                        android:layout_height="36dp"
-                        android:visibility="gone">
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/ping_group_view"
-                            style="@style/AppButton.Tonal"
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:clickable="true"
-                            android:contentDescription="@string/profile_ping_all"
-                            android:focusable="true"
-                            android:minWidth="0dp"
-                            android:paddingHorizontal="8dp"
-                            android:text="@string/profile_ping_all_short"
-                            android:textAllCaps="false"
-                            android:textAppearance="@style/TextAppearance.App.LabelSmall"
-                            app:cornerRadius="14dp"
-                            app:icon="@drawable/ic_speedometer_ping"
-                            app:iconGravity="textStart"
-                            app:iconPadding="4dp"
-                            app:iconSize="16dp" />
-
-                        <ProgressBar
-                            android:id="@+id/ping_group_progress"
-                            style="?android:attr/progressBarStyle"
-                            android:layout_width="22dp"
-                            android:layout_height="22dp"
-                            android:layout_gravity="center"
-                            android:indeterminateTint="?attr/colorPrimary"
-                            android:visibility="gone" />
-                    </FrameLayout>
-                </LinearLayout>
-
-                <HorizontalScrollView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
-                    android:clipToPadding="false"
-                    android:overScrollMode="never"
-                    android:scrollbars="none">
-
-                    <com.google.android.material.chip.ChipGroup
-                        android:id="@+id/proxy_group_chips"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        app:chipSpacingHorizontal="6dp"
-                        app:singleLine="true"
-                        app:singleSelection="true" />
-                </HorizontalScrollView>
-
-                <TextView
-                    android:id="@+id/proxy_group_type_label"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:background="@drawable/bg_m3_status_chip_neutral"
-                    android:paddingHorizontal="8dp"
-                    android:paddingVertical="3dp"
-                    android:textAppearance="@style/TextAppearance.App.LabelSmall"
-                    android:textColor="?attr/colorOnSurfaceVariant"
-                    android:visibility="gone"
-                    tools:text="Selector" />
-
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
-                    android:text="@string/profile_nodes"
-                    android:textAppearance="@style/TextAppearance.App.LabelMedium"
-                    android:textColor="?attr/colorOnSurfaceVariant" />
+                    android:text="@string/profile_expand_proxies"
+                    android:textAppearance="@style/TextAppearance.App.TitleSmall"
+                    android:textColor="?attr/colorOnSurface"
+                    android:textStyle="bold" />
 
                 <LinearLayout
-                    android:id="@+id/proxy_nodes_list"
+                    android:id="@+id/proxy_groups_accordion"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"

@@ -10,7 +10,6 @@
     <string name="main_power_hint_start">Нажмите, чтобы включить</string>
     <string name="main_power_hint_stop">Нажмите, чтобы отключить</string>
     <string name="main_select_server">Серверы</string>
-    <string name="main_select_server_group">Выбрать сервер или группу</string>
     <string name="main_selected_group_fmt">Группа: %1$s</string>
     <string name="main_selected_route_fmt">Группа: %1$s · Сервер: %2$s</string>
     <string name="main_session_title">Сессия</string>
@@ -101,8 +100,6 @@
     <string name="nav_connections">Соединения</string>
     <string name="main_activity_title">Активность</string>
     <string name="main_activity_summary">Живые соединения и диагностика</string>
-    <string name="main_open_profiles">Управлять профилями</string>
-    <string name="main_open_profiles_summary">Подписки, обновления и файлы</string>
     <string name="main_open_connections">Открыть соединения</string>
     <string name="main_open_connections_summary">Поиск активных потоков и закрытие зависших соединений</string>
     <string name="main_open_logs">Открыть логи</string>
@@ -392,7 +389,6 @@
     <string name="profile_inactive_status">Готова</string>
     <string name="profile_use">Использовать</string>
     <string name="profile_selected_group">Выбранная группа</string>
-    <string name="profile_nodes">Узлы</string>
     <string name="profile_proxy_search_hint">Поиск по узлам или группам</string>
     <string name="profile_proxy_search_clear">Очистить поиск</string>
 

@@ -602,7 +602,7 @@ class MainActivity : BaseActivity<MainDesign>() {
                             startActivity(AccessControlActivity::class.intent)
 
                         MainDesign.Request.OpenProfiles ->
-                            startActivity(ProfilesActivity::class.intent)
+                            design.openProfilesTab()
 
                         MainDesign.Request.OpenSettings ->
                             startActivity(SettingsActivity::class.intent)
@@ -832,6 +832,20 @@ class MainActivity : BaseActivity<MainDesign>() {
 
                 design.profileEditRequests.onReceive { profile ->
                     showProfileQuickEditSheet(design, profile) { design.fetch() }
+                }
+
+                design.profileUpdateAllRequests.onReceive {
+                    launch {
+                        withProfile {
+                            queryAll().forEach { p ->
+                                if (p.imported && p.type != Profile.Type.File) update(p.uuid)
+                            }
+                        }
+                    }
+                }
+
+                design.profileReorderRequests.onReceive { ordered ->
+                    launch { withProfile { reorder(ordered.map { it.uuid.toString() }) } }
                 }
 
                 if (clashRunning && activityStarted) {
@@ -1305,7 +1319,7 @@ class MainActivity : BaseActivity<MainDesign>() {
             setTunnelStarting(false)
             showToast(R.string.start_profile_not_ready_plain, ToastDuration.Long) {
                 setAction(R.string.profiles) {
-                    startActivity(ProfilesActivity::class.intent)
+                    design?.openProfilesTab()
                 }
             }
             return null

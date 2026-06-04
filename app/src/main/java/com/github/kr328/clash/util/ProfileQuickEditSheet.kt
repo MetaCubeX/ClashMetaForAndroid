@@ -15,6 +15,7 @@ import com.github.kr328.clash.service.model.Profile
 import com.github.kr328.clash.service.store.ServiceStore
 import com.google.android.material.button.MaterialButton
 import kotlinx.coroutines.launch
+import java.util.concurrent.TimeUnit
 
 /**
  * Quick-edit name / URL / interval. [PropertiesActivity] is still the full editor (YAML, etc.).
@@ -38,13 +39,19 @@ fun BaseActivity<*>.showProfileQuickEditSheet(
 
     nameInput.setText(profile.name)
     sourceInput.setText(profile.source)
-    intervalInput.setText(profile.interval.toString())
+    val intervalMinutes = TimeUnit.MILLISECONDS.toMinutes(profile.interval)
+    intervalInput.setText(if (intervalMinutes == 0L) "" else intervalMinutes.toString())
     sourceInput.isEnabled = profile.type != Profile.Type.File && !subscriptionLocked
 
     saveButton.setOnClickListener {
         val name = nameInput.text?.toString()?.trim().orEmpty()
         val source = sourceInput.text?.toString()?.trim().orEmpty()
-        val interval = intervalInput.text?.toString()?.trim()?.toLongOrNull() ?: profile.interval
+        val intervalInputMinutes = intervalInput.text?.toString()?.trim()?.toLongOrNull()
+        val interval = if (intervalInputMinutes != null) {
+            TimeUnit.MINUTES.toMillis(intervalInputMinutes.coerceAtLeast(0))
+        } else {
+            profile.interval
+        }
 
         if (name.isBlank()) {
             launch { design.showToast(DesignR.string.empty_name, ToastDuration.Short) }
