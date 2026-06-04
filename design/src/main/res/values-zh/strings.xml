@@ -346,14 +346,22 @@
 
     <string name="proxy_chain_menu">代理链…</string>
     <string name="proxy_chain_title">代理链</string>
-    <string name="proxy_chain_intro">流量路径：Dialer → 出站 → 互联网。请先选 Dialer（从应用出发的第一跳），再选出站（网站看到的出口地区）。将把 dialer-proxy 写入配置或提供商 YAML。订阅刷新可能会覆盖提供商文件，如有需要请重新设置。</string>
+    <string name="proxy_chain_use_proxy_label">第一跳（入口）</string>
+    <string name="proxy_chain_through_label">出口（对外 IP）</string>
+    <string name="proxy_chain_search_hint">搜索代理</string>
+    <string name="proxy_chain_use_now">立即使用（Global）</string>
+    <string name="proxy_chain_use_now_summary">写入代理链，将隧道切换为 Global 模式并选中该代理。</string>
+    <string name="proxy_chain_save_chain">保存代理链</string>
+    <string name="proxy_chain_save_chain_summary">仅写入代理链，不改变隧道模式或选择。</string>
+    <string name="proxy_chain_preview">预览更改</string>
+    <string name="proxy_chain_intro">两跳代理链：先选第一跳（入口），再选出口。流量走第一跳 → 出口，出口就是网站看到的 IP。将把 dialer-proxy 写入配置或提供商 YAML。订阅刷新可能会覆盖提供商文件，如有需要请重新设置。</string>
     <string name="proxy_chain_transport_hint">两跳节点的传输层最好兼容（例如均为 TCP/TLS）。混用差异较大的协议（如 QUIC 与纯 TCP、TLS 预期不一致等）容易导致断链；不确定时请尽量使用相同的入站类型。</string>
     <string name="proxy_chain_dialer_label">步骤 1 — Dialer（第一跳）</string>
     <string name="proxy_chain_outbound_label">步骤 2 — 出站（出口节点）</string>
     <string name="proxy_chain_connect">使用链</string>
     <string name="proxy_chain_connecting">处理中…</string>
     <string name="proxy_chain_status_working">正在保存 dialer-proxy、重载配置并切换到全局…</string>
-    <string name="proxy_chain_status_success">完成 — 已启用全局并选中出站。\nDialer（已写入 YAML）：%2$s\n出站：%1$s</string>
+    <string name="proxy_chain_status_success">完成 — 已启用全局并选中出口。\n出口：%1$s\n第一跳：%2$s</string>
     <string name="proxy_chain_status_saved_only">已更新 YAML（dialer-proxy）。未更改隧道模式与选择器。</string>
     <string name="proxy_chain_save_only_summary">仅在不想切到全局时需要 — 例如保持规则模式，或离线编辑稍后再选节点。</string>
     <string name="proxy_chain_save_only">仅保存到配置</string>
@@ -366,7 +374,9 @@
     <string name="proxy_chain_no_groups">请先启动 VPN 并加载配置。</string>
     <string name="proxy_chain_pick_outbound">请选择出站代理。</string>
     <string name="proxy_chain_pick_dialer">请选择 dialer 代理。</string>
-    <string name="proxy_chain_same_proxy">出站与 dialer 不能相同。</string>
+    <string name="proxy_chain_pick_firsthop">请选择第一跳。</string>
+    <string name="proxy_chain_pick_exit">请选择出口。</string>
+    <string name="proxy_chain_same_proxy">第一跳与出口不能相同。</string>
     <string name="proxy_chain_applied">已保存链，配置将重新加载。</string>
     <string name="proxy_chain_cleared">已清除出站上的 dialer。</string>
     <string name="proxy_chain_not_found">在配置或提供商文件中找不到该节点。</string>
@@ -466,7 +476,7 @@
     <string name="proxy_chain_runtime_pick_title">新建链</string>
     <string name="proxy_chain_saved_empty">本配置没有 dialer-proxy 项。</string>
     <string name="proxy_chain_saved_title">已保存在配置中（YAML）</string>
-    <string name="proxy_chain_usage_hint">使用链：保存 dialer-proxy、切换到全局并选中该出站（类似桌面「连接」）。仅保存：只写 YAML，不切换模式/选择器。规则模式仍按规则分流；要用链请用全局或指向该节点的规则。</string>
+    <string name="proxy_chain_usage_hint">保存代理链：仅写入 YAML。立即使用：还会切换到全局并选中出口。</string>
     <string name="proxy_nodes_empty_connect_vpn">订阅提供商的节点在 VPN 启动后由核心加载。请先开启 VPN，再选择真实节点（不要选 sub1/sub2 — 那是提供商键名）。</string>
     <string name="proxy_nodes_loading">正在从核心加载节点列表…</string>
     <string name="proxy_group_empty_runtime">此组目前没有节点。若使用过滤器，可能是订阅中没有匹配的节点；否则请稍候或再次点击分组标签。</string>

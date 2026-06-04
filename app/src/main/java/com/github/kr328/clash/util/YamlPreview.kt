@@ -30,3 +30,15 @@ fun BaseActivity<*>.showYamlPreview(
         }
     }
 }
+
+/**
+ * Commit a staged YAML preview without showing the preview dialog. Returns true on success.
+ * Use when the preview is optional (the user opted to apply directly); [showYamlPreview] remains
+ * the on-demand "review then apply" path.
+ */
+suspend fun BaseActivity<*>.applyYamlPreviewDirect(previewJson: String?): Boolean {
+    val preview = previewJson
+        ?.let { runCatching { yamlPreviewJson.decodeFromString(YamlPreview.serializer(), it) }.getOrNull() }
+        ?: return false
+    return withProfile { applyYamlPreview(preview.id) }
+}

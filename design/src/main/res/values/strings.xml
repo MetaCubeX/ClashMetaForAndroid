@@ -108,7 +108,7 @@ Presets only change <b>where</b> files are downloaded from (CDN / host). It is s
     <string name="main_open_theme_summary">Dark mode, palette and text scale</string>
     <string name="main_open_language_summary">Change app language without opening deep settings</string>
     <string name="main_open_subscription_identity_summary">HWID, clashfest:// scheme and copy buttons</string>
-    <string name="main_open_about_summary">Version info, 1 and update check</string>
+    <string name="main_open_about_summary">Version info and update check</string>
 
     <!-- Routing hub screen -->
     <string name="routing_hub_tips">Manage how traffic is routed: rule snippets, the active rule list, and per-app inclusion/exclusion.</string>
@@ -925,28 +925,30 @@ Presets only change <b>where</b> files are downloaded from (CDN / host). It is s
 
     <string name="proxy_chain_menu">Proxy chain…</string>
     <string name="proxy_chain_title">Proxy chain</string>
-    <string name="proxy_chain_intro">Path: Dialer → Outbound → Internet. Pick dialer first, then outbound. The app writes dialer-proxy into profile/provider YAML.</string>
+    <string name="proxy_chain_intro">Chain two proxies: pick the first hop (entry), then the exit. Traffic flows first hop → exit, and the exit is the IP you show online. The chain is written into the profile/provider YAML.</string>
     <string name="proxy_chain_transport_hint">Use compatible transports (e.g. TCP/TLS with TCP/TLS). Mixing incompatible stacks often breaks the chain.</string>
-    <string name="proxy_chain_usage_hint">Use chain: save dialer-proxy + switch to Global + select outbound. Save only: write YAML only.</string>
-    <string name="proxy_chain_dialer_label">Step 1 — Dialer (first hop)</string>
-    <string name="proxy_chain_outbound_label">Step 2 — Outbound (exit node)</string>
-    <string name="proxy_chain_connect">Use chain</string>
+    <string name="proxy_chain_usage_hint">Save chain: write the chain only. Use now: also switch to Global and select the exit.</string>
+    <string name="proxy_chain_use_proxy_label">First hop (entry)</string>
+    <string name="proxy_chain_through_label">Exit (visible IP)</string>
+    <string name="proxy_chain_search_hint">Search proxies</string>
+    <string name="proxy_chain_use_now">Use now (Global)</string>
+    <string name="proxy_chain_use_now_summary">Writes the chain, switches the tunnel to Global mode and selects this proxy.</string>
+    <string name="proxy_chain_save_chain">Save chain</string>
+    <string name="proxy_chain_save_chain_summary">Writes the chain without changing tunnel mode or selection.</string>
+    <string name="proxy_chain_preview">Preview change</string>
     <string name="proxy_chain_connecting">Working…</string>
-    <string name="proxy_chain_status_working">Saving dialer-proxy, reloading profile, switching to Global…</string>
-    <string name="proxy_chain_status_success">OK — Global mode and outbound selected.\nDialer (saved in YAML): %2$s\nOutbound: %1$s</string>
-    <string name="proxy_chain_status_saved_only">YAML updated (dialer-proxy). Tunnel mode and selectors were not changed.</string>
-    <string name="proxy_chain_save_only_summary">Only needed if you want to store the chain without switching to Global — for example you stay in Rule mode, or you edit offline and will pick the node later.</string>
-    <string name="proxy_chain_save_only">Save to profile only</string>
-    <string name="proxy_chain_apply">Apply chain</string>
-    <string name="proxy_chain_connected">Chain saved — Global mode on and outbound selected.</string>
-    <string name="proxy_chain_connect_selector_failed">Chain saved, but the outbound could not be selected. Choose it under Global.</string>
-    <string name="proxy_chain_connect_need_vpn">Turn the VPN on to use chain (live proxy list required).</string>
-    <string name="proxy_chain_pick_outbound_group">Select which group contains the outbound (Step 2).</string>
+    <string name="proxy_chain_status_working">Saving the chain, reloading profile, switching to Global…</string>
+    <string name="proxy_chain_status_success">OK — Global mode, exit selected.\nExit: %1$s\nFirst hop: %2$s</string>
+    <string name="proxy_chain_status_saved_only">Chain saved. Tunnel mode and selection were not changed.</string>
+    <string name="proxy_chain_connect_selector_failed">Chain saved, but the proxy could not be selected under Global.</string>
+    <string name="proxy_chain_connect_need_vpn">Turn the VPN on to use a chain (live proxy list required).</string>
     <string name="proxy_chain_clear">Clear dialer on outbound</string>
     <string name="proxy_chain_no_groups">Start the VPN and load a profile first.</string>
     <string name="proxy_chain_pick_outbound">Select an outbound proxy.</string>
     <string name="proxy_chain_pick_dialer">Select a dialer proxy.</string>
-    <string name="proxy_chain_same_proxy">Outbound and dialer must be different.</string>
+    <string name="proxy_chain_pick_firsthop">Select the first hop.</string>
+    <string name="proxy_chain_pick_exit">Select the exit.</string>
+    <string name="proxy_chain_same_proxy">First hop and exit must be different.</string>
     <string name="proxy_chain_applied">Chain saved. Config will reload.</string>
     <string name="proxy_chain_cleared">Dialer removed from outbound.</string>
     <string name="proxy_chain_not_found">Could not find that proxy in config or provider files.</string>

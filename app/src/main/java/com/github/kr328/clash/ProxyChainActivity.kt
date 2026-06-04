@@ -14,6 +14,7 @@ import com.github.kr328.clash.util.closeConnectionsAfterUserProxySwitchIfEnabled
 import com.github.kr328.clash.util.withClash
 import com.github.kr328.clash.util.withProfile
 import com.github.kr328.clash.util.showYamlPreview
+import com.github.kr328.clash.util.applyYamlPreviewDirect
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.isActive
@@ -111,10 +112,12 @@ class ProxyChainActivity : BaseActivity<ProxyChainDesign>() {
             select<Unit> {
                 design.requests.onReceive { req ->
                     when (req) {
-                        ProxyChainDesign.Request.Connect ->
-                            launch { connectChain(uuid, design) { refreshDiskUi() } }
-                        ProxyChainDesign.Request.Apply ->
-                            launch { applyChain(uuid, design) { refreshDiskUi() } }
+                        ProxyChainDesign.Request.UseNow ->
+                            launch { useNowChain(uuid, design) { refreshDiskUi() } }
+                        ProxyChainDesign.Request.SaveChain ->
+                            launch { saveChain(uuid, design) { refreshDiskUi() } }
+                        ProxyChainDesign.Request.Preview ->
+                            launch { previewChain(uuid, design) { refreshDiskUi() } }
                         ProxyChainDesign.Request.Clear ->
                             launch { clearChain(uuid, design) { refreshDiskUi() } }
                         ProxyChainDesign.Request.ClearAllDiskChains ->
@@ -146,113 +149,102 @@ class ProxyChainActivity : BaseActivity<ProxyChainDesign>() {
 
     private fun chainErr(@StringRes msg: Int): String = getString(msg)
 
-    private suspend fun connectChain(
+    /** Validates the two pickers; on error shows status and returns null, else (firstHop, exit). */
+    private fun validateChainSelection(design: ProxyChainDesign): Pair<String, String>? {
+        val firstHop = design.selectedFirstHopName()?.trim().orEmpty()
+        val exit = design.selectedExitName()?.trim().orEmpty()
+        when {
+            firstHop.isEmpty() ->
+                design.showChainStatus(ChainStatusKind.Error, chainErr(R.string.proxy_chain_pick_firsthop))
+            exit.isEmpty() ->
+                design.showChainStatus(ChainStatusKind.Error, chainErr(R.string.proxy_chain_pick_exit))
+            firstHop == exit ->
+                design.showChainStatus(ChainStatusKind.Error, chainErr(R.string.proxy_chain_same_proxy))
+            else -> return firstHop to exit
+        }
+        return null
+    }
+
+    /** Stage the dialer-proxy change; returns the preview JSON or null (status shown on failure). */
+    private suspend fun stageChainPreview(
+        uuid: UUID,
+        target: String,
+        dialer: String?,
+        design: ProxyChainDesign,
+    ): String? = try {
+        withProfile { previewSetProxyDialerProxy(uuid, target, dialer) }
+    } catch (e: Exception) {
+        design.showExceptionToast(e)
+        design.showChainStatus(
+            ChainStatusKind.Error,
+            e.message?.takeIf { it.isNotBlank() } ?: chainErr(R.string.proxy_chain_not_found),
+        )
+        null
+    }
+
+    /** Save the chain only — no tunnel-mode / selection change. Commits directly (no forced dialog). */
+    private suspend fun saveChain(
         uuid: UUID,
         design: ProxyChainDesign,
         refreshDiskUi: suspend () -> Unit,
     ) {
-        val outbound = design.selectedOutboundProxyName()?.trim().orEmpty()
-        val dialer = design.selectedDialerProxyName()?.trim().orEmpty()
-        val group = design.selectedOutboundGroupName()?.trim().orEmpty()
-        if (outbound.isEmpty()) {
-            design.showChainStatus(ChainStatusKind.Error, chainErr(R.string.proxy_chain_pick_outbound))
-            return
+        val (firstHop, exit) = validateChainSelection(design) ?: return
+        design.setChainBusy(true)
+        try {
+            val preview = stageChainPreview(uuid, exit, firstHop, design) ?: return
+            if (applyYamlPreviewDirect(preview)) {
+                refreshDiskUi()
+                design.showChainStatus(ChainStatusKind.Success, getString(R.string.proxy_chain_status_saved_only))
+            } else {
+                design.showChainStatus(ChainStatusKind.Error, chainErr(R.string.proxy_chain_not_found))
+            }
+        } finally {
+            design.setChainBusy(false)
         }
-        if (dialer.isEmpty()) {
-            design.showChainStatus(ChainStatusKind.Error, chainErr(R.string.proxy_chain_pick_dialer))
-            return
-        }
-        if (outbound == dialer) {
-            design.showChainStatus(ChainStatusKind.Error, chainErr(R.string.proxy_chain_same_proxy))
-            return
-        }
-        if (group.isEmpty()) {
-            design.showChainStatus(ChainStatusKind.Error, chainErr(R.string.proxy_chain_pick_outbound_group))
-            return
-        }
+    }
+
+    /** Save + switch to Global + select A in the GLOBAL group (stated to the user in the button). */
+    private suspend fun useNowChain(
+        uuid: UUID,
+        design: ProxyChainDesign,
+        refreshDiskUi: suspend () -> Unit,
+    ) {
+        val (firstHop, exit) = validateChainSelection(design) ?: return
         if (!clashRunning) {
             design.showChainStatus(ChainStatusKind.Error, chainErr(R.string.proxy_chain_connect_need_vpn))
             return
         }
         design.setChainBusy(true)
         design.showChainStatus(ChainStatusKind.Progress, getString(R.string.proxy_chain_status_working))
-        val preview = try {
-            withProfile { previewSetProxyDialerProxy(uuid, outbound, dialer) }
-        } catch (e: Exception) {
-            design.showExceptionToast(e)
-            design.showChainStatus(
-                ChainStatusKind.Error,
-                e.message?.takeIf { it.isNotBlank() } ?: chainErr(R.string.proxy_chain_not_found),
-            )
-            design.setChainBusy(false)
-            return
-        }
-        // Drop busy while the preview dialog is on screen — the user is reviewing,
-        // we are not. The actual apply work re-acquires busy inside the callback.
-        design.setChainBusy(false)
-        showYamlPreview(preview) {
-            design.setChainBusy(true)
-            try {
-                refreshDiskUi()
-                waitForProxyEngineReady()
-                uiStore.tunnelModePreference = TunnelState.Mode.Global.name
-                val patched = withClash {
-                    val o = queryOverride(Clash.OverrideSlot.Session)
-                    o.mode = TunnelState.Mode.Global
-                    patchOverride(Clash.OverrideSlot.Session, o)
-                    patchSelector(group, outbound)
-                }
-                if (patched) {
-                    closeConnectionsAfterUserProxySwitchIfEnabled { message, duration ->
-                        design.showToast(message, duration)
-                    }
-                    design.showChainStatus(
-                        ChainStatusKind.Success,
-                        getString(R.string.proxy_chain_status_success, outbound, dialer),
-                    )
-                } else {
-                    design.showChainStatus(
-                        ChainStatusKind.Warning,
-                        getString(R.string.proxy_chain_connect_selector_failed),
-                    )
-                }
-            } catch (e: Exception) {
-                design.showExceptionToast(e)
-                design.showChainStatus(
-                    ChainStatusKind.Error,
-                    e.message?.takeIf { it.isNotBlank() } ?: chainErr(R.string.proxy_chain_not_found),
-                )
-            } finally {
-                design.setChainBusy(false)
-            }
-        }
-    }
-
-    private suspend fun applyChain(
-        uuid: UUID,
-        design: ProxyChainDesign,
-        refreshDiskUi: suspend () -> Unit,
-    ) {
-        val outbound = design.selectedOutboundProxyName()?.trim().orEmpty()
-        val dialer = design.selectedDialerProxyName()?.trim().orEmpty()
-        if (outbound.isEmpty()) {
-            design.showChainStatus(ChainStatusKind.Error, chainErr(R.string.proxy_chain_pick_outbound))
-            return
-        }
-        if (dialer.isEmpty()) {
-            design.showChainStatus(ChainStatusKind.Error, chainErr(R.string.proxy_chain_pick_dialer))
-            return
-        }
-        if (outbound == dialer) {
-            design.showChainStatus(ChainStatusKind.Error, chainErr(R.string.proxy_chain_same_proxy))
-            return
-        }
-        design.setChainBusy(true)
         try {
-            val preview = withProfile { previewSetProxyDialerProxy(uuid, outbound, dialer) }
-            showYamlPreview(preview) {
-                refreshDiskUi()
-                design.showChainStatus(ChainStatusKind.Success, getString(R.string.proxy_chain_status_saved_only))
+            val preview = stageChainPreview(uuid, exit, firstHop, design) ?: return
+            if (!applyYamlPreviewDirect(preview)) {
+                design.showChainStatus(ChainStatusKind.Error, chainErr(R.string.proxy_chain_not_found))
+                return
+            }
+            refreshDiskUi()
+            waitForProxyEngineReady()
+            uiStore.tunnelModePreference = TunnelState.Mode.Global.name
+            // Use-now forces Global, where the active selector is the GLOBAL group → select A there.
+            val patched = withClash {
+                val o = queryOverride(Clash.OverrideSlot.Session)
+                o.mode = TunnelState.Mode.Global
+                patchOverride(Clash.OverrideSlot.Session, o)
+                patchSelector("GLOBAL", exit)
+            }
+            if (patched) {
+                closeConnectionsAfterUserProxySwitchIfEnabled { message, duration ->
+                    design.showToast(message, duration)
+                }
+                design.showChainStatus(
+                    ChainStatusKind.Success,
+                    getString(R.string.proxy_chain_status_success, exit, firstHop),
+                )
+            } else {
+                design.showChainStatus(
+                    ChainStatusKind.Warning,
+                    getString(R.string.proxy_chain_connect_selector_failed),
+                )
             }
         } catch (e: Exception) {
             design.showExceptionToast(e)
@@ -265,18 +257,32 @@ class ProxyChainActivity : BaseActivity<ProxyChainDesign>() {
         }
     }
 
+    /** Optional preview: show the pending YAML change; applying it from the dialog saves the chain. */
+    private suspend fun previewChain(
+        uuid: UUID,
+        design: ProxyChainDesign,
+        refreshDiskUi: suspend () -> Unit,
+    ) {
+        val (firstHop, exit) = validateChainSelection(design) ?: return
+        val preview = stageChainPreview(uuid, exit, firstHop, design) ?: return
+        showYamlPreview(preview) {
+            refreshDiskUi()
+            design.showChainStatus(ChainStatusKind.Success, getString(R.string.proxy_chain_status_saved_only))
+        }
+    }
+
     private suspend fun clearChain(
         uuid: UUID,
         design: ProxyChainDesign,
         refreshDiskUi: suspend () -> Unit,
     ) {
-        val outbound = design.selectedOutboundProxyName()?.trim().orEmpty()
-        if (outbound.isEmpty()) {
-            design.showChainStatus(ChainStatusKind.Error, chainErr(R.string.proxy_chain_pick_outbound))
+        val exit = design.selectedExitName()?.trim().orEmpty()
+        if (exit.isEmpty()) {
+            design.showChainStatus(ChainStatusKind.Error, chainErr(R.string.proxy_chain_pick_exit))
             return
         }
         try {
-            val preview = withProfile { previewSetProxyDialerProxy(uuid, outbound, null) }
+            val preview = withProfile { previewSetProxyDialerProxy(uuid, exit, null) }
             showYamlPreview(preview) {
                 refreshDiskUi()
                 design.showChainStatus(ChainStatusKind.Success, getString(R.string.proxy_chain_cleared))
