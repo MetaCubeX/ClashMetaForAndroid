@@ -960,6 +960,9 @@
     <string name="sniff_tls_override_destination">Sniff: переопределять назначение TLS</string>
     <string name="sniff_tls_ports">Порты TLS для сниффинга</string>
     <string name="subscription_default_name">Подписка</string>
+    <string name="deeplink_install_confirm_title">Добавить подписку?</string>
+    <string name="deeplink_install_confirm_message">Внешняя ссылка хочет добавить подписку в ClashFest:\n\n%1$s\n%2$s\n\nДобавляйте подписки только из источников, которым доверяете.</string>
+    <string name="deeplink_install_confirm_add">Добавить</string>
     <string name="tun_stack_gvisor">Стек gVisor</string>
     <string name="tun_stack_mixed">Смешанный стек</string>
     <string name="tun_stack_mode">Режим стека</string>

@@ -482,6 +482,9 @@ Presets only change <b>where</b> files are downloaded from (CDN / host). It is s
 
     <string name="new_profile">New Profile</string>
     <string name="subscription_default_name">Subscription</string>
+    <string name="deeplink_install_confirm_title">Add subscription?</string>
+    <string name="deeplink_install_confirm_message">An external link wants to add a subscription to ClashFest:\n\n%1$s\n%2$s\n\nOnly add subscriptions from sources you trust.</string>
+    <string name="deeplink_install_confirm_add">Add</string>
 
     <string name="delay">Delay</string>
     <string name="sort">Sort</string>

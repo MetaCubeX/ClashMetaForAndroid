@@ -3,8 +3,10 @@ package com.github.kr328.clash
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
+import android.view.ContextThemeWrapper
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import androidx.core.app.NotificationChannelCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -37,25 +39,29 @@ class ExternalControlActivity : Activity(), CoroutineScope by MainScope() {
                 val uri = intent.data ?: return finish()
                 if (uri.host != "install-config" && uri.host != "installconfig") return finish()
                 val url = uri.getQueryParameter("url") ?: return finish()
+                val name = uri.getQueryParameter("name")
+                    ?: getString(R.string.subscription_default_name)
 
-                launch {
-                    val uuid = withProfile {
-                        // DL-1: external deeplinks only create a URL-source profile.
-                        // File import must come from the in-app picker (which grants
-                        // a content-URI), never from an untrusted deeplink path.
-                        val name = uri.getQueryParameter("name")
-                            ?: getString(R.string.subscription_default_name)
-
-                        create(Profile.Type.Url, name).also {
-                            patch(it, name, url, 0)
+                // SEC: this deeplink is exported, so any site/app can fire it. Never create
+                // a profile from an untrusted external source without explicit consent —
+                // show the source URL and only proceed if the user confirms.
+                confirmInstallConfig(name, url) {
+                    launch {
+                        val uuid = withProfile {
+                            // DL-1: external deeplinks only create a URL-source profile.
+                            // File import must come from the in-app picker (which grants
+                            // a content-URI), never from an untrusted deeplink path.
+                            create(Profile.Type.Url, name).also {
+                                patch(it, name, url, 0)
+                            }
                         }
+                        startActivity(PropertiesActivity::class.intent.setUUID(uuid))
+                        finish()
                     }
-                    startActivity(PropertiesActivity::class.intent.setUUID(uuid))
-                    finish()
                 }
                 // Don't fall through to the synchronous finish() below — the
-                // activity must stay alive until the coroutine completes (then
-                // it finishes itself; onDestroy cancels the scope).
+                // activity must stay alive until the dialog (and, on confirm, the
+                // coroutine) completes; it finishes itself, onDestroy cancels the scope.
                 return
             }
 
@@ -84,6 +90,22 @@ class ExternalControlActivity : Activity(), CoroutineScope by MainScope() {
             }
         }
         return finish()
+    }
+
+    /**
+     * Shows an explicit consent dialog naming the external source before a profile is created.
+     * The activity's theme is a translucent platform theme, so wrap the dialog context in a
+     * Material theme. Decline / dismiss finishes without creating anything.
+     */
+    private fun confirmInstallConfig(name: String, url: String, onConfirm: () -> Unit) {
+        val themed = ContextThemeWrapper(this, com.google.android.material.R.style.Theme_Material3_DayNight)
+        MaterialAlertDialogBuilder(themed)
+            .setTitle(R.string.deeplink_install_confirm_title)
+            .setMessage(getString(R.string.deeplink_install_confirm_message, name, url))
+            .setPositiveButton(R.string.deeplink_install_confirm_add) { _, _ -> onConfirm() }
+            .setNegativeButton(android.R.string.cancel) { _, _ -> finish() }
+            .setOnCancelListener { finish() }
+            .show()
     }
 
     private fun startClash() {

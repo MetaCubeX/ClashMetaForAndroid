@@ -861,6 +861,9 @@
     <string name="sub_meta_lock_user">忽略运营商覆盖</string>
     <string name="sub_meta_lock_user_summary">不允许订阅服务器覆盖本地编辑的支持链接或公告。</string>
     <string name="subscription_default_name">订阅</string>
+    <string name="deeplink_install_confirm_title">添加订阅？</string>
+    <string name="deeplink_install_confirm_message">外部链接请求向 ClashFest 添加订阅：\n\n%1$s\n%2$s\n\n请仅添加你信任来源的订阅。</string>
+    <string name="deeplink_install_confirm_add">添加</string>
     <string name="support_url">支持链接</string>
     <string name="support_url_placeholder">https://t.me/your_support_bot</string>
     <string name="theme_auto">自动</string>
