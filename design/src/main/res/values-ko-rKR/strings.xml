@@ -253,4 +253,7 @@
     <string name="override_destination">Override Destination</string>
     <string name="import_from_qr_no_permission">카메라 접근이 제한되었습니다. 설정에서 허용해 주세요.</string>
     <string name="import_from_qr_exception">처리되지 않은 시스템 예외가 발생했습니다.</string>
+    <string name="new_config">새 구성</string>
+    <string name="config_name">구성 이름</string>
+    <string name="edit_config_name">구성 이름 편집</string>
 </resources>

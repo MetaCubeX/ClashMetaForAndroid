@@ -19,6 +19,7 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         OpenProxy,
         OpenProfiles,
         OpenProviders,
+        OpenAppsStrategy,
         OpenLogs,
         OpenSettings,
         OpenHelp,
@@ -34,6 +35,12 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
     suspend fun setProfileName(name: String?) {
         withContext(Dispatchers.Main) {
             binding.profileName = name
+        }
+    }
+
+    suspend fun setAppsStrategyName(name: String?) {
+        withContext(Dispatchers.Main) {
+            binding.appsStrategyName = name
         }
     }
 

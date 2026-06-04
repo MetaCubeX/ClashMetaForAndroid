@@ -250,4 +250,7 @@
     <string name="override_destination">Override Destination</string>
     <string name="import_from_qr_no_permission">相機權限受限，請前往設定開啟。</string>
     <string name="import_from_qr_exception">發生系統未知異常，操作失敗。</string>
+    <string name="new_config">新配置</string>
+    <string name="config_name">配置名稱</string>
+    <string name="edit_config_name">編輯配置名稱</string>
 </resources>

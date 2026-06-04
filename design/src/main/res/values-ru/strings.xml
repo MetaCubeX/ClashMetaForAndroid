@@ -317,4 +317,7 @@
     <string name="override_destination">Override Destination</string>
     <string name="import_from_qr_no_permission">Доступ к камере ограничен. Разрешите его в настройках.</string>
     <string name="import_from_qr_exception">Произошла не обрабатываемая системная ошибка.</string>
+    <string name="new_config">Новая конфигурация</string>
+    <string name="config_name">Название конфигурации</string>
+    <string name="edit_config_name">Изменить название конфигурации</string>
 </resources>

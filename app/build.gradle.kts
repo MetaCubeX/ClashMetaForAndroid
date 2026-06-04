@@ -45,8 +45,11 @@ task("downloadGeoFiles") {
 
     doLast {
         geoFilesUrls.forEach { (downloadUrl, outputFileName) ->
-            val url = URL(downloadUrl)
             val outputPath = file("$geoFilesDownloadDir/$outputFileName")
+            if (outputPath.exists()) {
+                return@forEach
+            }
+            val url = URL(downloadUrl)
             outputPath.parentFile.mkdirs()
             url.openStream().use { input ->
                 Files.copy(input, outputPath.toPath(), StandardCopyOption.REPLACE_EXISTING)
