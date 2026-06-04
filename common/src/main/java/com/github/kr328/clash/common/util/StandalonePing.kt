@@ -61,8 +61,9 @@ object StandalonePing {
                 val t0 = SystemClock.elapsedRealtime()
                 try {
                     conn.connect()
-                    @Suppress("UNUSED_VARIABLE")
-                    val code = conn.responseCode
+                    // Force the full request/response round-trip (not just the TCP connect) so the
+                    // measured time reflects a real HTTP exchange. Return value intentionally ignored.
+                    conn.responseCode
                     (SystemClock.elapsedRealtime() - t0).coerceAtLeast(1L)
                 } finally {
                     conn.disconnect()

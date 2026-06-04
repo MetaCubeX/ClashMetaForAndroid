@@ -211,7 +211,7 @@ class NewProfileActivity : BaseActivity<NewProfileDesign>() {
             showImportCommitFailureDialog(uuid, e)
             return
         }
-        val displayName = upgradeProfileNameIfBetter(uuid, pending, trimmed)
+        val displayName = upgradeProfileNameIfBetter(uuid, pending)
         val profile = withProfile { queryByUUID(uuid) }
         if (profile?.imported == true) {
             withProfile { setActive(profile) }
@@ -222,11 +222,9 @@ class NewProfileActivity : BaseActivity<NewProfileDesign>() {
         }
     }
 
-    @Suppress("UNUSED_PARAMETER")
     private suspend fun upgradeProfileNameIfBetter(
         uuid: UUID,
         pending: com.github.kr328.clash.util.AsyncNameResolver.Pending,
-        url: String,
     ): String {
         val better = runCatching { pending.betterName.await() }.getOrNull()
             ?: return pending.preliminaryName
