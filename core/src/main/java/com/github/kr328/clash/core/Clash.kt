@@ -225,4 +225,8 @@ object Clash {
             })
         }
     }
+
+    fun setAgeSecretKey(key: String?) {
+        Bridge.nativeSetAgeSecretKey(key)
+    }
 }

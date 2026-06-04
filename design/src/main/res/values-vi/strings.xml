@@ -25,6 +25,9 @@
     <string name="access_control_packages">Các gói kiểm soát truy cập</string>
     <string name="access_control_packages_summary">Định cấu hình quyền truy cập cho các ứng dụng</string>
     <string name="active_unsaved_tips">Hồ sơ cần được lưu trước khi kích hoạt</string>
+    <string name="age_secret_key">Khóa bí mật Age</string>
+    <string name="age_secret_key_hint">AGE-SECRET-KEY-… (tùy chọn)</string>
+    <string name="age_secret_key_error">Định dạng không hợp lệ. Khóa phải bắt đầu bằng AGE-SECRET-KEY-</string>
     <string name="allow_all_apps">Cho phép tất cả các ứng dụng</string>
     <string name="allow_bypass">Cho phép bỏ qua</string>
     <string name="allow_bypass_summary">Cho phép tất cả các ứng dụng bỏ qua kết nối VPN này</string>

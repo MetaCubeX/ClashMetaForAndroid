@@ -37,7 +37,7 @@ class ProfileManager(private val context: Context) : IProfileManager,
         }
     }
 
-    override suspend fun create(type: Profile.Type, name: String, source: String): UUID {
+    override suspend fun create(type: Profile.Type, name: String, source: String, ageSecretKey: String?): UUID {
         val uuid = generateProfileUUID()
         val pending = Pending(
             uuid = uuid,
@@ -49,6 +49,7 @@ class ProfileManager(private val context: Context) : IProfileManager,
             total = 0,
             download = 0,
             expire = 0,
+            ageSecretKey = ageSecretKey,
         )
 
         PendingDao().insert(pending)
@@ -81,6 +82,7 @@ class ProfileManager(private val context: Context) : IProfileManager,
             total = imported.total,
             download = imported.download,
             expire = imported.expire,
+            ageSecretKey = imported.ageSecretKey
         )
 
         cloneImportedFiles(uuid, newUUID)
@@ -90,7 +92,7 @@ class ProfileManager(private val context: Context) : IProfileManager,
         return newUUID
     }
 
-    override suspend fun patch(uuid: UUID, name: String, source: String, interval: Long) {
+    override suspend fun patch(uuid: UUID, name: String, source: String, interval: Long, ageSecretKey: String?) {
         val pending = PendingDao().queryByUUID(uuid)
 
         if (pending == null) {
@@ -110,6 +112,7 @@ class ProfileManager(private val context: Context) : IProfileManager,
                     total = 0,
                     download = 0,
                     expire = 0,
+                    ageSecretKey = ageSecretKey,
                 )
             )
         } else {
@@ -121,6 +124,7 @@ class ProfileManager(private val context: Context) : IProfileManager,
                 total = 0,
                 download = 0,
                 expire = 0,
+                ageSecretKey = ageSecretKey,
             )
 
             PendingDao().update(newPending)
@@ -188,7 +192,8 @@ class ProfileManager(private val context: Context) : IProfileManager,
                     download,
                     total,
                     expire,
-                    old?.createdAt ?: System.currentTimeMillis()
+                    old?.createdAt ?: System.currentTimeMillis(),
+                    ageSecretKey = old.ageSecretKey
                 )
 
                 if (old != null) {
@@ -266,19 +271,20 @@ class ProfileManager(private val context: Context) : IProfileManager,
         val expire = pending?.expire ?: imported?.expire ?: return null
 
         return Profile(
-            uuid,
-            name,
-            type,
-            source,
-            active != null && imported?.uuid == active,
-            interval,
-            upload,
-            download,
-            total,
-            expire,
-            resolveUpdatedAt(uuid),
-            imported != null,
-            pending != null
+            uuid = uuid,
+            name = name,
+            type = type,
+            source = source,
+            active = active != null && imported?.uuid == active,
+            interval = interval,
+            upload = upload,
+            download = download,
+            total = total,
+            expire = expire,
+            updatedAt = resolveUpdatedAt(uuid),
+            imported = imported != null,
+            pending = pending != null,
+            ageSecretKey = if (pending != null) pending.ageSecretKey else imported?.ageSecretKey,
         )
     }
 

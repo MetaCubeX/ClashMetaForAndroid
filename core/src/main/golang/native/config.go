@@ -8,6 +8,8 @@ import (
 	"unsafe"
 
 	"cfa/native/config"
+
+	"github.com/metacubex/mihomo/component/age"
 )
 
 type remoteValidCallback struct {
@@ -59,4 +61,15 @@ func writeOverride(slot C.int, content C.c_string) {
 //export clearOverride
 func clearOverride(slot C.int) {
 	config.ClearOverride(config.OverrideSlot(slot))
+}
+
+//export setAgeSecretKey
+func setAgeSecretKey(key C.c_string) {
+	if key == nil {
+		age.SetGlobalSecretKeys()
+		return
+	}
+
+	k := C.GoString(key)
+	age.SetGlobalSecretKeys(k)
 }

@@ -86,6 +86,8 @@ github.com/mdlayher/netlink v1.7.2 h1:/UtM3ofJap7Vl4QWCPDGXY8d3GIY2UGSDbK+QWmY8/
 github.com/mdlayher/netlink v1.7.2/go.mod h1:xraEF7uJbxLhc5fpHL4cPe221LI2bdttWlU+ZGLfQSw=
 github.com/mdlayher/socket v0.5.1 h1:VZaqt6RkGkt2OE9l3GcC6nZkqD3xKeQLyfleW/uBcos=
 github.com/mdlayher/socket v0.5.1/go.mod h1:TjPLHI1UgwEv5J1B5q0zTZq12A/6H7nKmtTanQE37IQ=
+github.com/metacubex/age v0.0.0-20260603010618-28d156b4ea78 h1:LqWr0vb9zDNuQS+jJd4fnRYk/SEI7KJ7TDe/L4WFK48=
+github.com/metacubex/age v0.0.0-20260603010618-28d156b4ea78/go.mod h1:BTBG/iVY7rg3qq5WdVCg0GFk58CSvCDSbjy8I7kEx/c=
 github.com/metacubex/amneziawg-go v0.0.0-20251104174305-5a0e9f7e361d h1:vAJ0ZT4aO803F1uw2roIA9yH7Sxzox34tVVyye1bz6c=
 github.com/metacubex/amneziawg-go v0.0.0-20251104174305-5a0e9f7e361d/go.mod h1:MsM/5czONyXMJ3PRr5DbQ4O/BxzAnJWOIcJdLzW6qHY=
 github.com/metacubex/ascon v0.1.0 h1:6ZWxmXYszT1XXtwkf6nxfFhc/OTtQ9R3Vyj1jN32lGM=

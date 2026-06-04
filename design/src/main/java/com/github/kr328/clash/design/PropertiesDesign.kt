@@ -121,6 +121,23 @@ class PropertiesDesign(context: Context) : Design<PropertiesDesign.Request>(cont
         }
     }
 
+    fun inputAgeSecretKey() {
+        launch {
+            val ageSecretKey = context.requestModelTextInput(
+                initial = profile.ageSecretKey ?: "",
+                title = context.getText(R.string.age_secret_key),
+                hint = context.getText(R.string.age_secret_key_hint),
+                error = context.getText(R.string.age_secret_key_error),
+                validator = ValidatorAgeSecretKey
+            )
+
+            val newKey = ageSecretKey.ifBlank { null }
+            if (newKey != profile.ageSecretKey) {
+                profile = profile.copy(ageSecretKey = newKey)
+            }
+        }
+    }
+
     fun inputInterval() {
         launch {
             var minutes = TimeUnit.MILLISECONDS.toMinutes(profile.interval)

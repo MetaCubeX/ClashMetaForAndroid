@@ -81,6 +81,16 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginVertical="@dimen/properties_element_margin_vertical"
+                    android:onClick="@{() -> self.inputAgeSecretKey()}"
+                    app:icon="@drawable/ic_baseline_key"
+                    app:placeholder="@string/age_secret_key_hint"
+                    app:text="@{profile.ageSecretKey}"
+                    app:title="@string/age_secret_key" />
+
+                <com.github.kr328.clash.design.view.ActionTextField
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginVertical="@dimen/properties_element_margin_vertical"
                     android:onClick="@{() -> self.inputInterval()}"
                     app:enabled="@{profile.type != Type.File}"
                     app:icon="@drawable/ic_outline_update"
