@@ -26,6 +26,16 @@ dependencies {
     implementation(libs.google.material)
     implementation(libs.quickie.bundled)
     implementation(libs.androidx.activity.ktx)
+
+    testImplementation("junit:junit:4.13.2")
+    testImplementation(kotlin("test"))
+    testImplementation("com.squareup.okhttp3:mockwebserver:4.12.0")
+}
+
+android {
+    testOptions {
+        unitTests.isReturnDefaultValues = true
+    }
 }
 
 tasks.getByName("clean", type = Delete::class) {
