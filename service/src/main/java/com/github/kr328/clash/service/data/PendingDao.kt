@@ -18,6 +18,9 @@ interface PendingDao {
     @Query("SELECT uuid FROM pending ORDER BY profileOrder, createdAt")
     suspend fun queryAllUUIDs(): List<UUID>
 
+    @Query("SELECT * FROM pending ORDER BY profileOrder, createdAt")
+    suspend fun queryAll(): List<Pending>
+
     @Query("SELECT MAX(profileOrder) FROM pending")
     suspend fun queryMaxProfileOrder(): Long?
 

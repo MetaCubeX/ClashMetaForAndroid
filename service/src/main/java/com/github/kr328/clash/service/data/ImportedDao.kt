@@ -12,6 +12,9 @@ interface ImportedDao {
     @Query("SELECT uuid FROM imported ORDER BY profileOrder, createdAt")
     suspend fun queryAllUUIDs(): List<UUID>
 
+    @Query("SELECT * FROM imported ORDER BY profileOrder, createdAt")
+    suspend fun queryAll(): List<Imported>
+
     @Query("SELECT uuid, profileOrder FROM imported UNION SELECT uuid, profileOrder FROM pending ORDER BY profileOrder, uuid")
     suspend fun queryAllOrderedUUIDs(): List<ProfileOrderEntry>
 

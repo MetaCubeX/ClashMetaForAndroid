@@ -484,11 +484,13 @@ class ProfileManager(private val context: Context) : IProfileManager,
     }
 
     override suspend fun queryAll(): List<Profile> {
-        val uuids = withContext(Dispatchers.IO) {
-            ImportedDao().queryAllOrderedUUIDs().map { it.uuid }.distinct()
+        return withContext(Dispatchers.IO) {
+            // Bulk-load both tables once instead of two per-uuid queries (N+1) inside the loop.
+            val ordered = ImportedDao().queryAllOrderedUUIDs().map { it.uuid }.distinct()
+            val importedByUuid = ImportedDao().queryAll().associateBy { it.uuid }
+            val pendingByUuid = PendingDao().queryAll().associateBy { it.uuid }
+            ordered.mapNotNull { uuid -> buildProfile(uuid, importedByUuid[uuid], pendingByUuid[uuid]) }
         }
-
-        return uuids.mapNotNull { resolveProfile(it) }
     }
 
     override suspend fun reorder(uuids: List<String>) {
@@ -1124,7 +1126,14 @@ class ProfileManager(private val context: Context) : IProfileManager,
     private suspend fun resolveProfile(uuid: UUID): Profile? {
         val imported = ImportedDao().queryByUUID(uuid)
         val pending = PendingDao().queryByUUID(uuid)
+        return buildProfile(uuid, imported, pending)
+    }
 
+    /**
+     * Merge the imported + pending rows for [uuid] into a [Profile]. Pure (no DB) so callers that
+     * already loaded the rows in bulk (see [queryAll]) avoid an N+1 of per-uuid queries.
+     */
+    private fun buildProfile(uuid: UUID, imported: Imported?, pending: Pending?): Profile? {
         val active = store.activeProfile
         val name = pending?.name ?: imported?.name ?: return null
         val type = pending?.type ?: imported?.type ?: return null
