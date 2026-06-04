@@ -54,8 +54,6 @@ object BrandHeaders {
     const val GREETING = "X-Brand-Greeting"
 
     // --- UX simplification (v3) ---
-    const val HIDE_STATS = "X-Brand-Hide-Stats"
-    const val HIDE_LOGS = "X-Brand-Hide-Logs"
     const val HIDE_ROUTING = "X-Brand-Hide-Routing"
 
     /**

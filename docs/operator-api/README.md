@@ -16,7 +16,7 @@ of HTTP response headers that describe:
 - **Brand identity** — name, logo (dark + light variants), tagline, accent color
 - **Operator info** — website, support / telegram / bot, privacy / terms / help, status, renew
 - **Per-user context** — already covered by `profile-title` (free-form, panel-controlled)
-- **UX simplification** — hide Stats / Logs / Routing tabs for end users
+- **UX simplification** — hide the Routing tab for end users
 - **Subscription policy** — share-link policy, HWID enforcement, max devices
 - **Announcements** — broadcast messages with optional URLs
 
