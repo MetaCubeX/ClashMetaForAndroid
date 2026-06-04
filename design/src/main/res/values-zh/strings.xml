@@ -80,7 +80,7 @@
     <string name="search">查找</string>
     <string name="age_secret_key">Age 私钥</string>
     <string name="age_secret_key_hint">AGE-SECRET-KEY-…（可选）</string>
-    <string name="age_secret_key_error">格式无效。密钥应以 AGE-SECRET-KEY- 开头</string>
+    <string name="age_secret_key_error">无效格式。密钥应以 AGE-SECRET-KEY- 开头</string>
     <string name="system_apps">系统应用</string>
     <string name="update_time">更新时间</string>
     <string name="package_name">应用包名称</string>

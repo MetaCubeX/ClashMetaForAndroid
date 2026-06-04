@@ -48,8 +48,8 @@
     <string name="at_least_15_minutes">최소 15분 이상 또는 공백</string>
     <string name="should_not_be_blank">이 필드는 공백이 허용되지 않습니다.</string>
     <string name="age_secret_key">Age 비밀 키</string>
-    <string name="age_secret_key_hint">AGE-SECRET-KEY-…（선택사항）</string>
-    <string name="age_secret_key_error">잘못된 형식입니다. 키는 AGE-SECRET-KEY- 로 시작해야 합니다</string>
+    <string name="age_secret_key_hint">AGE-SECRET-KEY-… (선택 사항)</string>
+    <string name="age_secret_key_error">형식이 올바르지 않습니다. 키는 AGE-SECRET-KEY-로 시작해야 합니다</string>
     <string name="detail">자세히</string>
     <string name="update">업데이트</string>
     <string name="edit">편집</string>

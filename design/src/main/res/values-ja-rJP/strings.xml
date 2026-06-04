@@ -47,9 +47,9 @@
     <string name="accept_http_content">http(s) のみを許可</string>
     <string name="at_least_15_minutes">15分以上か空白にしてください</string>
     <string name="should_not_be_blank">空白にはできません</string>
-    <string name="age_secret_key">Age秘密鍵</string>
-    <string name="age_secret_key_hint">AGE-SECRET-KEY-…（任意）</string>
-    <string name="age_secret_key_error">フォーマットが無効です。鍵は AGE-SECRET-KEY- で始まる必要があります</string>
+    <string name="age_secret_key">Age 秘密鍵</string>
+    <string name="age_secret_key_hint">AGE-SECRET-KEY-… (任意)</string>
+    <string name="age_secret_key_error">形式が無効です。キーは AGE-SECRET-KEY- で始まる必要があります</string>
     <string name="detail">詳細</string>
     <string name="update">更新</string>
     <string name="edit">編集</string>
