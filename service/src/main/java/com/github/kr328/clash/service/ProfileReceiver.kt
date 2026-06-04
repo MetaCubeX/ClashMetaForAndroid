@@ -57,8 +57,7 @@ class ProfileReceiver : BroadcastReceiver() {
 
             Log.i("Reschedule all profiles update")
 
-            ImportedDao().queryAllUUIDs()
-                .mapNotNull { ImportedDao().queryByUUID(it) }
+            ImportedDao().queryAll()
                 .filter { it.type != Profile.Type.File }
                 .forEach { scheduleNext(context, it) }
         }
