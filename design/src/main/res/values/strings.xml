@@ -71,6 +71,7 @@ Presets only change <b>where</b> files are downloaded from (CDN / host). It is s
     <string name="advanced_settings">Advanced</string>
     <string name="help">Help</string>
     <string name="about">About</string>
+    <string name="about_updates_title">About &amp; updates</string>
 
     <string name="copied">Copied</string>
 

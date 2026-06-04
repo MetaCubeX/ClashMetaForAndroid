@@ -1526,7 +1526,7 @@
                             <TextView
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:text="@string/about"
+                                android:text="@string/about_updates_title"
                                 android:textAppearance="@style/TextAppearance.App.TitleSmall"
                                 android:textColor="?attr/colorOnSurface"
                                 android:textStyle="bold" />

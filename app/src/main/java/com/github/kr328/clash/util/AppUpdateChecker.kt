@@ -138,14 +138,8 @@ object AppUpdateChecker {
         if (!hasUpdate) return
 
         // Cache full release info every time we see an update (even if Android notification
-        // was already shown for this tag). The in-UI badge relies on this snapshot.
-        prefs.edit()
-            .putString(KEY_LATEST_TAG, latest.tagName)
-            .putString(KEY_LATEST_BODY, latest.body)
-            .putString(KEY_LATEST_HTML_URL, latest.htmlUrl)
-            .putString(KEY_LATEST_APK_URL, latest.apkUrl.orEmpty())
-            .putString(KEY_LATEST_APK_NAME, latest.apkName.orEmpty())
-            .apply()
+        // was already shown for this tag). The in-UI badge / dialog rely on this snapshot.
+        cacheRelease(app, latest)
 
         if (prefs.getString(KEY_LAST_NOTIFIED_TAG, null) == latest.tagName) return
 
@@ -154,8 +148,25 @@ object AppUpdateChecker {
     }
 
     /**
-     * Immediately shows update notification with actions.
-     * Used by manual "Check for updates" flow.
+     * Persist a release snapshot so [peekCachedRelease] / [isUpdateAvailable] (the Home-header
+     * badge and the in-app update dialog) reflect it. Shared by the background check and the
+     * manual "Check now" so both surfaces stay consistent.
+     */
+    fun cacheRelease(context: Context, release: GitHubReleaseUpdate.Info) {
+        context.applicationContext
+            .getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .edit()
+            .putString(KEY_LATEST_TAG, release.tagName)
+            .putString(KEY_LATEST_BODY, release.body)
+            .putString(KEY_LATEST_HTML_URL, release.htmlUrl)
+            .putString(KEY_LATEST_APK_URL, release.apkUrl.orEmpty())
+            .putString(KEY_LATEST_APK_NAME, release.apkName.orEmpty())
+            .apply()
+    }
+
+    /**
+     * Immediately shows update notification with actions. Used only by the background check —
+     * the manual flow shows the in-app dialog instead.
      */
     fun showUpdateNotification(context: Context, release: GitHubReleaseUpdate.Info) {
         notifyUpdateAvailable(context.applicationContext, release)

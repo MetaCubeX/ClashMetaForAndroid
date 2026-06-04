@@ -617,6 +617,8 @@ class MainActivity : BaseActivity<MainDesign>() {
                             design.showAbout(
                                 versionName = queryAppVersionName(),
                                 coreVersion = queryCoreVersionName(),
+                                initialUpdateStatus = AppUpdateChecker.peekCachedRelease(this@MainActivity)
+                                    ?.let { getString(R.string.about_update_available, it.tagName) },
                             ) { setLoading, setStatus ->
                                 if (isCheckingUpdates) return@showAbout
                                 launch {
@@ -1353,7 +1355,12 @@ class MainActivity : BaseActivity<MainDesign>() {
                 return@withContext
             }
             setStatus(getString(R.string.about_update_available, latest.tagName))
-            AppUpdateChecker.showUpdateNotification(this@MainActivity, latest)
+            // Connected actions: cache the release so the Home-header badge lights up
+            // immediately and stays even if the user taps "Later", then show the same in-app
+            // update dialog the Home icon uses — no system notification on the manual path.
+            AppUpdateChecker.cacheRelease(this@MainActivity, latest)
+            refreshUpdateBadge(design)
+            showUpdateAvailableDialog()
         }
     }
 

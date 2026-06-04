@@ -146,12 +146,22 @@
                 android:text="@{coreVersion}"
                 android:textAppearance="@style/TextAppearance.Material3.BodyMedium" />
 
+            <TextView
+                android:id="@+id/about_update_status"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:textAppearance="@style/TextAppearance.App.BodyMedium"
+                android:textColor="?attr/colorPrimary"
+                android:visibility="gone"
+                tools:text="● Update 0.7.0 available" />
+
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/about_check_updates_button"
                 style="@style/Widget.Material3.Button.OutlinedButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
+                android:layout_marginTop="8dp"
                 android:text="@string/about_check_updates"
                 android:visibility="gone" />
 

@@ -88,6 +88,7 @@
     <string name="advanced_settings">Расширенные</string>
     <string name="help">Помощь</string>
     <string name="about">О программе</string>
+    <string name="about_updates_title">О приложении и обновления</string>
     <string name="add">Добавить</string>
     <string name="rules">Правила</string>
     <string name="routing_rules">Правила маршрутизации</string>
