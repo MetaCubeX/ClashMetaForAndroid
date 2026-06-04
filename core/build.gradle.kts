@@ -79,6 +79,10 @@ android {
             path = file("src/main/cpp/CMakeLists.txt")
         }
     }
+
+    testOptions {
+        unitTests.isReturnDefaultValues = true
+    }
 }
 
 dependencies {
@@ -87,6 +91,9 @@ dependencies {
     implementation(libs.androidx.core)
     implementation(libs.kotlin.coroutine)
     implementation(libs.kotlin.serialization.json)
+
+    testImplementation("junit:junit:4.13.2")
+    testImplementation(kotlin("test"))
 }
 
 afterEvaluate {
