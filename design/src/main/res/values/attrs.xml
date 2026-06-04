@@ -9,6 +9,15 @@
     <attr name="colorControlDisabled" format="color" />
     <attr name="colorLogo" format="color" />
 
+    <!-- YAML config viewer syntax highlighting (resolves per AppThemeLight / AppThemeDark) -->
+    <attr name="yamlKey" format="color" />
+    <attr name="yamlString" format="color" />
+    <attr name="yamlNumber" format="color" />
+    <attr name="yamlKeyword" format="color" />
+    <attr name="yamlComment" format="color" />
+    <attr name="yamlPunctuation" format="color" />
+    <attr name="yamlPlain" format="color" />
+
     <!-- Main dashboard (home): resolves per AppThemeLight / AppThemeDark -->
     <attr name="mainDashboardBackground" format="reference" />
     <attr name="colorMainDashboardText" format="color" />

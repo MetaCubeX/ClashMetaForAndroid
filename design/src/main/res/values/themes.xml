@@ -193,6 +193,14 @@
 
         <item name="bottomSheetDialogTheme">@style/AppBottomSheetDialogLight</item>
         <item name="fullScreenDialogTheme">@style/AppFullScreenDialogLight</item>
+
+        <item name="yamlKey">@color/yaml_key_light</item>
+        <item name="yamlString">@color/yaml_string_light</item>
+        <item name="yamlNumber">@color/yaml_number_light</item>
+        <item name="yamlKeyword">@color/yaml_keyword_light</item>
+        <item name="yamlComment">@color/yaml_comment_light</item>
+        <item name="yamlPunctuation">@color/yaml_punctuation_light</item>
+        <item name="yamlPlain">@color/yaml_plain_light</item>
     </style>
 
     <!-- Material 3 Shape Styles -->
@@ -288,6 +296,14 @@
 
         <item name="bottomSheetDialogTheme">@style/AppBottomSheetDialogDark</item>
         <item name="fullScreenDialogTheme">@style/AppFullScreenDialogDark</item>
+
+        <item name="yamlKey">@color/yaml_key_dark</item>
+        <item name="yamlString">@color/yaml_string_dark</item>
+        <item name="yamlNumber">@color/yaml_number_dark</item>
+        <item name="yamlKeyword">@color/yaml_keyword_dark</item>
+        <item name="yamlComment">@color/yaml_comment_dark</item>
+        <item name="yamlPunctuation">@color/yaml_punctuation_dark</item>
+        <item name="yamlPlain">@color/yaml_plain_dark</item>
     </style>
 
     <style name="AppThemeLight" parent="AppThemeLightBase">

@@ -220,6 +220,11 @@
             android:exported="false"
             android:label="@string/rule_providers_editor_title" />
         <activity
+            android:name=".ProfileConfigActivity"
+            android:configChanges="uiMode"
+            android:exported="false"
+            android:label="@string/profile_menu_view_config" />
+        <activity
             android:name=".ProxyProvidersEditorActivity"
             android:configChanges="uiMode"
             android:exported="false"

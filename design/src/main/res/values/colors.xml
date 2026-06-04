@@ -42,4 +42,22 @@
     <color name="theme_true_black_surface">#050505</color>
     <color name="theme_true_black_surface_high">#101010</color>
 
+    <!-- YAML config viewer syntax highlighting (editor-style). Mapped to yaml* theme attrs
+         in AppThemeLightBase / AppThemeDarkBase so they follow the app's in-app day/night. -->
+    <color name="yaml_key_light">#0550AE</color>
+    <color name="yaml_string_light">#B25000</color>
+    <color name="yaml_number_light">#6F42C1</color>
+    <color name="yaml_keyword_light">#B3261E</color>
+    <color name="yaml_comment_light">#4E7A3A</color>
+    <color name="yaml_punctuation_light">#57606A</color>
+    <color name="yaml_plain_light">#1F2430</color>
+
+    <color name="yaml_key_dark">#4FC1FF</color>
+    <color name="yaml_string_dark">#FFA657</color>
+    <color name="yaml_number_dark">#C792EA</color>
+    <color name="yaml_keyword_dark">#FF7B72</color>
+    <color name="yaml_comment_dark">#7FB37A</color>
+    <color name="yaml_punctuation_dark">#8B98A9</color>
+    <color name="yaml_plain_dark">#E6EDF3</color>
+
 </resources>
