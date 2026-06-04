@@ -278,23 +278,6 @@ theme should follow user preference, not operator preference.
 | Applied to | Adds a dedicated "Operator" entry to the bottom navigation with logo + name + tagline + Renew CTA + operator-info link list. |
 | Notes | Explicit opt-in. Sending brand identity (name / logo / accent) alone is enough to brand the visuals — it does NOT auto-add a tab. Operators that want the consolidated info page choose it consciously. Pair with `X-Brand-Hide-Routing` to replace Routing instead of adding a 5th tab. |
 
-### `X-Brand-Hide-Stats`
-
-| | |
-|---|---|
-| Type | boolean |
-| Status | **v3** |
-| Applied to | Hides the Network Stats / Speed screen entry from the main UI |
-| Notes | Reaches the screen via deep settings remains possible |
-
-### `X-Brand-Hide-Logs`
-
-| | |
-|---|---|
-| Type | boolean |
-| Status | **v3** |
-| Applied to | Hides the Logs entry in Settings (raw Mihomo core log stream) |
-
 ### `X-Brand-Hide-Routing`
 
 | | |
@@ -369,7 +352,7 @@ theme should follow user preference, not operator preference.
 |---|---|
 | **v1** | Section 1 (brand identity, all five) + section 2 entries (Website / Support / Telegram / Bot / Privacy / Terms / Help) + already-parsed sections 5 + 6 |
 | **v2** | Section 2 v2 entries (Status-URL, Renew-URL) |
-| **v3** | Section 4 (Hide-Stats / Hide-Logs / Hide-Routing) |
+| **v3** | Section 4 (Hide-Routing) |
 | proposed | Anything added by future PRs |
 
 Anything not listed as a defined header is ignored. Operators are free to

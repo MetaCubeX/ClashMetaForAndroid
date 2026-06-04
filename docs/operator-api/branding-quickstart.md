@@ -49,8 +49,8 @@ X-Brand-Logo-Light-URL: https://cdn.example.com/swiftvpn-logo-light.png
 ```
 
 That's it for v1. v2 adds `X-Brand-Status-URL`, `X-Brand-Renew-URL`, and
-the static `X-Brand-Max-Devices` chip. v3 adds the Hide-Stats / Hide-Logs /
-Hide-Routing trio for simpler end-user UI.
+the static `X-Brand-Max-Devices` chip. v3 adds `X-Brand-Hide-Routing` for
+simpler end-user UI.
 
 ## Panel-specific setup
 

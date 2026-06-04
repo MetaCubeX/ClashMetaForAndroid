@@ -62,8 +62,6 @@ data class BrandManifest(
     val greeting: String? = null,
 
     // UX simplification flags. Null = operator hasn't expressed a preference.
-    val hideStats: Boolean? = null,
-    val hideLogs: Boolean? = null,
     val hideRouting: Boolean? = null,
 
     /**
@@ -98,8 +96,6 @@ data class BrandManifest(
             cabinetUrl == null &&
             userDisplayName == null &&
             greeting == null &&
-            hideStats == null &&
-            hideLogs == null &&
             hideRouting == null &&
             showOperatorTab == null &&
             enabled == null

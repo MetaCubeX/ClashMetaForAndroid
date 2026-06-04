@@ -112,8 +112,6 @@ All URL fields accept `https://`, `tg://`, `mailto:`, `t.me/`
 |---|---|---|
 | `X-Brand-Show-Operator-Tab` | boolean | **Explicit opt-in** for the dedicated Operator tab. Visual brand (name / logo / accent) applies without this; the tab does not. |
 | `X-Brand-Hide-Routing` | boolean | Paired with `Show-Operator-Tab=true`, Operator **replaces** Routing in the bottom nav. No-op on its own. |
-| `X-Brand-Hide-Stats` | boolean | (v3, UI deferred) Hide Network Stats screen entry |
-| `X-Brand-Hide-Logs` | boolean | (v3, UI deferred) Hide Logs entry in Settings |
 
 ---
 
