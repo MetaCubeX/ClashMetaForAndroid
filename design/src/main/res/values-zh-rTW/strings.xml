@@ -81,6 +81,14 @@
     <string name="age_secret_key">Age 私鑰</string>
     <string name="age_secret_key_hint">AGE-SECRET-KEY-…（選填）</string>
     <string name="age_secret_key_error">無效格式。金鑰應以 AGE-SECRET-KEY- 開頭</string>
+    <string name="age_key_helper">Age 金鑰</string>
+    <string name="age_key_category">Age 金鑰</string>
+    <string name="age_key_generate_summary">輕觸產生</string>
+    <string name="age_public_key">Age 公開金鑰</string>
+    <string name="age_public_key_error">無效的 Age 公開金鑰</string>
+    <string name="age_key_generate">產生</string>
+    <string name="age_key_to_public">從私鑰匯出</string>
+    <string name="age_key_copy">複製</string>
     <string name="feedback">回饋</string>
     <string name="github_issues">Github Issues</string>
     <string name="tips_properties"><![CDATA[僅接受 <strong>Clash 設定檔</strong> (包含<strong>Proxy</strong> /<strong>規則</strong>)]]></string>
