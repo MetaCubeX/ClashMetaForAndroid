@@ -254,6 +254,73 @@ Java_com_github_kr328_clash_core_bridge_Bridge_nativeSetAgeSecretKey(JNIEnv *env
 }
 
 JNIEXPORT jstring JNICALL
+Java_com_github_kr328_clash_core_bridge_Bridge_nativeGenX25519KeyPair(JNIEnv *env, jobject thiz) {
+    TRACE_METHOD();
+
+    scoped_string response = genX25519KeyPair();
+
+    if (response == NULL)
+        return NULL;
+
+    return new_string(response);
+}
+
+JNIEXPORT jstring JNICALL
+Java_com_github_kr328_clash_core_bridge_Bridge_nativeGenHybridKeyPair(JNIEnv *env, jobject thiz) {
+    TRACE_METHOD();
+
+    scoped_string response = genHybridKeyPair();
+
+    if (response == NULL)
+        return NULL;
+
+    return new_string(response);
+}
+
+JNIEXPORT jboolean JNICALL
+Java_com_github_kr328_clash_core_bridge_Bridge_nativeVeritySecretKeys(JNIEnv *env, jobject thiz,
+                                                                      jstring secret_keys) {
+    TRACE_METHOD();
+
+    if (secret_keys == NULL)
+        return 0;
+
+    scoped_string _secret_keys = get_string(secret_keys);
+
+    return (jboolean) veritySecretKeys(_secret_keys);
+}
+
+JNIEXPORT jstring JNICALL
+Java_com_github_kr328_clash_core_bridge_Bridge_nativeToPublicKeys(JNIEnv *env, jobject thiz,
+                                                                  jstring secret_keys) {
+    TRACE_METHOD();
+
+    if (secret_keys == NULL)
+        return NULL;
+
+    scoped_string _secret_keys = get_string(secret_keys);
+    scoped_string response = toPublicKeys(_secret_keys);
+
+    if (response == NULL)
+        return NULL;
+
+    return new_string(response);
+}
+
+JNIEXPORT jboolean JNICALL
+Java_com_github_kr328_clash_core_bridge_Bridge_nativeVerityPublicKeys(JNIEnv *env, jobject thiz,
+                                                                      jstring public_keys) {
+    TRACE_METHOD();
+
+    if (public_keys == NULL)
+        return 0;
+
+    scoped_string _public_keys = get_string(public_keys);
+
+    return (jboolean) verityPublicKeys(_public_keys);
+}
+
+JNIEXPORT jstring JNICALL
 Java_com_github_kr328_clash_core_bridge_Bridge_nativeQueryProviders(JNIEnv *env, jobject thiz) {
     TRACE_METHOD();
 

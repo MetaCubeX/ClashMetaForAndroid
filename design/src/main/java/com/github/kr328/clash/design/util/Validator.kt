@@ -1,6 +1,7 @@
 package com.github.kr328.clash.design.util
 
 import com.github.kr328.clash.common.util.PatternFileName
+import com.github.kr328.clash.core.Clash
 
 typealias Validator = (String) -> Boolean
 
@@ -25,5 +26,5 @@ val ValidatorAutoUpdateInterval: Validator = {
 }
 
 val ValidatorAgeSecretKey: Validator = {
-    it.isEmpty() || it.startsWith("AGE-SECRET-KEY-", ignoreCase = true)
+    it.isEmpty() || Clash.veritySecretKeys(it)
 }

@@ -18,6 +18,11 @@ func (r *remoteValidCallback) reportStatus(json string) {
 	C.fetch_report(r.callback, marshalString(json))
 }
 
+type ageKeyPair struct {
+	SecretKey string `json:"secretKey"`
+	PublicKey string `json:"publicKey"`
+}
+
 //export fetchAndValid
 func fetchAndValid(callback unsafe.Pointer, path, url C.c_string, force C.int) {
 	go func(path, url string, callback unsafe.Pointer) {
@@ -70,4 +75,52 @@ func setAgeSecretKey(key C.c_string) {
 
 	k := C.GoString(key)
 	config.SetGlobalSecretKeys(k)
+}
+
+//export genX25519KeyPair
+func genX25519KeyPair() *C.char {
+	secretKey, publicKey, err := config.GenX25519KeyPair()
+	if err != nil {
+		return nil
+	}
+
+	return marshalJson(ageKeyPair{SecretKey: secretKey, PublicKey: publicKey})
+}
+
+//export genHybridKeyPair
+func genHybridKeyPair() *C.char {
+	secretKey, publicKey, err := config.GenHybridKeyPair()
+	if err != nil {
+		return nil
+	}
+
+	return marshalJson(ageKeyPair{SecretKey: secretKey, PublicKey: publicKey})
+}
+
+//export veritySecretKeys
+func veritySecretKeys(secretKeys C.c_string) C.int {
+	if config.VeritySecretKeys(C.GoString(secretKeys)) != nil {
+		return 0
+	}
+
+	return 1
+}
+
+//export toPublicKeys
+func toPublicKeys(secretKeys C.c_string) *C.char {
+	publicKeys, err := config.ToPublicKeys(C.GoString(secretKeys))
+	if err != nil {
+		return nil
+	}
+
+	return marshalJson(publicKeys)
+}
+
+//export verityPublicKeys
+func verityPublicKeys(publicKeys C.c_string) C.int {
+	if config.VerityPublicKeys(C.GoString(publicKeys)) != nil {
+		return 0
+	}
+
+	return 1
 }
