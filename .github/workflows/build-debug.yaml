@@ -10,6 +10,10 @@ on:
 jobs:
   BuildDebug:
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      attestations: write
+      contents: read
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v6
@@ -69,7 +73,12 @@ jobs:
       - name: Build
         if: success()
         run: ./gradlew --no-daemon app:assembleAlphaRelease
-          
+
+      - name: Generate Artifact Attestation
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: app/build/outputs/apk/alpha/release/*.apk
+
       - name: Upload Aritfact (universal)
         uses: actions/upload-artifact@v7
         if: ${{  success() }}
