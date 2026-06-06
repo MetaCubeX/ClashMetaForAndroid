@@ -22,11 +22,14 @@ https://img.shields.io/github/actions/workflow/status/Nemu-x/ClashFest/android-d
 |------|----------------|
 | **Home** | Active node card, compact subscription actions, circular tab swipe, import from URL / QR / clipboard |
 | **Modes** | Rule / Global quick switch from Home |
+| **Profiles** | Dedicated Profiles tab manager with collapsible proxy groups + per-profile **read-only config viewer** (YAML highlighting, copy / share) |
+| **Proxy chain** | Chain two proxies per profile (first hop → exit) with explicit *save* vs *use-now* and optional YAML preview |
 | **Rules & routing** | Dedicated Routing hub, rule snippets, effective rules, app routing (per‑app VPN policy) |
 | **Network** | DNS / VPN options, security-oriented toggles where we wire them |
 | **Features** | Safe “every‑day” toggles (unified delay, geodata mode, TCP concurrent) + entry to **Geo Data Source** |
 | **Geo Data Source** | Presets for **geox-url** mirrors (same upstream data, different CDN paths), custom URLs, on-device geo DB import |
 | **Subscriptions** | HTTP(S) / `content:` profiles; **`mierus://`** shares parsed via the same pipeline as other URL imports |
+| **Updates** | In-app manual update check, merged **About & updates**, Home indicator when an update is available |
 | **Quick start** | Quick Settings tile flow with VPN permission handling and one-tap startup |
 | **Connections** | Live connections view with resilient snapshot decoding and lower polling load |
 | **App** | Dark mode, optional **UI language** (system / EN / RU / ZH), notification & recents options |
@@ -48,7 +51,13 @@ https://img.shields.io/github/actions/workflow/status/Nemu-x/ClashFest/android-d
   <img src="docs/screenshots/themes.jpg" width="180"/>
 </p>
 
-## Current focus
+## Roadmap
+
+What we're building next, what's planned, and what's out of scope lives in
+**[ROADMAP.md](ROADMAP.md)** — including community feature requests and why some
+are or aren't a fit. Have an idea? Open an [issue](https://github.com/Nemu-x/ClashFest/issues).
+
+### Current focus
 
 - Stability and regression-free releases on top of the redesigned Home
 - Routing and profile management polish without breaking upstream compatibility
@@ -76,7 +85,7 @@ https://img.shields.io/github/actions/workflow/status/Nemu-x/ClashFest/android-d
 
 - Android Studio (or compatible IDE)
 - Android SDK + **NDK** as required by the project
-- **JDK** matching the Gradle toolchain (see project / CI notes)
+- **JDK 21** (required — the native `:hideapi` step fails silently on older JDKs)
 - Gradle wrapper (included)
 
 ### Debug (default **alpha** flavor)
