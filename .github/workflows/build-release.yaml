@@ -10,6 +10,10 @@ on:
 jobs:
   BuildRelease:
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      attestations: write
+      contents: write
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v6
@@ -106,6 +110,11 @@ jobs:
       - name: Release Build
         if: success()
         run: ./gradlew --no-daemon app:assembleMetaRelease
+
+      - name: Generate Artifact Attestation
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: app/build/outputs/apk/meta/release/*.apk
 
       - name: Tag Repo
         uses: richardsimko/update-tag@v1
