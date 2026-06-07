@@ -711,9 +711,9 @@ Presets only change <b>where</b> files are downloaded from (CDN / host). It is s
     <string name="app_language_zh">Chinese</string>
 
     <string name="home_background">Home background</string>
-    <string name="home_background_material_you">Material You</string>
+    <string name="home_background_material_you">Material</string>
     <string name="home_background_plain">Plain surface</string>
-    <string name="home_background_preview">ClashFest Preview</string>
+    <string name="home_background_preview">ClashFest</string>
 
     <string name="show_traffic">Show Traffic</string>
     <string name="show_traffic_summary">Auto refresh traffic in notification</string>
@@ -984,4 +984,5 @@ Presets only change <b>where</b> files are downloaded from (CDN / host). It is s
     <string name="theme_palette_mint">Mint</string>
     <string name="theme_palette_graphite">Graphite</string>
     <string name="theme_palette_mono">Mono</string>
+    <string name="home_background_sloth">SlothClash</string>
 </resources>

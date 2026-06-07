@@ -239,21 +239,21 @@
                         android:textAllCaps="false" />
 
                     <com.google.android.material.button.MaterialButton
-                        android:id="@+id/home_background_plain"
-                        style="@style/Widget.Material3.Button.OutlinedButton"
-                        android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:layout_weight="1"
-                        android:text="@string/home_background_plain"
-                        android:textAllCaps="false" />
-
-                    <com.google.android.material.button.MaterialButton
                         android:id="@+id/home_background_preview"
                         style="@style/Widget.Material3.Button.OutlinedButton"
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
                         android:layout_weight="1"
                         android:text="@string/home_background_preview"
+                        android:textAllCaps="false" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/home_background_sloth"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:text="@string/home_background_sloth"
                         android:textAllCaps="false" />
                 </com.google.android.material.button.MaterialButtonToggleGroup>
 

@@ -16,6 +16,7 @@ import com.github.kr328.clash.common.compat.isSystemBarsTranslucentCompat
 import com.github.kr328.clash.core.bridge.ClashException
 import com.github.kr328.clash.design.Design
 import com.github.kr328.clash.design.model.DarkMode
+import com.github.kr328.clash.design.model.HomeBackgroundStyle
 import com.github.kr328.clash.design.model.ThemePalette
 import com.github.kr328.clash.design.store.UiStore
 import com.github.kr328.clash.design.ui.DayNight
@@ -222,18 +223,30 @@ abstract class BaseActivity<D : Design<*>> : AppCompatActivity(),
 
     private fun applyDayNight(config: Configuration = resources.configuration) {
         val dayNight = queryDayNight(config)
+        val night = dayNight == DayNight.Night
         when (dayNight) {
             DayNight.Night -> theme.applyStyle(R.style.AppThemeDark, true)
             DayNight.Day -> theme.applyStyle(R.style.AppThemeLight, true)
         }
-        paletteOverlay(uiStore.themePalette, dayNight)?.let {
-            theme.applyStyle(it, true)
-        }
-        if (uiStore.dynamicColors) {
-            DynamicColors.applyToActivityIfAvailable(this)
-        }
-        if (dayNight == DayNight.Night && uiStore.trueBlack) {
-            theme.applyStyle(R.style.ThemeOverlay_ClashFest_TrueBlack, true)
+        // SlothClash skin is an exclusive look (warm surfaces + gold accent),
+        // selected via the Home background picker — it owns colors, so it
+        // bypasses palette / dynamic-color / true-black.
+        if (uiStore.homeBackgroundStyle == HomeBackgroundStyle.Sloth) {
+            theme.applyStyle(
+                if (night) R.style.ThemeOverlay_ClashFest_Sloth_Dark
+                else R.style.ThemeOverlay_ClashFest_Sloth_Light,
+                true,
+            )
+        } else {
+            paletteOverlay(uiStore.themePalette, dayNight)?.let {
+                theme.applyStyle(it, true)
+            }
+            if (uiStore.dynamicColors) {
+                DynamicColors.applyToActivityIfAvailable(this)
+            }
+            if (night && uiStore.trueBlack) {
+                theme.applyStyle(R.style.ThemeOverlay_ClashFest_TrueBlack, true)
+            }
         }
 
         // Operator brand accent — applied as the FINAL theme overlay so the

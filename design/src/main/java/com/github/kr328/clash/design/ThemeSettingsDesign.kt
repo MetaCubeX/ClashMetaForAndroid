@@ -162,6 +162,11 @@ class ThemeSettingsDesign(
                     uiStore.dynamicColors = false
                     binding.dynamicColorSwitch.isChecked = false
                 }
+                // Picking a palette exits the Sloth skin so the palette applies.
+                if (slothActive) {
+                    uiStore.homeBackgroundStyle = HomeBackgroundStyle.Preview
+                    binding.homeBackgroundGroup.check(R.id.home_background_preview)
+                }
                 uiStore.themePalette = palette
                 updatePaletteEnabled()
                 updatePaletteSelection()
@@ -180,10 +185,12 @@ class ThemeSettingsDesign(
     }
 
     private fun updatePaletteEnabled() {
-        val dynamic = uiStore.dynamicColors
+        // Sloth skin and dynamic colors both own the palette, so dim the grid
+        // to signal it has no effect while either is active.
+        val overridden = uiStore.dynamicColors || slothActive
         paletteCards.values.forEach {
             it.isEnabled = true
-            it.alpha = if (dynamic) 0.64f else 1.0f
+            it.alpha = if (overridden) 0.64f else 1.0f
         }
     }
 
@@ -220,20 +227,24 @@ class ThemeSettingsDesign(
         binding.homeBackgroundGroup.check(
             when (uiStore.homeBackgroundStyle) {
                 HomeBackgroundStyle.MaterialYou -> R.id.home_background_material
-                HomeBackgroundStyle.Plain -> R.id.home_background_plain
                 HomeBackgroundStyle.Preview -> R.id.home_background_preview
+                HomeBackgroundStyle.Sloth -> R.id.home_background_sloth
             }
         )
         binding.homeBackgroundGroup.addOnButtonCheckedListener { _, checkedId, isChecked ->
             if (!isChecked) return@addOnButtonCheckedListener
             uiStore.homeBackgroundStyle = when (checkedId) {
                 R.id.home_background_material -> HomeBackgroundStyle.MaterialYou
-                R.id.home_background_plain -> HomeBackgroundStyle.Plain
+                R.id.home_background_sloth -> HomeBackgroundStyle.Sloth
                 else -> HomeBackgroundStyle.Preview
             }
+            updatePaletteEnabled()
             recreateAll(false)
         }
     }
+
+    private val slothActive: Boolean
+        get() = uiStore.homeBackgroundStyle == HomeBackgroundStyle.Sloth
 
     private fun setupReset() {
         binding.resetThemeButton.setOnClickListener {

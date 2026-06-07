@@ -606,9 +606,9 @@
     <string name="app_language_zh">中文</string>
 
     <string name="home_background">Фон главного экрана</string>
-    <string name="home_background_material_you">Material You</string>
+    <string name="home_background_material_you">Material</string>
     <string name="home_background_plain">Чистая поверхность</string>
-    <string name="home_background_preview">ClashFest Preview</string>
+    <string name="home_background_preview">ClashFest</string>
 
     <string name="show_traffic">Показывать трафик</string>
     <string name="show_traffic_summary">Автоматически обновлять счётчик трафика в уведомлении</string>
@@ -866,6 +866,7 @@
     <string name="theme_palette_mint">Мятная</string>
     <string name="theme_palette_graphite">Графитовая</string>
     <string name="theme_palette_mono">Моно</string>
+    <string name="home_background_sloth">SlothClash</string>
     <!-- I18N-R2: RU backfill (design) -->
     <string name="about_app_version_label">Версия приложения</string>
     <string name="about_check_updates">Проверить обновления</string>
