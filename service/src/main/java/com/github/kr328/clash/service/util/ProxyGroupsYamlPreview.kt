@@ -23,10 +23,13 @@ object ProxyGroupsYamlPreview {
         is Boolean -> value
         is Number -> value.toInt() != 0
         is String -> {
+            // Dialect alignment: bareword yes/on/y now arrive as strings.
             val t = value.trim()
             t.equals("true", ignoreCase = true) ||
                 t == "1" ||
-                t.equals("yes", ignoreCase = true)
+                t.equals("yes", ignoreCase = true) ||
+                t.equals("on", ignoreCase = true) ||
+                t.equals("y", ignoreCase = true)
         }
         else -> false
     }
@@ -35,7 +38,9 @@ object ProxyGroupsYamlPreview {
         val prim = (this[key] as? JsonPrimitive) ?: return false
         if (prim.content == "1") return true
         return prim.content.equals("true", ignoreCase = true) ||
-            prim.content.equals("yes", ignoreCase = true)
+            prim.content.equals("yes", ignoreCase = true) ||
+            prim.content.equals("on", ignoreCase = true) ||
+            prim.content.equals("y", ignoreCase = true)
     }
 
     private fun JsonObject.stringField(key: String): String? =
