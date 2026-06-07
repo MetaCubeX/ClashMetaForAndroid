@@ -386,10 +386,14 @@ object SubscriptionUpdateMerge {
             is Boolean -> value
             is Number -> value.toInt() != 0
             is String -> {
+                // After the YAML-dialect alignment, bareword yes/on/y arrive as
+                // strings (not Boolean), so all 1.1 truthy spellings must be here.
                 val t = value.trim()
                 t.equals("true", ignoreCase = true) ||
                     t == "1" ||
-                    t.equals("yes", ignoreCase = true)
+                    t.equals("yes", ignoreCase = true) ||
+                    t.equals("on", ignoreCase = true) ||
+                    t.equals("y", ignoreCase = true)
             }
             else -> false
         }

@@ -69,3 +69,6 @@ google-services.json
 .claude/
 .cursor/
 openspec/
+
+# Generated write-pipeline-robustness oracle fixtures (Layer-2)
+core/src/main/golang/native/snapshot/testdata/roundtrip/
