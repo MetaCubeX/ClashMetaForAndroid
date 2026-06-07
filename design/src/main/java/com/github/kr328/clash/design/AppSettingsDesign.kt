@@ -87,6 +87,13 @@ class AppSettingsDesign(
                 }
             }
 
+            switch(
+                value = uiStore::dnsHostsEnabled,
+                icon = R.drawable.ic_baseline_language,
+                title = R.string.dns_hosts_experimental_title,
+                summary = R.string.dns_hosts_experimental_summary,
+            )
+
             category(R.string.service)
 
             switch(

@@ -150,6 +150,11 @@
             android:exported="false"
             android:label="@string/network" />
         <activity
+            android:name=".DnsHostsSettingsActivity"
+            android:configChanges="uiMode"
+            android:exported="false"
+            android:label="@string/dns_hosts_title" />
+        <activity
             android:name=".AppSettingsActivity"
             android:configChanges="uiMode"
             android:exported="false"

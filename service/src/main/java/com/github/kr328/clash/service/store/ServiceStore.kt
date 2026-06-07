@@ -182,6 +182,19 @@ class ServiceStore(context: Context) {
         rawPrefs.edit().remove("subscription_share_links_locked_$uuid").apply()
     }
 
+    /**
+     * Per-profile DNS & Hosts master-toggle state. When true the profile's
+     * `dns:`/`hosts:` are user-owned: editable in the DNS & Hosts screen and
+     * preserved across subscription refreshes. Cleared by the master-toggle
+     * teardown.
+     */
+    fun isDnsHostsManaged(uuid: UUID): Boolean =
+        rawPrefs.getBoolean("dns_hosts_managed_$uuid", false)
+
+    fun setDnsHostsManaged(uuid: UUID, managed: Boolean) {
+        rawPrefs.edit().putBoolean("dns_hosts_managed_$uuid", managed).apply()
+    }
+
     companion object {
         private const val KEY_ALLOW_BYPASS = "allow_bypass"
         private const val MIGRATION_ALLOW_BYPASS_OFF_V1 = "migration_allow_bypass_off_v1"

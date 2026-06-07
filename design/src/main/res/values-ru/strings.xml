@@ -55,6 +55,39 @@
     <string name="home_import_qr_sub">Считать QR-код подписки камерой.</string>
     <string name="home_import_file_row">Из файла</string>
     <string name="home_import_file_sub">Выберите локальный конфиг (.yaml) и импортируйте как профиль.</string>
+
+    <!-- DNS & Hosts -->
+    <string name="dns_hosts_title">DNS и Hosts</string>
+    <string name="dns_hosts_entry_summary">Разрешение имён по профилю: DNS-серверы, fake-ip и статические hosts.</string>
+    <string name="dns_hosts_experimental_title">DNS и Hosts (эксперимент)</string>
+    <string name="dns_hosts_experimental_summary">Показывать редактор DNS и Hosts по профилю в настройках.</string>
+    <string name="dns_hosts_no_active_profile">Активируйте профиль, чтобы править его DNS и Hosts.</string>
+    <string name="dns_hosts_master_title">Управлять DNS и Hosts для этого профиля</string>
+    <string name="dns_hosts_master_summary">Включено — настройки применяются и переживают обновление подписки. Выключение откатывает чисто.</string>
+    <string name="dns_hosts_section_dns">DNS</string>
+    <string name="dns_hosts_enable_dns">Включить DNS</string>
+    <string name="dns_hosts_mode">Режим разрешения</string>
+    <string name="dns_hosts_mode_off">Выкл</string>
+    <string name="dns_hosts_mode_redir">Redir-host</string>
+    <string name="dns_hosts_mode_fakeip">Fake-IP</string>
+    <string name="dns_hosts_listen">Адрес прослушивания DNS (только loopback)</string>
+    <string name="dns_hosts_cache">Алгоритм кэша</string>
+    <string name="dns_hosts_cache_default">По умолчанию</string>
+    <string name="dns_hosts_cache_lru">LRU</string>
+    <string name="dns_hosts_cache_arc">ARC</string>
+    <string name="dns_hosts_proxy_dns">DNS для прокси (nameserver)</string>
+    <string name="dns_hosts_direct_dns">DNS для direct</string>
+    <string name="dns_hosts_proxy_server_dns">DNS proxy-server</string>
+    <string name="dns_hosts_bootstrap_dns">Bootstrap DNS</string>
+    <string name="dns_hosts_list_hint">По одному серверу на строку (напр. https://1.1.1.1/dns-query)</string>
+    <string name="dns_hosts_section_hosts">Hosts</string>
+    <string name="dns_hosts_hosts_hint">Переопределения hosts</string>
+    <string name="dns_hosts_hosts_helper">По одному на строку: домен = 1.2.3.4</string>
+    <string name="dns_hosts_save">Сохранить</string>
+    <string name="dns_hosts_saved">Сохранено.</string>
+    <string name="dns_hosts_disabled">DNS и Hosts откатаны для этого профиля.</string>
+    <string name="dns_hosts_err_listen">Адрес DNS listen: loopback (127.0.0.1:порт), форма по умолчанию (:порт) или пусто.</string>
+    <string name="dns_hosts_err_invalid">Движок отклонил эту конфигурацию.</string>
     <string name="profiles_header_subtitle_empty">Подписок пока нет.</string>
     <string name="profiles_header_subtitle_ready">Управляйте подписками, редактором и источниками в одном месте.</string>
     <string name="profiles_header_total_fmt">Всего: %1$d</string>

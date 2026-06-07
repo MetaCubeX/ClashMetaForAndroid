@@ -25,6 +25,8 @@ import com.github.kr328.clash.service.model.YamlPreview
 import com.github.kr328.clash.service.remote.IFetchObserver
 import com.github.kr328.clash.service.remote.IProfileManager
 import com.github.kr328.clash.service.store.ServiceStore
+import com.github.kr328.clash.service.util.DnsHostsConfig
+import com.github.kr328.clash.service.util.DnsHostsYamlEdit
 import com.github.kr328.clash.service.util.directoryLastModified
 import com.github.kr328.clash.service.util.generateProfileUUID
 import com.github.kr328.clash.service.util.importedDir
@@ -888,6 +890,33 @@ class ProfileManager(private val context: Context) : IProfileManager,
         }
     }
 
+
+    override suspend fun queryDnsHostsConfigJson(uuid: UUID): String? {
+        return withContext(Dispatchers.IO) {
+            if (ImportedDao().queryByUUID(uuid) == null) return@withContext null
+            val dir = File(context.importedDir, uuid.toString())
+            if (!File(dir, "config.yaml").isFile) return@withContext null
+            val snapshot = runCatching { Clash.parseProfileSnapshot(dir) }.getOrNull()
+                ?: return@withContext null
+            val config = DnsHostsConfig.fromSnapshot(snapshot)
+            previewJson.encodeToString(DnsHostsConfig.serializer(), config)
+        }
+    }
+
+    override suspend fun previewSetDnsHosts(uuid: UUID, configJson: String): String? {
+        return previewConfigMutation(uuid, "DNS & Hosts") { current ->
+            val config = previewJson.decodeFromString(DnsHostsConfig.serializer(), configJson)
+            DnsHostsYamlEdit.render(current, config)
+        }
+    }
+
+    override suspend fun isDnsHostsManaged(uuid: UUID): Boolean {
+        return withContext(Dispatchers.IO) { store.isDnsHostsManaged(uuid) }
+    }
+
+    override suspend fun setDnsHostsManaged(uuid: UUID, managed: Boolean) {
+        withContext(Dispatchers.IO) { store.setDnsHostsManaged(uuid, managed) }
+    }
 
     override suspend fun applyYamlPreview(previewId: String): Boolean {
         return withContext(Dispatchers.IO) {
