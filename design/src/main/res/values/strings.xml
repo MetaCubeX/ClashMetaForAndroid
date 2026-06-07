@@ -193,6 +193,39 @@ Presets only change <b>where</b> files are downloaded from (CDN / host). It is s
     <string name="home_import_qr_sub">Use the camera to read a subscription QR code.</string>
     <string name="home_import_file_row">From file</string>
     <string name="home_import_file_sub">Pick a local config file (.yaml) and import it as a profile.</string>
+
+    <!-- DNS & Hosts -->
+    <string name="dns_hosts_title">DNS &amp; Hosts</string>
+    <string name="dns_hosts_entry_summary">Per-profile name resolution: DNS servers, fake-ip, and static host overrides.</string>
+    <string name="dns_hosts_experimental_title">DNS &amp; Hosts (experimental)</string>
+    <string name="dns_hosts_experimental_summary">Show the per-profile DNS &amp; Hosts editor in Settings.</string>
+    <string name="dns_hosts_no_active_profile">Activate a profile to edit its DNS &amp; Hosts.</string>
+    <string name="dns_hosts_master_title">Manage DNS &amp; Hosts for this profile</string>
+    <string name="dns_hosts_master_summary">When on, your settings apply and survive subscription updates. Turning off reverts cleanly.</string>
+    <string name="dns_hosts_section_dns">DNS</string>
+    <string name="dns_hosts_enable_dns">Enable DNS</string>
+    <string name="dns_hosts_mode">Resolution mode</string>
+    <string name="dns_hosts_mode_off">Off</string>
+    <string name="dns_hosts_mode_redir">Redir-host</string>
+    <string name="dns_hosts_mode_fakeip">Fake-IP</string>
+    <string name="dns_hosts_listen">DNS listen address (loopback only)</string>
+    <string name="dns_hosts_cache">Cache algorithm</string>
+    <string name="dns_hosts_cache_default">Default</string>
+    <string name="dns_hosts_cache_lru">LRU</string>
+    <string name="dns_hosts_cache_arc">ARC</string>
+    <string name="dns_hosts_proxy_dns">Proxy DNS (nameserver)</string>
+    <string name="dns_hosts_direct_dns">Direct DNS</string>
+    <string name="dns_hosts_proxy_server_dns">Proxy-server DNS</string>
+    <string name="dns_hosts_bootstrap_dns">Bootstrap DNS</string>
+    <string name="dns_hosts_list_hint">One server per line (e.g. https://1.1.1.1/dns-query)</string>
+    <string name="dns_hosts_section_hosts">Hosts</string>
+    <string name="dns_hosts_hosts_hint">Host overrides</string>
+    <string name="dns_hosts_hosts_helper">One per line: domain = 1.2.3.4</string>
+    <string name="dns_hosts_save">Save</string>
+    <string name="dns_hosts_saved">Saved.</string>
+    <string name="dns_hosts_disabled">DNS &amp; Hosts reverted for this profile.</string>
+    <string name="dns_hosts_err_listen">DNS listen must be loopback (127.0.0.1:port), the default form (:port), or empty.</string>
+    <string name="dns_hosts_err_invalid">The engine rejected this configuration.</string>
     <string name="connections_title">Connections</string>
     <string name="connections_intro">Live flows from the core (VPN on). Totals are session counters; list refreshes about every second. Subtitle: process, Chain (policy path: selector / groups / leaf; [tag] is proxy-provider when present), network. dialer-proxy is not shown here — the core only records routing hops, not the extra hop used to dial a proxy server.</string>
     <string name="connections_chain_label">Chain: %1$s</string>

@@ -27,6 +27,13 @@ data class ProfileSnapshot(
     @SerialName("proxy-providers") val proxyProviders: Map<String, JsonObject> = emptyMap(),
     @SerialName("rule-providers") val ruleProviders: Map<String, JsonObject> = emptyMap(),
     val listeners: List<JsonObject> = emptyList(),
+    /**
+     * `dns:` and `hosts:` exactly as the user wrote them (null when absent),
+     * used by the DNS & Hosts editor. Kept as [JsonObject] like the other
+     * free-form sections.
+     */
+    val dns: JsonObject? = null,
+    val hosts: JsonObject? = null,
 )
 
 /**

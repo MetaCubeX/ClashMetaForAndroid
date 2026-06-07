@@ -15,6 +15,7 @@ import (
 	"os"
 	P "path"
 
+	"github.com/metacubex/mihomo/common/yaml"
 	"github.com/metacubex/mihomo/config"
 )
 
@@ -34,6 +35,12 @@ type ProfileSnapshot struct {
 	ProxyProviders map[string]map[string]any `json:"proxy-providers,omitempty"`
 	RuleProviders  map[string]map[string]any `json:"rule-providers,omitempty"`
 	Listeners      []map[string]any          `json:"listeners,omitempty"`
+	// Dns and Hosts are taken from a generic parse of the raw YAML — i.e. exactly
+	// what the user wrote — NOT from RawConfig (UnmarshalRawConfig starts from
+	// DefaultRawConfig, so RawConfig.DNS is always populated with defaults). The
+	// DNS & Hosts editor must distinguish "user set a dns: block" from "absent".
+	Dns   map[string]any `json:"dns,omitempty"`
+	Hosts map[string]any `json:"hosts,omitempty"`
 }
 
 // Build projects a parsed RawConfig into the wire-format snapshot. Exposed
@@ -69,7 +76,71 @@ func ParseBytes(data []byte) (ProfileSnapshot, error) {
 	if err != nil {
 		return ProfileSnapshot{}, err
 	}
-	return Build(rawCfg), nil
+	snapshot := Build(rawCfg)
+	snapshot.Dns, snapshot.Hosts = extractDnsHosts(data)
+	return snapshot, nil
+}
+
+// extractDnsHosts re-parses the raw YAML generically to recover the `dns:` and
+// `hosts:` blocks exactly as the user wrote them (no engine defaults). Returns
+// nil for an absent block. Best-effort: a parse failure (e.g. age-encrypted
+// config) yields nils and is not fatal — the structured parse already
+// succeeded.
+func extractDnsHosts(data []byte) (dns map[string]any, hosts map[string]any) {
+	var generic map[string]any
+	if err := yaml.Unmarshal(data, &generic); err != nil {
+		return nil, nil
+	}
+	return asStringMap(generic["dns"]), asStringMap(generic["hosts"])
+}
+
+// asStringMap coerces a generic YAML value into a JSON-marshalable
+// map[string]any (recursively), or nil if it is not a map.
+func asStringMap(v any) map[string]any {
+	switch m := v.(type) {
+	case map[string]any:
+		return normalizeMap(m)
+	case map[any]any:
+		out := make(map[string]any, len(m))
+		for k, val := range m {
+			out[toString(k)] = normalizeValue(val)
+		}
+		return out
+	default:
+		return nil
+	}
+}
+
+func normalizeMap(m map[string]any) map[string]any {
+	out := make(map[string]any, len(m))
+	for k, v := range m {
+		out[k] = normalizeValue(v)
+	}
+	return out
+}
+
+func normalizeValue(v any) any {
+	switch t := v.(type) {
+	case map[string]any:
+		return normalizeMap(t)
+	case map[any]any:
+		return asStringMap(t)
+	case []any:
+		out := make([]any, len(t))
+		for i, e := range t {
+			out[i] = normalizeValue(e)
+		}
+		return out
+	default:
+		return v
+	}
+}
+
+func toString(v any) string {
+	if s, ok := v.(string); ok {
+		return s
+	}
+	return ""
 }
 
 // envelope wraps the snapshot in an ok/error frame so that the synchronous

@@ -212,9 +212,10 @@ object ProfileProcessor {
                 }
 
                 val configFile = File(context.processingDir, "config.yaml")
+                val dnsHostsManaged = ServiceStore(context).isDnsHostsManaged(snapshot.uuid)
                 val preserved = if (configFile.isFile) {
                     runCatching { Clash.parseProfileSnapshot(context.processingDir) }
-                        .map { SubscriptionUpdateMerge.extractPreserved(it) }
+                        .map { SubscriptionUpdateMerge.extractPreserved(it, includeDnsHosts = dnsHostsManaged) }
                         .getOrElse {
                             Log.w("Failed to snapshot pre-fetch profile for preservation; continuing without overlay", it)
                             SubscriptionUpdateMerge.PreservedOverlay.EMPTY

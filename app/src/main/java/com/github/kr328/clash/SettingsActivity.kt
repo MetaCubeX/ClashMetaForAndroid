@@ -26,6 +26,8 @@ class SettingsActivity : BaseActivity<SettingsDesign>() {
                             startActivity(GeoSettingsActivity::class.intent)
                         SettingsDesign.Request.StartNetwork ->
                             startActivity(NetworkSettingsActivity::class.intent)
+                        SettingsDesign.Request.StartDnsHosts ->
+                            startActivity(DnsHostsSettingsActivity::class.intent)
                     }
                 }
             }

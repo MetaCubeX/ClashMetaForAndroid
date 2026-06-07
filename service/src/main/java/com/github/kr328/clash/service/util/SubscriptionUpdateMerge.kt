@@ -24,6 +24,15 @@ object SubscriptionUpdateMerge {
          * entries originally bound to a remote interface.
          */
         val listeners: Any? = null,
+        /**
+         * User-owned `dns:` / `hosts:` blocks, captured ONLY for profiles the
+         * DNS & Hosts editor manages (the per-profile master toggle is ON). On
+         * refresh these REPLACE the fetched values (the user owns name
+         * resolution for this profile) — unlike the additive merge used for
+         * rules/providers.
+         */
+        val dns: Any? = null,
+        val hosts: Any? = null,
     ) {
         fun isEmpty(): Boolean {
             val rpEmpty =
@@ -34,7 +43,9 @@ object SubscriptionUpdateMerge {
             val pgEmpty =
                 proxyGroups == null || (proxyGroups is List<*> && proxyGroups.isEmpty())
             val lEmpty = listeners == null || (listeners is List<*> && listeners.isEmpty())
-            return rpEmpty && rEmpty && ppEmpty && pgEmpty && lEmpty
+            val dnsEmpty = dns == null || (dns is Map<*, *> && dns.isEmpty())
+            val hostsEmpty = hosts == null || (hosts is Map<*, *> && hosts.isEmpty())
+            return rpEmpty && rEmpty && ppEmpty && pgEmpty && lEmpty && dnsEmpty && hostsEmpty
         }
 
         companion object {
@@ -49,7 +60,12 @@ object SubscriptionUpdateMerge {
      * converted to plain Map/List/scalar trees so the existing mergeAfterFetch
      * pipeline (which dumps back via SnakeYAML) keeps working unchanged.
      */
-    fun extractPreserved(snapshot: ProfileSnapshot): PreservedOverlay {
+    /**
+     * @param includeDnsHosts capture `dns:`/`hosts:` too — pass `true` only for
+     * profiles whose DNS & Hosts editor master toggle is ON (`dnsHostsManaged`).
+     * Untouched profiles must keep whatever the subscription ships.
+     */
+    fun extractPreserved(snapshot: ProfileSnapshot, includeDnsHosts: Boolean = false): PreservedOverlay {
         val rp = snapshot.ruleProviders.takeIf { it.isNotEmpty() }
             ?.let { JsonElementToYaml.convertObjectMap(it) }
         val rules = snapshot.rules.takeIf { it.isNotEmpty() }
@@ -60,10 +76,14 @@ object SubscriptionUpdateMerge {
             ?.let { JsonElementToYaml.convertObjectList(it) }
         val listeners = snapshot.listeners.takeIf { it.isNotEmpty() }
             ?.let { JsonElementToYaml.convertObjectList(it) }
-        if (rp == null && rules == null && pp == null && pg == null && listeners == null) {
+        val dns = if (includeDnsHosts) snapshot.dns?.let { JsonElementToYaml.convertObject(it) } else null
+        val hosts = if (includeDnsHosts) snapshot.hosts?.let { JsonElementToYaml.convertObject(it) } else null
+        if (rp == null && rules == null && pp == null && pg == null && listeners == null &&
+            dns == null && hosts == null
+        ) {
             return PreservedOverlay.EMPTY
         }
-        return PreservedOverlay(rp, rules, pp, pg, listeners)
+        return PreservedOverlay(rp, rules, pp, pg, listeners, dns, hosts)
     }
 
     /**
@@ -90,6 +110,15 @@ object SubscriptionUpdateMerge {
         if (preserved.listeners != null) {
             root["listeners"] = mergeListenersLists(root["listeners"], preserved.listeners)
         }
+        // dns/hosts are user-owned for managed profiles: REPLACE the fetched
+        // values outright (not an additive merge). A removed user block leaves
+        // the subscription's own value in place (preserved.dns is null then).
+        if (preserved.dns != null) {
+            root["dns"] = preserved.dns
+        }
+        if (preserved.hosts != null) {
+            root["hosts"] = preserved.hosts
+        }
         // Garbage-collect providers nothing references. After overlaying the
         // pre-fetch state on top of the fresh subscription, a rule-provider
         // may exist that no `RULE-SET,name,...` rule mentions, or a
@@ -106,6 +135,8 @@ object SubscriptionUpdateMerge {
             "proxy-providers",
             "proxy-groups",
             "listeners",
+            "dns",
+            "hosts",
         )
     }
 

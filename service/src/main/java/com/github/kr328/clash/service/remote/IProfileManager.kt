@@ -134,6 +134,17 @@ interface IProfileManager {
 
     suspend fun applyYamlPreview(previewId: String): Boolean
 
+    /** Current `dns:`/`hosts:` of a profile as a JSON `DnsHostsConfig`, or null. */
+    suspend fun queryDnsHostsConfigJson(uuid: UUID): String?
+
+    /** Preview applying a JSON `DnsHostsConfig` into the profile's `dns:`/`hosts:` blocks. */
+    suspend fun previewSetDnsHosts(uuid: UUID, configJson: String): String?
+
+    /** Per-profile DNS & Hosts master-toggle (managed = user-owned + preserved). */
+    suspend fun isDnsHostsManaged(uuid: UUID): Boolean
+
+    suspend fun setDnsHostsManaged(uuid: UUID, managed: Boolean)
+
     /** Single entry from `proxies:` as YAML, for display. */
     suspend fun readProxyEntryYaml(uuid: UUID, proxyName: String): String?
 

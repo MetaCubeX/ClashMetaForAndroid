@@ -424,6 +424,39 @@
     <string name="home_import_qr_sub">使用相机读取订阅二维码。</string>
     <string name="home_import_file_row">从文件</string>
     <string name="home_import_file_sub">选择本地配置文件 (.yaml) 并作为配置导入。</string>
+
+    <!-- DNS & Hosts -->
+    <string name="dns_hosts_title">DNS 与 Hosts</string>
+    <string name="dns_hosts_entry_summary">按配置的名称解析：DNS 服务器、fake-ip 与静态 hosts 覆盖。</string>
+    <string name="dns_hosts_experimental_title">DNS 与 Hosts（实验）</string>
+    <string name="dns_hosts_experimental_summary">在设置中显示按配置的 DNS 与 Hosts 编辑器。</string>
+    <string name="dns_hosts_no_active_profile">请先激活一个配置以编辑其 DNS 与 Hosts。</string>
+    <string name="dns_hosts_master_title">为此配置管理 DNS 与 Hosts</string>
+    <string name="dns_hosts_master_summary">开启后设置生效并在订阅更新后保留；关闭将干净还原。</string>
+    <string name="dns_hosts_section_dns">DNS</string>
+    <string name="dns_hosts_enable_dns">启用 DNS</string>
+    <string name="dns_hosts_mode">解析模式</string>
+    <string name="dns_hosts_mode_off">关闭</string>
+    <string name="dns_hosts_mode_redir">Redir-host</string>
+    <string name="dns_hosts_mode_fakeip">Fake-IP</string>
+    <string name="dns_hosts_listen">DNS 监听地址（仅回环）</string>
+    <string name="dns_hosts_cache">缓存算法</string>
+    <string name="dns_hosts_cache_default">默认</string>
+    <string name="dns_hosts_cache_lru">LRU</string>
+    <string name="dns_hosts_cache_arc">ARC</string>
+    <string name="dns_hosts_proxy_dns">代理 DNS (nameserver)</string>
+    <string name="dns_hosts_direct_dns">直连 DNS</string>
+    <string name="dns_hosts_proxy_server_dns">代理服务器 DNS</string>
+    <string name="dns_hosts_bootstrap_dns">Bootstrap DNS</string>
+    <string name="dns_hosts_list_hint">每行一个服务器（如 https://1.1.1.1/dns-query）</string>
+    <string name="dns_hosts_section_hosts">Hosts</string>
+    <string name="dns_hosts_hosts_hint">Hosts 覆盖</string>
+    <string name="dns_hosts_hosts_helper">每行一个：domain = 1.2.3.4</string>
+    <string name="dns_hosts_save">保存</string>
+    <string name="dns_hosts_saved">已保存。</string>
+    <string name="dns_hosts_disabled">已为此配置还原 DNS 与 Hosts。</string>
+    <string name="dns_hosts_err_listen">DNS 监听需为回环 (127.0.0.1:端口)、默认形式 (:端口) 或留空。</string>
+    <string name="dns_hosts_err_invalid">引擎拒绝了此配置。</string>
     <string name="home_import_sheet_title">添加订阅</string>
     <string name="home_import_sheet_summary">选择导入方式：剪贴板、链接或二维码。</string>
     <string name="home_import_url_row">输入 URL</string>

@@ -75,6 +75,12 @@ class UiStore(context: Context) {
         defaultValue = false,
     )
 
+    /** Experimental gate for the per-profile DNS & Hosts editor (OFF by default). */
+    var dnsHostsEnabled: Boolean by store.boolean(
+        key = "dns_hosts_enabled",
+        defaultValue = false,
+    )
+
     var proxyExcludeNotSelectable by store.boolean(
         key = "proxy_exclude_not_selectable",
         defaultValue = false,
