@@ -18,8 +18,10 @@ import com.github.kr328.clash.design.R
 import com.github.kr328.clash.design.model.ProfileProvider
 import com.github.kr328.clash.design.ui.ToastDuration
 import com.github.kr328.clash.design.util.showExceptionToast
+import com.github.kr328.clash.remote.FilesClient
 import com.github.kr328.clash.service.model.Profile
 import com.github.kr328.clash.util.commitProfileWithProgress
+import com.github.kr328.clash.util.fileName
 import com.github.kr328.clash.util.withProfile
 import io.github.g00fy2.quickie.QRResult
 import io.github.g00fy2.quickie.QRResult.QRError
@@ -55,19 +57,17 @@ class NewProfileActivity : BaseActivity<NewProfileDesign>() {
                 design.requests.onReceive {
                     when (it) {
                         is NewProfileDesign.Request.Create -> {
-                            withProfile {
+                            val p = it.provider
+                            if (p is ProfileProvider.File) {
+                                // Direct: pick a file, create a File profile and
+                                // import its content straight into config.yaml.
+                                createProfileFromFile()
+                            } else withProfile {
                                 val name = getString(R.string.new_profile)
 
-                                val uuid: UUID? = when (val p = it.provider) {
-                                    is ProfileProvider.File ->
-                                        create(Profile.Type.File, name)
-
+                                val uuid: UUID? = when (p) {
                                     is ProfileProvider.Url ->
                                         create(Profile.Type.Url, name)
-
-                                    is ProfileProvider.QR -> {
-                                        null
-                                    }
 
                                     is ProfileProvider.External -> {
                                         val data = p.get()
@@ -84,6 +84,8 @@ class NewProfileActivity : BaseActivity<NewProfileDesign>() {
                                             null
                                         }
                                     }
+
+                                    else -> null
                                 }
 
                                 if (uuid != null)
@@ -122,6 +124,43 @@ class NewProfileActivity : BaseActivity<NewProfileDesign>() {
 
         if (r.resultCode == Activity.RESULT_OK)
             finish()
+    }
+
+    /**
+     * Pick a local YAML, create a [Profile.Type.File] profile and write the
+     * picked content straight into its `config.yaml`, then commit — no manual
+     * trip through the file browser. Falls back to Properties if the engine
+     * cannot import (e.g. invalid YAML), so the user can fix it.
+     */
+    private suspend fun createProfileFromFile() {
+        val uri: Uri = startActivityForResult(
+            ActivityResultContracts.GetContent(),
+            "*/*",
+        ) ?: return
+
+        val d = design ?: return
+        val name = uri.fileName?.substringBeforeLast('.')?.trim()
+            ?.takeIf { it.isNotBlank() }
+            ?: getString(R.string.new_profile)
+
+        val uuid = withProfile { create(Profile.Type.File, name) }
+
+        try {
+            FilesClient(self).copyDocument("$uuid/config.yaml", uri)
+            commitProfileWithProgress(uuid)
+        } catch (e: Exception) {
+            showImportCommitFailureDialog(uuid, e)
+            return
+        }
+
+        val profile = withProfile { queryByUUID(uuid) }
+        if (profile?.imported == true) {
+            withProfile { setActive(profile) }
+            d.showToast(getString(R.string.import_done_named, name), ToastDuration.Long)
+            finish()
+        } else {
+            launchProperties(uuid)
+        }
     }
 
     private suspend fun ProfileProvider.External.get(): Pair<Uri, String?>? {

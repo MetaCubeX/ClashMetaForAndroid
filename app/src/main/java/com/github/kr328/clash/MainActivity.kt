@@ -27,7 +27,9 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.getSystemService
 import com.github.kr328.clash.common.util.ShareImportSupport
 import com.github.kr328.clash.util.SubscriptionMetaCache
+import com.github.kr328.clash.remote.FilesClient
 import com.github.kr328.clash.util.commitProfileWithProgress
+import com.github.kr328.clash.util.fileName
 import com.github.kr328.clash.util.createEmptyUrlProfileAndOpenEditor
 import com.github.kr328.clash.util.updateProfileWithProgress
 import com.github.kr328.clash.common.util.StandalonePing
@@ -408,7 +410,48 @@ class MainActivity : BaseActivity<MainDesign>() {
             dialog.dismiss()
             scanLauncher.launch(null)
         }
+        view.findViewById<View>(R.id.opt_file).setOnClickListener {
+            dialog.dismiss()
+            launch { importFromFile(design) }
+        }
         dialog.show()
+    }
+
+    /**
+     * Pick a local YAML, create a [Profile.Type.File] profile, write the picked
+     * content straight into its `config.yaml` and commit — then activate it,
+     * same as a URL/clipboard import. Falls back to Properties if the engine
+     * rejects the file (invalid YAML), so the user can fix it.
+     */
+    private suspend fun importFromFile(design: MainDesign) {
+        val uri: Uri = startActivityForResult(
+            ActivityResultContracts.GetContent(),
+            "*/*",
+        ) ?: return
+
+        val name = uri.fileName?.substringBeforeLast('.')?.trim()
+            ?.takeIf { it.isNotBlank() }
+            ?: getString(R.string.new_profile)
+
+        val uuid = withProfile { create(Profile.Type.File, name) }
+
+        try {
+            FilesClient(this).copyDocument("$uuid/config.yaml", uri)
+            commitProfileWithProgress(uuid)
+        } catch (e: Exception) {
+            showImportCommitFailureDialog(uuid, e)
+            return
+        }
+
+        val profile = withProfile { queryByUUID(uuid) }
+        if (profile?.imported == true) {
+            withProfile { setActive(profile) }
+            ensureGlobalSelectionSafeWithRetry()
+            design.showToast(getString(R.string.import_done_named, name), ToastDuration.Long)
+        } else {
+            launchProperties(uuid)
+        }
+        design.fetch()
     }
 
     private fun onScanResult(result: QRResult) {

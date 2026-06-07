@@ -53,6 +53,8 @@
     <string name="home_import_url_sub">Открыть экран, где можно ввести или вставить ссылку на подписку.</string>
     <string name="home_import_qr_row">Сканировать QR-код</string>
     <string name="home_import_qr_sub">Считать QR-код подписки камерой.</string>
+    <string name="home_import_file_row">Из файла</string>
+    <string name="home_import_file_sub">Выберите локальный конфиг (.yaml) и импортируйте как профиль.</string>
     <string name="profiles_header_subtitle_empty">Подписок пока нет.</string>
     <string name="profiles_header_subtitle_ready">Управляйте подписками, редактором и источниками в одном месте.</string>
     <string name="profiles_header_total_fmt">Всего: %1$d</string>
