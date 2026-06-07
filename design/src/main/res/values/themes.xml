@@ -491,6 +491,67 @@
         <item name="colorTertiaryContainer">#633B48</item>
     </style>
 
+    <!-- SlothClash brand palette: warm gold accent (#C9A86C / #936B38) on a
+         warm cream (light) / brown surface (dark), with an olive tertiary that
+         echoes SlothClash's ok-green. -->
+    <style name="ThemeOverlay_ClashFest_Sloth_Light">
+        <item name="colorPrimary">#936B38</item>
+        <item name="colorOnPrimary">#FFFFFF</item>
+        <item name="colorPrimaryContainer">#F2DEB8</item>
+        <item name="colorOnPrimaryContainer">#2E2104</item>
+        <item name="colorSecondary">#6B5D45</item>
+        <item name="colorSecondaryContainer">#F0E0C6</item>
+        <item name="colorTertiary">#55683B</item>
+        <item name="colorTertiaryContainer">#D7E9B8</item>
+        <!-- Warm cream surfaces (SlothClash light identity). -->
+        <item name="android:windowBackground">#FBF6EC</item>
+        <item name="colorBackground">#FBF6EC</item>
+        <item name="colorOnBackground">#2B2317</item>
+        <item name="colorSurface">#FBF6EC</item>
+        <item name="colorOnSurface">#2B2317</item>
+        <item name="colorSurfaceVariant">#EBE1CE</item>
+        <item name="colorOnSurfaceVariant">#6F6450</item>
+        <item name="colorSurfaceContainerLowest">#FFFFFF</item>
+        <item name="colorSurfaceContainerLow">#F7F0E4</item>
+        <item name="colorSurfaceContainer">#F1E9DA</item>
+        <item name="colorSurfaceContainerHigh">#EAE1CF</item>
+        <item name="colorSurfaceContainerHighest">#E3D9C5</item>
+        <item name="colorOutline">#847A66</item>
+        <item name="colorOutlineVariant">#D3C8B2</item>
+        <item name="mainDashboardBackground">@drawable/bg_sloth_gradient_light</item>
+        <item name="android:fontFamily">@font/nunito</item>
+        <item name="fontFamily">@font/nunito</item>
+    </style>
+
+    <style name="ThemeOverlay_ClashFest_Sloth_Dark">
+        <item name="colorPrimary">#C9A86C</item>
+        <item name="colorOnPrimary">#3A2D10</item>
+        <item name="colorPrimaryContainer">#4E3D1C</item>
+        <item name="colorOnPrimaryContainer">#EFD9AE</item>
+        <item name="colorSecondary">#D6C4A0</item>
+        <item name="colorSecondaryContainer">#4A4330</item>
+        <item name="colorTertiary">#A7C28E</item>
+        <item name="colorTertiaryContainer">#3C4A2A</item>
+        <!-- Warm brown-black surfaces (SlothClash dark identity). -->
+        <item name="android:windowBackground">#16130F</item>
+        <item name="colorBackground">#16130F</item>
+        <item name="colorOnBackground">#F2EFE8</item>
+        <item name="colorSurface">#16130F</item>
+        <item name="colorOnSurface">#F2EFE8</item>
+        <item name="colorSurfaceVariant">#3A3327</item>
+        <item name="colorOnSurfaceVariant">#CDC4B2</item>
+        <item name="colorSurfaceContainerLowest">#110E0A</item>
+        <item name="colorSurfaceContainerLow">#1C1814</item>
+        <item name="colorSurfaceContainer">#201C17</item>
+        <item name="colorSurfaceContainerHigh">#2A251F</item>
+        <item name="colorSurfaceContainerHighest">#332D26</item>
+        <item name="colorOutline">#8C8270</item>
+        <item name="colorOutlineVariant">#4A4334</item>
+        <item name="mainDashboardBackground">@drawable/bg_sloth_gradient</item>
+        <item name="android:fontFamily">@font/nunito</item>
+        <item name="fontFamily">@font/nunito</item>
+    </style>
+
     <style name="ThemeOverlay_ClashFest_TrueBlack">
         <item name="android:windowBackground">@color/theme_true_black_bg</item>
         <item name="colorBackground">@color/theme_true_black_bg</item>

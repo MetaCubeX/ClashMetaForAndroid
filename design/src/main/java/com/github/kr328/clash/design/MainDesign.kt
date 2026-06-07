@@ -1648,10 +1648,10 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
             HomeBackgroundStyle.MaterialYou -> binding.root.setBackgroundColor(
                 context.resolveThemedColor(com.google.android.material.R.attr.colorSurface),
             )
-            HomeBackgroundStyle.Plain -> binding.root.setBackgroundColor(
-                context.resolveThemedColor(android.R.attr.colorBackground),
-            )
             HomeBackgroundStyle.Preview -> binding.root.setBackgroundResource(
+                context.resolveThemedResourceId(R.attr.mainDashboardBackground),
+            )
+            HomeBackgroundStyle.Sloth -> binding.root.setBackgroundResource(
                 context.resolveThemedResourceId(R.attr.mainDashboardBackground),
             )
         }

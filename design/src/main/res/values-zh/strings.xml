@@ -727,9 +727,9 @@
     <string name="expires_on">到期 %1$s</string>
     <string name="external_controller">外部控制器</string>
     <string name="home_background">主页背景</string>
-    <string name="home_background_material_you">Material You</string>
+    <string name="home_background_material_you">Material</string>
     <string name="home_background_plain">纯色背景</string>
-    <string name="home_background_preview">ClashFest 预览</string>
+    <string name="home_background_preview">ClashFest</string>
     <string name="home_clipboard">剪贴板</string>
     <string name="home_qr">二维码</string>
     <string name="keep_connections_on_old_proxy">切换后保留旧代理上的连接</string>
@@ -889,6 +889,7 @@
     <string name="theme_palette_graphite">石墨</string>
     <string name="theme_palette_mint">薄荷</string>
     <string name="theme_palette_mono">单色</string>
+    <string name="home_background_sloth">SlothClash</string>
     <string name="theme_palette_rose">玫瑰</string>
     <string name="theme_palette_violet">紫罗兰</string>
     <string name="theme_reset">重置主题</string>

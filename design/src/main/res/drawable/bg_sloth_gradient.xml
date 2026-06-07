@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SlothClash dark background: warm diagonal brown-black with a faint gold-lit top. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <gradient
+        android:angle="135"
+        android:startColor="#2A2317"
+        android:centerColor="#17130E"
+        android:endColor="#0E0B08"
+        android:type="linear" />
+</shape>
