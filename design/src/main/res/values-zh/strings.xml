@@ -422,6 +422,8 @@
     <string name="home_import_clipboard_sub">使用剪贴板中已复制的订阅链接创建配置。</string>
     <string name="home_import_qr_row">扫描二维码</string>
     <string name="home_import_qr_sub">使用相机读取订阅二维码。</string>
+    <string name="home_import_file_row">从文件</string>
+    <string name="home_import_file_sub">选择本地配置文件 (.yaml) 并作为配置导入。</string>
     <string name="home_import_sheet_title">添加订阅</string>
     <string name="home_import_sheet_summary">选择导入方式：剪贴板、链接或二维码。</string>
     <string name="home_import_url_row">输入 URL</string>

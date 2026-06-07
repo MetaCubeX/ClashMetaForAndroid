@@ -191,6 +191,8 @@ Presets only change <b>where</b> files are downloaded from (CDN / host). It is s
     <string name="home_import_url_sub">Open the screen where you can type or paste a subscription link.</string>
     <string name="home_import_qr_row">Scan QR code</string>
     <string name="home_import_qr_sub">Use the camera to read a subscription QR code.</string>
+    <string name="home_import_file_row">From file</string>
+    <string name="home_import_file_sub">Pick a local config file (.yaml) and import it as a profile.</string>
     <string name="connections_title">Connections</string>
     <string name="connections_intro">Live flows from the core (VPN on). Totals are session counters; list refreshes about every second. Subtitle: process, Chain (policy path: selector / groups / leaf; [tag] is proxy-provider when present), network. dialer-proxy is not shown here — the core only records routing hops, not the extra hop used to dial a proxy server.</string>
     <string name="connections_chain_label">Chain: %1$s</string>

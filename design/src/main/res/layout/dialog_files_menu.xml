@@ -23,11 +23,11 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:orientation="vertical">
         <com.github.kr328.clash.design.view.LargeActionLabel
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:onClick="@{() -> master.requestImport(self, file)}"
             android:padding="@dimen/bottom_sheet_menu_items_padding"
             android:visibility="@{!file.isDirectory &amp;&amp; (!currentInBase || configurationEditable) ? View.VISIBLE : View.GONE}"
@@ -36,7 +36,7 @@
 
         <com.github.kr328.clash.design.view.LargeActionLabel
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:onClick="@{() -> master.requestExport(self, file)}"
             android:padding="@dimen/bottom_sheet_menu_items_padding"
             android:visibility="@{!file.isDirectory &amp;&amp; file.size > 0 ? View.VISIBLE : View.GONE}"
@@ -45,7 +45,7 @@
 
         <com.github.kr328.clash.design.view.LargeActionLabel
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:onClick="@{() -> master.requestRename(self, file)}"
             android:padding="@dimen/bottom_sheet_menu_items_padding"
             android:visibility="@{!currentInBase ? View.VISIBLE : View.GONE}"
@@ -54,7 +54,7 @@
 
         <com.github.kr328.clash.design.view.LargeActionLabel
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:onClick="@{() -> master.requestDelete(self, file)}"
             android:padding="@dimen/bottom_sheet_menu_items_padding"
             android:theme="@style/ThemeOverlay.ControlColorError"
