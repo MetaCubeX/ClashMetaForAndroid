@@ -59,6 +59,120 @@ class SubscriptionUpdateMergeTest {
     }
 
     @Test
+    fun mergeAfterFetch_keepsRuleProviderReferencedOnlyInsideLogicalRule() {
+        // Regression: a RULE-SET reference nested in a logical (AND/OR/NOT) rule
+        // was missed by the GC, so the rule-provider got dropped on update and
+        // the next subscription update failed ("Could not update: rules[n] [OR,
+        // ((RULE-SET,whatsapp_domains),...").
+        val fetched = """
+            proxies:
+              - {name: p1, type: socks5, server: 127.0.0.1, port: 1080}
+            rule-providers:
+              whatsapp_domains:
+                type: http
+                behavior: domain
+                url: https://example.com/wa.yaml
+                path: ./wa.yaml
+              unused_set:
+                type: http
+                behavior: domain
+                url: https://example.com/unused.yaml
+                path: ./unused.yaml
+            rules:
+              - OR,((RULE-SET,whatsapp_domains),(NETWORK,UDP)),DIRECT
+              - MATCH,p1
+        """.trimIndent() + "\n"
+
+        // Non-empty preserved overlay so the merge (and GC) actually runs.
+        val preserved = SubscriptionUpdateMerge.extractPreserved(
+            snapshot(rules = listOf("DOMAIN,foo.com,DIRECT")),
+        )
+
+        val merged = SubscriptionUpdateMerge.mergeAfterFetch(fetched, preserved)
+
+        assertTrue(
+            "rule-provider referenced inside the OR rule must survive",
+            merged.contains("whatsapp_domains"),
+        )
+        // The genuinely-unreferenced provider is still GC'd.
+        assertFalse("unreferenced provider should be dropped", merged.contains("unused_set"))
+    }
+
+    @Test
+    fun gc_keepsRuleProvidersReferencedInEveryRuleForm() {
+        // RULE-SET can appear plainly OR nested inside AND/OR/NOT logical rules.
+        // The GC must recognize ALL of them or it drops a live provider and the
+        // next update fails.
+        val fetched = """
+            proxies:
+              - {name: p1, type: socks5, server: 127.0.0.1, port: 1080}
+            rule-providers:
+              setPlain:   {type: http, behavior: domain, url: https://e/x.yaml, path: ./a.yaml}
+              setAnd:     {type: http, behavior: domain, url: https://e/x.yaml, path: ./b.yaml}
+              setOr:      {type: http, behavior: domain, url: https://e/x.yaml, path: ./c.yaml}
+              setNot:     {type: http, behavior: ipcidr, url: https://e/x.yaml, path: ./d.yaml}
+              setNested:  {type: http, behavior: domain, url: https://e/x.yaml, path: ./e.yaml}
+              setUnused:  {type: http, behavior: domain, url: https://e/x.yaml, path: ./z.yaml}
+            rules:
+              - RULE-SET,setPlain,DIRECT
+              - AND,((RULE-SET,setAnd),(NETWORK,UDP)),DIRECT
+              - OR,((RULE-SET,setOr),(DST-PORT,443)),PROXY
+              - NOT,((RULE-SET,setNot)),REJECT
+              - OR,((AND,((RULE-SET,setNested),(DST-PORT,80))),(DOMAIN,a.com)),PROXY
+              - MATCH,p1
+        """.trimIndent() + "\n"
+
+        val preserved = SubscriptionUpdateMerge.extractPreserved(
+            snapshot(rules = listOf("DOMAIN,kept.local,DIRECT")),
+        )
+        val merged = SubscriptionUpdateMerge.mergeAfterFetch(fetched, preserved)
+
+        for (name in listOf("setPlain", "setAnd", "setOr", "setNot", "setNested")) {
+            assertTrue("$name (referenced) must survive GC", merged.contains(name))
+        }
+        assertFalse("setUnused (unreferenced) should be dropped", merged.contains("setUnused"))
+    }
+
+    @Test
+    fun mergeRules_preservesManualTypesButNotSubscriptionOwned() {
+        // Manual host/IP rules a user added locally must survive a refresh;
+        // subscription-owned types (RULE-SET/GEOSITE/GEOIP/MATCH/AND/OR/NOT/
+        // SUB-RULE) must NOT be resurrected — the new subscription owns them.
+        val preserved = SubscriptionUpdateMerge.extractPreserved(
+            snapshot(rules = listOf(
+                "DOMAIN-SUFFIX,manual.example,DIRECT",
+                "IP-CIDR,10.0.0.0/8,DIRECT,no-resolve",
+                "PROCESS-NAME,curl,DIRECT",
+                "RULE-SET,oldset,PROXY",
+                "GEOIP,CN,DIRECT",
+                "GEOSITE,category-ads,REJECT",
+                "MATCH,OLD",
+            )),
+        )
+        val fetched = """
+            proxies:
+              - {name: p1, type: socks5, server: 127.0.0.1, port: 1080}
+            rules:
+              - DOMAIN,fetched.example,PROXY
+              - MATCH,p1
+        """.trimIndent() + "\n"
+
+        val merged = SubscriptionUpdateMerge.mergeAfterFetch(fetched, preserved)
+
+        // Manual entries preserved.
+        assertTrue(merged.contains("manual.example"))
+        assertTrue(merged.contains("10.0.0.0/8"))
+        assertTrue(merged.contains("PROCESS-NAME,curl"))
+        // Subscription-owned NOT carried over.
+        assertFalse(merged.contains("oldset"))
+        assertFalse(merged.contains("GEOIP,CN"))
+        assertFalse(merged.contains("category-ads"))
+        assertFalse(merged.contains("MATCH,OLD"))
+        // Fetched rules intact.
+        assertTrue(merged.contains("fetched.example"))
+    }
+
+    @Test
     fun extractPreserved_convertsRuleProvidersWithMihomoNumberTypes() {
         // mihomo marshals YAML int -> JSON number (not string), so a real
         // snapshot from the engine carries interval as a JsonPrimitive(Long).
