@@ -1797,6 +1797,14 @@ class MainActivity : BaseActivity<MainDesign>() {
                 getString(R.string.toast_profile_updated_complete, name),
                 ToastDuration.Long
             )
+            // Surface the one-shot "our merge broke an otherwise-valid config"
+            // marker set by ProfileProcessor (the update still committed).
+            if (ServiceStore(this@MainActivity).consumeUpdateEngineWarning(uuid)) {
+                design?.showToast(
+                    getString(R.string.profiles_update_engine_warning),
+                    ToastDuration.Long,
+                )
+            }
         }
     }
 

@@ -194,6 +194,7 @@ Presets only change <b>where</b> files are downloaded from (CDN / host). It is s
     <string name="home_import_file_row">From file</string>
     <string name="home_import_file_sub">Pick a local config file (.yaml) and import it as a profile.</string>
     <string name="profiles_update_all_failed">Couldn\'t update %1$d subscription(s).</string>
+    <string name="profiles_update_engine_warning">Update saved, but the engine flagged the merged config. Check the profile.</string>
 
     <!-- DNS & Hosts -->
     <string name="dns_hosts_title">DNS &amp; Hosts</string>
