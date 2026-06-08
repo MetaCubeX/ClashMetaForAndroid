@@ -109,7 +109,20 @@ object SubscriptionNameGuesser {
         val frag = urlString.substringAfter('#', "").trim()
         if (frag.isEmpty()) return null
         if (!frag.contains('=')) {
-            if (frag.length in 2..72 && !frag.contains("://")) return frag
+            if (frag.length in 2..72 && !frag.contains("://")) {
+                // Decode percent-escapes so `#Home%20VPN` becomes "Home VPN".
+                // Only when a '%' is present, to avoid URLDecoder turning a
+                // literal '+' into a space.
+                return if (frag.contains('%')) {
+                    try {
+                        URLDecoder.decode(frag, Charsets.UTF_8.name())
+                    } catch (_: Exception) {
+                        frag
+                    }
+                } else {
+                    frag
+                }
+            }
             return null
         }
         for (part in frag.split('&')) {
@@ -320,8 +333,11 @@ object SubscriptionNameGuesser {
         try {
             val uri = URL(urlString)
             val pathSeg = uri.path?.trim('/')?.split('/')?.filter { it.isNotBlank() }?.lastOrNull()
-            val humanPath = pathSeg?.let { trimFileExtension(it) }?.takeIf(::looksHumanReadable)
+            val humanPath = pathSeg?.let { trimFileExtension(it) }
+                ?.takeIf { looksHumanReadable(it) && !looksLikeToken(it) }
             val byHost = uri.host?.let(::brandFromHost)
+            // Prefer a readable path label, but fall back to the host brand when
+            // the last segment is an opaque subscription token (gsU8_wQwF814_Eo).
             val pick = humanPath ?: byHost
             pick?.replace(Regex("[^a-zA-Z0-9._-]"), "_")?.takeIf { it.isNotBlank() }
                 ?: "Subscription"
@@ -348,6 +364,20 @@ object SubscriptionNameGuesser {
         if (segment.length <= 16) return true
         if (segment.length > 32) return false
         return segment.contains('-') || segment.contains('_')
+    }
+
+    /**
+     * True when a segment looks like a random subscription token rather than a
+     * label — the base62-ID signature: contains digits AND both upper- and
+     * lower-case letters (e.g. `gsU8_wQwF814_Eo`). Plain word labels
+     * (`premium`, `My-Plan`, `my_vpn`) are NOT flagged.
+     */
+    private fun looksLikeToken(segment: String): Boolean {
+        val core = segment.replace(Regex("[_-]"), "")
+        if (core.length < 8) return false
+        return core.any { it.isDigit() } &&
+            core.any { it.isUpperCase() } &&
+            core.any { it.isLowerCase() }
     }
 
     /**

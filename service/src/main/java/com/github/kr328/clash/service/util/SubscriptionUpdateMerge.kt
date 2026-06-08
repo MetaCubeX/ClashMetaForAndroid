@@ -200,18 +200,21 @@ object SubscriptionUpdateMerge {
         }
     }
 
+    /** `RULE-SET,<name>` anywhere in a rule line — incl. nested in logical rules. */
+    private val ruleSetRef = Regex("RULE-SET\\s*,\\s*([^,()\\s]+)", RegexOption.IGNORE_CASE)
+
     private fun collectRuleSetTargets(rulesNode: Any?): Set<String> {
         val list = rulesNode as? List<*> ?: return emptySet()
         val out = HashSet<String>()
         for (raw in list) {
-            val line = raw?.toString()?.trim() ?: continue
-            // RULE-SET,<name>,<policy>[,extra]
-            if (!line.startsWith("RULE-SET,", ignoreCase = true) &&
-                !line.startsWith("- RULE-SET,", ignoreCase = true)
-            ) continue
-            val parts = line.removePrefix("-").trim().split(",")
-            val name = parts.getOrNull(1)?.trim()?.takeIf { it.isNotEmpty() } ?: continue
-            out.add(name)
+            val line = raw?.toString() ?: continue
+            // Match EVERY RULE-SET reference, not just lines that start with it:
+            // logical rules like `OR,((RULE-SET,a),(RULE-SET,b)),PROXY` embed
+            // RULE-SET inside parentheses, and missing them here would GC the
+            // referenced rule-providers and break the next subscription update.
+            for (m in ruleSetRef.findAll(line)) {
+                m.groupValues[1].trim().takeIf { it.isNotEmpty() }?.let { out.add(it) }
+            }
         }
         return out
     }
