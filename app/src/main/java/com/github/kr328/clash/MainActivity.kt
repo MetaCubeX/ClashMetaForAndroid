@@ -881,11 +881,24 @@ class MainActivity : BaseActivity<MainDesign>() {
 
                 design.profileUpdateAllRequests.onReceive {
                     launch {
+                        // Per-profile guard: one subscription failing (network /
+                        // bad config / commit) must NOT take down the whole
+                        // "Update all" with an uncaught coroutine exception.
+                        var failed = 0
                         withProfile {
                             queryAll().forEach { p ->
-                                if (p.imported && p.type != Profile.Type.File) update(p.uuid)
+                                if (p.imported && p.type != Profile.Type.File) {
+                                    runCatching { update(p.uuid) }.onFailure { failed++ }
+                                }
                             }
                         }
+                        if (failed > 0) {
+                            design.showToast(
+                                getString(R.string.profiles_update_all_failed, failed),
+                                ToastDuration.Long,
+                            )
+                        }
+                        design.fetch()
                     }
                 }
 
