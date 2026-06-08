@@ -15,6 +15,7 @@ import com.github.kr328.clash.service.store.ServiceStore
 import com.github.kr328.clash.service.util.GeoUrlSanitizer
 import com.github.kr328.clash.service.util.RuleApplyService
 import com.github.kr328.clash.service.util.SubscriptionUpdateMerge
+import com.github.kr328.clash.service.util.MergeEngineVerdict
 import com.github.kr328.clash.service.util.YamlHardener
 import com.github.kr328.clash.service.util.importedDir
 import com.github.kr328.clash.service.util.pendingDir
@@ -264,20 +265,35 @@ object ProfileProcessor {
                     effectiveUserAgentOverride = null
                 }
 
+                // Clear any stale warning from a previous update; set below only
+                // if THIS merge breaks an otherwise-valid subscription.
+                ServiceStore(context).setUpdateEngineWarning(snapshot.uuid, false)
                 if (!preserved.isEmpty() && configFile.isFile) {
+                    val fetchedText = configFile.readText()
                     val merged = SubscriptionUpdateMerge.mergeAfterFetch(
-                        configFile.readText(),
+                        fetchedText,
                         preserved,
                         context.processingDir,
                     )
-                    // Soft engine check: log mihomo's verdict but still commit
-                    // the merge. ParseRawConfig also loads provider files, so a
-                    // broken provider in the *existing* profile would block
-                    // legitimate subscription updates; the runtime load will
-                    // surface that anyway and the user fixes the provider, not
-                    // their subscription.
-                    Clash.validateProfileBytes(merged)?.let { engineError ->
-                        Log.w("Engine flagged merged subscription config for ${snapshot.uuid} (continuing anyway): $engineError")
+                    // Soft engine check: we still commit the merge (a broken
+                    // provider in the *existing* profile must not block a legit
+                    // update). But distinguish "our merge broke a valid config"
+                    // from "the fetched config was already broken" and surface the
+                    // former to the user instead of only logging it.
+                    val mergedError = Clash.validateProfileBytes(merged)
+                    val verdict = if (mergedError == null) {
+                        MergeEngineVerdict.Ok
+                    } else {
+                        MergeEngineVerdict.classify(Clash.validateProfileBytes(fetchedText), mergedError)
+                    }
+                    when (verdict) {
+                        MergeEngineVerdict.MergeIntroduced -> {
+                            Log.w("Merge BROKE an otherwise-valid subscription for ${snapshot.uuid}: $mergedError")
+                            ServiceStore(context).setUpdateEngineWarning(snapshot.uuid, true)
+                        }
+                        MergeEngineVerdict.PreexistingBroken ->
+                            Log.w("Merged config invalid for ${snapshot.uuid}, but fetched was already invalid (continuing): $mergedError")
+                        MergeEngineVerdict.Ok -> Unit
                     }
                     configFile.writeText(merged)
                     Log.d("Subscription merge preserved local overlays: rules/rule-providers/proxy-providers reapplied for ${snapshot.uuid}")

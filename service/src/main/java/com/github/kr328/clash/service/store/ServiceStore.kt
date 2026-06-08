@@ -195,6 +195,23 @@ class ServiceStore(context: Context) {
         rawPrefs.edit().putBoolean("dns_hosts_managed_$uuid", managed).apply()
     }
 
+    /**
+     * Per-profile one-shot marker: the last subscription update produced a config
+     * the engine rejected even though the fetched subscription was valid (i.e. our
+     * merge introduced the break). Set by ProfileProcessor, consumed by the UI to
+     * show a single warning toast.
+     */
+    fun setUpdateEngineWarning(uuid: UUID, warned: Boolean) {
+        rawPrefs.edit().putBoolean("update_engine_warning_$uuid", warned).apply()
+    }
+
+    /** Reads and clears the marker (one-shot). */
+    fun consumeUpdateEngineWarning(uuid: UUID): Boolean {
+        val warned = rawPrefs.getBoolean("update_engine_warning_$uuid", false)
+        if (warned) rawPrefs.edit().remove("update_engine_warning_$uuid").apply()
+        return warned
+    }
+
     companion object {
         private const val KEY_ALLOW_BYPASS = "allow_bypass"
         private const val MIGRATION_ALLOW_BYPASS_OFF_V1 = "migration_allow_bypass_off_v1"
