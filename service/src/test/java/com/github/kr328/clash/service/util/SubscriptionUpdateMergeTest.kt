@@ -31,6 +31,44 @@ class SubscriptionUpdateMergeTest {
         JsonObject(pairs.toMap())
 
     @Test
+    fun gc_keepsProxyProvidersUnderIncludeAll() {
+        val fetched = """
+            proxies:
+              - {name: n1, type: socks5, server: 127.0.0.1, port: 1080}
+            proxy-providers:
+              provA: {type: http, url: https://e/a.yaml, path: ./a.yaml}
+              provB: {type: http, url: https://e/b.yaml, path: ./b.yaml}
+            proxy-groups:
+              - {name: G, type: select, include-all-providers: true}
+            rules:
+              - MATCH,G
+        """.trimIndent() + "\n"
+        val preserved = SubscriptionUpdateMerge.extractPreserved(snapshot(rules = listOf("DOMAIN,k.local,DIRECT")))
+        val merged = SubscriptionUpdateMerge.mergeAfterFetch(fetched, preserved)
+        assertTrue("include-all keeps provA", merged.contains("provA"))
+        assertTrue("include-all keeps provB", merged.contains("provB"))
+    }
+
+    @Test
+    fun gc_keepsProxyProviderViaUse_dropsUnused() {
+        val fetched = """
+            proxies:
+              - {name: n1, type: socks5, server: 127.0.0.1, port: 1080}
+            proxy-providers:
+              used: {type: http, url: https://e/u.yaml, path: ./u.yaml}
+              unused: {type: http, url: https://e/z.yaml, path: ./z.yaml}
+            proxy-groups:
+              - {name: G, type: select, use: [used]}
+            rules:
+              - MATCH,G
+        """.trimIndent() + "\n"
+        val preserved = SubscriptionUpdateMerge.extractPreserved(snapshot(rules = listOf("DOMAIN,k.local,DIRECT")))
+        val merged = SubscriptionUpdateMerge.mergeAfterFetch(fetched, preserved)
+        assertTrue("used provider survives", merged.contains("used"))
+        assertFalse("unused provider dropped", merged.contains("unused"))
+    }
+
+    @Test
     fun extractPreserved_emptySnapshotReturnsEmpty() {
         val preserved = SubscriptionUpdateMerge.extractPreserved(snapshot())
         assertTrue(preserved.isEmpty())
