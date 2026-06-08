@@ -4,8 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/metacubex/mihomo/log"
-	"gopkg.in/yaml.v3"
 	"io"
 	"net/http"
 	U "net/url"
@@ -13,6 +11,9 @@ import (
 	P "path"
 	"runtime"
 	"time"
+
+	"github.com/metacubex/mihomo/log"
+	"gopkg.in/yaml.v3"
 
 	"cfa/native/app"
 
@@ -93,10 +94,10 @@ func fetch(url *U.URL, file string) error {
 
 	defer reader.Close()
 
-	return writeFile(file, reader)
+	return writeFile(file, reader, ctx, url)
 }
 
-func writeFile(file string, reader io.Reader) error {
+func writeFile(file string, reader io.Reader, ctx context.Context, url *U.URL) error {
 	data, err := io.ReadAll(reader)
 	if err != nil {
 		return err
