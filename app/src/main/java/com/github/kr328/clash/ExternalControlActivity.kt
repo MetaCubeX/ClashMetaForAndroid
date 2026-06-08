@@ -47,7 +47,7 @@ class ExternalControlActivity : Activity(), CoroutineScope by MainScope() {
                         val intervalMs = java.util.concurrent.TimeUnit.MINUTES.toMillis(updateInterval)
 
                         create(type, name).also {
-                            patch(it, name, url, intervalMs)
+                            patch(it, name, url, intervalMs, null)
                         }
                     }
                     startActivity(PropertiesActivity::class.intent.setUUID(uuid))

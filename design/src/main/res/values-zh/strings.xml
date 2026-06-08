@@ -82,6 +82,17 @@
     <string name="vpn_service_options">VpnService 选项</string>
     <string name="options_unavailable">选项在 Clash 运行时不可用</string>
     <string name="search">查找</string>
+    <string name="age_secret_key">Age 私钥</string>
+    <string name="age_secret_key_hint">AGE-SECRET-KEY-…（可选）</string>
+    <string name="age_secret_key_error">无效格式。密钥应以 AGE-SECRET-KEY- 开头</string>
+    <string name="age_key_helper">Age 密钥</string>
+    <string name="age_key_category">Age 密钥</string>
+    <string name="age_key_generate_summary">点击生成</string>
+    <string name="age_public_key">Age 公钥</string>
+    <string name="age_public_key_error">无效的 Age 公钥</string>
+    <string name="age_key_generate">生成</string>
+    <string name="age_key_to_public">从私钥生成</string>
+    <string name="age_key_copy">复制</string>
     <string name="system_apps">系统应用</string>
     <string name="update_time">更新时间</string>
     <string name="package_name">应用包名称</string>

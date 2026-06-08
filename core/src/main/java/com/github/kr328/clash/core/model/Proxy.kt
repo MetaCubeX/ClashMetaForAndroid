@@ -20,6 +20,7 @@ data class Proxy(
         RejectDrop(false),
         Compatible(false),
         Pass(false),
+        PassRule(false),
 
         Shadowsocks(false),
         ShadowsocksR(false),

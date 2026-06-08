@@ -50,6 +50,13 @@ object Bridge {
     external fun nativeSubscribeLogcat(callback: LogcatInterface)
     external fun nativeCoreVersion(): String
 
+    external fun nativeSetAgeSecretKey(key: String?)
+    external fun nativeGenX25519KeyPair(): String?
+    external fun nativeGenHybridKeyPair(): String?
+    external fun nativeVeritySecretKeys(secretKeys: String): Boolean
+    external fun nativeToPublicKeys(secretKeys: String): String?
+    external fun nativeVerityPublicKeys(publicKeys: String): Boolean
+
     private external fun nativeInit(home: String, versionName: String, sdkVersion: Int)
 
     init {

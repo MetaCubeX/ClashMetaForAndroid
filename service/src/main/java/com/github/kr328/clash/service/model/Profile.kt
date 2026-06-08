@@ -22,11 +22,10 @@ data class Profile(
     var download: Long,
     val total: Long,
     val expire: Long,
-
-
     val updatedAt: Long,
     val imported: Boolean,
     val pending: Boolean,
+    val ageSecretKey: String? = null,
 ) : Parcelable {
     enum class Type {
         File, Url, External

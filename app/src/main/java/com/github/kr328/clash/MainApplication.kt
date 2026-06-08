@@ -77,6 +77,16 @@ class MainApplication : Application() {
                 assets.open("ASN.mmdb").copyTo(it)
             }
         }
+
+        val bundleMRSFile = File(clashDir, "BundleMRS.7z")
+        if (bundleMRSFile.exists() && bundleMRSFile.lastModified() < updateDate) {
+            bundleMRSFile.delete()
+        }
+        if (!bundleMRSFile.exists()) {
+            FileOutputStream(bundleMRSFile).use {
+                assets.open("BundleMRS.7z").copyTo(it)
+            }
+        }
     }
 
     fun finalize() {
