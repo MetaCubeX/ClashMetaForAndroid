@@ -76,6 +76,3 @@ core/src/main/golang/native/snapshot/testdata/roundtrip/
 # Local-only architecture deep-dive maps (not committed)
 architecture/
 core/src/main/golang/native/snapshot/testdata/merge/
-
-# Cursor rules — local working config (mirror of Claude memory)
-.cursor/
