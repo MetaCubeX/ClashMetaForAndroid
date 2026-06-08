@@ -42,6 +42,8 @@ object RussianBypassDefaults {
         "ru.gibdd.gibddpay",
         "ru.mos.app", // Моя Москва
         "mos.dit.parkings",
+        "apiqa.ru.residentcabinetandroid", // ПИК-Комфорт
+        "com.domonap.app",
         // Связь / операторы
         "ru.mts.mymts",
         "ru.beeline.services",
@@ -82,6 +84,7 @@ object RussianBypassDefaults {
         "ru.mosparking.appnew",
         "parking.mos.ru",
         "ru.gosuslugi.auto",
+        "com.punicapp.whoosh",
         // Маркетплейсы / шопинг
         "com.wildberries.ru",
         "com.ozon.app.android",
@@ -127,6 +130,8 @@ object RussianBypassDefaults {
         "ru.more.tv",
         "tv.okko.androidtv",
         "tv.okko.app",
+        "com.zvooq.openplay", // Звук
+        "gpm.tnt_premier", // PREMIER
         // Здоровье / госмедицина
         "ru.npd.android",
         "com.gnivts.selfemployed",
@@ -134,11 +139,15 @@ object RussianBypassDefaults {
         "ru.gosuslugi.goskey",
         "ru.gosuslugi.culture",
         "ru.minzdrav.gosuslugi.dms",
+        "com.programmisty.emiasapp", // ЕМИАС.ИНФО
+        "ru.emias.telemed", // ЕМИАС:Телемедицина
         // Работа / сервисы
         "ru.hh.android",
         "ru.kwork.app",
         "ru.aorr.tkpclient",
         "ru.nspk.mirpay",
+        "com.bitrix24.android",
+        "com.bitrixsoft.otp", // Битрикс OTP
     )
 
     /** Returns the subset of [PACKAGES] that is currently installed. */
