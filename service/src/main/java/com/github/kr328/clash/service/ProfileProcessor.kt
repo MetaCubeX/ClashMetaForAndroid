@@ -15,6 +15,7 @@ import com.github.kr328.clash.service.store.ServiceStore
 import com.github.kr328.clash.service.util.GeoUrlSanitizer
 import com.github.kr328.clash.service.util.RuleApplyService
 import com.github.kr328.clash.service.util.SubscriptionUpdateMerge
+import com.github.kr328.clash.service.util.FetchErrorClassifier
 import com.github.kr328.clash.service.util.MergeEngineVerdict
 import com.github.kr328.clash.service.util.YamlHardener
 import com.github.kr328.clash.service.util.importedDir
@@ -78,7 +79,9 @@ object ProfileProcessor {
                         }
                     }.await()
                 } catch (e: Exception) {
-                    if (userAgentOverride.isNullOrBlank() || strictUserAgent) throw e
+                    if (userAgentOverride.isNullOrBlank() || strictUserAgent) {
+                        throw FetchErrorClassifier.clarify(context.processingDir, e)
+                    }
 
                     Log.w("Subscription fetch failed with custom User-Agent, retrying default core User-Agent", e)
                     Clash.fetchAndValid(
@@ -246,7 +249,9 @@ object ProfileProcessor {
                         }
                     }.await()
                 } catch (e: Exception) {
-                    if (userAgentOverride.isNullOrBlank() || strictUserAgent) throw e
+                    if (userAgentOverride.isNullOrBlank() || strictUserAgent) {
+                        throw FetchErrorClassifier.clarify(context.processingDir, e)
+                    }
 
                     Log.w("Subscription update failed with custom User-Agent, retrying default core User-Agent", e)
                     Clash.fetchAndValid(
