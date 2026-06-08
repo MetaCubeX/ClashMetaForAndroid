@@ -55,6 +55,7 @@
     <string name="home_import_qr_sub">Считать QR-код подписки камерой.</string>
     <string name="home_import_file_row">Из файла</string>
     <string name="home_import_file_sub">Выберите локальный конфиг (.yaml) и импортируйте как профиль.</string>
+    <string name="profiles_update_all_failed">Не удалось обновить подписок: %1$d.</string>
 
     <!-- DNS & Hosts -->
     <string name="dns_hosts_title">DNS и Hosts</string>
