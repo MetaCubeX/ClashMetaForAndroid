@@ -17,6 +17,7 @@ import (
 
 	"github.com/metacubex/mihomo/common/yaml"
 	"github.com/metacubex/mihomo/config"
+	LC "github.com/metacubex/mihomo/listener/config"
 )
 
 // ProfileSnapshot is the wire shape sent to Kotlin via JNI. Field names
@@ -35,6 +36,10 @@ type ProfileSnapshot struct {
 	ProxyProviders map[string]map[string]any `json:"proxy-providers,omitempty"`
 	RuleProviders  map[string]map[string]any `json:"rule-providers,omitempty"`
 	Listeners      []map[string]any          `json:"listeners,omitempty"`
+	// Tunnels come from rawCfg (the engine already normalizes both the string
+	// `tcp/udp,addr,target,proxy` and the full-map YAML forms into LC.Tunnel).
+	// Tunnels have no defaults, so rawCfg is clean here (unlike DNS).
+	Tunnels []map[string]any `json:"tunnels,omitempty"`
 	// Dns and Hosts are taken from a generic parse of the raw YAML — i.e. exactly
 	// what the user wrote — NOT from RawConfig (UnmarshalRawConfig starts from
 	// DefaultRawConfig, so RawConfig.DNS is always populated with defaults). The
@@ -54,7 +59,26 @@ func Build(rawCfg *config.RawConfig) ProfileSnapshot {
 		ProxyProviders: rawCfg.ProxyProvider,
 		RuleProviders:  rawCfg.RuleProvider,
 		Listeners:      rawCfg.Listeners,
+		Tunnels:        tunnelsToMaps(rawCfg.Tunnels),
 	}
+}
+
+// tunnelsToMaps projects engine-normalized tunnels into the lowercase map shape
+// the UI consumes, regardless of which YAML form the subscription used.
+func tunnelsToMaps(ts []LC.Tunnel) []map[string]any {
+	if len(ts) == 0 {
+		return nil
+	}
+	out := make([]map[string]any, 0, len(ts))
+	for _, t := range ts {
+		out = append(out, map[string]any{
+			"network": t.Network,
+			"address": t.Address,
+			"target":  t.Target,
+			"proxy":   t.Proxy,
+		})
+	}
+	return out
 }
 
 // Parse reads <profileDir>/config.yaml and runs mihomo's YAML→RawConfig

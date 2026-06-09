@@ -195,6 +195,14 @@ class ServiceStore(context: Context) {
         rawPrefs.edit().putBoolean("dns_hosts_managed_$uuid", managed).apply()
     }
 
+    /** Per-profile: the user manages this profile's `tunnels:` via the editor. */
+    fun isTunnelsManaged(uuid: UUID): Boolean =
+        rawPrefs.getBoolean("tunnels_managed_$uuid", false)
+
+    fun setTunnelsManaged(uuid: UUID, managed: Boolean) {
+        rawPrefs.edit().putBoolean("tunnels_managed_$uuid", managed).apply()
+    }
+
     /**
      * Per-profile one-shot marker: the last subscription update produced a config
      * the engine rejected even though the fetched subscription was valid (i.e. our

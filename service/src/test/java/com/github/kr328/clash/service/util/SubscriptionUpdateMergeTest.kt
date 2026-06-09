@@ -31,6 +31,26 @@ class SubscriptionUpdateMergeTest {
         JsonObject(pairs.toMap())
 
     @Test
+    fun tunnels_preserved_only_when_managed() {
+        val tunnelsJson = kotlinx.serialization.json.Json.parseToJsonElement(
+            """[{"network":["tcp"],"address":"127.0.0.1:6553","target":"1.1.1.1:53","proxy":"G"}]""",
+        ) as kotlinx.serialization.json.JsonArray
+        val snap = ProfileSnapshot(rules = listOf("MATCH,G"), tunnels = tunnelsJson)
+
+        assertNull(SubscriptionUpdateMerge.extractPreserved(snap, includeTunnels = false).tunnels)
+        val on = SubscriptionUpdateMerge.extractPreserved(snap, includeTunnels = true)
+        assertNotNull(on.tunnels)
+
+        // Managed tunnels REPLACE the fetched ones on refresh.
+        val fetched = "proxies:\n  - {name: G, type: socks5, server: 127.0.0.1, port: 1080}\n" +
+            "tunnels:\n  - {network: [udp], address: 127.0.0.1:9, target: old.example:1, proxy: G}\n" +
+            "rules:\n  - MATCH,G\n"
+        val merged = SubscriptionUpdateMerge.mergeAfterFetch(fetched, on)
+        assertTrue("preserved tunnel applied: $merged", merged.contains("1.1.1.1:53"))
+        assertFalse("fetched tunnel replaced", merged.contains("old.example:1"))
+    }
+
+    @Test
     fun gc_keepsProxyProvidersUnderIncludeAll() {
         val fetched = """
             proxies:

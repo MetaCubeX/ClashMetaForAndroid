@@ -27,6 +27,8 @@ import com.github.kr328.clash.service.remote.IProfileManager
 import com.github.kr328.clash.service.store.ServiceStore
 import com.github.kr328.clash.service.util.DnsHostsConfig
 import com.github.kr328.clash.service.util.DnsHostsYamlEdit
+import com.github.kr328.clash.service.util.TunnelsConfig
+import com.github.kr328.clash.service.util.TunnelsYamlEdit
 import com.github.kr328.clash.service.util.directoryLastModified
 import com.github.kr328.clash.service.util.generateProfileUUID
 import com.github.kr328.clash.service.util.importedDir
@@ -916,6 +918,33 @@ class ProfileManager(private val context: Context) : IProfileManager,
 
     override suspend fun setDnsHostsManaged(uuid: UUID, managed: Boolean) {
         withContext(Dispatchers.IO) { store.setDnsHostsManaged(uuid, managed) }
+    }
+
+    override suspend fun queryTunnelsConfigJson(uuid: UUID): String? {
+        return withContext(Dispatchers.IO) {
+            if (ImportedDao().queryByUUID(uuid) == null) return@withContext null
+            val dir = File(context.importedDir, uuid.toString())
+            if (!File(dir, "config.yaml").isFile) return@withContext null
+            val snapshot = runCatching { Clash.parseProfileSnapshot(dir) }.getOrNull()
+                ?: return@withContext null
+            val config = TunnelsConfig.fromSnapshot(snapshot)
+            previewJson.encodeToString(TunnelsConfig.serializer(), config)
+        }
+    }
+
+    override suspend fun previewSetTunnels(uuid: UUID, configJson: String): String? {
+        return previewConfigMutation(uuid, "Tunnels") { current ->
+            val config = previewJson.decodeFromString(TunnelsConfig.serializer(), configJson)
+            TunnelsYamlEdit.render(current, config)
+        }
+    }
+
+    override suspend fun isTunnelsManaged(uuid: UUID): Boolean {
+        return withContext(Dispatchers.IO) { store.isTunnelsManaged(uuid) }
+    }
+
+    override suspend fun setTunnelsManaged(uuid: UUID, managed: Boolean) {
+        withContext(Dispatchers.IO) { store.setTunnelsManaged(uuid, managed) }
     }
 
     override suspend fun applyYamlPreview(previewId: String): Boolean {

@@ -145,6 +145,17 @@ interface IProfileManager {
 
     suspend fun setDnsHostsManaged(uuid: UUID, managed: Boolean)
 
+    /** Current `tunnels:` of a profile as a JSON `TunnelsConfig`, or null. */
+    suspend fun queryTunnelsConfigJson(uuid: UUID): String?
+
+    /** Preview applying a JSON `TunnelsConfig` into the profile's `tunnels:` block. */
+    suspend fun previewSetTunnels(uuid: UUID, configJson: String): String?
+
+    /** Per-profile tunnels master-toggle (managed = user-owned + preserved). */
+    suspend fun isTunnelsManaged(uuid: UUID): Boolean
+
+    suspend fun setTunnelsManaged(uuid: UUID, managed: Boolean)
+
     /** Single entry from `proxies:` as YAML, for display. */
     suspend fun readProxyEntryYaml(uuid: UUID, proxyName: String): String?
 
