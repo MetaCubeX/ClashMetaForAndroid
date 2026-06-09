@@ -15,6 +15,7 @@ class SettingsDesign(context: Context) : Design<SettingsDesign.Request>(context)
         StartNetwork,
         StartMetaFeatures,
         StartDnsHosts,
+        StartTunnels,
     }
 
     private val binding = DesignSettingsBinding
@@ -26,9 +27,12 @@ class SettingsDesign(context: Context) : Design<SettingsDesign.Request>(context)
     init {
         binding.self = this
         binding.header.screenTitle.text = context.getString(R.string.main_advanced_settings)
-        // Experimental DNS & Hosts entry is hidden until opted in (AppSettings).
+        val ui = UiStore(context)
+        // Experimental entries are hidden until opted in (AppSettings).
         binding.cardDnsHosts.visibility =
-            if (UiStore(context).dnsHostsEnabled) View.VISIBLE else View.GONE
+            if (ui.dnsHostsEnabled) View.VISIBLE else View.GONE
+        binding.cardTunnels.visibility =
+            if (ui.tunnelsEnabled) View.VISIBLE else View.GONE
     }
 
     fun request(request: Request) {

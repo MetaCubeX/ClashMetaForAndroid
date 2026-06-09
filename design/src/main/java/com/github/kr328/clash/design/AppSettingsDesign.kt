@@ -94,6 +94,13 @@ class AppSettingsDesign(
                 summary = R.string.dns_hosts_experimental_summary,
             )
 
+            switch(
+                value = uiStore::tunnelsEnabled,
+                icon = R.drawable.ic_baseline_swap_horiz,
+                title = R.string.tunnels_experimental_title,
+                summary = R.string.tunnels_experimental_summary,
+            )
+
             category(R.string.service)
 
             switch(

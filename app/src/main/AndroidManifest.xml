@@ -155,6 +155,11 @@
             android:exported="false"
             android:label="@string/dns_hosts_title" />
         <activity
+            android:name=".TunnelsSettingsActivity"
+            android:configChanges="uiMode"
+            android:exported="false"
+            android:label="@string/tunnels_title" />
+        <activity
             android:name=".AppSettingsActivity"
             android:configChanges="uiMode"
             android:exported="false"
