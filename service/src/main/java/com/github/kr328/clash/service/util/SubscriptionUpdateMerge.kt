@@ -33,6 +33,12 @@ object SubscriptionUpdateMerge {
          */
         val dns: Any? = null,
         val hosts: Any? = null,
+        /**
+         * User-managed `tunnels:` list, captured ONLY when the Tunnels editor
+         * manages this profile (master toggle ON). REPLACES fetched tunnels on
+         * refresh, like dns/hosts.
+         */
+        val tunnels: Any? = null,
     ) {
         fun isEmpty(): Boolean {
             val rpEmpty =
@@ -45,7 +51,8 @@ object SubscriptionUpdateMerge {
             val lEmpty = listeners == null || (listeners is List<*> && listeners.isEmpty())
             val dnsEmpty = dns == null || (dns is Map<*, *> && dns.isEmpty())
             val hostsEmpty = hosts == null || (hosts is Map<*, *> && hosts.isEmpty())
-            return rpEmpty && rEmpty && ppEmpty && pgEmpty && lEmpty && dnsEmpty && hostsEmpty
+            val tunnelsEmpty = tunnels == null || (tunnels is List<*> && tunnels.isEmpty())
+            return rpEmpty && rEmpty && ppEmpty && pgEmpty && lEmpty && dnsEmpty && hostsEmpty && tunnelsEmpty
         }
 
         companion object {
@@ -65,7 +72,11 @@ object SubscriptionUpdateMerge {
      * profiles whose DNS & Hosts editor master toggle is ON (`dnsHostsManaged`).
      * Untouched profiles must keep whatever the subscription ships.
      */
-    fun extractPreserved(snapshot: ProfileSnapshot, includeDnsHosts: Boolean = false): PreservedOverlay {
+    fun extractPreserved(
+        snapshot: ProfileSnapshot,
+        includeDnsHosts: Boolean = false,
+        includeTunnels: Boolean = false,
+    ): PreservedOverlay {
         val rp = snapshot.ruleProviders.takeIf { it.isNotEmpty() }
             ?.let { JsonElementToYaml.convertObjectMap(it) }
         val rules = snapshot.rules.takeIf { it.isNotEmpty() }
@@ -78,12 +89,13 @@ object SubscriptionUpdateMerge {
             ?.let { JsonElementToYaml.convertObjectList(it) }
         val dns = if (includeDnsHosts) snapshot.dns?.let { JsonElementToYaml.convertObject(it) } else null
         val hosts = if (includeDnsHosts) snapshot.hosts?.let { JsonElementToYaml.convertObject(it) } else null
+        val tunnels = if (includeTunnels) snapshot.tunnels?.let { JsonElementToYaml.convertArray(it) } else null
         if (rp == null && rules == null && pp == null && pg == null && listeners == null &&
-            dns == null && hosts == null
+            dns == null && hosts == null && tunnels == null
         ) {
             return PreservedOverlay.EMPTY
         }
-        return PreservedOverlay(rp, rules, pp, pg, listeners, dns, hosts)
+        return PreservedOverlay(rp, rules, pp, pg, listeners, dns, hosts, tunnels)
     }
 
     /**
@@ -119,6 +131,10 @@ object SubscriptionUpdateMerge {
         if (preserved.hosts != null) {
             root["hosts"] = preserved.hosts
         }
+        // tunnels are user-owned for managed profiles: REPLACE fetched outright.
+        if (preserved.tunnels != null) {
+            root["tunnels"] = preserved.tunnels
+        }
         // Garbage-collect providers nothing references. After overlaying the
         // pre-fetch state on top of the fresh subscription, a rule-provider
         // may exist that no `RULE-SET,name,...` rule mentions, or a
@@ -137,6 +153,7 @@ object SubscriptionUpdateMerge {
             "listeners",
             "dns",
             "hosts",
+            "tunnels",
         )
     }
 

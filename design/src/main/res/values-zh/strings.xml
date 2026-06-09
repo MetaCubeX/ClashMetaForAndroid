@@ -459,6 +459,35 @@
     <string name="dns_hosts_disabled">已为此配置还原 DNS 与 Hosts。</string>
     <string name="dns_hosts_err_listen">DNS 监听需为回环 (127.0.0.1:端口)、默认形式 (:端口) 或留空。</string>
     <string name="dns_hosts_err_invalid">引擎拒绝了此配置。</string>
+
+    <!-- Tunnels -->
+    <string name="tunnels_title">隧道</string>
+    <string name="tunnels_entry_summary">按配置的静态转发：回环监听 → 经代理或组转发到目标。</string>
+    <string name="tunnels_experimental_title">隧道（实验）</string>
+    <string name="tunnels_experimental_summary">在设置中显示按配置的隧道编辑器。</string>
+    <string name="tunnels_no_active_profile">请先激活一个配置以编辑其隧道。</string>
+    <string name="tunnels_master_title">为此配置管理隧道</string>
+    <string name="tunnels_master_summary">开启后隧道生效并在订阅更新后保留；关闭将干净还原。</string>
+    <string name="tunnels_section_entries">隧道条目</string>
+    <string name="tunnels_section_entries_summary">每条在回环地址监听，并通过所选代理或组转发流量。</string>
+    <string name="tunnels_entry_title_fmt">隧道 %1$d</string>
+    <string name="tunnels_field_network">网络</string>
+    <string name="tunnels_network_tcp">TCP</string>
+    <string name="tunnels_network_udp">UDP</string>
+    <string name="tunnels_field_address">监听地址</string>
+    <string name="tunnels_address_helper">仅允许回环 host:port（如 127.0.0.1:6553），不允许单独的 :端口。</string>
+    <string name="tunnels_field_target">目标</string>
+    <string name="tunnels_field_proxy">代理或组</string>
+    <string name="tunnels_add_entry">添加隧道</string>
+    <string name="tunnels_remove_entry">删除</string>
+    <string name="tunnels_save">保存</string>
+    <string name="tunnels_saved">已保存。</string>
+    <string name="tunnels_disabled">已为此配置还原隧道。</string>
+    <string name="tunnels_err_address">监听地址必须是明确的回环 host:port。</string>
+    <string name="tunnels_err_target">请填写目标。</string>
+    <string name="tunnels_err_proxy">请选择代理或组。</string>
+    <string name="tunnels_err_network">请选择 TCP 和/或 UDP。</string>
+    <string name="tunnels_err_invalid">引擎拒绝了此配置。</string>
     <string name="home_import_sheet_title">添加订阅</string>
     <string name="home_import_sheet_summary">选择导入方式：剪贴板、链接或二维码。</string>
     <string name="home_import_url_row">输入 URL</string>

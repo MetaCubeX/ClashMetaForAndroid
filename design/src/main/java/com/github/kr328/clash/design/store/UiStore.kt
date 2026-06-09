@@ -81,6 +81,12 @@ class UiStore(context: Context) {
         defaultValue = false,
     )
 
+    /** Experimental gate for the per-profile Tunnels editor (OFF by default). */
+    var tunnelsEnabled: Boolean by store.boolean(
+        key = "tunnels_enabled",
+        defaultValue = false,
+    )
+
     var proxyExcludeNotSelectable by store.boolean(
         key = "proxy_exclude_not_selectable",
         defaultValue = false,

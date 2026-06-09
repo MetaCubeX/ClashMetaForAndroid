@@ -28,6 +28,8 @@ class SettingsActivity : BaseActivity<SettingsDesign>() {
                             startActivity(NetworkSettingsActivity::class.intent)
                         SettingsDesign.Request.StartDnsHosts ->
                             startActivity(DnsHostsSettingsActivity::class.intent)
+                        SettingsDesign.Request.StartTunnels ->
+                            startActivity(TunnelsSettingsActivity::class.intent)
                     }
                 }
             }

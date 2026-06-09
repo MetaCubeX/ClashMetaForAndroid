@@ -2,6 +2,7 @@ package com.github.kr328.clash.core.model
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 
 /**
@@ -34,6 +35,12 @@ data class ProfileSnapshot(
      */
     val dns: JsonObject? = null,
     val hosts: JsonObject? = null,
+    /**
+     * `tunnels:` normalized to the map form `{network, address, target, proxy}`
+     * by the engine (both YAML forms collapse here), used by the Tunnels editor.
+     * Null when absent.
+     */
+    val tunnels: JsonArray? = null,
 )
 
 /**
