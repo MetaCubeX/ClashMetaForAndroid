@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:padding="20dp">
@@ -18,20 +19,43 @@
             android:textColor="?attr/colorOnSurface"
             android:textStyle="bold" />
 
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/type_layout"
-            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="14dp"
-            android:hint="@string/rules_hub_rule_type">
+            android:baselineAligned="false"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
-            <AutoCompleteTextView
-                android:id="@+id/input_type"
-                android:layout_width="match_parent"
+            <TextView
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:inputType="none" />
-        </com.google.android.material.textfield.TextInputLayout>
+                android:paddingEnd="8dp"
+                android:text="@string/rule_edit_if"
+                android:textAppearance="@style/TextAppearance.App.LabelLarge"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:textStyle="bold" />
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/type_layout"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="@string/rule_edit_select_type">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/input_type"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:cursorVisible="false"
+                    android:drawableEnd="@drawable/ic_baseline_expand_more"
+                    android:focusable="false"
+                    android:inputType="none"
+                    android:longClickable="false"
+                    tools:text="Domain" />
+            </com.google.android.material.textfield.TextInputLayout>
+        </LinearLayout>
 
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/value_layout"
@@ -39,28 +63,67 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
-            android:hint="@string/rules_hub_rule_value">
+            android:hint="@string/rule_type_value_generic">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/input_value"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:imeOptions="actionDone"
                 android:inputType="text" />
         </com.google.android.material.textfield.TextInputLayout>
 
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/rule_edit_then_route"
+            android:textAppearance="@style/TextAppearance.App.LabelLarge"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:textStyle="bold" />
+
+        <com.google.android.material.button.MaterialButtonToggleGroup
+            android:id="@+id/policy_builtin_group"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            app:singleSelection="true"
+            app:selectionRequired="false">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_policy_direct"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:minWidth="0dp"
+                android:text="DIRECT"
+                android:textAllCaps="true" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_policy_reject"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:minWidth="0dp"
+                android:text="REJECT"
+                android:textAllCaps="true" />
+        </com.google.android.material.button.MaterialButtonToggleGroup>
+
         <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/policy_layout"
+            android:id="@+id/group_layout"
             style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:hint="@string/rules_hub_rule_policy">
+            android:layout_marginTop="8dp"
+            android:hint="@string/rule_edit_policy_group">
 
             <AutoCompleteTextView
-                android:id="@+id/input_policy"
+                android:id="@+id/input_group"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:inputType="text" />
+                android:inputType="none" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <TextView
@@ -72,6 +135,29 @@
             android:textAppearance="@style/TextAppearance.App.BodySmall"
             android:textColor="?attr/colorError"
             android:visibility="gone" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:text="@string/rule_edit_live_preview"
+            android:textAppearance="@style/TextAppearance.App.LabelSmall"
+            android:textColor="?attr/colorOnSurfaceVariant" />
+
+        <TextView
+            android:id="@+id/live_preview"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:background="@drawable/bg_m3_status_chip_neutral"
+            android:ellipsize="end"
+            android:maxLines="3"
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="8dp"
+            android:textAppearance="@style/TextAppearance.App.BodySmall"
+            android:textColor="?attr/colorOnSurface"
+            android:typeface="monospace"
+            tools:text="DOMAIN-SUFFIX,youtube.com,PROXY" />
 
         <TextView
             android:id="@+id/validation_error"
@@ -117,6 +203,7 @@
                 android:id="@+id/btn_confirm"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:enabled="false"
                 android:text="@string/save" />
         </LinearLayout>
     </LinearLayout>
