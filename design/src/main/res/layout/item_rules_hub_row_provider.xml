@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:minHeight="52dp"
+    android:orientation="horizontal"
+    android:paddingHorizontal="16dp">
+
+    <TextView
+        android:id="@+id/rule_index"
+        android:layout_width="32dp"
+        android:layout_height="wrap_content"
+        android:textAppearance="@style/TextAppearance.App.LabelSmall"
+        android:textColor="?attr/colorOnSurfaceVariant"
+        tools:text="1" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:paddingVertical="8dp">
+
+        <TextView
+            android:id="@+id/rule_line"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:fontFamily="monospace"
+            android:maxLines="2"
+            android:textAppearance="@style/TextAppearance.App.BodyMedium"
+            android:textColor="?attr/colorOnSurface"
+            tools:text="RULE-SET,ads,REJECT" />
+
+        <TextView
+            android:id="@+id/rule_meta"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textAppearance="@style/TextAppearance.App.LabelSmall"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            tools:text="ads · Provider" />
+    </LinearLayout>
+
+    <com.google.android.material.materialswitch.MaterialSwitch
+        android:id="@+id/rule_enabled_switch"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+    <ImageButton
+        android:id="@+id/btn_restore"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/rule_action_restore"
+        android:padding="6dp"
+        android:src="@drawable/ic_baseline_restore"
+        android:visibility="gone"
+        app:tint="?attr/colorPrimary"
+        tools:visibility="visible" />
+</LinearLayout>

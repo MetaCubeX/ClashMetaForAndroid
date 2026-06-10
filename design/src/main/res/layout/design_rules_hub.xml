@@ -6,285 +6,66 @@
     android:layout_height="match_parent"
     android:background="?attr/colorSurface">
 
-    <androidx.core.widget.NestedScrollView
-        android:id="@+id/rules_hub_scroll"
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rules_list"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:clipToPadding="false"
-        android:paddingHorizontal="16dp"
-        android:scrollbars="none">
+        android:paddingBottom="88dp"
+        android:scrollbars="vertical"
+        tools:listitem="@layout/item_rules_hub_row_manual" />
+
+    <TextView
+        android:id="@+id/no_profile_notice"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:padding="24dp"
+        android:text="@string/rules_hub_no_profile"
+        android:textAppearance="@style/TextAppearance.App.BodyMedium"
+        android:textColor="?attr/colorOnSurfaceVariant"
+        android:visibility="gone" />
+
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/save_bar"
+        style="@style/AppCard.Filled"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        app:cardBackgroundColor="?attr/colorSurfaceContainerHigh"
+        app:cardCornerRadius="0dp"
+        app:cardElevation="8dp"
+        app:strokeWidth="0dp">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:paddingTop="12dp"
-            android:paddingBottom="32dp">
-
-            <include layout="@layout/include_screen_header" />
-
-            <TextView
-                android:id="@+id/profile_name"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textAppearance="@style/TextAppearance.App.BodyMedium"
-                android:textColor="?attr/colorOnSurfaceVariant"
-                tools:text="My subscription" />
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="16dp"
+            android:paddingVertical="10dp">
 
             <TextView
-                android:id="@+id/no_profile_notice"
-                android:layout_width="match_parent"
+                android:id="@+id/status_text"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                android:text="@string/rules_hub_no_profile"
-                android:textAppearance="@style/TextAppearance.App.BodyMedium"
-                android:textColor="?attr/colorOnSurfaceVariant"
-                android:visibility="gone" />
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:maxLines="2"
+                android:textAppearance="@style/TextAppearance.App.BodySmall"
+                android:textColor="?attr/colorError"
+                android:visibility="gone"
+                tools:text="Validation error"
+                tools:visibility="visible" />
 
-            <LinearLayout
-                android:id="@+id/content"
-                android:layout_width="match_parent"
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_save"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="vertical">
-
-                <TextView
-                    android:id="@+id/rules_summary"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:textAppearance="@style/TextAppearance.App.BodySmall"
-                    android:textColor="?attr/colorOnSurfaceVariant"
-                    tools:text="12 manual · 48 subscription" />
-
-                <com.google.android.material.textfield.TextInputLayout
-                    android:id="@+id/rule_search_layout"
-                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
-                    android:hint="@string/rules_hub_search_hint"
-                    app:endIconMode="clear_text"
-                    app:startIconDrawable="@drawable/ic_baseline_search">
-
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/rule_search"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:imeOptions="actionSearch"
-                        android:inputType="text"
-                        android:maxLines="1" />
-                </com.google.android.material.textfield.TextInputLayout>
-
-                <com.google.android.material.chip.ChipGroup
-                    android:id="@+id/filter_chips"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
-                    app:selectionRequired="true"
-                    app:singleSelection="true">
-
-                    <com.google.android.material.chip.Chip
-                        android:id="@+id/chip_filter_all"
-                        style="@style/Widget.Material3.Chip.Filter"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:checked="true"
-                        android:text="@string/rules_hub_filter_all" />
-
-                    <com.google.android.material.chip.Chip
-                        android:id="@+id/chip_filter_mine"
-                        style="@style/Widget.Material3.Chip.Filter"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/rules_hub_filter_mine" />
-
-                    <com.google.android.material.chip.Chip
-                        android:id="@+id/chip_filter_subscription"
-                        style="@style/Widget.Material3.Chip.Filter"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/rules_hub_filter_subscription" />
-
-                    <com.google.android.material.chip.Chip
-                        android:id="@+id/chip_filter_disabled"
-                        style="@style/Widget.Material3.Chip.Filter"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/rules_hub_filter_disabled" />
-                </com.google.android.material.chip.ChipGroup>
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="18dp"
-                    android:text="@string/rules_hub_section_manual"
-                    android:textAppearance="@style/TextAppearance.App.TitleSmall"
-                    android:textColor="?attr/colorPrimary"
-                    android:textStyle="bold" />
-
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/manual_rules_recycler"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:nestedScrollingEnabled="false"
-                    tools:itemCount="2"
-                    tools:listitem="@layout/item_rules_hub_manual" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btn_add_rule"
-                    style="@style/AppButton.Tonal"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
-                    android:text="@string/rules_hub_add_rule" />
-
-                <com.google.android.material.card.MaterialCardView
-                    android:id="@+id/provider_section_card"
-                    style="@style/AppCard.Filled"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="20dp"
-                    app:cardBackgroundColor="?attr/colorSurfaceContainer"
-                    app:cardCornerRadius="20dp"
-                    app:cardElevation="0dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:padding="14dp">
-
-                        <LinearLayout
-                            android:id="@+id/provider_section_header"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:background="?attr/selectableItemBackground"
-                            android:clickable="true"
-                            android:focusable="true"
-                            android:gravity="center_vertical"
-                            android:orientation="horizontal">
-
-                            <LinearLayout
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:orientation="vertical">
-
-                                <TextView
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:text="@string/rules_hub_section_subscription"
-                                    android:textAppearance="@style/TextAppearance.App.TitleSmall"
-                                    android:textColor="?attr/colorOnSurface"
-                                    android:textStyle="bold" />
-
-                                <TextView
-                                    android:id="@+id/provider_section_summary"
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginTop="2dp"
-                                    android:textAppearance="@style/TextAppearance.App.BodySmall"
-                                    android:textColor="?attr/colorOnSurfaceVariant"
-                                    tools:text="48 rules from subscription" />
-                            </LinearLayout>
-
-                            <ImageView
-                                android:id="@+id/provider_chevron"
-                                android:layout_width="28dp"
-                                android:layout_height="28dp"
-                                android:contentDescription="@string/rules_hub_toggle_providers"
-                                android:src="@drawable/ic_baseline_expand_more"
-                                app:tint="?attr/colorOnSurfaceVariant" />
-                        </LinearLayout>
-
-                        <LinearLayout
-                            android:id="@+id/provider_section_body"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="vertical"
-                            android:visibility="gone"
-                            tools:visibility="visible">
-
-                            <androidx.recyclerview.widget.RecyclerView
-                                android:id="@+id/provider_rules_recycler"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="10dp"
-                                android:nestedScrollingEnabled="false"
-                                tools:itemCount="2"
-                                tools:listitem="@layout/item_rules_hub_provider" />
-
-                            <TextView
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="16dp"
-                                android:text="@string/rules_hub_providers_yaml_title"
-                                android:textAppearance="@style/TextAppearance.App.TitleSmall"
-                                android:textColor="?attr/colorOnSurface"
-                                android:textStyle="bold" />
-
-                            <TextView
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="4dp"
-                                android:text="@string/rules_hub_providers_yaml_hint"
-                                android:textAppearance="@style/TextAppearance.App.BodySmall"
-                                android:textColor="?attr/colorOnSurfaceVariant" />
-
-                            <com.google.android.material.textfield.TextInputLayout
-                                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="8dp">
-
-                                <com.google.android.material.textfield.TextInputEditText
-                                    android:id="@+id/providers_yaml_input"
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:fontFamily="monospace"
-                                    android:gravity="top|start"
-                                    android:hint="rule-providers:"
-                                    android:inputType="textMultiLine|textNoSuggestions"
-                                    android:minLines="6"
-                                    android:textSize="12sp" />
-                            </com.google.android.material.textfield.TextInputLayout>
-
-                            <com.google.android.material.button.MaterialButton
-                                android:id="@+id/btn_save_providers"
-                                style="@style/Widget.Material3.Button.OutlinedButton"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="8dp"
-                                android:text="@string/rules_hub_save_providers" />
-
-                            <LinearLayout
-                                android:id="@+id/provider_cards_container"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="12dp"
-                                android:orientation="vertical" />
-                        </LinearLayout>
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
-
-                <TextView
-                    android:id="@+id/status_text"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="14dp"
-                    android:textAppearance="@style/TextAppearance.App.BodySmall"
-                    android:textColor="?attr/colorError"
-                    android:visibility="gone" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btn_save"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="18dp"
-                    android:text="@string/rules_hub_save"
-                    android:textAllCaps="false" />
-            </LinearLayout>
+                android:layout_marginStart="12dp"
+                android:minWidth="120dp"
+                android:text="@string/rules_hub_save"
+                android:textAllCaps="false" />
         </LinearLayout>
-    </androidx.core.widget.NestedScrollView>
+    </com.google.android.material.card.MaterialCardView>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

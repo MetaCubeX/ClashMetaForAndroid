@@ -9,7 +9,6 @@ import com.github.kr328.clash.design.util.root
 class RoutingHubDesign(context: Context) : Design<RoutingHubDesign.Request>(context) {
     enum class Request {
         OpenRules,
-        OpenEffectiveRules,
         OpenPerAppRouting,
         OpenProxyChain,
     }
@@ -24,8 +23,7 @@ class RoutingHubDesign(context: Context) : Design<RoutingHubDesign.Request>(cont
         binding.self = this
         binding.header.screenTitle.text = context.getString(R.string.nav_routing)
 
-        binding.cardEffectiveRules.setOnClickListener { requests.trySend(Request.OpenEffectiveRules) }
-        binding.cardRuleSnippets.setOnClickListener { requests.trySend(Request.OpenRules) }
+        binding.cardRules.setOnClickListener { requests.trySend(Request.OpenRules) }
         binding.cardProxyChain.setOnClickListener { requests.trySend(Request.OpenProxyChain) }
         binding.cardPerApp.setOnClickListener { requests.trySend(Request.OpenPerAppRouting) }
     }

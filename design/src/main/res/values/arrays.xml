@@ -18,4 +18,9 @@
         <item>RULE-SET</item>
         <item>MATCH</item>
     </string-array>
+    <string-array name="rule_provider_behaviors">
+        <item>classical</item>
+        <item>domain</item>
+        <item>ipcidr</item>
+    </string-array>
 </resources>

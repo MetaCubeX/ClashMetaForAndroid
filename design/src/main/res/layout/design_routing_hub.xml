@@ -45,7 +45,7 @@
                     android:textColor="?attr/colorOnSurfaceVariant" />
 
                 <com.google.android.material.card.MaterialCardView
-                    android:id="@+id/card_effective_rules"
+                    android:id="@+id/card_rules"
                     style="@style/AppCard.Filled"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -67,7 +67,7 @@
                         <ImageView
                             android:layout_width="32dp"
                             android:layout_height="32dp"
-                            android:contentDescription="@string/routing_rules"
+                            android:contentDescription="@string/rules_hub_nav_title"
                             android:src="@drawable/ic_baseline_route"
                             app:tint="?attr/colorOnPrimaryContainer" />
 
@@ -81,7 +81,7 @@
                             <TextView
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:text="@string/routing_rules"
+                                android:text="@string/rules_hub_nav_title"
                                 android:textAppearance="@style/TextAppearance.App.TitleMedium"
                                 android:textColor="?attr/colorOnPrimaryContainer"
                                 android:textStyle="bold" />
@@ -90,7 +90,7 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="4dp"
-                                android:text="@string/routing_hub_effective_summary"
+                                android:text="@string/rules_hub_nav_summary"
                                 android:textAppearance="@style/TextAppearance.App.BodySmall"
                                 android:textColor="?attr/colorOnPrimaryContainer" />
                         </LinearLayout>
@@ -103,23 +103,6 @@
                     android:layout_marginTop="12dp"
                     android:columnCount="1"
                     android:orientation="horizontal">
-
-                    <com.google.android.material.card.MaterialCardView
-                        android:id="@+id/card_rule_snippets"
-                        style="@style/AppCard.Filled"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="10dp"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:foreground="?attr/selectableItemBackground"
-                        app:cardBackgroundColor="?attr/colorSurfaceContainer"
-                        app:cardCornerRadius="22dp"
-                        app:cardElevation="0dp"
-                        app:strokeWidth="0dp">
-
-                        <include layout="@layout/include_routing_hub_card_content" />
-                    </com.google.android.material.card.MaterialCardView>
 
                     <com.google.android.material.card.MaterialCardView
                         android:id="@+id/card_proxy_chain"

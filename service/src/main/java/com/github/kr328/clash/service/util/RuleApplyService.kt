@@ -197,38 +197,6 @@ class RuleApplyService(
         }
     }
 
-    // Mirrors RuleRepository.syncProviderRules so reconcile uses the same classification
-    // logic as RuleRepository.load. Duplicated rather than reused to avoid making the
-    // repository helper public and tying it to file paths that don't apply here.
-    private fun syncStoredWithParsed(stored: RuleState, incoming: RuleState): RuleState {
-        fun key(r: RuleItem) =
-            "${r.type.uppercase()},${r.value.uppercase()},${r.policy.uppercase()}"
-
-        val byKey = stored.rules.associateBy(::key)
-        val mergedRules = incoming.rules.mapIndexed { index, rule ->
-            val old = byKey[key(rule)]
-            if (old != null) {
-                rule.copy(
-                    id = old.id,
-                    enabled = old.enabled,
-                    deleted = old.deleted,
-                    isRestorable = old.isRestorable || rule.isRestorable,
-                    order = index,
-                )
-            } else {
-                rule.copy(order = index)
-            }
-        }.toMutableList()
-
-        val incomingKeys = incoming.rules.map(::key).toSet()
-        val retained = stored.rules.filter { rule ->
-            key(rule) !in incomingKeys &&
-                (rule.deleted || !rule.enabled || rule.source == RuleSource.MANUAL)
-        }
-        retained.forEach { mergedRules += it.copy(order = mergedRules.size) }
-        return stored.copy(providers = incoming.providers, rules = mergedRules)
-    }
-
     private fun normalizeRuleOrder(rules: List<RuleItem>): List<RuleItem> {
         data class Indexed(val i: Int, val r: RuleItem)
         val enabled = rules.mapIndexed { i, r -> Indexed(i, r) }.filter { it.r.enabled && !it.r.deleted }
@@ -250,4 +218,43 @@ class RuleApplyService(
         return file.takeIf { it.isFile }
     }
 
+}
+
+/**
+ * Reconcile the user's saved [stored] rule state with the [incoming] rules parsed
+ * from a freshly fetched subscription. Identity is `(type,value,policy)` — NOT
+ * order — so the user's enable/disable/delete decision on a PROVIDER rule re-binds
+ * to the same rule after a refresh even if its position changed. MANUAL rules and
+ * any disabled/deleted stored rule that vanished from the fetch are retained.
+ *
+ * Pure (no Context/engine) so it is unit-testable; `reconcileWithStoredState`
+ * delegates here. Mirrors `RuleRepository.syncProviderRules` classification.
+ */
+internal fun syncStoredWithParsed(stored: RuleState, incoming: RuleState): RuleState {
+    fun key(r: RuleItem) =
+        "${r.type.uppercase()},${r.value.uppercase()},${r.policy.uppercase()}"
+
+    val byKey = stored.rules.associateBy(::key)
+    val mergedRules = incoming.rules.mapIndexed { index, rule ->
+        val old = byKey[key(rule)]
+        if (old != null) {
+            rule.copy(
+                id = old.id,
+                enabled = old.enabled,
+                deleted = old.deleted,
+                isRestorable = old.isRestorable || rule.isRestorable,
+                order = index,
+            )
+        } else {
+            rule.copy(order = index)
+        }
+    }.toMutableList()
+
+    val incomingKeys = incoming.rules.map(::key).toSet()
+    val retained = stored.rules.filter { rule ->
+        key(rule) !in incomingKeys &&
+            (rule.deleted || !rule.enabled || rule.source == RuleSource.MANUAL)
+    }
+    retained.forEach { mergedRules += it.copy(order = mergedRules.size) }
+    return stored.copy(providers = incoming.providers, rules = mergedRules)
 }

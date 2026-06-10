@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingHorizontal="16dp"
+    android:paddingTop="12dp"
+    android:paddingBottom="8dp">
+
+    <TextView
+        android:id="@+id/screen_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textAppearance="@style/TextAppearance.App.TitleLarge"
+        android:textColor="?attr/colorOnSurface"
+        android:textStyle="bold"
+        tools:text="Rules · My profile" />
+
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/summary_chip_card"
+        style="@style/AppCard.Filled"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        app:cardBackgroundColor="?attr/colorPrimaryContainer"
+        app:cardCornerRadius="14dp"
+        app:cardElevation="0dp">
+
+        <TextView
+            android:id="@+id/rules_summary"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingHorizontal="14dp"
+            android:paddingVertical="10dp"
+            android:textAppearance="@style/TextAppearance.App.LabelLarge"
+            android:textColor="?attr/colorOnPrimaryContainer"
+            android:textStyle="bold"
+            tools:text="3 yours · 48 subscription" />
+    </com.google.android.material.card.MaterialCardView>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/rule_search_layout"
+        style="@style/Widget.Material3.TextInputLayout.OutlinedBox.Dense"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:hint="@string/rules_hub_search_hint"
+        app:endIconMode="clear_text"
+        app:startIconDrawable="@drawable/ic_baseline_search">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/rule_search"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:imeOptions="actionSearch"
+            android:inputType="text"
+            android:maxLines="1" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:scrollbars="none">
+
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/filter_chips"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:selectionRequired="true"
+            app:singleLine="true"
+            app:singleSelection="true">
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chip_filter_all"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checked="true"
+                android:text="@string/rules_hub_filter_all"
+                app:chipMinHeight="28dp" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chip_filter_mine"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/rules_hub_filter_mine"
+                app:chipMinHeight="28dp" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chip_filter_subscription"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/rules_hub_filter_subscription"
+                app:chipMinHeight="28dp" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chip_filter_disabled"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/rules_hub_filter_disabled"
+                app:chipMinHeight="28dp" />
+        </com.google.android.material.chip.ChipGroup>
+    </HorizontalScrollView>
+</LinearLayout>

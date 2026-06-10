@@ -20,9 +20,7 @@ class RoutingHubActivity : BaseActivity<RoutingHubDesign>() {
                 design.requests.onReceive {
                     when (it) {
                         RoutingHubDesign.Request.OpenRules ->
-                            launch { openRulesHub(expandProviders = true) }
-                        RoutingHubDesign.Request.OpenEffectiveRules ->
-                            launch { openRulesHub(expandProviders = false) }
+                            launch { openRulesHub() }
                         RoutingHubDesign.Request.OpenPerAppRouting ->
                             startActivity(AccessControlActivity::class.intent)
                         RoutingHubDesign.Request.OpenProxyChain ->
@@ -33,11 +31,10 @@ class RoutingHubActivity : BaseActivity<RoutingHubDesign>() {
         }
     }
 
-    private suspend fun openRulesHub(expandProviders: Boolean) {
+    private suspend fun openRulesHub() {
         val uuid = withProfile { queryActive()?.takeIf { it.imported }?.uuid }
         val hubIntent = (uuid?.let { RulesHubActivity::class.intent.setUUID(it) }
             ?: RulesHubActivity::class.intent)
-            .putExtra(RulesHubActivity.EXTRA_EXPAND_PROVIDERS, expandProviders)
         startActivity(hubIntent)
     }
 }

@@ -633,11 +633,11 @@ class MainActivity : BaseActivity<MainDesign>() {
                             startActivity(LogsActivity::class.intent)
 
                         MainDesign.Request.OpenRouting -> launch {
-                            openRulesHub(expandProviders = false)
+                            openRulesHub()
                         }
 
                         MainDesign.Request.OpenRules -> launch {
-                            openRulesHub(expandProviders = true)
+                            openRulesHub()
                         }
 
                         MainDesign.Request.OpenProxyChain ->
@@ -1986,11 +1986,10 @@ class MainActivity : BaseActivity<MainDesign>() {
         }
     }
 
-    private suspend fun openRulesHub(expandProviders: Boolean) {
+    private suspend fun openRulesHub() {
         val uuid = withProfile { queryActive()?.takeIf { it.imported }?.uuid }
-        val hubIntent = (uuid?.let { RulesHubActivity::class.intent.setUUID(it) }
-            ?: RulesHubActivity::class.intent)
-            .putExtra(RulesHubActivity.EXTRA_EXPAND_PROVIDERS, expandProviders)
+        val hubIntent = uuid?.let { RulesHubActivity::class.intent.setUUID(it) }
+            ?: RulesHubActivity::class.intent
         startActivity(hubIntent)
     }
 

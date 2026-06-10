@@ -3,6 +3,7 @@ package com.github.kr328.clash.design
 import com.github.kr328.clash.service.model.RuleItem
 import com.github.kr328.clash.service.model.RuleProviderItem
 import com.github.kr328.clash.service.model.RuleSource
+import com.github.kr328.clash.service.model.RuleState
 
 enum class RulesHubFilter {
     ALL,
@@ -85,5 +86,153 @@ object RulesHubRowBuilder {
         val item = mutable.removeAt(from)
         mutable.add(to, item)
         return mutable
+    }
+
+    fun reorderManualById(manual: List<RuleItem>, fromId: String, toId: String): List<RuleItem> {
+        val from = manual.indexOfFirst { it.id == fromId }
+        val to = manual.indexOfFirst { it.id == toId }
+        if (from < 0 || to < 0) return manual
+        return reorderManual(manual, from, to)
+    }
+
+    fun buildSummaryLine(
+        context: android.content.Context,
+        manualShown: Int,
+        manualTotal: Int,
+        providerShown: Int,
+        providerTotal: Int,
+    ): String = context.getString(
+        R.string.rules_hub_summary_accent_fmt,
+        manualShown,
+        manualTotal,
+        providerShown,
+        providerTotal,
+    )
+}
+
+enum class RulesHubSection {
+    MANUAL,
+    SUBSCRIPTION,
+    PROVIDER_DEFS,
+}
+
+sealed class RulesHubListItem(val stableId: String) {
+    data class Header(val profileTitle: String, val summary: String) : RulesHubListItem("header")
+
+    data class Section(
+        val section: RulesHubSection,
+        val title: String,
+        val subtitle: String?,
+        val collapsible: Boolean,
+        val expanded: Boolean,
+    ) : RulesHubListItem("section-${section.name}")
+
+    data class ManualRule(
+        val rule: RuleItem,
+        val displayIndex: Int,
+        val targetMissing: Boolean,
+    ) : RulesHubListItem("manual-${rule.id}")
+
+    data class ProviderRule(
+        val rule: RuleItem,
+        val displayIndex: Int,
+        val meta: String,
+    ) : RulesHubListItem("provider-rule-${rule.id}")
+
+    data class ProviderDef(val provider: RuleProviderItem) : RulesHubListItem("provider-def-${provider.id}")
+
+    data class AddAction(val label: String, val action: AddActionKind) : RulesHubListItem("add-${action.name}")
+
+    enum class AddActionKind { MANUAL, PROVIDER }
+}
+
+object RulesHubListBuilder {
+    fun build(
+        context: android.content.Context,
+        state: RuleState,
+        filter: RulesHubFilter,
+        searchQuery: String,
+        providerMap: Map<String, RuleProviderItem>,
+        knownPolicies: Set<String>,
+        profileName: String,
+        subscriptionExpanded: Boolean,
+        providerDefsExpanded: Boolean,
+    ): List<RulesHubListItem> {
+        val (allManual, allProvider) = RulesHubRowBuilder.partitionRules(state.rules)
+        val manual = RulesHubRowBuilder.filterRules(allManual, filter, searchQuery, providerMap)
+        val providerRules = RulesHubRowBuilder.filterRules(allProvider, filter, searchQuery, providerMap)
+        val providers = state.providers
+
+        val items = mutableListOf<RulesHubListItem>()
+        val title = context.getString(R.string.rules_hub_title_profile_fmt, profileName)
+        val summary = RulesHubRowBuilder.buildSummaryLine(
+            context,
+            manual.size,
+            allManual.size,
+            providerRules.size,
+            allProvider.size,
+        )
+        items += RulesHubListItem.Header(title, summary)
+
+        items += RulesHubListItem.Section(
+            section = RulesHubSection.MANUAL,
+            title = context.getString(R.string.rules_hub_section_manual),
+            subtitle = context.getString(R.string.rules_hub_section_count_fmt, manual.size, allManual.size),
+            collapsible = false,
+            expanded = true,
+        )
+        manual.forEachIndexed { index, rule ->
+            items += RulesHubListItem.ManualRule(
+                rule = rule,
+                displayIndex = index + 1,
+                targetMissing = RulesHubRowBuilder.isTargetMissing(rule, knownPolicies),
+            )
+        }
+        items += RulesHubListItem.AddAction(
+            label = context.getString(R.string.rules_hub_add_rule),
+            action = RulesHubListItem.AddActionKind.MANUAL,
+        )
+
+        items += RulesHubListItem.Section(
+            section = RulesHubSection.SUBSCRIPTION,
+            title = context.getString(R.string.rules_hub_section_subscription),
+            subtitle = context.getString(R.string.rules_hub_section_count_fmt, providerRules.size, allProvider.size),
+            collapsible = true,
+            expanded = subscriptionExpanded,
+        )
+        if (subscriptionExpanded) {
+            providerRules.forEachIndexed { index, rule ->
+                val providerLabel = if (rule.type.equals("RULE-SET", true)) {
+                    providerMap[rule.value]?.name ?: rule.providerName ?: rule.value
+                } else ""
+                val meta = buildString {
+                    append(context.getString(R.string.effective_rules_source_provider))
+                    if (providerLabel.isNotBlank()) append(" · ").append(providerLabel)
+                }
+                items += RulesHubListItem.ProviderRule(rule, index + 1, meta)
+            }
+
+            items += RulesHubListItem.Section(
+                section = RulesHubSection.PROVIDER_DEFS,
+                title = context.getString(R.string.rules_hub_section_provider_defs),
+                subtitle = if (providers.isNotEmpty()) {
+                    context.getString(R.string.rules_hub_provider_defs_count_fmt, providers.size)
+                } else {
+                    null
+                },
+                collapsible = true,
+                expanded = providerDefsExpanded,
+            )
+            if (providerDefsExpanded) {
+                providers.forEach { p ->
+                    items += RulesHubListItem.ProviderDef(p)
+                }
+                items += RulesHubListItem.AddAction(
+                    label = context.getString(R.string.rules_hub_add_provider),
+                    action = RulesHubListItem.AddActionKind.PROVIDER,
+                )
+            }
+        }
+        return items
     }
 }
