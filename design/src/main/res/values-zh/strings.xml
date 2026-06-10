@@ -839,6 +839,16 @@
     <string name="rules_hub_preview_title">规则预览</string>
     <string name="rules_hub_preview_rejected">内核拒绝了拟应用的规则</string>
     <string name="rules_hub_apply_failed">无法应用规则</string>
+    <string name="rules_hub_section_title_count_fmt">%1$s · %2$d</string>
+    <string name="rules_hub_section_filtered_fmt">显示 %1$d 条</string>
+    <string name="rules_hub_diff_summary_fmt">+%1$d 新增 · −%2$d 删除 · %3$d 禁用</string>
+    <string name="rules_hub_empty_manual">添加第一条规则</string>
+    <string name="rules_hub_rule_enabled_undo">规则已启用</string>
+    <string name="rules_hub_rule_disabled_undo">规则已禁用</string>
+    <string name="rules_hub_rule_deleted_undo">规则已删除</string>
+    <string name="rules_hub_swipe_toggle">滑动以启用或禁用</string>
+    <string name="rules_hub_swipe_delete">滑动以删除</string>
+    <string name="undo">撤销</string>
     <string name="profile_menu_rules">编辑规则</string>
     <string name="effective_rules_count_fmt">%1$d 条规则</string>
     <string name="expires_on">到期 %1$s</string>

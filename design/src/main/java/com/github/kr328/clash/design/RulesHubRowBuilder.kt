@@ -76,6 +76,17 @@ object RulesHubRowBuilder {
         }
     }
 
+    fun buildRuleExpression(item: RuleItem): String {
+        if (item.value.isBlank() && item.policy.isBlank() && item.raw.isNotBlank()) {
+            return item.raw
+        }
+        return when {
+            item.type.equals("MATCH", true) -> "MATCH"
+            item.type == "LEGACY" -> item.value
+            else -> "${item.type},${item.value}"
+        }
+    }
+
     fun mergeOrderedRules(manual: List<RuleItem>, provider: List<RuleItem>): List<RuleItem> {
         return (manual + provider).mapIndexed { index, rule -> rule.copy(order = index) }
     }
@@ -143,6 +154,8 @@ sealed class RulesHubListItem(val stableId: String) {
 
     data class AddAction(val label: String, val action: AddActionKind) : RulesHubListItem("add-${action.name}")
 
+    object EmptyManual : RulesHubListItem("empty-manual")
+
     enum class AddActionKind { MANUAL, PROVIDER }
 }
 
@@ -176,17 +189,29 @@ object RulesHubListBuilder {
 
         items += RulesHubListItem.Section(
             section = RulesHubSection.MANUAL,
-            title = context.getString(R.string.rules_hub_section_manual),
-            subtitle = context.getString(R.string.rules_hub_section_count_fmt, manual.size, allManual.size),
+            title = context.getString(
+                R.string.rules_hub_section_title_count_fmt,
+                context.getString(R.string.rules_hub_section_manual),
+                allManual.size,
+            ),
+            subtitle = if (manual.size != allManual.size) {
+                context.getString(R.string.rules_hub_section_filtered_fmt, manual.size)
+            } else {
+                null
+            },
             collapsible = false,
             expanded = true,
         )
-        manual.forEachIndexed { index, rule ->
-            items += RulesHubListItem.ManualRule(
-                rule = rule,
-                displayIndex = index + 1,
-                targetMissing = RulesHubRowBuilder.isTargetMissing(rule, knownPolicies),
-            )
+        if (allManual.isEmpty()) {
+            items += RulesHubListItem.EmptyManual
+        } else {
+            manual.forEachIndexed { index, rule ->
+                items += RulesHubListItem.ManualRule(
+                    rule = rule,
+                    displayIndex = index + 1,
+                    targetMissing = RulesHubRowBuilder.isTargetMissing(rule, knownPolicies),
+                )
+            }
         }
         items += RulesHubListItem.AddAction(
             label = context.getString(R.string.rules_hub_add_rule),
@@ -195,8 +220,16 @@ object RulesHubListBuilder {
 
         items += RulesHubListItem.Section(
             section = RulesHubSection.SUBSCRIPTION,
-            title = context.getString(R.string.rules_hub_section_subscription),
-            subtitle = context.getString(R.string.rules_hub_section_count_fmt, providerRules.size, allProvider.size),
+            title = context.getString(
+                R.string.rules_hub_section_title_count_fmt,
+                context.getString(R.string.rules_hub_section_subscription),
+                allProvider.size,
+            ),
+            subtitle = if (providerRules.size != allProvider.size) {
+                context.getString(R.string.rules_hub_section_filtered_fmt, providerRules.size)
+            } else {
+                null
+            },
             collapsible = true,
             expanded = subscriptionExpanded,
         )
@@ -214,12 +247,12 @@ object RulesHubListBuilder {
 
             items += RulesHubListItem.Section(
                 section = RulesHubSection.PROVIDER_DEFS,
-                title = context.getString(R.string.rules_hub_section_provider_defs),
-                subtitle = if (providers.isNotEmpty()) {
-                    context.getString(R.string.rules_hub_provider_defs_count_fmt, providers.size)
-                } else {
-                    null
-                },
+                title = context.getString(
+                    R.string.rules_hub_section_title_count_fmt,
+                    context.getString(R.string.rules_hub_section_provider_defs),
+                    providers.size,
+                ),
+                subtitle = null,
                 collapsible = true,
                 expanded = providerDefsExpanded,
             )

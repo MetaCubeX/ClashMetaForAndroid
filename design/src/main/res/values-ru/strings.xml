@@ -252,6 +252,16 @@
     <string name="rules_hub_preview_title">Превью правил</string>
     <string name="rules_hub_preview_rejected">Движок отклонил предложенные правила</string>
     <string name="rules_hub_apply_failed">Не удалось применить правила</string>
+    <string name="rules_hub_section_title_count_fmt">%1$s · %2$d</string>
+    <string name="rules_hub_section_filtered_fmt">Показано %1$d</string>
+    <string name="rules_hub_diff_summary_fmt">+%1$d добавлено · −%2$d удалено · %3$d отключено</string>
+    <string name="rules_hub_empty_manual">Добавьте первое правило</string>
+    <string name="rules_hub_rule_enabled_undo">Правило включено</string>
+    <string name="rules_hub_rule_disabled_undo">Правило отключено</string>
+    <string name="rules_hub_rule_deleted_undo">Правило удалено</string>
+    <string name="rules_hub_swipe_toggle">Свайп для вкл./выкл.</string>
+    <string name="rules_hub_swipe_delete">Свайп для удаления</string>
+    <string name="undo">Отменить</string>
     <string name="profile_menu_rules">Редактировать правила</string>
     <string name="rule_action_enable">Включить</string>
     <string name="rule_action_disable">Отключить</string>

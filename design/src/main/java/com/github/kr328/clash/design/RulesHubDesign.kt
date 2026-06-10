@@ -7,6 +7,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.github.kr328.clash.design.ui.ToastDuration
 import com.github.kr328.clash.design.util.layoutInflater
 import com.github.kr328.clash.design.util.root
 import com.github.kr328.clash.service.model.RuleItem
@@ -15,6 +16,7 @@ import com.github.kr328.clash.service.model.RuleState
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.card.MaterialCardView
 import com.google.android.material.color.MaterialColors
+import kotlinx.coroutines.launch
 
 class RulesHubDesign(context: Context) : Design<RulesHubDesign.Request>(context) {
     sealed class Request {
@@ -39,6 +41,7 @@ class RulesHubDesign(context: Context) : Design<RulesHubDesign.Request>(context)
     private val btnSave: MaterialButton = rootView.findViewById(R.id.btn_save)
 
     private var workingState = RuleState()
+    private var baselineState = RuleState()
     private var providerMap: Map<String, RuleProviderItem> = emptyMap()
     private var proxyOptions: List<String> = emptyList()
     private var profileName: String = ""
@@ -99,6 +102,14 @@ class RulesHubDesign(context: Context) : Design<RulesHubDesign.Request>(context)
             override fun onToggleProvider(providerId: String, enabled: Boolean) {
                 requests.trySend(Request.ToggleProvider(providerId, enabled))
             }
+
+            override fun onSwipeToggleRule(ruleId: String) {
+                swipeToggleWithUndo(ruleId)
+            }
+
+            override fun onSwipeDeleteManual(ruleId: String) {
+                swipeDeleteWithUndo(ruleId)
+            }
         },
     )
 
@@ -128,7 +139,7 @@ class RulesHubDesign(context: Context) : Design<RulesHubDesign.Request>(context)
         recycler.layoutManager = LinearLayoutManager(context)
         recycler.adapter = adapter
         recycler.setHasFixedSize(false)
-        adapter.attachDragHelper(recycler)
+        adapter.attachItemTouchHelper(recycler)
 
         btnSave.setOnClickListener { requests.trySend(Request.Save) }
     }
@@ -151,6 +162,7 @@ class RulesHubDesign(context: Context) : Design<RulesHubDesign.Request>(context)
 
         profileName = profile
         workingState = state
+        baselineState = state
         proxyOptions = policies
         providerMap = state.providers.associateBy(RuleProviderItem::name)
         if (expandProviders) {
@@ -268,6 +280,43 @@ class RulesHubDesign(context: Context) : Design<RulesHubDesign.Request>(context)
     fun findRule(id: String): RuleItem? = workingState.rules.firstOrNull { it.id == id }
     fun findProvider(id: String): RuleProviderItem? = workingState.providers.firstOrNull { it.id == id }
 
+    fun diffSummary(): String? = RulesHubStateDiff.formatSummary(context, baselineState, readState())
+
+    private fun swipeToggleWithUndo(ruleId: String) {
+        val rule = findRule(ruleId) ?: return
+        if (rule.deleted) return
+        val prev = rule.enabled
+        mutateRule(ruleId) { it.copy(enabled = !it.enabled) }
+        launch {
+            val msgRes = if (prev) {
+                R.string.rules_hub_rule_disabled_undo
+            } else {
+                R.string.rules_hub_rule_enabled_undo
+            }
+            showToast(msgRes, ToastDuration.Long) {
+                setAction(R.string.undo) {
+                    mutateRule(ruleId) { it.copy(enabled = prev) }
+                }
+            }
+        }
+    }
+
+    private fun swipeDeleteWithUndo(ruleId: String) {
+        val rule = findRule(ruleId) ?: return
+        if (rule.deleted || rule.source != com.github.kr328.clash.service.model.RuleSource.MANUAL) return
+        val snapshot = rule
+        deleteManualRule(ruleId)
+        launch {
+            showToast(R.string.rules_hub_rule_deleted_undo, ToastDuration.Long) {
+                setAction(R.string.undo) {
+                    mutateRule(ruleId) {
+                        snapshot.copy(deleted = false, enabled = snapshot.enabled)
+                    }
+                }
+            }
+        }
+    }
+
     private fun renderList() {
         val items = RulesHubListBuilder.build(
             context = context,
@@ -281,5 +330,10 @@ class RulesHubDesign(context: Context) : Design<RulesHubDesign.Request>(context)
             providerDefsExpanded = providerDefsExpanded,
         )
         adapter.submit(items, filter, searchQuery)
+        updateDiffStatus()
+    }
+
+    private fun updateDiffStatus() {
+        showStatus(diffSummary(), isError = false)
     }
 }

@@ -5,14 +5,16 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:gravity="center_vertical"
-    android:minHeight="52dp"
+    android:minHeight="56dp"
     android:orientation="horizontal"
-    android:paddingHorizontal="16dp">
+    android:paddingStart="8dp"
+    android:paddingEnd="16dp">
 
     <TextView
         android:id="@+id/rule_index"
         android:layout_width="32dp"
         android:layout_height="wrap_content"
+        android:layout_marginStart="32dp"
         android:textAppearance="@style/TextAppearance.App.LabelSmall"
         android:textColor="?attr/colorOnSurfaceVariant"
         tools:text="1" />
@@ -22,29 +24,52 @@
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:orientation="vertical"
-        android:paddingVertical="8dp">
+        android:paddingVertical="10dp">
 
         <TextView
             android:id="@+id/rule_line"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:ellipsize="end"
-            android:fontFamily="monospace"
             android:maxLines="2"
             android:textAppearance="@style/TextAppearance.App.BodyMedium"
             android:textColor="?attr/colorOnSurface"
-            tools:text="RULE-SET,ads,REJECT" />
+            tools:text="RULE-SET,ads" />
 
-        <TextView
-            android:id="@+id/rule_meta"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
-            android:ellipsize="end"
-            android:maxLines="1"
-            android:textAppearance="@style/TextAppearance.App.LabelSmall"
-            android:textColor="?attr/colorOnSurfaceVariant"
-            tools:text="ads · Provider" />
+            android:layout_marginTop="4dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/policy_chip"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="2dp"
+                android:textAppearance="@style/TextAppearance.App.LabelSmall"
+                android:textStyle="bold"
+                tools:background="@drawable/bg_m3_policy_chip_reject"
+                tools:text="REJECT" />
+
+            <TextView
+                android:id="@+id/rule_meta"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:background="@drawable/bg_m3_status_chip_neutral"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:paddingHorizontal="6dp"
+                android:paddingVertical="1dp"
+                android:textAppearance="@style/TextAppearance.App.LabelSmall"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                tools:text="Provider · ads" />
+        </LinearLayout>
     </LinearLayout>
 
     <com.google.android.material.materialswitch.MaterialSwitch

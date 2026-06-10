@@ -226,6 +226,16 @@ Presets only change <b>where</b> files are downloaded from (CDN / host). It is s
     <string name="rules_hub_preview_title">Rules preview</string>
     <string name="rules_hub_preview_rejected">Engine rejected the proposed rules</string>
     <string name="rules_hub_apply_failed">Could not apply rules</string>
+    <string name="rules_hub_section_title_count_fmt">%1$s · %2$d</string>
+    <string name="rules_hub_section_filtered_fmt">%1$d shown</string>
+    <string name="rules_hub_diff_summary_fmt">+%1$d added · −%2$d removed · %3$d disabled</string>
+    <string name="rules_hub_empty_manual">Add your first rule</string>
+    <string name="rules_hub_rule_enabled_undo">Rule enabled</string>
+    <string name="rules_hub_rule_disabled_undo">Rule disabled</string>
+    <string name="rules_hub_rule_deleted_undo">Rule deleted</string>
+    <string name="rules_hub_swipe_toggle">Swipe to enable or disable</string>
+    <string name="rules_hub_swipe_delete">Swipe to delete</string>
+    <string name="undo">Undo</string>
     <string name="profile_menu_rules">Edit rules</string>
     <string name="rule_action_enable">Enable</string>
     <string name="rule_action_disable">Disable</string>

@@ -172,13 +172,17 @@ class RulesHubActivity : BaseActivity<RulesHubDesign>() {
             return
         }
 
-        withContext(Dispatchers.Main) { design.setSaveBusy(true) }
+        val diffSummary = withContext(Dispatchers.Main) { design.diffSummary() }
+        withContext(Dispatchers.Main) {
+            design.showStatus(diffSummary, isError = false)
+            design.setSaveBusy(true)
+        }
         try {
             val stateJson = json.encodeToString(RuleState.serializer(), state)
             val currentYaml = withProfile { readImportedConfigYaml(id) }.orEmpty()
             val proposedYaml = withProfile { previewRuleStateYaml(id, stateJson) }
             withContext(Dispatchers.Main) {
-                showRuleStatePreview(id, stateJson, currentYaml, proposedYaml) {
+                showRuleStatePreview(id, stateJson, currentYaml, proposedYaml, diffSummary) {
                     withContext(Dispatchers.Main) {
                         design.showStatus(getString(R.string.rules_hub_saved), false)
                     }
