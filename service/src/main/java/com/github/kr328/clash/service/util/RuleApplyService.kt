@@ -197,22 +197,6 @@ class RuleApplyService(
         }
     }
 
-    private fun normalizeRuleOrder(rules: List<RuleItem>): List<RuleItem> {
-        data class Indexed(val i: Int, val r: RuleItem)
-        val enabled = rules.mapIndexed { i, r -> Indexed(i, r) }.filter { it.r.enabled && !it.r.deleted }
-        val inactive = rules.mapIndexed { i, r -> Indexed(i, r) }.filterNot { it.r.enabled && !it.r.deleted }
-        val sortedEnabled = enabled.sortedWith(compareBy<Indexed> { priority(it.r) }.thenBy { it.i })
-        return (sortedEnabled + inactive).mapIndexed { idx, ir -> ir.r.copy(order = idx) }
-    }
-
-    private fun priority(rule: RuleItem): Int {
-        val reject = rule.policy.equals("REJECT", true) || rule.policy.equals("REJECT-DROP", true)
-        if (reject) return 0
-        if (rule.type.equals("GEOSITE", true)) return 1
-        if (rule.type.equals("RULE-SET", true)) return 2
-        return 3
-    }
-
     private fun configFile(uuid: UUID): File? {
         val file = File(context.importedDir, "$uuid/config.yaml")
         return file.takeIf { it.isFile }
@@ -258,3 +242,17 @@ internal fun syncStoredWithParsed(stored: RuleState, incoming: RuleState): RuleS
     retained.forEach { mergedRules += it.copy(order = mergedRules.size) }
     return stored.copy(providers = incoming.providers, rules = mergedRules)
 }
+
+/**
+ * Stable rule ordering: rules keep their `order` (the user's manual drag order +
+ * the subscription's authored order); we only compact the indices. We do NOT move
+ * disabled rules to the tail and do NOT re-sort by rule type. So toggling a rule
+ * off then on returns it to exactly its place, and the subscription author's rule
+ * order is preserved. `mergeStateIntoConfig` emits enabled rules by `order`,
+ * skipping disabled ones — so a disabled rule simply holds its slot.
+ *
+ * Pure (no Context/engine) → unit-testable; `applyState`/`dryRunState`/reconcile
+ * delegate here.
+ */
+internal fun normalizeRuleOrder(rules: List<RuleItem>): List<RuleItem> =
+    rules.sortedBy { it.order }.mapIndexed { idx, r -> r.copy(order = idx) }
