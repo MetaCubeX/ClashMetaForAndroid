@@ -197,6 +197,9 @@ class ClashManager(private val context: Context) : IClashManager,
         return Clash.updateProvider(type, name).await()
     }
 
+    override suspend fun updateGeoDatabases(): String? =
+        withContext(Dispatchers.IO) { Clash.updateGeoDatabases() }
+
     override fun setLogObserver(observer: ILogObserver?) {
         synchronized(this) {
             logReceiver?.apply {

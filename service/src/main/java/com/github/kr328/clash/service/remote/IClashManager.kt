@@ -31,6 +31,9 @@ interface IClashManager {
     fun healthCheckAll()
     suspend fun updateProvider(type: Provider.Type, name: String)
 
+    /** Download fresh GeoIP/GeoSite databases. Returns null on success, or the engine error. */
+    suspend fun updateGeoDatabases(): String?
+
     fun queryOverride(slot: Clash.OverrideSlot): ConfigurationOverride
     fun patchOverride(slot: Clash.OverrideSlot, configuration: ConfigurationOverride)
     fun clearOverride(slot: Clash.OverrideSlot)

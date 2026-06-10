@@ -12,6 +12,7 @@ import java.io.File
 object Bridge {
     external fun nativeReset()
     external fun nativeForceGc()
+    external fun nativeUpdateGeoDatabases(): String?
     external fun nativeSuspend(suspend: Boolean)
     external fun nativeQueryTunnelState(): String
     external fun nativeQueryTrafficNow(): Long
