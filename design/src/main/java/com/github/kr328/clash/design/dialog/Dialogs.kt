@@ -3,6 +3,7 @@ package com.github.kr328.clash.design.dialog
 import android.app.Dialog
 import android.content.Context
 import android.os.Bundle
+import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
 import android.widget.FrameLayout
@@ -18,6 +19,24 @@ import com.github.kr328.clash.design.util.resolveThemedResourceId
 import com.github.kr328.clash.design.util.setOnInsertsChangedListener
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
+
+/** Adds navigation-bar inset to content bottom padding; sheet background stays edge-to-edge. */
+object BottomSheetContentInsets {
+    fun apply(content: View) {
+        val baseStart = content.paddingStart
+        val baseTop = content.paddingTop
+        val baseEnd = content.paddingEnd
+        val baseBottom = content.paddingBottom
+        content.setOnInsertsChangedListener { insets ->
+            content.setPaddingRelative(
+                baseStart,
+                baseTop,
+                baseEnd,
+                baseBottom + insets.bottom,
+            )
+        }
+    }
+}
 
 class AppBottomSheetDialog(
     context: Context,

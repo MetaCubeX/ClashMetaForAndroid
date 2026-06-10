@@ -10,14 +10,13 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.widget.addTextChangedListener
+import com.github.kr328.clash.design.dialog.AppBottomSheetDialog
 import com.github.kr328.clash.design.util.RuleEditFormHelper
 import com.github.kr328.clash.design.util.RuleTypeCatalog
 import com.github.kr328.clash.design.util.RuleTypeIcons
 import com.github.kr328.clash.design.util.RuleTypeMeta
 import com.github.kr328.clash.service.model.RuleItem
 import com.github.kr328.clash.service.model.RuleSource
-import com.google.android.material.bottomsheet.BottomSheetBehavior
-import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.button.MaterialButtonToggleGroup
 import com.google.android.material.color.MaterialColors
@@ -40,7 +39,7 @@ class RuleEditSheet(
     private val onConfirm: (RuleEditResult) -> Unit,
     private val onDelete: (() -> Unit)? = null,
 ) {
-    private val dialog = BottomSheetDialog(context)
+    private val dialog = AppBottomSheetDialog(context, fitContentHeight = true)
     private val root: View = LayoutInflater.from(context).inflate(R.layout.bottom_sheet_rule_edit, null)
     private val title: TextView = root.findViewById(R.id.sheet_title)
     private val typeLayout: TextInputLayout = root.findViewById(R.id.type_layout)
@@ -74,8 +73,6 @@ class RuleEditSheet(
 
     init {
         dialog.setContentView(root)
-        dialog.behavior.skipCollapsed = true
-        dialog.behavior.state = BottomSheetBehavior.STATE_EXPANDED
         groupInput.setAdapter(
             ArrayAdapter(context, android.R.layout.simple_dropdown_item_1line, groupPolicies),
         )
@@ -134,7 +131,7 @@ class RuleEditSheet(
     }
 
     private fun showTypePicker() {
-        val pickerDialog = BottomSheetDialog(context)
+        val pickerDialog = AppBottomSheetDialog(context, fitContentHeight = true)
         val pickerRoot = LayoutInflater.from(context).inflate(R.layout.bottom_sheet_rule_type_picker, null)
         val list = pickerRoot.findViewById<LinearLayout>(R.id.type_picker_list)
         RuleTypeCatalog.common.forEach { meta ->
@@ -151,10 +148,6 @@ class RuleEditSheet(
             })
         }
         pickerDialog.setContentView(pickerRoot)
-        // Open fully and dismiss on a single swipe-down — no half-collapsed state
-        // that the user has to fight past.
-        pickerDialog.behavior.skipCollapsed = true
-        pickerDialog.behavior.state = BottomSheetBehavior.STATE_EXPANDED
         pickerDialog.show()
     }
 
