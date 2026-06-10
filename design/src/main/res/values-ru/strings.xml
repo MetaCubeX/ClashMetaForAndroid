@@ -257,6 +257,40 @@
     <string name="rule_action_disable">Отключить</string>
     <string name="rule_action_restore">Восстановить</string>
 
+    <!-- Rule editor: friendly type catalog (RuleTypeCatalog) -->
+    <string name="rule_type_domain">Домен</string>
+    <string name="rule_type_domain_hint">youtube.com — совпадает с ним и поддоменами</string>
+    <string name="rule_type_domain_keyword">Ключевое слово в домене</string>
+    <string name="rule_type_domain_keyword_hint">google — любой домен, содержащий это слово</string>
+    <string name="rule_type_domain_exact">Точный домен</string>
+    <string name="rule_type_domain_exact_hint">ads.example.com — только этот домен</string>
+    <string name="rule_type_ip">Диапазон IP</string>
+    <string name="rule_type_ip_hint">192.168.0.0/16</string>
+    <string name="rule_type_geoip">Страна (GeoIP)</string>
+    <string name="rule_type_geoip_hint">CN, RU, US…</string>
+    <string name="rule_type_geosite">Категория (GeoSite)</string>
+    <string name="rule_type_geosite_hint">youtube, telegram, category-ads</string>
+    <string name="rule_type_port">Порт назначения</string>
+    <string name="rule_type_port_hint">443 или 8000-9000</string>
+    <string name="rule_type_process">Приложение / процесс</string>
+    <string name="rule_type_process_hint">telegram.exe или com.example.app</string>
+    <string name="rule_type_network">Сеть</string>
+    <string name="rule_type_network_hint">tcp или udp</string>
+    <string name="rule_type_match">Всё остальное (fallback)</string>
+    <string name="rule_type_value_generic">Значение</string>
+    <string name="rule_value_err_empty">Введите значение</string>
+    <string name="rule_value_err_port">Порт 1–65535 (или диапазон 8000-9000)</string>
+    <string name="rule_value_err_cidr">Формат CIDR, напр. 192.168.0.0/16</string>
+    <string name="rule_value_err_network">Должно быть tcp или udp</string>
+    <string name="rule_value_err_separator">Запятые и пробелы недопустимы</string>
+    <string name="rule_edit_if">ЕСЛИ</string>
+    <string name="rule_edit_then_route">ТО НАПРАВИТЬ В</string>
+    <string name="rule_edit_type_more">Ещё</string>
+    <string name="rule_edit_policy_group">Группа или нода</string>
+    <string name="rule_edit_live_preview">Превью</string>
+    <string name="rule_edit_live_preview_empty">Выберите политику, чтобы увидеть строку правила</string>
+    <string name="rule_edit_select_type">Тип правила</string>
+
     <!-- Объявления и поддержка -->
     <string name="announcement_settings">Объявление</string>
     <string name="announcement_settings_tips">Показывает баннер на главном экране и кнопку «Поддержка» в About. Полезно для операторов, распространяющих сборку.</string>

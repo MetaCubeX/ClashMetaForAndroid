@@ -273,6 +273,13 @@ Presets only change <b>where</b> files are downloaded from (CDN / host). It is s
     <string name="rule_value_err_cidr">Use CIDR form, e.g. 192.168.0.0/16</string>
     <string name="rule_value_err_network">Must be tcp or udp</string>
     <string name="rule_value_err_separator">No commas or spaces allowed</string>
+    <string name="rule_edit_if">IF</string>
+    <string name="rule_edit_then_route">THEN ROUTE TO</string>
+    <string name="rule_edit_type_more">More</string>
+    <string name="rule_edit_policy_group">Proxy group or node</string>
+    <string name="rule_edit_live_preview">Preview</string>
+    <string name="rule_edit_live_preview_empty">Pick a policy to see the rule line</string>
+    <string name="rule_edit_select_type">Rule type</string>
 
     <!-- DNS & Hosts -->
     <string name="dns_hosts_title">DNS &amp; Hosts</string>
