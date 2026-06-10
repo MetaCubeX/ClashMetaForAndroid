@@ -247,6 +247,33 @@ Presets only change <b>where</b> files are downloaded from (CDN / host). It is s
     <string name="profiles_update_engine_warning">Update saved, but the engine flagged the merged config. Check the profile.</string>
     <string name="profiles_orphaned_rules_dropped">Disabled %1$d rule(s): their proxy/group no longer exists in the new subscription.</string>
 
+    <!-- Rule editor: friendly type catalog (RuleTypeCatalog) -->
+    <string name="rule_type_domain">Domain</string>
+    <string name="rule_type_domain_hint">youtube.com — matches it and its subdomains</string>
+    <string name="rule_type_domain_keyword">Domain keyword</string>
+    <string name="rule_type_domain_keyword_hint">google — matches any domain containing this</string>
+    <string name="rule_type_domain_exact">Exact domain</string>
+    <string name="rule_type_domain_exact_hint">ads.example.com — this exact domain only</string>
+    <string name="rule_type_ip">IP range</string>
+    <string name="rule_type_ip_hint">192.168.0.0/16</string>
+    <string name="rule_type_geoip">Country (GeoIP)</string>
+    <string name="rule_type_geoip_hint">CN, RU, US…</string>
+    <string name="rule_type_geosite">Category (GeoSite)</string>
+    <string name="rule_type_geosite_hint">youtube, telegram, category-ads</string>
+    <string name="rule_type_port">Destination port</string>
+    <string name="rule_type_port_hint">443 or 8000-9000</string>
+    <string name="rule_type_process">App / process</string>
+    <string name="rule_type_process_hint">telegram.exe or com.example.app</string>
+    <string name="rule_type_network">Network</string>
+    <string name="rule_type_network_hint">tcp or udp</string>
+    <string name="rule_type_match">Everything else (fallback)</string>
+    <string name="rule_type_value_generic">Value</string>
+    <string name="rule_value_err_empty">Enter a value</string>
+    <string name="rule_value_err_port">Port must be 1–65535 (or a range like 8000-9000)</string>
+    <string name="rule_value_err_cidr">Use CIDR form, e.g. 192.168.0.0/16</string>
+    <string name="rule_value_err_network">Must be tcp or udp</string>
+    <string name="rule_value_err_separator">No commas or spaces allowed</string>
+
     <!-- DNS & Hosts -->
     <string name="dns_hosts_title">DNS &amp; Hosts</string>
     <string name="dns_hosts_entry_summary">Per-profile name resolution: DNS servers, fake-ip, and static host overrides.</string>
