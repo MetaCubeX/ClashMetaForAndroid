@@ -16,6 +16,7 @@ import com.github.kr328.clash.design.util.RuleTypeIcons
 import com.github.kr328.clash.design.util.RuleTypeMeta
 import com.github.kr328.clash.service.model.RuleItem
 import com.github.kr328.clash.service.model.RuleSource
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.button.MaterialButtonToggleGroup
@@ -73,6 +74,8 @@ class RuleEditSheet(
 
     init {
         dialog.setContentView(root)
+        dialog.behavior.skipCollapsed = true
+        dialog.behavior.state = BottomSheetBehavior.STATE_EXPANDED
         groupInput.setAdapter(
             ArrayAdapter(context, android.R.layout.simple_dropdown_item_1line, groupPolicies),
         )
@@ -148,6 +151,10 @@ class RuleEditSheet(
             })
         }
         pickerDialog.setContentView(pickerRoot)
+        // Open fully and dismiss on a single swipe-down — no half-collapsed state
+        // that the user has to fight past.
+        pickerDialog.behavior.skipCollapsed = true
+        pickerDialog.behavior.state = BottomSheetBehavior.STATE_EXPANDED
         pickerDialog.show()
     }
 

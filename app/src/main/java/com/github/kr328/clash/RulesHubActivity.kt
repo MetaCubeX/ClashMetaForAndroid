@@ -10,6 +10,7 @@ import com.github.kr328.clash.design.R
 import com.github.kr328.clash.design.RuleEditSheet
 import com.github.kr328.clash.design.RulesHubDesign
 import com.github.kr328.clash.service.model.RuleItem
+import com.github.kr328.clash.service.model.RuleEditorBundle
 import com.github.kr328.clash.service.model.RuleState
 import com.github.kr328.clash.service.util.ProxyGroupsYamlPreview
 import com.github.kr328.clash.service.util.RuleValidator
@@ -85,30 +86,15 @@ class RulesHubActivity : BaseActivity<RulesHubDesign>() {
 
     private suspend fun loadInto(design: RulesHubDesign, expandProviders: Boolean) {
         val id = uuid ?: return
-        val stateJson = withProfile { readRuleState(id) }
-        val state = stateJson
-            ?.let { runCatching { json.decodeFromString(RuleState.serializer(), it) }.getOrNull() }
-            ?: RuleState()
-        val policies = loadProxyOptions(id)
+        // One snapshot parse for both the state and the policy picker (the config
+        // is parsed natively, so doing it once instead of twice halves open time).
+        val bundleJson = withProfile { readRuleEditorBundle(id) }
+        val bundle = bundleJson
+            ?.let { runCatching { json.decodeFromString(RuleEditorBundle.serializer(), it) }.getOrNull() }
+            ?: RuleEditorBundle()
         withContext(Dispatchers.Main) {
-            design.bind(profileName, state, policies, expandProviders)
+            design.bind(profileName, bundle.state, bundle.policies, expandProviders)
         }
-    }
-
-    private suspend fun loadProxyOptions(id: UUID): List<String> {
-        val yaml = withProfile { readImportedConfigYaml(id) }.orEmpty()
-        if (yaml.isBlank()) return emptyList()
-        val snapshot = runCatching { Clash.parseProfileSnapshotFromYaml(yaml) }.getOrNull()
-            ?: return emptyList()
-        return proxyOptionsFromSnapshot(snapshot)
-    }
-
-    private fun proxyOptionsFromSnapshot(snapshot: ProfileSnapshot): List<String> {
-        val proxies = snapshot.proxies.mapNotNull { obj ->
-            (obj["name"] as? JsonPrimitive)?.contentOrNull?.trim()?.takeIf { it.isNotEmpty() }
-        }
-        val groups = ProxyGroupsYamlPreview.listProxyGroupNames(snapshot)
-        return (proxies + groups).distinct().sorted()
     }
 
     private fun showRuleEditSheet(design: RulesHubDesign, rule: RuleItem?) {

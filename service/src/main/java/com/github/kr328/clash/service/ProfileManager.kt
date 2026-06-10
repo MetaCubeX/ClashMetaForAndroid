@@ -952,6 +952,9 @@ class ProfileManager(private val context: Context) : IProfileManager,
             RuleApplyService(context).dryRunStateJson(uuid, stateJson)?.proposedYaml
         }
 
+    override suspend fun readRuleEditorBundle(uuid: UUID): String? =
+        withContext(Dispatchers.IO) { RuleApplyService(context).readEditorBundle(uuid) }
+
     override suspend fun applyYamlPreview(previewId: String): Boolean {
         return withContext(Dispatchers.IO) {
             val cached = synchronized(previewCache) { previewCache.remove(previewId) } ?: return@withContext false

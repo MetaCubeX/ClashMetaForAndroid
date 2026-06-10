@@ -4,7 +4,10 @@ import android.content.Context
 import com.github.kr328.clash.common.log.Log
 import com.github.kr328.clash.core.Clash
 import com.github.kr328.clash.service.model.RuleItem
+import com.github.kr328.clash.service.model.RuleEditorBundle
 import com.github.kr328.clash.service.model.RuleState
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.contentOrNull
 import com.github.kr328.clash.service.model.RuleSource
 import com.github.kr328.clash.service.store.ServiceStore
 import kotlinx.serialization.json.Json
@@ -54,6 +57,25 @@ class RuleApplyService(
         val config = configFile(uuid) ?: return null
         val state = repository.parseStateJson(stateJson)
         return safeDryRunState(config, state)
+    }
+
+    /**
+     * Everything the rule editor needs to open — rule state + policy options
+     * (proxy/group names) — from a SINGLE snapshot parse (the hub used to parse
+     * twice: once for the state, once for the policy picker).
+     */
+    fun readEditorBundle(uuid: UUID): String? {
+        val config = configFile(uuid) ?: return null
+        val dir = config.parentFile ?: return null
+        val snapshot = runCatching { Clash.parseProfileSnapshot(dir) }.getOrNull() ?: return null
+        val state = repository.load(uuid, snapshot)
+        val policies = buildList {
+            snapshot.proxies.forEach { obj ->
+                (obj["name"] as? JsonPrimitive)?.contentOrNull?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+            }
+            addAll(ProxyGroupsYamlPreview.listProxyGroupNames(snapshot))
+        }.distinct()
+        return stateJsonForReconcile.encodeToString(RuleEditorBundle.serializer(), RuleEditorBundle(state, policies))
     }
 
     fun mergeProviderShortcut(uuid: UUID, providersYaml: String, prependRuleLine: String): Boolean {
