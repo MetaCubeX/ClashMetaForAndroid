@@ -156,6 +156,9 @@ interface IProfileManager {
 
     suspend fun setTunnelsManaged(uuid: UUID, managed: Boolean)
 
+    /** Preview the merged config for a candidate rule state; null if the engine rejects it. */
+    suspend fun previewRuleStateYaml(uuid: UUID, stateJson: String): String?
+
     /** Single entry from `proxies:` as YAML, for display. */
     suspend fun readProxyEntryYaml(uuid: UUID, proxyName: String): String?
 

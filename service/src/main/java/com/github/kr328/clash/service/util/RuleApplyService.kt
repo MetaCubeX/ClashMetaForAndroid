@@ -45,6 +45,17 @@ class RuleApplyService(
         repository.save(uuid, repository.parseStateJson(stateJson))
     }
 
+    /**
+     * Dry-run an arbitrary candidate state JSON for the rule editor's preview.
+     * Returns the proposed merged config (and normalized state), or null when the
+     * engine rejects it. Does not write anything.
+     */
+    fun dryRunStateJson(uuid: UUID, stateJson: String): RuleDryRun? {
+        val config = configFile(uuid) ?: return null
+        val state = repository.parseStateJson(stateJson)
+        return safeDryRunState(config, state)
+    }
+
     fun mergeProviderShortcut(uuid: UUID, providersYaml: String, prependRuleLine: String): Boolean {
         val config = configFile(uuid) ?: return false
         val current = repository.load(uuid, config.parentFile!!)
