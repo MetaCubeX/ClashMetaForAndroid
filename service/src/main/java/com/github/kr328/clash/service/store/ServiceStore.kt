@@ -220,6 +220,26 @@ class ServiceStore(context: Context) {
         return warned
     }
 
+    /**
+     * Per-profile one-shot list of rules the last update dropped because their
+     * policy (proxy/group) no longer existed in the new subscription. Set by
+     * ProfileProcessor, consumed by the UI to warn the user.
+     */
+    fun setOrphanedRulesDropped(uuid: UUID, rules: List<String>) {
+        if (rules.isEmpty()) {
+            rawPrefs.edit().remove("orphaned_rules_$uuid").apply()
+        } else {
+            rawPrefs.edit().putString("orphaned_rules_$uuid", rules.joinToString("\n")).apply()
+        }
+    }
+
+    /** Reads and clears the dropped-rules marker (one-shot). */
+    fun consumeOrphanedRulesDropped(uuid: UUID): List<String> {
+        val s = rawPrefs.getString("orphaned_rules_$uuid", null) ?: return emptyList()
+        rawPrefs.edit().remove("orphaned_rules_$uuid").apply()
+        return s.split("\n").filter { it.isNotBlank() }
+    }
+
     companion object {
         private const val KEY_ALLOW_BYPASS = "allow_bypass"
         private const val MIGRATION_ALLOW_BYPASS_OFF_V1 = "migration_allow_bypass_off_v1"

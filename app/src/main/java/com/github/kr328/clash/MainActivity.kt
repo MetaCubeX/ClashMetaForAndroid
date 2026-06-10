@@ -1805,6 +1805,15 @@ class MainActivity : BaseActivity<MainDesign>() {
                     ToastDuration.Long,
                 )
             }
+            // Rules dropped because their proxy/group vanished from the new
+            // subscription (the update still succeeded; the rules were dead).
+            val orphaned = ServiceStore(this@MainActivity).consumeOrphanedRulesDropped(uuid)
+            if (orphaned.isNotEmpty()) {
+                design?.showToast(
+                    getString(R.string.profiles_orphaned_rules_dropped, orphaned.size),
+                    ToastDuration.Long,
+                )
+            }
         }
     }
 
