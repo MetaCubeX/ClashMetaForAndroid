@@ -31,6 +31,35 @@ class SubscriptionUpdateMergeTest {
         JsonObject(pairs.toMap())
 
     @Test
+    fun orphanedRule_droppedWhenPolicyGroupGone_updateStaysValid() {
+        // The screenshot bug: a preserved manual rule points at a group the NEW
+        // subscription removed -> engine would reject the whole config. We drop
+        // the dead rule (and report it) so the update still applies.
+        val preserved = SubscriptionUpdateMerge.extractPreserved(
+            snapshot(rules = listOf(
+                "DOMAIN-SUFFIX,pornhub.com,Automatic", // group "Automatic" no longer exists
+                "DOMAIN,keep.com,DIRECT",              // builtin policy -> survives
+            )),
+        )
+        val fetched = """
+            proxies:
+              - {name: n1, type: socks5, server: 127.0.0.1, port: 1080}
+            proxy-groups:
+              - {name: Manual, type: select, proxies: [n1]}
+            rules:
+              - MATCH,Manual
+        """.trimIndent() + "\n"
+
+        val dropped = mutableListOf<String>()
+        val merged = SubscriptionUpdateMerge.mergeAfterFetch(fetched, preserved, null) { dropped += it }
+
+        assertTrue("dangling rule reported: $dropped", dropped.any { it.contains("Automatic") })
+        assertFalse("dangling rule removed from config", merged.contains("Automatic"))
+        assertTrue("valid-policy rule kept", merged.contains("keep.com"))
+        assertTrue("fetched rule intact", merged.contains("MATCH,Manual"))
+    }
+
+    @Test
     fun tunnels_preserved_only_when_managed() {
         val tunnelsJson = kotlinx.serialization.json.Json.parseToJsonElement(
             """[{"network":["tcp"],"address":"127.0.0.1:6553","target":"1.1.1.1:53","proxy":"G"}]""",
@@ -210,6 +239,8 @@ class SubscriptionUpdateMergeTest {
         val fetched = """
             proxies:
               - {name: p1, type: socks5, server: 127.0.0.1, port: 1080}
+            proxy-groups:
+              - {name: PROXY, type: select, proxies: [p1]}
             rules:
               - DOMAIN,fetched.example,PROXY
               - MATCH,p1

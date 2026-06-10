@@ -102,7 +102,12 @@ object SubscriptionUpdateMerge {
      * @param profileDir directory with [config.yaml] and provider paths after fetch; used to collect
      * proxy `name` entries from provider YAML on disk (not only inline `proxies:`).
      */
-    fun mergeAfterFetch(fetchedYaml: String, preserved: PreservedOverlay, profileDir: File? = null): String {
+    fun mergeAfterFetch(
+        fetchedYaml: String,
+        preserved: PreservedOverlay,
+        profileDir: File? = null,
+        onOrphanRulesDropped: (List<String>) -> Unit = {},
+    ): String {
         if (preserved.isEmpty()) return fetchedYaml
         val document = MihomoConfigDocument.parse(fetchedYaml) ?: return fetchedYaml
         val root = document.root
@@ -134,6 +139,17 @@ object SubscriptionUpdateMerge {
         // tunnels are user-owned for managed profiles: REPLACE fetched outright.
         if (preserved.tunnels != null) {
             root["tunnels"] = preserved.tunnels
+        }
+        // Drop preserved rules whose policy (proxy/group) vanished from the new
+        // subscription. Such a rule makes the engine reject the WHOLE config
+        // ("proxy [X] not found") and fail the update. The rule is dead anyway
+        // (its target is gone); we report the dropped lines so the user knows.
+        // Run after proxy-groups merge so knownNames includes preserved groups.
+        if (preserved.rules != null) {
+            val knownNames = collectKnownProxyNames(root, preserved.proxyProviders, profileDir)
+            val dropped = ArrayList<String>()
+            dropOrphanedRules(root, knownNames, dropped)
+            if (dropped.isNotEmpty()) onOrphanRulesDropped(dropped)
         }
         // Garbage-collect providers nothing references. After overlaying the
         // pre-fetch state on top of the fresh subscription, a rule-provider
@@ -459,6 +475,38 @@ object SubscriptionUpdateMerge {
      *    RULE-SET reference, we must not resurrect it. Manual host/IP entries
      *    (DOMAIN / DOMAIN-SUFFIX / IP-CIDR / ...) are still preserved.
      */
+    /**
+     * Removes rules whose policy (the proxy/group target) no longer resolves to
+     * any known proxy, group, provider or builtin. Only plain matcher rules
+     * (`TYPE,VALUE,POLICY[,opts]`, policy = field 2) are checked; subscription-
+     * owned and logical/sub-rules are left alone (their grammar puts the policy
+     * elsewhere and the subscription owns them). Fetched matcher rules are self-
+     * consistent, so in practice only stale PRESERVED rules get dropped. Dropped
+     * lines are appended to [dropped].
+     */
+    private fun dropOrphanedRules(
+        root: MutableMap<String, Any?>,
+        knownNames: Set<String>,
+        dropped: MutableList<String>,
+    ) {
+        val rules = root["rules"] as? List<*> ?: return
+        val kept = ArrayList<Any?>(rules.size)
+        for (r in rules) {
+            val normalized = normalizeRuleLine(r)
+            if (normalized.isEmpty() || isSubscriptionOwnedRuleType(normalized)) {
+                kept.add(r)
+                continue
+            }
+            val policy = normalized.split(',').getOrNull(2)?.trim()
+            if (policy != null && policy.isNotEmpty() && policy !in knownNames) {
+                dropped.add(normalized)
+            } else {
+                kept.add(r)
+            }
+        }
+        if (dropped.isNotEmpty()) root["rules"] = kept
+    }
+
     private fun mergeRulesLists(preservedRules: Any?, fetchedRules: Any?): List<Any?> {
         val newList: List<Any?> = when (fetchedRules) {
             is List<*> -> fetchedRules

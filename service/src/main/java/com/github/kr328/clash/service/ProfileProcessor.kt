@@ -277,16 +277,22 @@ object ProfileProcessor {
                     effectiveUserAgentOverride = null
                 }
 
-                // Clear any stale warning from a previous update; set below only
-                // if THIS merge breaks an otherwise-valid subscription.
+                // Clear any stale warnings from a previous update; set below only
+                // if THIS merge breaks a config / drops an orphaned rule.
                 ServiceStore(context).setUpdateEngineWarning(snapshot.uuid, false)
+                ServiceStore(context).setOrphanedRulesDropped(snapshot.uuid, emptyList())
                 if (!preserved.isEmpty() && configFile.isFile) {
                     val fetchedText = configFile.readText()
+                    val droppedOrphans = mutableListOf<String>()
                     val merged = SubscriptionUpdateMerge.mergeAfterFetch(
                         fetchedText,
                         preserved,
                         context.processingDir,
-                    )
+                    ) { dropped -> droppedOrphans += dropped }
+                    if (droppedOrphans.isNotEmpty()) {
+                        Log.w("Dropped ${droppedOrphans.size} orphaned rule(s) (policy not found) for ${snapshot.uuid}: $droppedOrphans")
+                        ServiceStore(context).setOrphanedRulesDropped(snapshot.uuid, droppedOrphans)
+                    }
                     // Soft engine check: we still commit the merge (a broken
                     // provider in the *existing* profile must not block a legit
                     // update). But distinguish "our merge broke a valid config"

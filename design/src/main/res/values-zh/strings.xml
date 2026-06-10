@@ -426,6 +426,7 @@
     <string name="home_import_file_sub">选择本地配置文件 (.yaml) 并作为配置导入。</string>
     <string name="profiles_update_all_failed">%1$d 个订阅更新失败。</string>
     <string name="profiles_update_engine_warning">更新已保存，但内核判定合并后的配置无效，请检查该配置。</string>
+    <string name="profiles_orphaned_rules_dropped">已禁用 %1$d 条规则：其代理/策略组在新订阅中已不存在。</string>
 
     <!-- DNS & Hosts -->
     <string name="dns_hosts_title">DNS 与 Hosts</string>
