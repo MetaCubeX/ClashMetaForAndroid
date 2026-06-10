@@ -632,11 +632,13 @@ class MainActivity : BaseActivity<MainDesign>() {
                         MainDesign.Request.OpenLogs ->
                             startActivity(LogsActivity::class.intent)
 
-                        MainDesign.Request.OpenRouting ->
-                            startActivity(EffectiveRulesActivity::class.intent)
+                        MainDesign.Request.OpenRouting -> launch {
+                            openRulesHub(expandProviders = false)
+                        }
 
-                        MainDesign.Request.OpenRules ->
-                            startActivity(RuleSnippetActivity::class.intent)
+                        MainDesign.Request.OpenRules -> launch {
+                            openRulesHub(expandProviders = true)
+                        }
 
                         MainDesign.Request.OpenProxyChain ->
                             startActivity(ProxyChainActivity::class.intent)
@@ -933,6 +935,7 @@ class MainActivity : BaseActivity<MainDesign>() {
         m.findItem(R.id.profile_menu_set_active).isVisible =
             profile.imported && !profile.active
         m.findItem(R.id.profile_menu_subscription_sources).isVisible = profile.imported
+        m.findItem(R.id.profile_menu_rules).isVisible = profile.imported
         m.findItem(R.id.profile_menu_duplicate).isVisible = profile.imported
         popup.setOnMenuItemClickListener { item ->
             when (item.itemId) {
@@ -957,6 +960,12 @@ class MainActivity : BaseActivity<MainDesign>() {
                 R.id.profile_menu_subscription_sources -> {
                     if (profile.imported) {
                         startActivity(ProxyProvidersEditorActivity::class.intent.setUUID(profile.uuid))
+                    }
+                    true
+                }
+                R.id.profile_menu_rules -> {
+                    if (profile.imported) {
+                        startActivity(RulesHubActivity::class.intent.setUUID(profile.uuid))
                     }
                     true
                 }
@@ -1975,6 +1984,14 @@ class MainActivity : BaseActivity<MainDesign>() {
                     .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             )
         }
+    }
+
+    private suspend fun openRulesHub(expandProviders: Boolean) {
+        val uuid = withProfile { queryActive()?.takeIf { it.imported }?.uuid }
+        val hubIntent = (uuid?.let { RulesHubActivity::class.intent.setUUID(it) }
+            ?: RulesHubActivity::class.intent)
+            .putExtra(RulesHubActivity.EXTRA_EXPAND_PROVIDERS, expandProviders)
+        startActivity(hubIntent)
     }
 
     companion object {

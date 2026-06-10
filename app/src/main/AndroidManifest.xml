@@ -205,6 +205,11 @@
             android:exported="false"
             android:label="@string/effective_rules_title" />
         <activity
+            android:name=".RulesHubActivity"
+            android:configChanges="uiMode"
+            android:exported="false"
+            android:label="@string/rules_hub_title" />
+        <activity
             android:name=".RoutingHubActivity"
             android:configChanges="uiMode"
             android:exported="false"

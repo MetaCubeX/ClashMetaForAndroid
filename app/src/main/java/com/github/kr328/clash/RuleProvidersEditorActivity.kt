@@ -1,5 +1,7 @@
 package com.github.kr328.clash
 
+import com.github.kr328.clash.common.util.intent
+import com.github.kr328.clash.common.util.setUUID
 import com.github.kr328.clash.common.util.uuid
 import com.github.kr328.clash.design.RuleProvidersEditorDesign
 import com.github.kr328.clash.design.R
@@ -12,11 +14,22 @@ import kotlinx.coroutines.selects.select
 
 class RuleProvidersEditorActivity : BaseActivity<RuleProvidersEditorDesign>() {
     override suspend fun main() {
-        val uuid = intent.uuid ?: return finish()
+        val uuid = intent.uuid
+        if (uuid != null) {
+            startActivity(
+                RulesHubActivity::class.intent
+                    .setUUID(uuid)
+                    .putExtra(RulesHubActivity.EXTRA_EXPAND_PROVIDERS, true),
+            )
+            finish()
+            return
+        }
+
+        val legacyUuid = intent.uuid ?: return finish()
         val design = RuleProvidersEditorDesign(this)
         setContentDesign(design)
 
-        val initial = withProfile { readRuleProvidersYaml(uuid) }
+        val initial = withProfile { readRuleProvidersYaml(legacyUuid) }
             .orEmpty()
         if (initial.isEmpty()) {
             design.setYaml(
@@ -33,7 +46,7 @@ class RuleProvidersEditorActivity : BaseActivity<RuleProvidersEditorDesign>() {
                     when (req) {
                         RuleProvidersEditorDesign.Request.Save -> launch {
                             val preview = withProfile {
-                                previewReplaceRuleProvidersYaml(uuid, design.getYaml())
+                                previewReplaceRuleProvidersYaml(legacyUuid, design.getYaml())
                             }
                             showYamlPreview(preview) {
                                 design.showToast(R.string.rule_snippet_apply_ok, ToastDuration.Long)
