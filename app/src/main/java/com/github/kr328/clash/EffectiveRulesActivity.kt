@@ -1,6 +1,8 @@
 package com.github.kr328.clash
 
 import com.github.kr328.clash.common.util.intent
+import com.github.kr328.clash.common.util.setUUID
+import com.github.kr328.clash.common.util.uuid
 import com.github.kr328.clash.design.EffectiveRulesDesign
 import com.github.kr328.clash.design.R
 import com.github.kr328.clash.design.ui.ToastDuration
@@ -16,6 +18,8 @@ class EffectiveRulesActivity : BaseActivity<EffectiveRulesDesign>() {
     private val json = Json { ignoreUnknownKeys = true }
 
     override suspend fun main() {
+        if (redirectToRulesHub()) return
+
         val design = EffectiveRulesDesign(this)
         setContentDesign(design)
 
@@ -43,5 +47,17 @@ class EffectiveRulesActivity : BaseActivity<EffectiveRulesDesign>() {
                 }
             }
         }
+    }
+
+    private suspend fun redirectToRulesHub(): Boolean {
+        val id = intent.uuid ?: withProfile { queryActive()?.takeIf { it.imported }?.uuid }
+            ?: return false
+        startActivity(
+            RulesHubActivity::class.intent
+                .setUUID(id)
+                .putExtra(RulesHubActivity.EXTRA_EXPAND_PROVIDERS, false),
+        )
+        finish()
+        return true
     }
 }

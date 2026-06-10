@@ -4,7 +4,10 @@ import android.content.Context
 import com.github.kr328.clash.common.log.Log
 import com.github.kr328.clash.core.Clash
 import com.github.kr328.clash.service.model.RuleItem
+import com.github.kr328.clash.service.model.RuleEditorBundle
 import com.github.kr328.clash.service.model.RuleState
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.contentOrNull
 import com.github.kr328.clash.service.model.RuleSource
 import com.github.kr328.clash.service.store.ServiceStore
 import kotlinx.serialization.json.Json
@@ -43,6 +46,36 @@ class RuleApplyService(
 
     fun saveStateJson(uuid: UUID, stateJson: String) {
         repository.save(uuid, repository.parseStateJson(stateJson))
+    }
+
+    /**
+     * Dry-run an arbitrary candidate state JSON for the rule editor's preview.
+     * Returns the proposed merged config (and normalized state), or null when the
+     * engine rejects it. Does not write anything.
+     */
+    fun dryRunStateJson(uuid: UUID, stateJson: String): RuleDryRun? {
+        val config = configFile(uuid) ?: return null
+        val state = repository.parseStateJson(stateJson)
+        return safeDryRunState(config, state)
+    }
+
+    /**
+     * Everything the rule editor needs to open — rule state + policy options
+     * (proxy/group names) — from a SINGLE snapshot parse (the hub used to parse
+     * twice: once for the state, once for the policy picker).
+     */
+    fun readEditorBundle(uuid: UUID): String? {
+        val config = configFile(uuid) ?: return null
+        val dir = config.parentFile ?: return null
+        val snapshot = runCatching { Clash.parseProfileSnapshot(dir) }.getOrNull() ?: return null
+        val state = repository.load(uuid, snapshot)
+        val policies = buildList {
+            snapshot.proxies.forEach { obj ->
+                (obj["name"] as? JsonPrimitive)?.contentOrNull?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+            }
+            addAll(ProxyGroupsYamlPreview.listProxyGroupNames(snapshot))
+        }.distinct()
+        return stateJsonForReconcile.encodeToString(RuleEditorBundle.serializer(), RuleEditorBundle(state, policies))
     }
 
     fun mergeProviderShortcut(uuid: UUID, providersYaml: String, prependRuleLine: String): Boolean {
@@ -186,57 +219,62 @@ class RuleApplyService(
         }
     }
 
-    // Mirrors RuleRepository.syncProviderRules so reconcile uses the same classification
-    // logic as RuleRepository.load. Duplicated rather than reused to avoid making the
-    // repository helper public and tying it to file paths that don't apply here.
-    private fun syncStoredWithParsed(stored: RuleState, incoming: RuleState): RuleState {
-        fun key(r: RuleItem) =
-            "${r.type.uppercase()},${r.value.uppercase()},${r.policy.uppercase()}"
-
-        val byKey = stored.rules.associateBy(::key)
-        val mergedRules = incoming.rules.mapIndexed { index, rule ->
-            val old = byKey[key(rule)]
-            if (old != null) {
-                rule.copy(
-                    id = old.id,
-                    enabled = old.enabled,
-                    deleted = old.deleted,
-                    isRestorable = old.isRestorable || rule.isRestorable,
-                    order = index,
-                )
-            } else {
-                rule.copy(order = index)
-            }
-        }.toMutableList()
-
-        val incomingKeys = incoming.rules.map(::key).toSet()
-        val retained = stored.rules.filter { rule ->
-            key(rule) !in incomingKeys &&
-                (rule.deleted || !rule.enabled || rule.source == RuleSource.MANUAL)
-        }
-        retained.forEach { mergedRules += it.copy(order = mergedRules.size) }
-        return stored.copy(providers = incoming.providers, rules = mergedRules)
-    }
-
-    private fun normalizeRuleOrder(rules: List<RuleItem>): List<RuleItem> {
-        data class Indexed(val i: Int, val r: RuleItem)
-        val enabled = rules.mapIndexed { i, r -> Indexed(i, r) }.filter { it.r.enabled && !it.r.deleted }
-        val inactive = rules.mapIndexed { i, r -> Indexed(i, r) }.filterNot { it.r.enabled && !it.r.deleted }
-        val sortedEnabled = enabled.sortedWith(compareBy<Indexed> { priority(it.r) }.thenBy { it.i })
-        return (sortedEnabled + inactive).mapIndexed { idx, ir -> ir.r.copy(order = idx) }
-    }
-
-    private fun priority(rule: RuleItem): Int {
-        val reject = rule.policy.equals("REJECT", true) || rule.policy.equals("REJECT-DROP", true)
-        if (reject) return 0
-        if (rule.type.equals("GEOSITE", true)) return 1
-        if (rule.type.equals("RULE-SET", true)) return 2
-        return 3
-    }
-
     private fun configFile(uuid: UUID): File? {
         val file = File(context.importedDir, "$uuid/config.yaml")
         return file.takeIf { it.isFile }
     }
 
 }
+
+/**
+ * Reconcile the user's saved [stored] rule state with the [incoming] rules parsed
+ * from a freshly fetched subscription. Identity is `(type,value,policy)` — NOT
+ * order — so the user's enable/disable/delete decision on a PROVIDER rule re-binds
+ * to the same rule after a refresh even if its position changed. MANUAL rules and
+ * any disabled/deleted stored rule that vanished from the fetch are retained.
+ *
+ * Pure (no Context/engine) so it is unit-testable; `reconcileWithStoredState`
+ * delegates here. Mirrors `RuleRepository.syncProviderRules` classification.
+ */
+internal fun syncStoredWithParsed(stored: RuleState, incoming: RuleState): RuleState {
+    fun key(r: RuleItem) =
+        "${r.type.uppercase()},${r.value.uppercase()},${r.policy.uppercase()}"
+
+    val byKey = stored.rules.associateBy(::key)
+    val mergedRules = incoming.rules.mapIndexed { index, rule ->
+        val old = byKey[key(rule)]
+        if (old != null) {
+            rule.copy(
+                id = old.id,
+                enabled = old.enabled,
+                deleted = old.deleted,
+                isRestorable = old.isRestorable || rule.isRestorable,
+                order = index,
+            )
+        } else {
+            rule.copy(order = index)
+        }
+    }.toMutableList()
+
+    val incomingKeys = incoming.rules.map(::key).toSet()
+    val retained = stored.rules.filter { rule ->
+        key(rule) !in incomingKeys &&
+            (rule.deleted || !rule.enabled || rule.source == RuleSource.MANUAL)
+    }
+    retained.forEach { mergedRules += it.copy(order = mergedRules.size) }
+    return stored.copy(providers = incoming.providers, rules = mergedRules)
+}
+
+/**
+ * Stable rule ordering: rules keep their `order` (the user's manual drag order +
+ * the subscription's authored order); we only compact the indices. We do NOT move
+ * disabled rules to the tail and do NOT re-sort by rule type. So toggling a rule
+ * off then on returns it to exactly its place, and the subscription author's rule
+ * order is preserved. `mergeStateIntoConfig` emits enabled rules by `order`,
+ * skipping disabled ones — so a disabled rule simply holds its slot.
+ *
+ * Pure (no Context/engine) → unit-testable; `applyState`/`dryRunState`/reconcile
+ * delegate here.
+ */
+internal fun normalizeRuleOrder(rules: List<RuleItem>): List<RuleItem> =
+    rules.sortedBy { it.order }.mapIndexed { idx, r -> r.copy(order = idx) }

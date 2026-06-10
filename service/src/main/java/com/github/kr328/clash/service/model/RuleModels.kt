@@ -49,3 +49,13 @@ data class RuleState(
     val providers: List<RuleProviderItem> = emptyList(),
     val rules: List<RuleItem> = emptyList(),
 )
+
+/**
+ * Everything the rule editor needs to open, from a SINGLE snapshot parse:
+ * the rule state plus the policy options (proxy + group names) for the picker.
+ */
+@Serializable
+data class RuleEditorBundle(
+    val state: RuleState = RuleState(),
+    val policies: List<String> = emptyList(),
+)

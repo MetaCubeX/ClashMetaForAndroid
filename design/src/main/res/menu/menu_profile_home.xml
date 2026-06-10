@@ -10,6 +10,9 @@
         android:id="@+id/profile_menu_subscription_sources"
         android:title="@string/profile_menu_subscription_sources" />
     <item
+        android:id="@+id/profile_menu_rules"
+        android:title="@string/profile_menu_rules" />
+    <item
         android:id="@+id/profile_menu_view_config"
         android:title="@string/profile_menu_view_config" />
     <item

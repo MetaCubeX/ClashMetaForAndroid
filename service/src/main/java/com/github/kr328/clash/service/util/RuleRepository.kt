@@ -20,8 +20,11 @@ class RuleRepository(private val context: Context) {
      * mihomo (Clash.parseProfileSnapshot) — never through Kotlin-side YAML
      * parsing — so rule strings (including AND/OR/SUB-RULE) survive intact.
      */
-    fun load(uuid: UUID, profileDir: File): RuleState {
-        val snapshot = Clash.parseProfileSnapshot(profileDir)
+    fun load(uuid: UUID, profileDir: File): RuleState =
+        load(uuid, Clash.parseProfileSnapshot(profileDir))
+
+    /** Same as [load] but reuses an already-parsed snapshot (avoids a 2nd native parse). */
+    fun load(uuid: UUID, snapshot: com.github.kr328.clash.core.model.ProfileSnapshot): RuleState {
         val parsed = RuleMapper.parseStateFromSnapshot(snapshot)
         val file = stateFile(uuid)
         if (file.isFile) {

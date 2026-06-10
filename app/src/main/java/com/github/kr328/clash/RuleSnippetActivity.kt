@@ -1,5 +1,8 @@
 package com.github.kr328.clash
 
+import com.github.kr328.clash.common.util.intent
+import com.github.kr328.clash.common.util.setUUID
+import com.github.kr328.clash.common.util.uuid
 import com.github.kr328.clash.core.model.Provider
 import com.github.kr328.clash.design.RuleSnippetDesign
 import com.github.kr328.clash.design.R as DesignR
@@ -23,6 +26,8 @@ class RuleSnippetActivity : BaseActivity<RuleSnippetDesign>() {
     private val json = Json { ignoreUnknownKeys = true }
 
     override suspend fun main() {
+        if (redirectToRulesHub()) return
+
         val design = RuleSnippetDesign(this)
         setContentDesign(design)
 
@@ -79,6 +84,18 @@ class RuleSnippetActivity : BaseActivity<RuleSnippetDesign>() {
             }
             count.takeIf { it > 0 }
         }.getOrNull()
+    }
+
+    private suspend fun redirectToRulesHub(): Boolean {
+        val id = intent.uuid ?: withProfile { queryActive()?.takeIf { it.imported }?.uuid }
+            ?: return false
+        startActivity(
+            RulesHubActivity::class.intent
+                .setUUID(id)
+                .putExtra(RulesHubActivity.EXTRA_EXPAND_PROVIDERS, true),
+        )
+        finish()
+        return true
     }
 
     private suspend fun updateRuleProviders(design: RuleSnippetDesign, name: String?) {

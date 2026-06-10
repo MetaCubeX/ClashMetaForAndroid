@@ -1,8 +1,11 @@
 package com.github.kr328.clash
 
 import com.github.kr328.clash.common.util.intent
+import com.github.kr328.clash.common.util.setUUID
 import com.github.kr328.clash.design.RoutingHubDesign
+import com.github.kr328.clash.util.withProfile
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.select
 
 class RoutingHubActivity : BaseActivity<RoutingHubDesign>() {
@@ -17,9 +20,7 @@ class RoutingHubActivity : BaseActivity<RoutingHubDesign>() {
                 design.requests.onReceive {
                     when (it) {
                         RoutingHubDesign.Request.OpenRules ->
-                            startActivity(RuleSnippetActivity::class.intent)
-                        RoutingHubDesign.Request.OpenEffectiveRules ->
-                            startActivity(EffectiveRulesActivity::class.intent)
+                            launch { openRulesHub() }
                         RoutingHubDesign.Request.OpenPerAppRouting ->
                             startActivity(AccessControlActivity::class.intent)
                         RoutingHubDesign.Request.OpenProxyChain ->
@@ -28,5 +29,12 @@ class RoutingHubActivity : BaseActivity<RoutingHubDesign>() {
                 }
             }
         }
+    }
+
+    private suspend fun openRulesHub() {
+        val uuid = withProfile { queryActive()?.takeIf { it.imported }?.uuid }
+        val hubIntent = (uuid?.let { RulesHubActivity::class.intent.setUUID(it) }
+            ?: RulesHubActivity::class.intent)
+        startActivity(hubIntent)
     }
 }

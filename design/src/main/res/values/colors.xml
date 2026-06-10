@@ -60,4 +60,7 @@
     <color name="yaml_punctuation_dark">#8B98A9</color>
     <color name="yaml_plain_dark">#E6EDF3</color>
 
+    <color name="policy_direct_container">#C8E6C9</color>
+    <color name="policy_on_direct_container">#1B5E20</color>
+
 </resources>
