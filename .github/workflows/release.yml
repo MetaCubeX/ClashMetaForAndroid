@@ -63,7 +63,6 @@ jobs:
       - name: Collect APKs
         run: |
           mkdir -p release-artifacts
-          VERSION_TAG="${GITHUB_REF_NAME}"
           find app/build/outputs/apk -name "*.apk" | while read -r apk; do
             base="$(basename "$apk")"
             abi="universal"
@@ -75,7 +74,10 @@ jobs:
             flavor="alpha"
             if [[ "$base" == *"meta"* ]]; then flavor="meta"; fi
 
-            out="clashfest-${VERSION_TAG}-${flavor}-${abi}.apk"
+            # Version-less, stable filename so the GitHub "latest release"
+            # direct link works: releases/latest/download/clashfest-<flavor>-<abi>.apk
+            # (the version stays on the release page/tag, #85).
+            out="clashfest-${flavor}-${abi}.apk"
             cp "$apk" "release-artifacts/$out"
           done
           ls -la release-artifacts
