@@ -30,13 +30,10 @@ class RulesHubListAdapter(
         fun onFilterChanged(filter: RulesHubFilter)
         fun onToggleSection(section: RulesHubSection)
         fun onAddManual()
-        fun onAddProvider()
         fun onEditManual(ruleId: String)
         fun onToggleRule(ruleId: String, enabled: Boolean)
         fun onRestoreRule(ruleId: String)
         fun onReorderManual(fromId: String, toId: String)
-        fun onEditProvider(providerId: String)
-        fun onToggleProvider(providerId: String, enabled: Boolean)
         fun onSwipeToggleRule(ruleId: String)
         fun onSwipeDeleteManual(ruleId: String)
     }
@@ -200,32 +197,36 @@ class RulesHubListAdapter(
 
     private fun bindProviderDef(holder: ProviderDefHolder, item: RulesHubListItem.ProviderDef) {
         val p = item.provider
+        val ctx = holder.itemView.context
         holder.name.text = p.name
         holder.url.text = p.url
         val hours = (p.interval / 3600).coerceAtLeast(1)
         val behavior = p.behavior.replaceFirstChar { it.uppercaseChar() }
-        holder.meta.text = holder.itemView.context.getString(
+        holder.meta.text = ctx.getString(
             R.string.rules_hub_provider_meta_fmt,
             behavior,
             hours,
         )
-        holder.enabled.setOnCheckedChangeListener(null)
-        holder.enabled.isChecked = p.enabled
-        holder.enabled.setOnCheckedChangeListener { _, checked ->
-            callbacks.onToggleProvider(p.id, checked)
-        }
-        holder.edit.setOnClickListener { callbacks.onEditProvider(p.id) }
-        holder.itemView.alpha = if (p.enabled) 1f else 0.7f
+        holder.status.text = ctx.getString(if (p.enabled) R.string.enabled else R.string.disabled)
+        holder.status.setBackgroundResource(
+            if (p.enabled) R.drawable.bg_m3_status_chip else R.drawable.bg_m3_status_chip_neutral,
+        )
+        holder.status.setTextColor(
+            MaterialColors.getColor(
+                holder.status,
+                if (p.enabled) {
+                    com.google.android.material.R.attr.colorOnPrimaryContainer
+                } else {
+                    com.google.android.material.R.attr.colorOnSurfaceVariant
+                },
+            ),
+        )
+        holder.itemView.alpha = if (p.enabled) 1f else 0.75f
     }
 
     private fun bindAdd(holder: AddHolder, item: RulesHubListItem.AddAction) {
         holder.button.text = item.label
-        holder.button.setOnClickListener {
-            when (item.action) {
-                RulesHubListItem.AddActionKind.MANUAL -> callbacks.onAddManual()
-                RulesHubListItem.AddActionKind.PROVIDER -> callbacks.onAddProvider()
-            }
-        }
+        holder.button.setOnClickListener { callbacks.onAddManual() }
     }
 
     private fun bindEmptyManual(holder: EmptyManualHolder) {
@@ -416,8 +417,7 @@ class RulesHubListAdapter(
         val name: TextView = view.findViewById(R.id.provider_name)
         val url: TextView = view.findViewById(R.id.provider_url)
         val meta: TextView = view.findViewById(R.id.provider_meta)
-        val enabled: MaterialSwitch = view.findViewById(R.id.provider_enabled_switch)
-        val edit: ImageButton = view.findViewById(R.id.btn_edit_provider)
+        val status: TextView = view.findViewById(R.id.provider_status)
     }
 
     private class AddHolder(view: View) : RecyclerView.ViewHolder(view) {

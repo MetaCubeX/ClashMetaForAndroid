@@ -156,7 +156,7 @@ sealed class RulesHubListItem(val stableId: String) {
 
     object EmptyManual : RulesHubListItem("empty-manual")
 
-    enum class AddActionKind { MANUAL, PROVIDER }
+    enum class AddActionKind { MANUAL }
 }
 
 object RulesHubListBuilder {
@@ -260,10 +260,6 @@ object RulesHubListBuilder {
                 providers.forEach { p ->
                     items += RulesHubListItem.ProviderDef(p)
                 }
-                items += RulesHubListItem.AddAction(
-                    label = context.getString(R.string.rules_hub_add_provider),
-                    action = RulesHubListItem.AddActionKind.PROVIDER,
-                )
             }
         }
         return items

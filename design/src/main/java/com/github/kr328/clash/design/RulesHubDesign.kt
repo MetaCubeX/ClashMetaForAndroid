@@ -22,11 +22,8 @@ class RulesHubDesign(context: Context) : Design<RulesHubDesign.Request>(context)
     sealed class Request {
         object Save : Request()
         object AddManual : Request()
-        object AddProvider : Request()
         data class EditManual(val ruleId: String) : Request()
-        data class EditProvider(val providerId: String) : Request()
         data class ToggleRule(val ruleId: String, val enabled: Boolean) : Request()
-        data class ToggleProvider(val providerId: String, val enabled: Boolean) : Request()
         data class RestoreRule(val ruleId: String) : Request()
         data class ReorderManual(val fromId: String, val toId: String) : Request()
     }
@@ -75,10 +72,6 @@ class RulesHubDesign(context: Context) : Design<RulesHubDesign.Request>(context)
                 requests.trySend(Request.AddManual)
             }
 
-            override fun onAddProvider() {
-                requests.trySend(Request.AddProvider)
-            }
-
             override fun onEditManual(ruleId: String) {
                 requests.trySend(Request.EditManual(ruleId))
             }
@@ -93,14 +86,6 @@ class RulesHubDesign(context: Context) : Design<RulesHubDesign.Request>(context)
 
             override fun onReorderManual(fromId: String, toId: String) {
                 requests.trySend(Request.ReorderManual(fromId, toId))
-            }
-
-            override fun onEditProvider(providerId: String) {
-                requests.trySend(Request.EditProvider(providerId))
-            }
-
-            override fun onToggleProvider(providerId: String, enabled: Boolean) {
-                requests.trySend(Request.ToggleProvider(providerId, enabled))
             }
 
             override fun onSwipeToggleRule(ruleId: String) {
@@ -189,14 +174,6 @@ class RulesHubDesign(context: Context) : Design<RulesHubDesign.Request>(context)
         renderList()
     }
 
-    fun mutateProvider(id: String, transform: (RuleProviderItem) -> RuleProviderItem) {
-        workingState = workingState.copy(
-            providers = workingState.providers.map { if (it.id == id) transform(it) else it },
-        )
-        providerMap = workingState.providers.associateBy(RuleProviderItem::name)
-        renderList()
-    }
-
     fun addManualRule(rule: RuleItem) {
         val (manual, provider) = RulesHubRowBuilder.partitionRules(workingState.rules)
         workingState = workingState.copy(
@@ -219,27 +196,6 @@ class RulesHubDesign(context: Context) : Design<RulesHubDesign.Request>(context)
 
     fun deleteManualRule(id: String) {
         mutateRule(id) { it.copy(deleted = true, enabled = false) }
-    }
-
-    fun upsertProvider(result: RuleProviderEditResult, existingId: String?) {
-        val existing = existingId?.let { id -> workingState.providers.firstOrNull { it.id == id } }
-        val item = RuleProviderEditSheet.toProviderItem(result, existing)
-        val providers = if (existing != null) {
-            workingState.providers.map { if (it.id == existing.id) item else it }
-        } else {
-            workingState.providers + item
-        }
-        workingState = workingState.copy(providers = providers)
-        providerMap = providers.associateBy(RuleProviderItem::name)
-        renderList()
-    }
-
-    fun removeProvider(id: String) {
-        workingState = workingState.copy(
-            providers = workingState.providers.filterNot { it.id == id },
-        )
-        providerMap = workingState.providers.associateBy(RuleProviderItem::name)
-        renderList()
     }
 
     fun reorderManualById(fromId: String, toId: String) {
@@ -278,7 +234,6 @@ class RulesHubDesign(context: Context) : Design<RulesHubDesign.Request>(context)
     }
 
     fun findRule(id: String): RuleItem? = workingState.rules.firstOrNull { it.id == id }
-    fun findProvider(id: String): RuleProviderItem? = workingState.providers.firstOrNull { it.id == id }
 
     fun diffSummary(): String? = RulesHubStateDiff.formatSummary(context, baselineState, readState())
 

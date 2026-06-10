@@ -8,7 +8,6 @@ import com.github.kr328.clash.core.Clash
 import com.github.kr328.clash.core.model.ProfileSnapshot
 import com.github.kr328.clash.design.R
 import com.github.kr328.clash.design.RuleEditSheet
-import com.github.kr328.clash.design.RuleProviderEditSheet
 import com.github.kr328.clash.design.RulesHubDesign
 import com.github.kr328.clash.service.model.RuleItem
 import com.github.kr328.clash.service.model.RuleState
@@ -65,22 +64,12 @@ class RulesHubActivity : BaseActivity<RulesHubDesign>() {
                         RulesHubDesign.Request.AddManual -> withContext(Dispatchers.Main) {
                             showRuleEditSheet(design, rule = null)
                         }
-                        RulesHubDesign.Request.AddProvider -> withContext(Dispatchers.Main) {
-                            showProviderEditSheet(design, provider = null)
-                        }
                         is RulesHubDesign.Request.EditManual -> withContext(Dispatchers.Main) {
                             val rule = design.findRule(req.ruleId) ?: return@withContext
                             showRuleEditSheet(design, rule = rule)
                         }
-                        is RulesHubDesign.Request.EditProvider -> withContext(Dispatchers.Main) {
-                            val provider = design.findProvider(req.providerId) ?: return@withContext
-                            showProviderEditSheet(design, provider = provider)
-                        }
                         is RulesHubDesign.Request.ToggleRule -> withContext(Dispatchers.Main) {
                             design.mutateRule(req.ruleId) { it.copy(enabled = req.enabled) }
-                        }
-                        is RulesHubDesign.Request.ToggleProvider -> withContext(Dispatchers.Main) {
-                            design.mutateProvider(req.providerId) { it.copy(enabled = req.enabled) }
                         }
                         is RulesHubDesign.Request.RestoreRule -> withContext(Dispatchers.Main) {
                             design.mutateRule(req.ruleId) { it.copy(deleted = false, enabled = true) }
@@ -143,20 +132,6 @@ class RulesHubActivity : BaseActivity<RulesHubDesign>() {
             onDelete = rule?.let { existing -> { design.deleteManualRule(existing.id) } },
         )
         if (rule == null) sheet.showAdd() else sheet.showEdit(rule)
-    }
-
-    private fun showProviderEditSheet(
-        design: RulesHubDesign,
-        provider: com.github.kr328.clash.service.model.RuleProviderItem?,
-    ) {
-        val sheet = RuleProviderEditSheet(
-            context = this,
-            onConfirm = { result ->
-                design.upsertProvider(result, provider?.id)
-            },
-            onDelete = provider?.let { existing -> { design.removeProvider(existing.id) } },
-        )
-        if (provider == null) sheet.showAdd() else sheet.showEdit(provider)
     }
 
     private suspend fun onSave(design: RulesHubDesign, id: UUID) {
