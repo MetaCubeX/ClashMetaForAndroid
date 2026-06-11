@@ -1012,6 +1012,13 @@ class ProfileAdapter(
 
         dialog.setContentView(sheet.root)
         dialog.show()
+        // Re-introduce the collapsed state for THIS sheet (the base forces
+        // skipCollapsed=true). With a long node list on a small screen, that made
+        // a drag past the top of the list close the sheet outright; now the first
+        // drag collapses to peek (so you can dwell on the top nodes) and only a
+        // second drag dismisses.
+        dialog.behavior.skipCollapsed = false
+        dialog.behavior.peekHeight = (context.resources.displayMetrics.heightPixels * 0.55f).toInt()
     }
 
     private fun bindSubscriptionStatus(
