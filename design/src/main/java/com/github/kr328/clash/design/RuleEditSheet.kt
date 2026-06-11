@@ -60,15 +60,18 @@ class RuleEditSheet(
     private val btnConfirm: MaterialButton = root.findViewById(R.id.btn_confirm)
 
     private var selectedMeta: RuleTypeMeta = RuleTypeCatalog.common.first()
-    private val groupPolicies = (policyOptions + knownPolicies)
+    // Picker shows the real proxy/group names only. knownPolicies (UPPERCASED, for
+    // validation) must NOT be mixed in here — it produced a duplicate of every node
+    // in caps. Dedup case-insensitively, keeping the original-case name.
+    private val groupPolicies = policyOptions
         .map { it.trim() }
         .filter { it.isNotEmpty() }
-        .distinct()
         .filter { policy ->
             !policy.equals("DIRECT", ignoreCase = true) &&
                 !policy.equals("REJECT", ignoreCase = true) &&
                 !policy.equals("REJECT-DROP", ignoreCase = true)
         }
+        .distinctBy { it.uppercase() }
         .sorted()
 
     init {
