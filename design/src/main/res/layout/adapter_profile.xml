@@ -55,9 +55,8 @@
                     android:paddingEnd="10dp">
 
                     <FrameLayout
-                        android:layout_width="48dp"
-                        android:layout_height="48dp"
-                        android:background="@drawable/bg_m3_status_chip">
+                        android:layout_width="40dp"
+                        android:layout_height="40dp">
 
                         <ImageView
                             android:id="@+id/profile_icon"
@@ -66,7 +65,37 @@
                             android:layout_gravity="center"
                             android:contentDescription="@string/profile"
                             android:src="@drawable/ic_baseline_language"
-                            app:tint="?attr/colorOnPrimaryContainer" />
+                            app:tint="?attr/colorOnSurfaceVariant" />
+
+                        <FrameLayout
+                            android:id="@+id/profile_flag_card"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:layout_gravity="center"
+                            android:visibility="gone"
+                            tools:visibility="visible">
+
+                            <com.google.android.material.imageview.ShapeableImageView
+                                android:id="@+id/profile_flag_image"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:background="?attr/colorSurfaceContainerHigh"
+                                android:scaleType="centerCrop"
+                                android:visibility="gone"
+                                app:shapeAppearanceOverlay="@style/ShapeAppearance.App.Circle"
+                                tools:visibility="visible" />
+
+                            <TextView
+                                android:id="@+id/profile_flag"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:background="@drawable/bg_flag_circle"
+                                android:gravity="center"
+                                android:includeFontPadding="false"
+                                android:textSize="12sp"
+                                android:visibility="gone"
+                                tools:text="US" />
+                        </FrameLayout>
 
                         <TextView
                             android:id="@+id/profile_icon_emoji"
@@ -74,7 +103,7 @@
                             android:layout_height="match_parent"
                             android:layout_gravity="center"
                             android:gravity="center"
-                            android:textSize="24sp"
+                            android:textSize="20sp"
                             android:visibility="gone"
                             tools:text="DE"
                             tools:visibility="visible" />

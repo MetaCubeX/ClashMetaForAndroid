@@ -15,6 +15,7 @@ import com.github.kr328.clash.core.model.TunnelState
 import com.github.kr328.clash.design.R
 import com.github.kr328.clash.design.util.FlagDrawableLoader
 import com.github.kr328.clash.design.util.FlagParser
+import com.github.kr328.clash.design.util.ParsedFlag
 import com.github.kr328.clash.design.util.toBytesString
 import com.github.kr328.clash.design.databinding.AdapterProfileBinding
 import com.github.kr328.clash.design.databinding.BottomSheetProxyGroupsBinding
@@ -1289,20 +1290,27 @@ class ProfileAdapter(
         if (compactHomeCard) {
             val profileTitle = resolveCurrentNodeDisplayName(current)
                 ?: context.getString(R.string.not_selected)
-            val (titleText, emoji) = formatNodeHeadline(profileTitle, context)
+            val flag = FlagParser.parse(
+                profileTitle.takeUnless { it == context.getString(R.string.not_selected) },
+            )
+            val titleText = if (flag != null) {
+                profileTitle.removePrefix(flag.emoji)
+                    .trimStart(' ', '|', '-', '_', '.', ':')
+                    .ifBlank { profileTitle }
+            } else {
+                formatNodeHeadline(profileTitle, context).first
+            }
             val groupSuffix = selectedGroup
                 ?.takeIf { resolveCurrentNodeDisplayName(current) != null }
                 ?.let { " · " + displayGroupName(it) }
                 .orEmpty()
             binding.profileTitle.text = titleText + groupSuffix
-            val iconEmoji = emoji ?: extractLeadingEmoji(profileTitle)
-            binding.profileIconEmoji.visibility = if (iconEmoji != null) View.VISIBLE else View.GONE
-            binding.profileIcon.visibility = if (iconEmoji != null) View.GONE else View.VISIBLE
-            if (iconEmoji != null) {
-                binding.profileIconEmoji.text = iconEmoji
-            }
+            bindProfileFlag(binding, context, flag)
         } else {
             binding.profileTitle.text = current.name
+            binding.profileFlagCard.visibility = View.GONE
+            binding.profileFlagImage.visibility = View.GONE
+            binding.profileFlag.visibility = View.GONE
             binding.profileIconEmoji.visibility = View.VISIBLE
             binding.profileIcon.visibility = View.GONE
             binding.profileIconEmoji.text = profileEmoji(current)
@@ -1994,6 +2002,35 @@ class ProfileAdapter(
             selectedProxy?.type?.group == true || selected in proxyDetails
         } else {
             selected in offlinePreviewByProfile[profile.uuid].orEmpty()
+        }
+    }
+
+    private fun bindProfileFlag(
+        binding: AdapterProfileBinding,
+        context: Context,
+        flag: ParsedFlag?,
+    ) {
+        if (flag != null) {
+            binding.profileFlagCard.visibility = View.VISIBLE
+            binding.profileIcon.visibility = View.GONE
+            binding.profileIconEmoji.visibility = View.GONE
+            val sizePx = context.dp(40)
+            val svgDrawable = FlagDrawableLoader.load(context, flag.code, sizePx)
+            if (svgDrawable != null) {
+                binding.profileFlagImage.setImageDrawable(svgDrawable)
+                binding.profileFlagImage.visibility = View.VISIBLE
+                binding.profileFlag.visibility = View.GONE
+            } else {
+                binding.profileFlagImage.visibility = View.GONE
+                binding.profileFlag.text = flag.emoji
+                binding.profileFlag.visibility = View.VISIBLE
+            }
+        } else {
+            binding.profileFlagCard.visibility = View.GONE
+            binding.profileFlagImage.visibility = View.GONE
+            binding.profileFlag.visibility = View.GONE
+            binding.profileIcon.visibility = View.VISIBLE
+            binding.profileIconEmoji.visibility = View.GONE
         }
     }
 
