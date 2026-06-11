@@ -470,6 +470,12 @@
     <string name="tunnels_entry_summary">按配置的静态转发：回环监听 → 经代理或组转发到目标。</string>
     <string name="tunnels_experimental_title">隧道（实验）</string>
     <string name="tunnels_experimental_summary">在设置中显示按配置的隧道编辑器。</string>
+    <string name="expert_features_title">专家功能</string>
+    <string name="expert_features_summary">解锁原始配置覆盖和其他高级选项。这些设置与安全加固模式相关。</string>
+    <string name="config_override">配置覆盖</string>
+    <string name="config_override_summary">原始 clash 配置覆盖（端口、监听、DNS、hosts、模式）。</string>
+    <string name="override_cat_listeners">监听与端口</string>
+    <string name="override_cat_fallback_filter">DNS 回退过滤</string>
     <string name="tunnels_no_active_profile">请先激活一个配置以编辑其隧道。</string>
     <string name="tunnels_master_title">为此配置管理隧道</string>
     <string name="tunnels_master_summary">开启后隧道生效并在订阅更新后保留；关闭将干净还原。</string>

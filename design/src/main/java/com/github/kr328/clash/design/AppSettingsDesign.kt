@@ -101,6 +101,13 @@ class AppSettingsDesign(
                 summary = R.string.tunnels_experimental_summary,
             )
 
+            switch(
+                value = uiStore::expertEnabled,
+                icon = R.drawable.ic_baseline_bolt,
+                title = R.string.expert_features_title,
+                summary = R.string.expert_features_summary,
+            )
+
             category(R.string.service)
 
             switch(

@@ -87,6 +87,16 @@ class UiStore(context: Context) {
         defaultValue = false,
     )
 
+    /**
+     * Master gate for expert-tier raw config (OFF by default): unlocks the raw
+     * Config-override screen and other power-user knobs (e.g. find-process-mode).
+     * These interact with the security hardening mode — kept hidden from normal users.
+     */
+    var expertEnabled: Boolean by store.boolean(
+        key = "expert_features_enabled",
+        defaultValue = false,
+    )
+
     var proxyExcludeNotSelectable by store.boolean(
         key = "proxy_exclude_not_selectable",
         defaultValue = false,

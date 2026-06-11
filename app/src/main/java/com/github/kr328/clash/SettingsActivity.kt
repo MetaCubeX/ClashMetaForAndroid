@@ -14,7 +14,9 @@ class SettingsActivity : BaseActivity<SettingsDesign>() {
         while (isActive) {
             select<Unit> {
                 events.onReceive {
-
+                    // Re-evaluate experimental/expert gates when returning to this
+                    // screen (e.g. after toggling them in App settings).
+                    if (it == Event.ActivityStart) design.applyExperimentalVisibility()
                 }
                 design.requests.onReceive {
                     when (it) {
@@ -30,6 +32,8 @@ class SettingsActivity : BaseActivity<SettingsDesign>() {
                             startActivity(DnsHostsSettingsActivity::class.intent)
                         SettingsDesign.Request.StartTunnels ->
                             startActivity(TunnelsSettingsActivity::class.intent)
+                        SettingsDesign.Request.StartOverride ->
+                            startActivity(OverrideSettingsActivity::class.intent)
                     }
                 }
             }
