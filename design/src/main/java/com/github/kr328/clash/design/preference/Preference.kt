@@ -17,4 +17,11 @@ interface Preference {
             view.isFocusable = value
             view.alpha = if (value) 1.0f else 0.33f
         }
+
+    /** Show/hide the row entirely (GONE), so dependent options don't clutter as disabled rows. */
+    var visible: Boolean
+        get() = view.visibility == View.VISIBLE
+        set(value) {
+            view.visibility = if (value) View.VISIBLE else View.GONE
+        }
 }

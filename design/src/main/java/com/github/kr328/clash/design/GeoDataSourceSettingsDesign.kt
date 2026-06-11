@@ -5,6 +5,7 @@ import android.view.View
 import android.app.Activity
 import androidx.appcompat.app.AppCompatActivity
 import com.github.kr328.clash.design.databinding.DesignSettingsCommonBinding
+import com.github.kr328.clash.design.preference.ClickablePreference
 import com.github.kr328.clash.design.preference.*
 import com.github.kr328.clash.design.util.layoutInflater
 import com.github.kr328.clash.design.util.root
@@ -24,11 +25,14 @@ class GeoDataSourceSettingsDesign(
     )
 
     enum class Request {
+        UpdateGeoDatabases,
         ImportGeoIp,
         ImportGeoSite,
         ImportCountryMmdb,
         ImportAsnMmdb,
     }
+
+    private var updateGeoClickable: ClickablePreference? = null
 
     private val binding = DesignSettingsCommonBinding
         .inflate(context.layoutInflater, context.root, false)
@@ -74,7 +78,9 @@ class GeoDataSourceSettingsDesign(
             ) {
                 listener = OnChangedListener {
                     val isCustom = config.preset == GeoDataSourcePreset.Custom
-                    customDependencies.forEach { it.enabled = isCustom }
+                    // Hide the custom URL fields unless the Custom preset is picked —
+                    // no clutter of greyed-out rows for the 95% on a preset.
+                    customDependencies.forEach { it.visible = isCustom }
                     mirrorTips?.text = mirrorSummaryText()
                 }
             }
@@ -115,6 +121,15 @@ class GeoDataSourceSettingsDesign(
                 configure = customDependencies::add,
             )
 
+            category(R.string.geo_update_online)
+
+            updateGeoClickable = clickable(
+                title = R.string.geo_update_action,
+                icon = R.drawable.ic_baseline_cloud_download,
+            ) {
+                clicked { requests.trySend(Request.UpdateGeoDatabases) }
+            }
+
             category(R.string.import_local_geo_databases)
 
             clickable(title = R.string.import_geoip_file) {
@@ -134,5 +149,12 @@ class GeoDataSourceSettingsDesign(
         }
 
         binding.content.addView(screen.root)
+    }
+
+    fun setGeoUpdateBusy(busy: Boolean) {
+        updateGeoClickable?.apply {
+            enabled = !busy
+            summary = if (busy) context.getString(R.string.geo_update_progress) else null
+        }
     }
 }

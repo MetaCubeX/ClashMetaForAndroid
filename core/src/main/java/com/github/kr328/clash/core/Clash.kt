@@ -32,6 +32,10 @@ object Clash {
         Bridge.nativeForceGc()
     }
 
+    /** Download fresh GeoIP/GeoSite databases. Returns null on success, or the engine error. */
+    fun updateGeoDatabases(): String? =
+        Bridge.nativeUpdateGeoDatabases()?.takeIf { it.isNotBlank() }
+
     fun suspendCore(suspended: Boolean) {
         Bridge.nativeSuspend(suspended)
     }
