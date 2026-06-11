@@ -78,7 +78,9 @@ class GeoDataSourceSettingsDesign(
             ) {
                 listener = OnChangedListener {
                     val isCustom = config.preset == GeoDataSourcePreset.Custom
-                    customDependencies.forEach { it.enabled = isCustom }
+                    // Hide the custom URL fields unless the Custom preset is picked —
+                    // no clutter of greyed-out rows for the 95% on a preset.
+                    customDependencies.forEach { it.visible = isCustom }
                     mirrorTips?.text = mirrorSummaryText()
                 }
             }
