@@ -111,8 +111,36 @@ object FlagParser {
             }
         }
 
+        // No country flag — fall back to any pictographic emoji in the name
+        // (e.g. 🌍 in "Авто EU · 🌍 Сеть"). code="" → no SVG, shown as emoji text.
+        parseStandaloneEmoji(name)?.let { return it }
+
         return null
     }
+
+    /** First standalone pictographic emoji (not a regional-indicator flag pair). */
+    private fun parseStandaloneEmoji(text: String): ParsedFlag? {
+        var i = 0
+        while (i < text.length) {
+            val cp = text.codePointAt(i)
+            val charCount = Character.charCount(cp)
+            if (isPictographicEmoji(cp)) {
+                var end = i + charCount
+                // absorb a trailing emoji variation selector (U+FE0F)
+                if (end < text.length && text.codePointAt(end) == 0xFE0F) {
+                    end += Character.charCount(0xFE0F)
+                }
+                return ParsedFlag("", text.substring(i, end))
+            }
+            i += charCount
+        }
+        return null
+    }
+
+    private fun isPictographicEmoji(cp: Int): Boolean =
+        cp in 0x1F300..0x1FAFF ||   // symbols & pictographs, emoticons, transport, supplemental
+        cp in 0x2600..0x27BF ||     // misc symbols + dingbats
+        cp in 0x2B00..0x2BFF        // misc symbols & arrows
 
     private fun parseEmojiFlag(text: String): ParsedFlag? {
         var i = 0
