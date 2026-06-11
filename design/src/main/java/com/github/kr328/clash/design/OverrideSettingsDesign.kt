@@ -1,11 +1,12 @@
 package com.github.kr328.clash.design
 
+import android.app.Activity
 import android.content.Context
 import android.view.View
 import com.github.kr328.clash.core.model.ConfigurationOverride
 import com.github.kr328.clash.core.model.LogMessage
 import com.github.kr328.clash.core.model.TunnelState
-import com.github.kr328.clash.design.databinding.DesignSettingsOverideBinding
+import com.github.kr328.clash.design.databinding.DesignSettingsCommonBinding
 import com.github.kr328.clash.design.databinding.DialogPreferenceListBinding
 import com.github.kr328.clash.design.dialog.FullScreenDialog
 import com.github.kr328.clash.design.model.AppInfo
@@ -25,7 +26,7 @@ class OverrideSettingsDesign(
         ResetOverride
     }
 
-    private val binding = DesignSettingsOverideBinding
+    private val binding = DesignSettingsCommonBinding
         .inflate(context.layoutInflater, context.root, false)
 
     override val root: View
@@ -52,11 +53,10 @@ class OverrideSettingsDesign(
     }
 
     init {
-        binding.self = this
+        binding.surface = surface
 
-        binding.activityBarLayout.applyFrom(context)
-
-        binding.scrollRoot.bindAppBarElevation(binding.activityBarLayout)
+        binding.header.screenTitle.text =
+            (context as? Activity)?.title?.toString().orEmpty()
 
         val booleanValues: Array<Boolean?> = arrayOf(
             null,
@@ -70,7 +70,7 @@ class OverrideSettingsDesign(
         )
 
         val screen = preferenceScreen(context) {
-            category(R.string.general)
+            category(R.string.override_cat_listeners)
 
             editableText(
                 value = configuration::httpPort,
@@ -84,22 +84,6 @@ class OverrideSettingsDesign(
                 value = configuration::socksPort,
                 adapter = NullableTextAdapter.Port,
                 title = R.string.socks_port,
-                placeholder = R.string.dont_modify,
-                empty = R.string.disabled,
-            )
-
-            editableText(
-                value = configuration::redirectPort,
-                adapter = NullableTextAdapter.Port,
-                title = R.string.redirect_port,
-                placeholder = R.string.dont_modify,
-                empty = R.string.disabled,
-            )
-
-            editableText(
-                value = configuration::tproxyPort,
-                adapter = NullableTextAdapter.Port,
-                title = R.string.tproxy_port,
                 placeholder = R.string.dont_modify,
                 empty = R.string.disabled,
             )
@@ -141,6 +125,8 @@ class OverrideSettingsDesign(
                 empty = R.string.default_
             )
 
+            category(R.string.external_controller)
+
             editableText(
                 value = configuration::externalController,
                 adapter = NullableTextAdapter.String,
@@ -178,6 +164,8 @@ class OverrideSettingsDesign(
                 placeholder = R.string.dont_modify,
                 empty = R.string.default_
             )
+
+            category(R.string.general)
 
             selectableList(
                 value = configuration::mode,
@@ -315,6 +303,8 @@ class OverrideSettingsDesign(
                 configure = dnsDependencies::add,
             )
 
+            category(R.string.name_server)
+
             editableTextList(
                 value = configuration.dns::nameServer,
                 adapter = TextAdapter.String,
@@ -339,6 +329,17 @@ class OverrideSettingsDesign(
                 configure = dnsDependencies::add,
             )
 
+            editableTextMap(
+                value = configuration.dns::nameserverPolicy,
+                keyAdapter = TextAdapter.String,
+                valueAdapter = TextAdapter.String,
+                title = R.string.name_server_policy,
+                placeholder = R.string.dont_modify,
+                configure = dnsDependencies::add,
+            )
+
+            category(R.string.fakeip)
+
             editableTextList(
                 value = configuration.dns::fakeIpFilter,
                 adapter = TextAdapter.String,
@@ -362,6 +363,8 @@ class OverrideSettingsDesign(
                 title = R.string.fakeip_filter_mode,
                 configure = dnsDependencies::add,
             )
+
+            category(R.string.override_cat_fallback_filter)
 
             selectableList(
                 value = configuration.dns.fallbackFilter::geoIp,
@@ -396,14 +399,15 @@ class OverrideSettingsDesign(
                 configure = dnsDependencies::add,
             )
 
-            editableTextMap(
-                value = configuration.dns::nameserverPolicy,
-                keyAdapter = TextAdapter.String,
-                valueAdapter = TextAdapter.String,
-                title = R.string.name_server_policy,
-                placeholder = R.string.dont_modify,
-                configure = dnsDependencies::add,
-            )
+            category(R.string.reset_override_settings)
+
+            clickable(
+                title = R.string.reset_override_settings,
+                summary = R.string.reset_override_settings_message,
+                icon = R.drawable.ic_baseline_restore,
+            ) {
+                clicked { requestClear() }
+            }
 
             dns.listener?.onChanged()
         }

@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.github.kr328.clash.core.model.ConfigurationOverride
 import com.github.kr328.clash.design.databinding.DesignSettingsMetaFeatureBinding
 import com.github.kr328.clash.design.preference.*
+import com.github.kr328.clash.design.store.UiStore
 import com.github.kr328.clash.design.util.*
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -16,7 +17,7 @@ class MetaFeatureSettingsDesign(
     configuration: ConfigurationOverride
 ) : Design<MetaFeatureSettingsDesign.Request>(context) {
     enum class Request {
-        ResetOverride, ImportGeoIp, ImportGeoSite, ImportCountry, ImportASN
+        ResetOverride
     }
 
     private val binding = DesignSettingsMetaFeatureBinding
@@ -49,6 +50,8 @@ class MetaFeatureSettingsDesign(
         binding.self = this
 
         binding.header.screenTitle.text = context.getString(R.string.meta_features)
+
+        val ui = UiStore(context)
 
         val booleanValues: Array<Boolean?> = arrayOf(
             null,
@@ -85,6 +88,8 @@ class MetaFeatureSettingsDesign(
                 title = R.string.tcp_concurrent,
             )
 
+            // find-process-mode is a power-user knob (and a footgun for bad
+            // subscription values) — only show it when Expert features is on.
             selectableList(
                 value = configuration::findProcessMode,
                 values = arrayOf(
@@ -101,7 +106,7 @@ class MetaFeatureSettingsDesign(
                 ),
                 title = R.string.find_process_mode,
             ) {
-
+                visible = ui.expertEnabled
             }
 
             category(R.string.sniffer_setting)
@@ -240,77 +245,6 @@ class MetaFeatureSettingsDesign(
             )
 
             sniffer.listener?.onChanged()
-
-            /*
-            category(R.string.geox_url_setting)
-
-            val geoxUrlDependencies: MutableList<Preference> = mutableListOf()
-
-            editableText(
-                value = configuration.geoxurl::geoip,
-                adapter = NullableTextAdapter.String,
-                title = R.string.geox_geoip,
-                placeholder = R.string.dont_modify,
-                empty = R.string.geoip_url,
-                configure = geoxUrlDependencies::add,
-            )
-
-            editableText(
-                value = configuration.geoxurl::mmdb,
-                adapter = NullableTextAdapter.String,
-                title = R.string.geox_mmdb,
-                placeholder = R.string.dont_modify,
-                empty = R.string.mmdb_url,
-                configure = geoxUrlDependencies::add,
-            )
-
-            editableText(
-                value = configuration.geoxurl::geosite,
-                adapter = NullableTextAdapter.String,
-                title = R.string.geox_geosite,
-                placeholder = R.string.dont_modify,
-                empty = R.string.geosite_url,
-                configure = geoxUrlDependencies::add,
-            )
-            */
-
-            category(R.string.geox_files)
-
-            clickable (
-                title = R.string.import_geoip_file,
-                summary = R.string.press_to_import,
-            ){
-                clicked {
-                    requests.trySend(Request.ImportGeoIp)
-                }
-            }
-
-            clickable (
-                title = R.string.import_geosite_file,
-                summary = R.string.press_to_import,
-            ){
-                clicked {
-                    requests.trySend(Request.ImportGeoSite)
-                }
-            }
-
-            clickable (
-                title = R.string.import_country_file,
-                summary = R.string.press_to_import,
-            ){
-                clicked {
-                    requests.trySend(Request.ImportCountry)
-                }
-            }
-            
-            clickable (
-                title = R.string.import_asn_file,
-                summary = R.string.press_to_import,
-            ){
-                clicked {
-                    requests.trySend(Request.ImportASN)
-                }
-            }
         }
 
         binding.content.addView(screen.root)

@@ -97,6 +97,12 @@
     <string name="tunnels_entry_summary">Статические форварды по профилю: loopback listen → target через прокси или группу.</string>
     <string name="tunnels_experimental_title">Туннели (эксперимент)</string>
     <string name="tunnels_experimental_summary">Показывать редактор туннелей по профилю в настройках.</string>
+    <string name="expert_features_title">Экспертные функции</string>
+    <string name="expert_features_summary">Открыть сырой config override и другие ручки для опытных. Зависят от режима защиты (hardening).</string>
+    <string name="config_override">Config override</string>
+    <string name="config_override_summary">Сырой оверрайд конфига clash (порты, listeners, DNS, hosts, режим).</string>
+    <string name="override_cat_listeners">Listeners и порты</string>
+    <string name="override_cat_fallback_filter">DNS fallback-фильтр</string>
     <string name="tunnels_no_active_profile">Активируйте профиль, чтобы править его туннели.</string>
     <string name="tunnels_master_title">Управлять туннелями для этого профиля</string>
     <string name="tunnels_master_summary">Включено — туннели применяются и переживают обновление подписки. Выключение откатывает чисто.</string>

@@ -16,6 +16,7 @@ class SettingsDesign(context: Context) : Design<SettingsDesign.Request>(context)
         StartMetaFeatures,
         StartDnsHosts,
         StartTunnels,
+        StartOverride,
     }
 
     private val binding = DesignSettingsBinding
@@ -24,15 +25,26 @@ class SettingsDesign(context: Context) : Design<SettingsDesign.Request>(context)
     override val root: View
         get() = binding.root
 
+    private val ui = UiStore(context)
+
     init {
         binding.self = this
         binding.header.screenTitle.text = context.getString(R.string.main_advanced_settings)
-        val ui = UiStore(context)
-        // Experimental entries are hidden until opted in (AppSettings).
+        applyExperimentalVisibility()
+    }
+
+    /**
+     * Re-read the experimental/expert gates and show/hide their entries. Called on
+     * init AND whenever the screen returns to the foreground, so toggling a switch in
+     * App settings reflects here without leaving and re-entering Advanced.
+     */
+    fun applyExperimentalVisibility() {
         binding.cardDnsHosts.visibility =
             if (ui.dnsHostsEnabled) View.VISIBLE else View.GONE
         binding.cardTunnels.visibility =
             if (ui.tunnelsEnabled) View.VISIBLE else View.GONE
+        binding.cardOverride.visibility =
+            if (ui.expertEnabled) View.VISIBLE else View.GONE
     }
 
     fun request(request: Request) {

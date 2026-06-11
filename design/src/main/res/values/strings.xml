@@ -324,6 +324,12 @@ Presets only change <b>where</b> files are downloaded from (CDN / host). It is s
     <string name="tunnels_experimental_title">Tunnels (experimental)</string>
     <string name="tunnels_experimental_summary">Show the per-profile Tunnels editor in Settings.</string>
     <string name="tunnels_no_active_profile">Activate a profile to edit its tunnels.</string>
+    <string name="expert_features_title">Expert features</string>
+    <string name="expert_features_summary">Unlock raw config override and other power-user knobs. These interact with the security hardening mode.</string>
+    <string name="config_override">Config override</string>
+    <string name="config_override_summary">Raw clash config override (ports, listeners, DNS, hosts, mode).</string>
+    <string name="override_cat_listeners">Listeners &amp; ports</string>
+    <string name="override_cat_fallback_filter">DNS fallback filter</string>
     <string name="tunnels_master_title">Manage tunnels for this profile</string>
     <string name="tunnels_master_summary">When on, your tunnels apply and survive subscription updates. Turning off reverts cleanly.</string>
     <string name="tunnels_section_entries">Tunnel entries</string>
