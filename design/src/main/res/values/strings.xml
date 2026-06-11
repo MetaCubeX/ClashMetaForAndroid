@@ -67,6 +67,10 @@ Presets only change <b>where</b> files are downloaded from (CDN / host). It is s
     <string name="geo_preset_mirrors_title">URLs for this preset:</string>
     <string name="geo_preset_mirrors_custom">Custom: use the fields above; empty = built-in default for that slot.</string>
     <string name="geox_asn">ASN URL</string>
+    <string name="geo_update_online">Online update</string>
+    <string name="geo_update_action">Update GeoIP/GeoSite</string>
+    <string name="geo_update_progress">Downloading GeoIP and GeoSite…</string>
+    <string name="geo_update_success">GeoIP/GeoSite updated</string>
     <string name="import_local_geo_databases">Import local geo databases</string>
     <string name="advanced_settings">Advanced</string>
     <string name="help">Help</string>

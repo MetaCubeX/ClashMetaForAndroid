@@ -121,6 +121,10 @@
     <string name="geo_preset_custom">自定义 URL</string>
     <string name="geo_preset_mirrors_title">此预设的 URL：</string>
     <string name="geo_preset_mirrors_custom">自定义：用上方字段；留空则用该槽位内置默认。</string>
+    <string name="geo_update_online">在线更新</string>
+    <string name="geo_update_action">更新 GeoIP/GeoSite</string>
+    <string name="geo_update_progress">正在下载 GeoIP 和 GeoSite…</string>
+    <string name="geo_update_success">GeoIP/GeoSite 已更新</string>
     <string name="import_local_geo_databases">导入本地地理库</string>
     <string name="advanced_settings">高级</string>
     <string name="show_traffic">显示流量</string>

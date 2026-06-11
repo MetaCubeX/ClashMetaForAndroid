@@ -152,6 +152,10 @@
     <string name="geo_preset_custom">Свои URL</string>
     <string name="geo_preset_mirrors_title">URL для этого пресета:</string>
     <string name="geo_preset_mirrors_custom">Свой пресет: поля выше; пусто — встроенный URL для слота.</string>
+    <string name="geo_update_online">Онлайн-обновление</string>
+    <string name="geo_update_action">Обновить GeoIP/GeoSite</string>
+    <string name="geo_update_progress">Загрузка GeoIP и GeoSite…</string>
+    <string name="geo_update_success">GeoIP/GeoSite обновлены</string>
     <string name="import_local_geo_databases">Локальный импорт геобаз</string>
     <string name="advanced_settings">Расширенные</string>
     <string name="help">Помощь</string>
