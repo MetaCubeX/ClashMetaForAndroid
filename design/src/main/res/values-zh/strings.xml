@@ -290,7 +290,7 @@
     <string name="advanced_category_network_control">网络与控制</string>
     <string name="advanced_meta_features_summary">内核与嗅探器等专家选项</string>
     <string name="advanced_override_summary">端口、DNS 与控制器覆盖</string>
-    <string name="meta_features">专家功能</string>
+    <string name="meta_features">Meta 功能</string>
     <string name="unified_delay">统一延迟</string>
     <string name="geodata_mode">Geodata 模式</string>
     <string name="tcp_concurrent">TCP 并发</string>

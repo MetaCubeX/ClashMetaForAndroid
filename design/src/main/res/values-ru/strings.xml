@@ -906,7 +906,7 @@
     <string name="advanced_meta_features_summary">Экспертные опции ядра и сниффера</string>
     <string name="advanced_override_summary">Порты, DNS и override контроллера</string>
 
-    <string name="meta_features">Экспертные функции</string>
+    <string name="meta_features">Meta-функции</string>
     <string name="unified_delay">Унифицированная задержка</string>
     <string name="geodata_mode">Режим геоданных</string>
     <string name="tcp_concurrent">Многопоточный TCP</string>

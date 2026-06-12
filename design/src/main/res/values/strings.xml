@@ -1016,7 +1016,7 @@ Presets only change <b>where</b> files are downloaded from (CDN / host). It is s
     <string name="clash_meta_wiki">Documentation (wiki)</string>
     <string name="clash_meta_wiki_url" translatable="false">https://wiki.metacubex.one</string>
 
-    <string name="meta_features">Expert Features</string>
+    <string name="meta_features">Meta features</string>
     <string name="script_mode">Script mode</string>
     <string name="sideload_geoip">Sideload GEOIP</string>
     <string name="sideload_geoip_summary">Use an external GEOIP database file</string>
