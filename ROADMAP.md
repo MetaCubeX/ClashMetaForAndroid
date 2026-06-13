@@ -46,7 +46,7 @@ if something you need is missing.
 
 ## ✅ Recently shipped
 
-**Latest**
+**0.8.0**
 - **Reworked rule editor** ([#70](https://github.com/Nemu-x/ClashFest/issues/70)) — unified ordered list of user + subscription rules, intent-style add/edit, drag-reorder, dry-run before apply; subscription rules survive refresh by identity
 - **DNS & Hosts editor** ([#69](https://github.com/Nemu-x/ClashFest/issues/69)) — per-profile nameservers + bootstrap, fake-ip mode, listen address, and `hosts:` (domain → IP)
 - **Visual tunnels** ([#71](https://github.com/Nemu-x/ClashFest/issues/71)) — UI over the core `tunnels:` (protocol · listen · target · optional proxy), add/edit/delete with loopback guard-rails
@@ -54,6 +54,7 @@ if something you need is missing.
 - **Expert features** — an opt-in toggle that unlocks the raw config-override screen and power-user knobs; Advanced settings decluttered (dead/duplicate options removed)
 - **Import robustness** — tolerate quirky values in subscription configs (e.g. quoted/whitespace `find-process-mode`) instead of failing the whole import; clearer fetch/parse error messages
 - Round country flags on the active-node card (SVG with emoji fallback); bottom-sheet edge-to-edge fix; node-picker scroll fix
+- Mihomo core updated to v1.19.27
 
 **0.7.0**
 - Profiles redesign — profiles in a dedicated tab with collapsible proxy groups
