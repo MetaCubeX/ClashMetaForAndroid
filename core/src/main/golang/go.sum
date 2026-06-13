@@ -97,8 +97,8 @@ github.com/mdlayher/socket v0.5.1 h1:VZaqt6RkGkt2OE9l3GcC6nZkqD3xKeQLyfleW/uBcos
 github.com/mdlayher/socket v0.5.1/go.mod h1:TjPLHI1UgwEv5J1B5q0zTZq12A/6H7nKmtTanQE37IQ=
 github.com/metacubex/age v0.0.0-20260603010618-28d156b4ea78 h1:LqWr0vb9zDNuQS+jJd4fnRYk/SEI7KJ7TDe/L4WFK48=
 github.com/metacubex/age v0.0.0-20260603010618-28d156b4ea78/go.mod h1:BTBG/iVY7rg3qq5WdVCg0GFk58CSvCDSbjy8I7kEx/c=
-github.com/metacubex/amneziawg-go v0.0.0-20251104174305-5a0e9f7e361d h1:vAJ0ZT4aO803F1uw2roIA9yH7Sxzox34tVVyye1bz6c=
-github.com/metacubex/amneziawg-go v0.0.0-20251104174305-5a0e9f7e361d/go.mod h1:MsM/5czONyXMJ3PRr5DbQ4O/BxzAnJWOIcJdLzW6qHY=
+github.com/metacubex/amneziawg-go v0.0.0-20260612143004-19b4f1cdd5ec h1:nRHevF7PmvDKjkYPjQCU7NUfVrr3Sry4QOPxpqoyo8U=
+github.com/metacubex/amneziawg-go v0.0.0-20260612143004-19b4f1cdd5ec/go.mod h1:MsM/5czONyXMJ3PRr5DbQ4O/BxzAnJWOIcJdLzW6qHY=
 github.com/metacubex/ascon v0.1.0 h1:6ZWxmXYszT1XXtwkf6nxfFhc/OTtQ9R3Vyj1jN32lGM=
 github.com/metacubex/ascon v0.1.0/go.mod h1:eV5oim4cVPPdEL8/EYaTZ0iIKARH9pnhAK/fcT5Kacc=
 github.com/metacubex/bart v0.26.0 h1:d/bBTvVatfVWGfQbiDpYKI1bXUJgjaabB2KpK1Tnk6w=
@@ -143,8 +143,8 @@ github.com/metacubex/protobuf-go v0.0.0-20260306035419-7ceee0674686 h1:PIXmYT2an
 github.com/metacubex/protobuf-go v0.0.0-20260306035419-7ceee0674686/go.mod h1:eQV7juxFZIdRgjMxtVqP+6BssKoTZQ1RM0fc58BsCZY=
 github.com/metacubex/qpack v0.6.0 h1:YqClGIMOpiRYLjV1qOs483Od08MdPgRnHjt90FuaAKw=
 github.com/metacubex/qpack v0.6.0/go.mod h1:lKGSi7Xk94IMvHGOmxS9eIei3bvIqpOAImEBsaOwTkA=
-github.com/metacubex/quic-go v0.59.1-0.20260520020949-fcd18c7b6ace h1:KXacx7dp1GYVMgxezwXRt5BMsEbvAYuA6rPFUmdAvcQ=
-github.com/metacubex/quic-go v0.59.1-0.20260520020949-fcd18c7b6ace/go.mod h1:2YEQEvFrZ5V76oynMBDTlN+4fdnSHCa2uNJxv3cm1HU=
+github.com/metacubex/quic-go v0.59.1-0.20260606115121-0662b57ad5bf h1:WvIp5pF+LLZwg0I6555eMVlKFrLrqQqPKob6XW6niyo=
+github.com/metacubex/quic-go v0.59.1-0.20260606115121-0662b57ad5bf/go.mod h1:2YEQEvFrZ5V76oynMBDTlN+4fdnSHCa2uNJxv3cm1HU=
 github.com/metacubex/randv2 v0.2.0 h1:uP38uBvV2SxYfLj53kuvAjbND4RUDfFJjwr4UigMiLs=
 github.com/metacubex/randv2 v0.2.0/go.mod h1:kFi2SzrQ5WuneuoLLCMkABtiBu6VRrMrWFqSPyj2cxY=
 github.com/metacubex/restls-client-go v0.1.7 h1:eCwiXCTQb5WJu9IlgYvDBA1OgrINv58dEe7hcN5H15k=
