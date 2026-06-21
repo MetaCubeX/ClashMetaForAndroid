@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Reusable D-pad / keyboard focus indicator. Drawn as `android:foreground` over
+  any focusable view (buttons, icon buttons) so TV users always see where they
+  are. Transparent until focused; a bright colorPrimary outline on focus.
+  Mirrors the bottom-nav focus outline for a consistent language.
+-->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_focused="true">
+        <shape android:shape="rectangle">
+            <solid android:color="@android:color/transparent" />
+            <stroke android:width="3dp" android:color="?attr/colorPrimary" />
+            <corners android:radius="20dp" />
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="@android:color/transparent" />
+        </shape>
+    </item>
+</selector>

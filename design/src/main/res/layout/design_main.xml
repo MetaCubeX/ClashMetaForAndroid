@@ -156,6 +156,7 @@
                     android:layout_height="42dp"
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:contentDescription="@string/add"
+                    android:foreground="@drawable/focus_ring"
                     android:onClick="@{() -> self.request(Request.OpenNewProfile)}"
                     android:padding="9dp"
                     android:src="@drawable/ic_baseline_add"

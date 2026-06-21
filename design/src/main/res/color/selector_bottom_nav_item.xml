@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- D-pad focus brightens icon+label so the highlighted tab is unmistakable. -->
+    <item android:state_focused="true" android:state_selected="true" android:color="?attr/colorOnPrimaryContainer" />
+    <item android:state_focused="true" android:color="?attr/colorPrimary" />
     <item android:state_selected="true" android:color="?attr/colorOnPrimaryContainer" />
     <item android:color="?attr/colorOnSurfaceVariant" />
 </selector>

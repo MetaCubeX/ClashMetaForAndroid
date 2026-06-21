@@ -10,15 +10,28 @@
     </style>
 
     <!-- ========== Material 3 Button Styles ========== -->
-    <style name="AppButton" parent="Widget.Material3.Button" />
+    <!-- android:foreground = D-pad/keyboard focus outline (TV). Buttons' own focus
+         overlay is too faint on the neutralised theme, so the explicit ring makes
+         the focused control unmistakable. -->
+    <style name="AppButton" parent="Widget.Material3.Button">
+        <item name="android:foreground">@drawable/focus_ring</item>
+    </style>
 
-    <style name="AppButton.Outlined" parent="Widget.Material3.Button.OutlinedButton" />
+    <style name="AppButton.Outlined" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="android:foreground">@drawable/focus_ring</item>
+    </style>
 
-    <style name="AppButton.Text" parent="Widget.Material3.Button.TextButton" />
+    <style name="AppButton.Text" parent="Widget.Material3.Button.TextButton">
+        <item name="android:foreground">@drawable/focus_ring</item>
+    </style>
 
-    <style name="AppButton.Tonal" parent="Widget.Material3.Button.TonalButton" />
+    <style name="AppButton.Tonal" parent="Widget.Material3.Button.TonalButton">
+        <item name="android:foreground">@drawable/focus_ring</item>
+    </style>
 
-    <style name="AppButton.Icon" parent="Widget.Material3.Button.IconButton" />
+    <style name="AppButton.Icon" parent="Widget.Material3.Button.IconButton">
+        <item name="android:foreground">@drawable/focus_ring</item>
+    </style>
 
     <!-- ========== Material 3 TextInputLayout Styles ========== -->
     <style name="AppTextInputLayout" parent="Widget.Material3.TextInputLayout.OutlinedBox" />
