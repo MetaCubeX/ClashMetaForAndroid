@@ -13,7 +13,9 @@ import com.github.kr328.clash.service.model.Profile
 import com.github.kr328.clash.service.remote.IFetchObserver
 import com.github.kr328.clash.service.store.ServiceStore
 import com.github.kr328.clash.service.util.GeoUrlSanitizer
+import com.github.kr328.clash.service.util.MihomoConfigDocument
 import com.github.kr328.clash.service.util.RuleApplyService
+import com.github.kr328.clash.service.util.RuleMapper
 import com.github.kr328.clash.service.util.SubscriptionUpdateMerge
 import com.github.kr328.clash.service.util.FetchErrorClassifier
 import com.github.kr328.clash.service.util.MergeEngineVerdict
@@ -35,6 +37,16 @@ import okhttp3.Request
 import java.io.File
 import java.util.*
 import java.util.concurrent.TimeUnit
+
+/** `(type,value,policy)` keys of the `rules:` in a raw config text — for source reconcile. */
+private fun ruleKeysOf(configText: String): Set<String> = runCatching {
+    (MihomoConfigDocument.parseOrEmpty(configText).root["rules"] as? List<*>)
+        .orEmpty()
+        .mapNotNull { it as? String }
+        .mapIndexedNotNull { i, line -> RuleMapper.parseRuleLine(line, i) }
+        .map { "${it.type.uppercase()},${it.value.uppercase()},${it.policy.uppercase()}" }
+        .toSet()
+}.getOrDefault(emptySet())
 
 object ProfileProcessor {
     private val profileLock = Mutex()
@@ -281,8 +293,11 @@ object ProfileProcessor {
                 // if THIS merge breaks a config / drops an orphaned rule.
                 ServiceStore(context).setUpdateEngineWarning(snapshot.uuid, false)
                 ServiceStore(context).setOrphanedRulesDropped(snapshot.uuid, emptyList())
+                // Captured from the raw fetched config (pre-merge) for rule-source reconcile.
+                var fetchedSubRuleKeys: Set<String> = emptySet()
                 if (!preserved.isEmpty() && configFile.isFile) {
                     val fetchedText = configFile.readText()
+                    fetchedSubRuleKeys = ruleKeysOf(fetchedText)
                     val droppedOrphans = mutableListOf<String>()
                     val merged = SubscriptionUpdateMerge.mergeAfterFetch(
                         fetchedText,
@@ -340,7 +355,14 @@ object ProfileProcessor {
                 // RULE-SET / GEOSITE / MATCH entry was deleted in the new subscription.
                 val processingStateFile = File(context.processingDir, "rules_state.json")
                 if (configFile.isFile && processingStateFile.isFile) {
-                    RuleApplyService(context).reconcileWithStoredState(configFile, processingStateFile)
+                    // Rule keys from the freshly fetched subscription (pre-merge), so reconcile
+                    // classifies rules by ORIGIN (what's actually in the sub), not by rule type —
+                    // fixes plain DOMAIN/IP-CIDR sub rules mislabelled MANUAL + heals any already
+                    // stored wrong. If no merge happened, configFile IS the raw fetch.
+                    val subKeys = fetchedSubRuleKeys.ifEmpty { ruleKeysOf(configFile.readText()) }
+                    RuleApplyService(context).reconcileWithStoredState(
+                        configFile, processingStateFile, subKeys,
+                    )
                 }
 
                 GeoUrlSanitizer.sanitizeProfile(context.processingDir)

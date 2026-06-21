@@ -184,18 +184,25 @@ class RuleApplyService(
      * @return true if reconciliation rewrote the config; false on any failure (caller should
      *         leave whatever [SubscriptionUpdateMerge] produced alone in that case).
      */
-    fun reconcileWithStoredState(configFile: File, stateFile: File): Boolean {
+    fun reconcileWithStoredState(
+        configFile: File,
+        stateFile: File,
+        fetchedSubRuleKeys: Set<String> = emptySet(),
+    ): Boolean {
         if (!configFile.isFile) return false
         if (!stateFile.isFile) return false
         return runCatching {
             val configText = configFile.readText()
             val snapshot = Clash.parseProfileSnapshot(configFile.parentFile!!)
             val parsed = RuleMapper.parseStateFromSnapshot(snapshot)
+            val classifiedParsed = parsed.copy(
+                rules = reclassifyBySubscription(parsed.rules, fetchedSubRuleKeys),
+            )
             val stored = stateJsonForReconcile.decodeFromString(
                 RuleState.serializer(),
                 stateFile.readText(),
             )
-            val merged = syncStoredWithParsed(stored, parsed)
+            val merged = syncStoredWithParsed(stored, classifiedParsed)
             val normalized = merged.copy(rules = normalizeRuleOrder(merged.rules))
             val geoDataUrls = GeoDataSources.resolve(
                 preset = serviceStore.geoDataSourcePreset,
@@ -240,7 +247,12 @@ internal fun syncStoredWithParsed(stored: RuleState, incoming: RuleState): RuleS
     fun key(r: RuleItem) =
         "${r.type.uppercase()},${r.value.uppercase()},${r.policy.uppercase()}"
 
-    val byKey = stored.rules.associateBy(::key)
+    // A deleted MANUAL rule is gone for good (no upstream sub to restore from), so it must
+    // not survive a subscription refresh either. Drop these before matching/retention so they
+    // can't resurface or stamp deleted=true onto a later same-key re-add. Mirrors
+    // RuleRepository.syncProviderRules.
+    val storedRules = stored.rules.filterNot { it.deleted && it.source == RuleSource.MANUAL }
+    val byKey = storedRules.associateBy(::key)
     val mergedRules = incoming.rules.mapIndexed { index, rule ->
         val old = byKey[key(rule)]
         if (old != null) {
@@ -257,12 +269,29 @@ internal fun syncStoredWithParsed(stored: RuleState, incoming: RuleState): RuleS
     }.toMutableList()
 
     val incomingKeys = incoming.rules.map(::key).toSet()
-    val retained = stored.rules.filter { rule ->
+    val retained = storedRules.filter { rule ->
         key(rule) !in incomingKeys &&
             (rule.deleted || !rule.enabled || rule.source == RuleSource.MANUAL)
     }
     retained.forEach { mergedRules += it.copy(order = mergedRules.size) }
     return stored.copy(providers = incoming.providers, rules = mergedRules)
+}
+
+/**
+ * Reclassify rules by ORIGIN using the `(type,value,policy)` keys of the freshly fetched
+ * subscription: a rule whose key is in the fetch is PROVIDER (heals a wrongly-stored MANUAL
+ * back to subscription); one absent from the fetch is a genuine user MANUAL rule the merge
+ * preserved. Empty keys → leave as-is (caller had no fetch to compare). Pure → unit-testable.
+ */
+internal fun reclassifyBySubscription(
+    rules: List<RuleItem>,
+    fetchedSubRuleKeys: Set<String>,
+): List<RuleItem> {
+    if (fetchedSubRuleKeys.isEmpty()) return rules
+    return rules.map { r ->
+        val k = "${r.type.uppercase()},${r.value.uppercase()},${r.policy.uppercase()}"
+        r.copy(source = if (k in fetchedSubRuleKeys) RuleSource.PROVIDER else RuleSource.MANUAL)
+    }
 }
 
 /**
