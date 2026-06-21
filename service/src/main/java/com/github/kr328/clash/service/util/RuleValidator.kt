@@ -22,6 +22,14 @@ object RuleValidator {
 
         state.rules.filter { it.enabled && !it.deleted }.forEach {
             require(it.type.isNotBlank()) { "Rule type is empty" }
+            // Opaque/logical types (AND/OR/NOT/SUB-RULE/SCRIPT) carry their whole
+            // payload in `raw`; value AND policy are legitimately empty for them.
+            // Validating those fields would reject a perfectly valid subscription
+            // rule and fail the entire save. Only their raw line must be present.
+            if (RuleMapper.isOpaqueType(it.type)) {
+                require(it.raw.isNotBlank()) { "Rule line is empty for type ${it.type}" }
+                return@forEach
+            }
             if (!it.type.equals("MATCH", true)) {
                 require(it.value.isNotBlank()) { "Rule value is empty for type ${it.type}" }
             }

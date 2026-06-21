@@ -59,7 +59,15 @@ class RuleRepository(private val context: Context) {
     }
 
     private fun syncProviderRules(stored: RuleState, incoming: RuleState): RuleState {
-        val byKey = stored.rules.associateBy {
+        // A deleted MANUAL rule is gone for good: it has no upstream subscription to
+        // restore from (unlike a deleted PROVIDER rule, whose soft-delete guards against
+        // a sub refresh resurrecting it). Drop such entries up front so they neither
+        // resurface on the post-apply reload (the "delete does nothing" bug) nor poison a
+        // later same-key re-add by copying their stale deleted=true flag onto it.
+        val storedRules = stored.rules.filterNot {
+            it.deleted && it.source == RuleSource.MANUAL
+        }
+        val byKey = storedRules.associateBy {
             "${it.type.uppercase()},${it.value.uppercase()},${it.policy.uppercase()}"
         }
         val mergedRules = incoming.rules.mapIndexed { index, rule ->
@@ -68,6 +76,11 @@ class RuleRepository(private val context: Context) {
             if (old != null) {
                 rule.copy(
                     id = old.id,
+                    // Trust the STORED source (it's authoritative for MANUAL vs PROVIDER
+                    // after the last reconcile). The snapshot now defaults everything to
+                    // PROVIDER, so without this a genuine MANUAL rule present in config
+                    // would silently flip to PROVIDER on a plain editor open.
+                    source = old.source,
                     enabled = old.enabled,
                     deleted = old.deleted,
                     isRestorable = old.isRestorable || rule.isRestorable,
@@ -85,7 +98,7 @@ class RuleRepository(private val context: Context) {
         val incomingKeys = incoming.rules.map {
             "${it.type.uppercase()},${it.value.uppercase()},${it.policy.uppercase()}"
         }.toSet()
-        val retained = stored.rules.filter { rule ->
+        val retained = storedRules.filter { rule ->
             val k = "${rule.type.uppercase()},${rule.value.uppercase()},${rule.policy.uppercase()}"
             k !in incomingKeys &&
                 (

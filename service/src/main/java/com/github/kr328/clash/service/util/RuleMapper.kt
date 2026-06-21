@@ -20,6 +20,15 @@ object RuleMapper {
     // the raw line as-is and never re-synthesise it from type/value/policy.
     private val OPAQUE_RULE_TYPES = setOf("AND", "OR", "NOT", "SUB-RULE", "SCRIPT")
 
+    /**
+     * Opaque/logical rule types carry their whole payload in [RuleItem.raw];
+     * their `value` and `policy` fields are legitimately empty (see
+     * [parseStateFromSnapshot]). Callers that validate value/policy must skip
+     * these (e.g. [RuleValidator]) — otherwise a single AND/OR/SUB-RULE rule
+     * from the subscription fails the whole save with "value is empty".
+     */
+    fun isOpaqueType(type: String): Boolean = type.trim().uppercase() in OPAQUE_RULE_TYPES
+
     // Rule types that only exist via subscription content - the UI does not
     // offer a form to add these manually. When we read them out of config.yaml
     // they are by definition PROVIDER-sourced. Marking them MANUAL caused
@@ -46,21 +55,14 @@ object RuleMapper {
             providerFromJson(name, body, source = RuleSource.PROVIDER)
         }
         val rules = snapshot.rules.mapIndexedNotNull { index, raw ->
-            parseRuleLine(raw, index)?.let { item ->
-                // Subscription-owned types (RULE-SET, GEOSITE, GEOIP, MATCH,
-                // SUB-RULE, AND, OR, NOT) cannot be entered through the UI
-                // add form, so when we see them in config.yaml they came
-                // from the subscription. Override the default MANUAL source
-                // so syncProviderRules drops them cleanly on a refresh that
-                // no longer contains them. User-typed types (DOMAIN, IP-CIDR,
-                // DOMAIN-SUFFIX, ...) keep the helper's MANUAL default - that
-                // is what lets manual entries survive subscription updates.
-                if (item.type.uppercase() in SUBSCRIPTION_OWNED_RULE_TYPES) {
-                    item.copy(source = RuleSource.PROVIDER)
-                } else {
-                    item
-                }
-            }
+            // Rules read out of config.yaml are PROVIDER-sourced by DEFAULT: they came
+            // from the (effective) subscription config, regardless of rule TYPE. The old
+            // heuristic assumed plain types (DOMAIN, IP-CIDR, ...) were user-MANUAL — but
+            // subscriptions routinely author plain DOMAIN/IP-CIDR rules, so that mislabelled
+            // subscription rules as MANUAL. Genuine MANUAL rules are only ever set by the
+            // editor (Add rule) and preserved via the stored state + the raw-fetch reconcile
+            // (reconcileWithStoredState reclassifies by what's actually in the fetched sub).
+            parseRuleLine(raw, index, defaultSource = RuleSource.PROVIDER)
         }
         return RuleState(providers = providers, rules = rules)
     }

@@ -111,10 +111,12 @@ class RuleMapperTest {
     }
 
     @Test
-    fun parseStateFromSnapshot_keepsManualTypesAsManual() {
-        // User-addable types stay MANUAL when read from config.yaml so
-        // subscription refresh does not wipe DOMAIN/IP-CIDR entries the
-        // user added through the UI.
+    fun parseStateFromSnapshot_classifiesConfigRulesAsProvider() {
+        // Rules read from config.yaml are PROVIDER by default — they came from the
+        // (effective) subscription, regardless of rule TYPE. Subscriptions routinely
+        // author plain DOMAIN/IP-CIDR rules, so the old "plain type => MANUAL" heuristic
+        // mislabelled them. MANUAL is set only by the editor + healed via the raw-fetch
+        // reconcile (see reconcileWithStoredState).
         val snapshot = snapshotWith(
             "DOMAIN,example.com,DIRECT",
             "DOMAIN-SUFFIX,corp.local,DIRECT",
@@ -126,8 +128,8 @@ class RuleMapperTest {
 
         state.rules.forEach { rule ->
             assertEquals(
-                "rule type=${rule.type} must keep MANUAL classification",
-                RuleSource.MANUAL,
+                "rule type=${rule.type} read from config must be PROVIDER, not MANUAL",
+                RuleSource.PROVIDER,
                 rule.source,
             )
         }
