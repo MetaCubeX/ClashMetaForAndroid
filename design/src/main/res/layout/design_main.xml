@@ -95,6 +95,8 @@
                             android:layout_height="28dp"
                             android:layout_marginEnd="10dp"
                             android:background="?attr/colorSurfaceContainerHigh"
+                            android:focusable="false"
+                            android:importantForAccessibility="no"
                             android:scaleType="centerCrop"
                             android:visibility="gone"
                             app:shapeAppearanceOverlay="@style/ShapeAppearance.App.Circle"
@@ -709,6 +711,7 @@
                         android:layout_height="40dp"
                         android:background="?attr/selectableItemBackgroundBorderless"
                         android:contentDescription="@string/profiles_sort"
+                        android:foreground="@drawable/focus_ring"
                         android:padding="8dp"
                         android:src="@drawable/ic_baseline_swap_vert"
                         app:tint="?attr/colorOnSurfaceVariant" />
@@ -1048,6 +1051,8 @@
                                 android:layout_width="56dp"
                                 android:layout_height="56dp"
                                 android:background="?attr/colorSurfaceContainerHigh"
+                                android:focusable="false"
+                                android:importantForAccessibility="no"
                                 android:scaleType="centerCrop"
                                 app:shapeAppearanceOverlay="@style/ShapeAppearance.App.Circle" />
 

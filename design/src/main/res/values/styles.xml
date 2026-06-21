@@ -15,22 +15,27 @@
          the focused control unmistakable. -->
     <style name="AppButton" parent="Widget.Material3.Button">
         <item name="android:foreground">@drawable/focus_ring</item>
+        <item name="android:stateListAnimator">@animator/focus_scale</item>
     </style>
 
     <style name="AppButton.Outlined" parent="Widget.Material3.Button.OutlinedButton">
         <item name="android:foreground">@drawable/focus_ring</item>
+        <item name="android:stateListAnimator">@animator/focus_scale</item>
     </style>
 
     <style name="AppButton.Text" parent="Widget.Material3.Button.TextButton">
         <item name="android:foreground">@drawable/focus_ring</item>
+        <item name="android:stateListAnimator">@animator/focus_scale</item>
     </style>
 
     <style name="AppButton.Tonal" parent="Widget.Material3.Button.TonalButton">
         <item name="android:foreground">@drawable/focus_ring</item>
+        <item name="android:stateListAnimator">@animator/focus_scale</item>
     </style>
 
     <style name="AppButton.Icon" parent="Widget.Material3.Button.IconButton">
         <item name="android:foreground">@drawable/focus_ring</item>
+        <item name="android:stateListAnimator">@animator/focus_scale</item>
     </style>
 
     <!-- ========== Material 3 TextInputLayout Styles ========== -->
