@@ -27,7 +27,16 @@ func TestMergeFidelity_Containment(t *testing.T) {
 		mf := strings.Replace(ff, "__fetched.yaml", "__merged.yaml", 1)
 
 		fetched := mustSnapshot(t, ff)
-		merged := mustSnapshot(t, mf) // also asserts the engine accepts the merge
+		merged := mustSnapshot(t, mf) // structural parse
+
+		// Full engine validation (the real runtime parse, config.go:1105) — this is
+		// the check that emits the user-visible `rule set [X] not found` when the
+		// merge drops a referenced rule-provider. ParseBytes above is only structural.
+		if mergedBytes, err := os.ReadFile(mf); err == nil {
+			if errMsg := ValidateBytes(mergedBytes); errMsg != "" {
+				t.Errorf("%s: engine REJECTED merged config (user-visible failure): %s", name, errMsg)
+			}
+		}
 
 		subset(t, name, "rules", fetched.Rules, merged.Rules)
 		subset(t, name, "proxies", names(fetched.Proxies), names(merged.Proxies))
