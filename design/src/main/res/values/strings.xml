@@ -1188,4 +1188,5 @@ Presets only change <b>where</b> files are downloaded from (CDN / host). It is s
     <string name="companion_shared">Subscription shared</string>
     <string name="companion_renamed">Renamed</string>
     <string name="companion_unpair_message">Unpair %1$s from this device?</string>
+    <string name="companion_copy_link">Copy link</string>
 </resources>

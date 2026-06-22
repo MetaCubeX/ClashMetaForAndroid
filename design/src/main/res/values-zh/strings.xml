@@ -1112,4 +1112,5 @@
     <string name="companion_shared">订阅已分享</string>
     <string name="companion_renamed">已重命名</string>
     <string name="companion_unpair_message">取消与 %1$s 的配对？</string>
+    <string name="companion_copy_link">复制链接</string>
 </resources>

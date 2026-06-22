@@ -1184,4 +1184,5 @@
     <string name="companion_shared">Подписка отправлена</string>
     <string name="companion_renamed">Переименовано</string>
     <string name="companion_unpair_message">Разорвать сопряжение с %1$s?</string>
+    <string name="companion_copy_link">Скопировать ссылку</string>
 </resources>

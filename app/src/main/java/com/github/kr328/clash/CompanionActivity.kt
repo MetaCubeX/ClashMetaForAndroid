@@ -82,9 +82,13 @@ class CompanionActivity : BaseActivity<CompanionDesign>() {
 
         MaterialAlertDialogBuilder(this)
             .setTitle(R.string.companion_show_qr_title)
-            .setMessage(getString(R.string.companion_qr_dialog_message) + "\n\n$ip:$port")
+            .setMessage(getString(R.string.companion_qr_dialog_message) + "\n\n$ip:$port\n\n$payload")
             .setView(image)
             .setPositiveButton(android.R.string.ok, null)
+            .setNeutralButton(R.string.companion_copy_link) { _, _ ->
+                val cm = getSystemService(android.content.ClipboardManager::class.java)
+                cm?.setPrimaryClip(android.content.ClipData.newPlainText("clashctl-pair", payload))
+            }
             .show()
     }
 
