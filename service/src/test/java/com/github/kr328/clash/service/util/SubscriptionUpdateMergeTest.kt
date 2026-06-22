@@ -221,6 +221,41 @@ class SubscriptionUpdateMergeTest {
     }
 
     @Test
+    fun gc_keepsRuleProviderWhoseNameContainsSpaces() {
+        // Regression: rule-provider names may contain spaces (valid in mihomo).
+        // The reference regex stopped at the first whitespace, so `RULE-SET,Ad Block`
+        // was read as "Ad"; the GC saw "Ad Block" as unreferenced, dropped it, and the
+        // next update failed the WHOLE config with `rule set [Ad Block] not found`
+        // (config.go:1105) — even though every other client loads it fine.
+        val fetched = """
+            proxies:
+              - {name: p1, type: socks5, server: 127.0.0.1, port: 1080}
+            rule-providers:
+              Ad Block:   {type: http, behavior: domain, url: https://e/x.yaml, path: ./a.yaml}
+              Media List: {type: http, behavior: domain, url: https://e/y.yaml, path: ./b.yaml}
+              gone set:   {type: http, behavior: domain, url: https://e/z.yaml, path: ./z.yaml}
+            rules:
+              - RULE-SET,Ad Block,REJECT
+              - AND,((RULE-SET,Media List),(NETWORK,UDP)),DIRECT
+              - MATCH,p1
+        """.trimIndent() + "\n"
+
+        val preserved = SubscriptionUpdateMerge.extractPreserved(
+            snapshot(rules = listOf("DOMAIN,kept.local,DIRECT")),
+        )
+        val merged = SubscriptionUpdateMerge.mergeAfterFetch(fetched, preserved)
+        // Parse back so we assert the provider DEFINITION survived (the name also
+        // appears in the rule line, so a substring check alone would be a false pass).
+        val providers = MihomoConfigDocument.parseOrEmpty(merged).root["rule-providers"] as? Map<*, *>
+        assertNotNull("rule-providers block must survive", providers)
+        val keys = providers!!.keys.map { it?.toString() }
+
+        assertTrue("space-named 'Ad Block' (plain RULE-SET) must survive GC", "Ad Block" in keys)
+        assertTrue("space-named 'Media List' (nested in AND) must survive GC", "Media List" in keys)
+        assertFalse("genuinely unreferenced 'gone set' should still be dropped", "gone set" in keys)
+    }
+
+    @Test
     fun mergeRules_preservesManualTypesButNotSubscriptionOwned() {
         // Manual host/IP rules a user added locally must survive a refresh;
         // subscription-owned types (RULE-SET/GEOSITE/GEOIP/MATCH/AND/OR/NOT/

@@ -233,8 +233,15 @@ object SubscriptionUpdateMerge {
         }
     }
 
-    /** `RULE-SET,<name>` anywhere in a rule line — incl. nested in logical rules. */
-    private val ruleSetRef = Regex("RULE-SET\\s*,\\s*([^,()\\s]+)", RegexOption.IGNORE_CASE)
+    /**
+     * `RULE-SET,<name>` anywhere in a rule line — incl. nested in logical rules.
+     * The name runs to the next field/group delimiter (`,` `(` `)`), NOT to the
+     * first whitespace: rule-provider names may contain spaces (e.g.
+     * `RULE-SET,Ad Block,REJECT`). Stopping at `\s` captured just "Ad", so the GC
+     * saw the provider as unreferenced, dropped it, and the next update failed the
+     * whole config with `rule set [Ad Block] not found`. The caller trims the match.
+     */
+    private val ruleSetRef = Regex("RULE-SET\\s*,\\s*([^,()]+)", RegexOption.IGNORE_CASE)
 
     private fun collectRuleSetTargets(rulesNode: Any?): Set<String> {
         val list = rulesNode as? List<*> ?: return emptySet()
