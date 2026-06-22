@@ -49,8 +49,56 @@ class MergeFidelityFixtureTest {
               - {name: G, type: select, use: [used]}
               - {name: Pick, type: select, proxies: [n1, G]}
             rules:
-              - AND,((RULE-SET,used),(DST-PORT,443)),G
               - MATCH,Pick
+        """.trimIndent() + "\n",
+        // The actual 2026-06-22 user bug: a rule-provider whose NAME contains a space.
+        // The GC's capture regex stopped at whitespace → "Ad Block" dropped → engine
+        // rejects merged with `rule set [Ad Block] not found`. The Go oracle catches it
+        // BOTH ways: engine rejects the merged fixture AND the containment check finds
+        // the lost rule-provider.
+        "ruleset_name_with_spaces" to """
+            proxies:
+              - {name: n1, type: socks5, server: 127.0.0.1, port: 1080}
+            rule-providers:
+              Ad Block: {type: http, behavior: domain, url: https://e/ab.yaml, path: ./ab.yaml}
+            proxy-groups:
+              - {name: G, type: select, proxies: [n1]}
+            rules:
+              - RULE-SET,Ad Block,REJECT
+              - MATCH,G
+        """.trimIndent() + "\n",
+        "ruleset_spaces_nested_in_logical" to """
+            proxies:
+              - {name: n1, type: socks5, server: 127.0.0.1, port: 1080}
+            rule-providers:
+              Media List: {type: http, behavior: domain, url: https://e/ml.yaml, path: ./ml.yaml}
+            proxy-groups:
+              - {name: G, type: select, proxies: [n1]}
+            rules:
+              - AND,((RULE-SET,Media List),(NETWORK,UDP)),DIRECT
+              - MATCH,G
+        """.trimIndent() + "\n",
+        "ruleset_name_unicode" to """
+            proxies:
+              - {name: n1, type: socks5, server: 127.0.0.1, port: 1080}
+            rule-providers:
+              Реклама: {type: http, behavior: domain, url: https://e/rk.yaml, path: ./rk.yaml}
+            proxy-groups:
+              - {name: G, type: select, proxies: [n1]}
+            rules:
+              - RULE-SET,Реклама,REJECT
+              - MATCH,G
+        """.trimIndent() + "\n",
+        "ruleset_deeply_nested" to """
+            proxies:
+              - {name: n1, type: socks5, server: 127.0.0.1, port: 1080}
+            rule-providers:
+              deepSet: {type: http, behavior: domain, url: https://e/d.yaml, path: ./d.yaml}
+            proxy-groups:
+              - {name: G, type: select, proxies: [n1]}
+            rules:
+              - OR,((AND,((RULE-SET,deepSet),(DST-PORT,80))),(DOMAIN,a.com)),REJECT
+              - MATCH,G
         """.trimIndent() + "\n",
     )
 
