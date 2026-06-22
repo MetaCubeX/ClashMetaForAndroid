@@ -1,8 +1,10 @@
 package com.github.kr328.clash.companion.agent
 
 import com.github.kr328.clash.common.log.Log
+import com.github.kr328.clash.companion.CompanionPin
 import com.github.kr328.clash.companion.CompanionStore
 import com.github.kr328.clash.companion.protocol.CanonicalJson
+import com.github.kr328.clash.companion.protocol.Ids
 import fi.iki.elonen.NanoHTTPD
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
@@ -45,7 +47,11 @@ class GatewayServer(
     }
 
     private fun handle(session: IHTTPSession): Response {
-        // Bearer auth (§5.2) — applies to every endpoint, before any hook or routing.
+        // PIN-assisted pairing (§6.4) is the ONE endpoint without bearer auth — it issues the token.
+        // Gated instead by the on-screen PIN (single-use, expiring, rate-limited).
+        if (session.method == Method.POST && session.uri == "/v1/pair") return pair(session)
+
+        // Bearer auth (§5.2) — applies to every other endpoint, before any hook or routing.
         val header = session.headers["authorization"].orEmpty()
         val token = if (header.startsWith(BEARER)) header.substring(BEARER.length) else null
         val pairing = token?.let { pairingStore.authenticate(it) }
@@ -120,6 +126,31 @@ class GatewayServer(
         return ok(buildJsonObject { put("name", name); put("ok", true) })
     }
 
+    /**
+     * PIN-assisted pairing (§6.4). Body: `{"pin":"<code>","device":{"id":"<id>","name":"<name>"}}`.
+     * On a correct PIN, issues and returns a bearer token bound to the controller; wrong PIN →
+     * `pin_invalid` (403), too many attempts → `pin_rate_limited` (429).
+     */
+    private fun pair(session: IHTTPSession): Response {
+        val body = parseBody(session) ?: return badRequest("malformed body")
+        val pin = body["pin"]?.jsonPrimitive?.content ?: return badRequest("pin required")
+        val device = body["device"]?.jsonObject
+        val controllerId = device?.get("id")?.jsonPrimitive?.content
+        val controllerName = device?.get("name")?.jsonPrimitive?.content
+
+        return when (CompanionPin.verify(pin)) {
+            CompanionPin.Result.OK -> {
+                val token = pairingStore.issueToken()
+                pairingStore.recordController(Ids.tokenHash(token), controllerId, controllerName)
+                ok(buildJsonObject { put("ok", true); put("token", token) })
+            }
+            CompanionPin.Result.RATE_LIMITED ->
+                error(429, "pin_rate_limited", "too many attempts")
+            CompanionPin.Result.WRONG, CompanionPin.Result.EXPIRED ->
+                error(Response.Status.FORBIDDEN, "pin_invalid", "wrong or expired pin")
+        }
+    }
+
     // --- helpers ------------------------------------------------------------------------------
 
     private fun parseBody(session: IHTTPSession): JsonObject? = try {
@@ -138,16 +169,25 @@ class GatewayServer(
         error(Response.Status.BAD_REQUEST, "bad_request", message)
 
     private fun error(status: Response.Status, code: String, message: String): Response =
-        newFixedLengthResponse(
-            status, MIME_JSON,
-            CanonicalJson.encode(
-                buildJsonObject {
-                    putJsonObject("error") {
-                        put("code", code)
-                        put("message", message)
-                    }
-                },
-            ),
+        newFixedLengthResponse(status, MIME_JSON, errorBody(code, message))
+
+    /** For HTTP codes NanoHTTPD's [Response.Status] enum doesn't cover (e.g. 429). */
+    private fun error(httpCode: Int, code: String, message: String): Response {
+        val status = object : Response.IStatus {
+            override fun getRequestStatus(): Int = httpCode
+            override fun getDescription(): String = "$httpCode $code"
+        }
+        return newFixedLengthResponse(status, MIME_JSON, errorBody(code, message))
+    }
+
+    private fun errorBody(code: String, message: String): String =
+        CanonicalJson.encode(
+            buildJsonObject {
+                putJsonObject("error") {
+                    put("code", code)
+                    put("message", message)
+                }
+            },
         )
 
     private companion object {

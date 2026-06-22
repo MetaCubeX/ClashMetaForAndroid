@@ -27,6 +27,7 @@ class CompanionDesign(
 ) : Design<CompanionDesign.Request>(context) {
     enum class Request {
         ShowQr,
+        ShowPin,
         ManagePairings,
         ScanToPair,
         OpenControl,
@@ -60,6 +61,14 @@ class CompanionDesign(
                 summary = R.string.companion_show_qr_summary,
             ) {
                 clicked { requests.trySend(Request.ShowQr) }
+            }
+
+            clickable(
+                title = R.string.companion_show_pin_title,
+                icon = R.drawable.ic_baseline_bolt,
+                summary = R.string.companion_show_pin_summary,
+            ) {
+                clicked { requests.trySend(Request.ShowPin) }
             }
 
             clickable(

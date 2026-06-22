@@ -1185,4 +1185,13 @@
     <string name="companion_renamed">Переименовано</string>
     <string name="companion_unpair_message">Разорвать сопряжение с %1$s?</string>
     <string name="companion_copy_link">Скопировать ссылку</string>
+    <string name="companion_tv_home_summary">Управляйте этим устройством с телефона по локальной сети</string>
+    <string name="companion_import_row">Управление ТВ</string>
+    <string name="companion_import_sub">Сопрягитесь и управляйте ТВ в вашей сети</string>
+    <string name="companion_share_after_pair">Отправить «%1$s» на это устройство сейчас?</string>
+    <string name="companion_not_now">Не сейчас</string>
+    <string name="companion_show_pin_title">Показать PIN для сопряжения</string>
+    <string name="companion_show_pin_summary">Сопрягите ПК (например SlothClash) вводом кода</string>
+    <string name="companion_pin_dialog_message">Введите этот PIN на другом устройстве (действует 60с)</string>
+    <string name="companion_starting">Запускаю удалённое управление… повтори через секунду</string>
 </resources>

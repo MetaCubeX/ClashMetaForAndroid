@@ -1113,4 +1113,13 @@
     <string name="companion_renamed">已重命名</string>
     <string name="companion_unpair_message">取消与 %1$s 的配对？</string>
     <string name="companion_copy_link">复制链接</string>
+    <string name="companion_tv_home_summary">用手机通过局域网控制本设备</string>
+    <string name="companion_import_row">控制电视</string>
+    <string name="companion_import_sub">配对并控制网络中的电视</string>
+    <string name="companion_share_after_pair">现在把“%1$s”发送到此设备？</string>
+    <string name="companion_not_now">以后再说</string>
+    <string name="companion_show_pin_title">显示配对 PIN</string>
+    <string name="companion_show_pin_summary">通过输入代码配对电脑（如 SlothClash）</string>
+    <string name="companion_pin_dialog_message">在另一台设备上输入此 PIN（60秒内有效）</string>
+    <string name="companion_starting">正在启动远程控制…请稍后重试</string>
 </resources>

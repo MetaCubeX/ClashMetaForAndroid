@@ -1189,4 +1189,13 @@ Presets only change <b>where</b> files are downloaded from (CDN / host). It is s
     <string name="companion_renamed">Renamed</string>
     <string name="companion_unpair_message">Unpair %1$s from this device?</string>
     <string name="companion_copy_link">Copy link</string>
+    <string name="companion_tv_home_summary">Let your phone control this device over the local network</string>
+    <string name="companion_import_row">Control a TV</string>
+    <string name="companion_import_sub">Pair and control a TV on your network</string>
+    <string name="companion_share_after_pair">Send “%1$s” to this device now?</string>
+    <string name="companion_not_now">Not now</string>
+    <string name="companion_show_pin_title">Show pairing PIN</string>
+    <string name="companion_show_pin_summary">Pair a PC (e.g. SlothClash) by entering a code</string>
+    <string name="companion_pin_dialog_message">Enter this PIN on the other device (valid 60s)</string>
+    <string name="companion_starting">Starting remote control… try again in a moment</string>
 </resources>
