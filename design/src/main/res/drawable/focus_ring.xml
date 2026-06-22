@@ -9,7 +9,9 @@
     <item android:state_focused="true">
         <shape android:shape="rectangle">
             <solid android:color="@android:color/transparent" />
-            <stroke android:width="3dp" android:color="?attr/colorPrimary" />
+            <!-- High-contrast so the ring is visible on ANY surface, incl. colorPrimary-filled
+                 buttons and dark TV backgrounds (colorPrimary was invisible on pink buttons). -->
+            <stroke android:width="4dp" android:color="?attr/colorOnSurface" />
             <corners android:radius="20dp" />
         </shape>
     </item>

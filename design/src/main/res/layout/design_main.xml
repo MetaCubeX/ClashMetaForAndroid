@@ -193,18 +193,18 @@
                     android:gravity="center_horizontal"
                     android:orientation="vertical"
                     android:paddingHorizontal="32dp"
-                    android:paddingTop="48dp"
+                    android:paddingTop="16dp"
                     android:paddingBottom="32dp"
                     android:visibility="@{hasProfiles ? View.GONE : View.VISIBLE}">
 
                     <FrameLayout
-                        android:layout_width="120dp"
-                        android:layout_height="120dp"
+                        android:layout_width="96dp"
+                        android:layout_height="96dp"
                         android:background="@drawable/bg_m3_hero_icon">
 
                         <ImageView
-                            android:layout_width="64dp"
-                            android:layout_height="64dp"
+                            android:layout_width="52dp"
+                            android:layout_height="52dp"
                             android:layout_gravity="center"
                             android:importantForAccessibility="no"
                             android:src="@drawable/ic_baseline_vpn_lock"
@@ -230,10 +230,13 @@
                         android:textColor="?attr/colorOnSurfaceVariant" />
 
                     <com.google.android.material.button.MaterialButton
+                        android:id="@+id/main_empty_add_button"
                         style="@style/AppButton"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="32dp"
+                        android:focusedByDefault="true"
+                        android:foreground="@drawable/focus_ring"
                         android:minWidth="220dp"
                         android:onClick="@{() -> self.request(Request.OpenNewProfile)}"
                         android:text="@string/main_add_subscription"
@@ -251,6 +254,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="12dp"
+                        android:foreground="@drawable/focus_ring"
                         android:minWidth="220dp"
                         android:onClick="@{() -> self.request(Request.OpenCompanion)}"
                         android:text="@string/companion_title"
@@ -327,6 +331,8 @@
                         android:layout_height="148dp"
                         android:layout_gravity="center"
                         android:contentDescription="@string/tap_to_start"
+                        android:focusedByDefault="true"
+                        android:foreground="@drawable/focus_ring_circle"
                         android:insetLeft="0dp"
                         android:insetTop="0dp"
                         android:insetRight="0dp"
