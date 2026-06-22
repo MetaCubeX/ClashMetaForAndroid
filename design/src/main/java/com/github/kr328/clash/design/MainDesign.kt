@@ -30,6 +30,7 @@ import com.github.kr328.clash.design.model.HomeBackgroundStyle
 import com.github.kr328.clash.design.store.UiStore
 import com.github.kr328.clash.design.ui.ToastDuration
 import com.github.kr328.clash.design.util.applyLinearAdapter
+import com.github.kr328.clash.design.util.isTelevision
 import com.github.kr328.clash.design.util.layoutInflater
 import com.github.kr328.clash.design.util.patchDataSet
 import com.github.kr328.clash.design.util.resolveThemedColor
@@ -71,6 +72,8 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         OpenPerAppRouting,
         /** Subscriptions / profiles list. */
         OpenProfiles,
+        /** Companion remote-control hub (quick entry surfaced on TV home). */
+        OpenCompanion,
     }
 
     private enum class MainTab {
@@ -1574,6 +1577,14 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         binding.hasProfiles = false
         applyHomeBackgroundStyle()
         setupMainPager()
+
+        // Surface the remote-control quick entry on the TV home (deep settings nav with a D-pad
+        // is painful); on phones it lives in the "+" sheet instead. Shown in both the empty and
+        // active home states so a fresh TV can enable it to receive its first subscription.
+        if (context.isTelevision()) {
+            binding.mainCompanionRow.visibility = View.VISIBLE
+            binding.mainCompanionEmptyButton.visibility = View.VISIBLE
+        }
 
         binding.profileList.also {
             it.applyLinearAdapter(context, profileAdapter)

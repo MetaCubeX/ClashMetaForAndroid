@@ -49,6 +49,7 @@ import com.github.kr328.clash.design.dialog.withModelProgressBar
 import com.github.kr328.clash.design.model.DarkMode
 import com.github.kr328.clash.design.ui.ToastDuration
 import com.github.kr328.clash.design.util.applyFetchStatus
+import com.github.kr328.clash.design.util.isTelevision
 import com.github.kr328.clash.design.util.showExceptionToast
 import com.github.kr328.clash.remote.Remote
 import com.github.kr328.clash.remote.StatusClient
@@ -414,6 +415,14 @@ class MainActivity : BaseActivity<MainDesign>() {
             dialog.dismiss()
             launch { importFromFile(design) }
         }
+        // Companion "control a TV" entry — phones only; on TV it lives on the home screen.
+        view.findViewById<View>(R.id.opt_companion).also { row ->
+            row.visibility = if (isTelevision()) View.GONE else View.VISIBLE
+            row.setOnClickListener {
+                dialog.dismiss()
+                startActivity(CompanionActivity::class.intent)
+            }
+        }
         dialog.show()
     }
 
@@ -481,6 +490,15 @@ class MainActivity : BaseActivity<MainDesign>() {
         design.applyInitialModeFromPreference(uiStore.tunnelModePreference)
 
         setContentDesign(design)
+
+        // Keep the companion agent alive whenever the app is open if the user enabled it — the
+        // foreground service doesn't survive a process restart on its own, so a paired controller
+        // could otherwise never reach this device after the app was killed.
+        if (com.github.kr328.clash.companion.CompanionStore(this).agentEnabled &&
+            !com.github.kr328.clash.companion.agent.CompanionAgent.isReady()
+        ) {
+            com.github.kr328.clash.companion.agent.CompanionGatewayService.start(this)
+        }
         design.fetch()
         refreshAnnouncement(design)
 
@@ -648,6 +666,9 @@ class MainActivity : BaseActivity<MainDesign>() {
 
                         MainDesign.Request.OpenProfiles ->
                             design.openProfilesTab()
+
+                        MainDesign.Request.OpenCompanion ->
+                            startActivity(CompanionActivity::class.intent)
 
                         MainDesign.Request.OpenSettings ->
                             startActivity(SettingsActivity::class.intent)
