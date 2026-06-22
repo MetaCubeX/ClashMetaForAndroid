@@ -239,6 +239,24 @@
                         app:icon="@drawable/ic_baseline_add"
                         app:iconGravity="textStart"
                         app:iconPadding="8dp" />
+
+                    <!-- Remote control entry on the empty home — shown only on TV (set in MainDesign),
+                         so a fresh TV can enable remote control to receive a subscription. -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/main_companion_empty_button"
+                        style="@style/Widget.Material3.Button.TonalButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:minWidth="220dp"
+                        android:onClick="@{() -> self.request(Request.OpenCompanion)}"
+                        android:text="@string/companion_title"
+                        android:textAllCaps="false"
+                        android:visibility="gone"
+                        app:cornerRadius="20dp"
+                        app:icon="@drawable/ic_baseline_stack"
+                        app:iconGravity="textStart"
+                        app:iconPadding="8dp" />
                 </LinearLayout>
             </FrameLayout>
 
@@ -389,6 +407,64 @@
                                 android:ellipsize="end"
                                 android:maxLines="1"
                                 android:text="@string/main_routing_summary"
+                                android:textAppearance="@style/TextAppearance.App.BodySmall"
+                                android:textColor="?attr/colorOnSurfaceVariant" />
+                        </LinearLayout>
+
+                        <ImageView
+                            android:layout_width="28dp"
+                            android:layout_height="28dp"
+                            android:padding="4dp"
+                            android:src="@drawable/ic_baseline_expand_more"
+                            android:rotation="-90"
+                            app:tint="?attr/colorOnSurfaceVariant"
+                            tools:ignore="ContentDescription" />
+                    </LinearLayout>
+
+                    <!-- Remote control quick entry — shown only on Android TV (set in MainDesign). -->
+                    <LinearLayout
+                        android:id="@+id/main_companion_row"
+                        android:layout_width="match_parent"
+                        android:layout_height="64dp"
+                        android:background="?attr/selectableItemBackground"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:gravity="center_vertical"
+                        android:onClick="@{() -> self.request(Request.OpenCompanion)}"
+                        android:orientation="horizontal"
+                        android:paddingHorizontal="14dp"
+                        android:visibility="gone">
+
+                        <ImageView
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:background="@drawable/bg_m3_status_chip_neutral"
+                            android:padding="9dp"
+                            android:src="@drawable/ic_baseline_stack"
+                            app:tint="?attr/colorPrimary"
+                            tools:ignore="ContentDescription" />
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="12dp"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="@string/companion_title"
+                                android:textAppearance="@style/TextAppearance.App.TitleSmall"
+                                android:textColor="?attr/colorOnSurface"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:ellipsize="end"
+                                android:maxLines="1"
+                                android:text="@string/companion_tv_home_summary"
                                 android:textAppearance="@style/TextAppearance.App.BodySmall"
                                 android:textColor="?attr/colorOnSurfaceVariant" />
                         </LinearLayout>

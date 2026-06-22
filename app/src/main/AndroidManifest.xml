@@ -17,6 +17,10 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+    <!-- Companion remote-control (clashctl): mDNS multicast + QR scanning. -->
+    <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
 
     <application
         android:name=".MainApplication"
@@ -264,6 +268,25 @@
             android:configChanges="uiMode"
             android:exported="false"
             android:label="@string/files" />
+        <activity
+            android:name=".CompanionActivity"
+            android:configChanges="uiMode"
+            android:exported="false"
+            android:label="@string/companion_title" />
+        <activity
+            android:name=".CompanionControlActivity"
+            android:configChanges="uiMode"
+            android:exported="false"
+            android:label="@string/companion_devices_title" />
+
+        <service
+            android:name=".companion.agent.CompanionGatewayService"
+            android:exported="false"
+            android:label="@string/companion_title"
+            android:foregroundServiceType="specialUse">
+            <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="companion_remote_control"/>
+        </service>
 
         <service
             android:name=".LogcatService"

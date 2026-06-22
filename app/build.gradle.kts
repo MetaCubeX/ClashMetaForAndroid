@@ -5,6 +5,7 @@ import org.gradle.api.GradleException
 
 plugins {
     kotlin("android")
+    id("kotlinx-serialization")
     id("com.android.application")
 }
 
@@ -27,6 +28,12 @@ dependencies {
     implementation(libs.quickie.bundled)
     implementation(libs.androidx.activity.ktx)
 
+    // Companion remote-control (clashctl): agent server, controller client, TLS, QR.
+    implementation(libs.nanohttpd)
+    implementation(libs.okhttp)
+    implementation(libs.bouncycastle.pkix)
+    implementation(libs.zxing.core)
+
     testImplementation("junit:junit:4.13.2")
     testImplementation(kotlin("test"))
     testImplementation("com.squareup.okhttp3:mockwebserver:4.12.0")
@@ -35,6 +42,15 @@ dependencies {
 android {
     testOptions {
         unitTests.isReturnDefaultValues = true
+    }
+
+    packaging {
+        resources {
+            // BouncyCastle ships these in all three (bcpkix/bcutil/bcprov) multi-release jars.
+            excludes += "META-INF/versions/9/OSGI-INF/MANIFEST.MF"
+            excludes += "META-INF/BCKEY.SF"
+            excludes += "META-INF/BCKEY.DSA"
+        }
     }
 }
 

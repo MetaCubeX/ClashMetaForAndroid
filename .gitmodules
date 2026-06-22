@@ -2,3 +2,7 @@
 	path = core/src/foss/golang/clash
 	url = https://github.com/MetaCubeX/mihomo
 	branch = Alpha
+[submodule "clash-companion"]
+	path = clash-companion
+	url = https://github.com/Nemu-x/clash-companion.git
+	branch = feat/clashctl-protocol-v1
