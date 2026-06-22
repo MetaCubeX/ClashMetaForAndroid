@@ -27,6 +27,12 @@ dependencies {
     implementation(libs.quickie.bundled)
     implementation(libs.androidx.activity.ktx)
 
+    // Companion remote-control (clashctl): agent server, controller client, TLS, QR.
+    implementation(libs.nanohttpd)
+    implementation(libs.okhttp)
+    implementation(libs.bouncycastle.pkix)
+    implementation(libs.zxing.core)
+
     testImplementation("junit:junit:4.13.2")
     testImplementation(kotlin("test"))
     testImplementation("com.squareup.okhttp3:mockwebserver:4.12.0")
