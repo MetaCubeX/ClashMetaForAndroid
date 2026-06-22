@@ -5,6 +5,7 @@ import org.gradle.api.GradleException
 
 plugins {
     kotlin("android")
+    id("kotlinx-serialization")
     id("com.android.application")
 }
 
@@ -41,6 +42,15 @@ dependencies {
 android {
     testOptions {
         unitTests.isReturnDefaultValues = true
+    }
+
+    packaging {
+        resources {
+            // BouncyCastle ships these in all three (bcpkix/bcutil/bcprov) multi-release jars.
+            excludes += "META-INF/versions/9/OSGI-INF/MANIFEST.MF"
+            excludes += "META-INF/BCKEY.SF"
+            excludes += "META-INF/BCKEY.DSA"
+        }
     }
 }
 

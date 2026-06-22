@@ -24,6 +24,8 @@ class SettingsActivity : BaseActivity<SettingsDesign>() {
                             startActivity(MetaFeatureSettingsActivity::class.intent)
                         SettingsDesign.Request.StartApp ->
                             startActivity(AppSettingsActivity::class.intent)
+                        SettingsDesign.Request.StartCompanion ->
+                            startActivity(CompanionActivity::class.intent)
                         SettingsDesign.Request.StartGeo ->
                             startActivity(GeoSettingsActivity::class.intent)
                         SettingsDesign.Request.StartNetwork ->
