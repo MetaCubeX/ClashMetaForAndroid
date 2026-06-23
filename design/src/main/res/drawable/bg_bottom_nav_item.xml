@@ -1,5 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  Bottom-nav item background. `state_selected` = the active tab pill.
+  `state_focused` = D-pad focus on TV / keyboard nav: a bright outline so the
+  user always sees WHERE they are (touch UI never showed focus, which made the
+  app unusable with a remote). Focus is drawn on top of selected so a focused
+  active tab reads as both.
+-->
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_focused="true" android:state_selected="true">
+        <shape android:shape="rectangle">
+            <solid android:color="?attr/colorPrimaryContainer" />
+            <stroke android:width="2dp" android:color="?attr/colorPrimary" />
+            <corners android:radius="24dp" />
+        </shape>
+    </item>
+    <item android:state_focused="true">
+        <shape android:shape="rectangle">
+            <solid android:color="@android:color/transparent" />
+            <stroke android:width="2dp" android:color="?attr/colorPrimary" />
+            <corners android:radius="24dp" />
+        </shape>
+    </item>
     <item android:state_selected="true">
         <shape android:shape="rectangle">
             <solid android:color="?attr/colorPrimaryContainer" />

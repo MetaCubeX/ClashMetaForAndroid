@@ -1424,9 +1424,27 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         MainTab.values().forEach { tab ->
             navForMainTab(tab).visibility = if (tab in activeTabs) View.VISIBLE else View.GONE
         }
+        wireBottomNavFocus()
         binding.mainPager.setCurrentItem(1, false)
         renderMainTab(activeTabs.firstOrNull() ?: MainTab.Home)
-        binding.mainPager.post { tweakViewPagerHorizontalSwipeTolerance(binding.mainPager) }
+        binding.mainPager.post {
+            tweakViewPagerHorizontalSwipeTolerance(binding.mainPager)
+            requestInitialHomeFocus()
+        }
+    }
+
+    /**
+     * Give the home its initial D-pad focus on launch, so on TV the user immediately sees where
+     * they are (focusedByDefault is unreliable because the home page is re-parented into the
+     * ViewPager holder at runtime). Targets the primary action of the visible state.
+     */
+    private fun requestInitialHomeFocus() {
+        val target = if (binding.mainHomeActiveContent.visibility == View.VISIBLE) {
+            binding.mainPowerCard
+        } else {
+            binding.mainEmptyAddButton
+        }
+        target.requestFocus()
     }
 
     /**
@@ -1443,6 +1461,7 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         MainTab.values().forEach { tab ->
             navForMainTab(tab).visibility = if (tab in activeTabs) View.VISIBLE else View.GONE
         }
+        wireBottomNavFocus()
         val targetTab = currentLogical?.takeIf { it in activeTabs }
             ?: activeTabs.firstOrNull() ?: MainTab.Home
         val targetItem = activeTabs.indexOf(targetTab).coerceAtLeast(0) + 1
@@ -1552,6 +1571,12 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
     private fun renderMainTab(tab: MainTab) {
         MainTab.values().forEach {
             navForMainTab(it).isSelected = it == tab
+            // The ViewPager keeps off-screen tab pages attached + VISIBLE (offscreenPageLimit =
+            // all), so without this their content stays focusable and the D-pad escapes into the
+            // hidden tab ("ghost" focus on TV). Only the current tab's page accepts focus.
+            (pageForMainTab(it) as? ViewGroup)?.descendantFocusability =
+                if (it == tab) ViewGroup.FOCUS_AFTER_DESCENDANTS
+                else ViewGroup.FOCUS_BLOCK_DESCENDANTS
         }
     }
 
@@ -1569,6 +1594,21 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         MainTab.Routing -> binding.mainNavRouting
         MainTab.Operator -> binding.mainNavOperator
         MainTab.Settings -> binding.mainNavSettings
+    }
+
+    /**
+     * Trap D-pad focus inside the bottom nav: each visible item points LEFT/RIGHT only to its
+     * neighbours (the ends point to themselves), so pressing past the first/last item stays put
+     * instead of escaping into the current tab's content ("focus into the void" on TV). DOWN also
+     * stays — there's nothing below the nav. UP is left to the default search so it reaches content.
+     */
+    private fun wireBottomNavFocus() {
+        val visible = activeTabs.map { navForMainTab(it) }
+        visible.forEachIndexed { i, view ->
+            view.nextFocusLeftId = visible[(i - 1).coerceAtLeast(0)].id
+            view.nextFocusRightId = visible[(i + 1).coerceAtMost(visible.lastIndex)].id
+            view.nextFocusDownId = view.id
+        }
     }
 
     init {

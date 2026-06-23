@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  D-pad / keyboard focus emphasis: a small scale-up + lift on focus so the
+  focused control is unmistakable even where the colorPrimary focus ring blends
+  into a same-colour (filled-primary) button. Pairs with @drawable/focus_ring.
+-->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_focused="true">
+        <set>
+            <objectAnimator
+                android:duration="150"
+                android:propertyName="scaleX"
+                android:valueTo="1.05"
+                android:valueType="floatType" />
+            <objectAnimator
+                android:duration="150"
+                android:propertyName="scaleY"
+                android:valueTo="1.05"
+                android:valueType="floatType" />
+        </set>
+    </item>
+    <item>
+        <set>
+            <objectAnimator
+                android:duration="150"
+                android:propertyName="scaleX"
+                android:valueTo="1.0"
+                android:valueType="floatType" />
+            <objectAnimator
+                android:duration="150"
+                android:propertyName="scaleY"
+                android:valueTo="1.0"
+                android:valueType="floatType" />
+        </set>
+    </item>
+</selector>

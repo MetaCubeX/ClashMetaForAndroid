@@ -9,6 +9,26 @@
     </item>
     <item>
         <selector>
+            <!-- D-pad focus (TV): keep the selected fill but add a bright focus ring so the
+                 focused node is always visible. focus_ring language: colorPrimary 3dp stroke. -->
+            <item android:state_focused="true" android:state_selected="true">
+                <shape android:shape="rectangle">
+                    <solid android:color="?attr/colorSurfaceContainerHigh" />
+                    <corners android:radius="14dp" />
+                    <stroke
+                        android:width="3dp"
+                        android:color="?attr/colorPrimary" />
+                </shape>
+            </item>
+            <item android:state_focused="true">
+                <shape android:shape="rectangle">
+                    <solid android:color="@android:color/transparent" />
+                    <corners android:radius="14dp" />
+                    <stroke
+                        android:width="3dp"
+                        android:color="?attr/colorPrimary" />
+                </shape>
+            </item>
             <item android:state_selected="true">
                 <shape android:shape="rectangle">
                     <solid android:color="?attr/colorSurfaceContainerHigh" />
