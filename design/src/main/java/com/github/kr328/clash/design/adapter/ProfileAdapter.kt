@@ -2,6 +2,8 @@ package com.github.kr328.clash.design.adapter
 
 import android.content.Context
 import android.content.res.ColorStateList
+import android.os.Handler
+import android.os.Looper
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
@@ -66,6 +68,24 @@ class ProfileAdapter(
     private val pendingProxySelections = mutableMapOf<String, String>()
     /** Per-node ms when core is off: key `uuid|proxyName`. */
     private val standalonePingDelays: MutableMap<String, Int> = mutableMapOf()
+
+    // A live URL-test pushes one delay per proxy. With many nodes (e.g. 200) doing a full
+    // active-card rebind per push froze the UI (the expanded card re-renders every node row each
+    // time). We patch the data immediately but coalesce the rebind into one notify per window.
+    private val mainHandler = Handler(Looper.getMainLooper())
+    private var activeCardNotifyScheduled = false
+    private val activeCardNotifyRunnable = Runnable {
+        activeCardNotifyScheduled = false
+        val uuid = activeProfileUuid ?: return@Runnable
+        val i = profiles.indexOfFirst { it.uuid == uuid }
+        if (i >= 0) notifyItemChanged(i)
+    }
+
+    private fun scheduleActiveCardNotify() {
+        if (activeCardNotifyScheduled) return
+        activeCardNotifyScheduled = true
+        mainHandler.postDelayed(activeCardNotifyRunnable, ACTIVE_CARD_NOTIFY_DEBOUNCE_MS)
+    }
     /** Last time ping-all was triggered per profile (System.currentTimeMillis()). */
     private val lastPingAllAt: MutableMap<UUID, Long> = mutableMapOf()
 
@@ -408,8 +428,9 @@ class ProfileAdapter(
         proxyDetails = current.toMutableMap().apply {
             this[key] = existing.copy(proxies = updatedProxies)
         }
-        val i = profiles.indexOfFirst { it.uuid == active }
-        if (i >= 0) notifyItemChanged(i)
+        // Coalesce the rebind: a URL-test fires this once per proxy in a burst; one debounced
+        // notify keeps the latest delays without freezing the main thread on big node lists.
+        scheduleActiveCardNotify()
     }
 
     fun clearProxyDetails() {
@@ -2081,6 +2102,16 @@ class ProfileAdapter(
     }
 
     override fun getItemCount(): Int = profiles.size
+
+    override fun onDetachedFromRecyclerView(recyclerView: RecyclerView) {
+        super.onDetachedFromRecyclerView(recyclerView)
+        mainHandler.removeCallbacks(activeCardNotifyRunnable)
+    }
+
+    private companion object {
+        /** Coalesce window for live URL-test delay pushes (one card rebind instead of N). */
+        const val ACTIVE_CARD_NOTIFY_DEBOUNCE_MS = 250L
+    }
 }
 
 private fun Context.dp(value: Int): Int =
