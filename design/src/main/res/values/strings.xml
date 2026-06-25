@@ -248,7 +248,7 @@ Presets only change <b>where</b> files are downloaded from (CDN / host). It is s
     <string name="home_import_file_row">From file</string>
     <string name="home_import_file_sub">Pick a local config file (.yaml) and import it as a profile.</string>
     <string name="profiles_update_all_failed">Couldn\'t update %1$d subscription(s).</string>
-    <string name="profiles_update_engine_warning">Update saved, but the engine flagged the merged config. Check the profile.</string>
+    <string name="profiles_update_engine_warning">Subscription updated, but your local edits didn't fit the new config and weren't applied this time. Review them.</string>
     <string name="profiles_orphaned_rules_dropped">Disabled %1$d rule(s): their proxy/group no longer exists in the new subscription.</string>
 
     <!-- Rule editor: friendly type catalog (RuleTypeCatalog) -->

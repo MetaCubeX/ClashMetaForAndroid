@@ -16,4 +16,19 @@ class MergeEngineVerdictTest {
     @Test fun preexisting_when_both_bad() {
         assertEquals(MergeEngineVerdict.PreexistingBroken, MergeEngineVerdict.classify("already bad", "boom"))
     }
+
+    // The runtime engine gate: only an engine-valid merge may be applied; a merge that broke an
+    // otherwise-valid subscription must NOT be applied (caller falls back to clean fetched).
+    @Test fun gate_applies_merged_only_when_ok() {
+        assertEquals(true, MergeEngineVerdict.Ok.appliesMergedConfig())
+        assertEquals(false, MergeEngineVerdict.MergeIntroduced.appliesMergedConfig())
+        assertEquals(false, MergeEngineVerdict.PreexistingBroken.appliesMergedConfig())
+    }
+
+    @Test fun gate_broken_merge_of_valid_subscription_is_not_applied() {
+        // Real shape of the bug class: fetched valid, our overlay produced an invalid config.
+        val verdict = MergeEngineVerdict.classify(fetchedError = null, mergedError = "not found rule-set: ip-check")
+        assertEquals(MergeEngineVerdict.MergeIntroduced, verdict)
+        assertEquals(false, verdict.appliesMergedConfig()) // → caller applies clean fetched
+    }
 }
