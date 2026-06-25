@@ -319,16 +319,21 @@ object ProfileProcessor {
                     } else {
                         MergeEngineVerdict.classify(Clash.validateProfileBytes(fetchedText), mergedError)
                     }
+                    // Runtime engine gate (§config-engine-gate): NEVER apply a config the engine
+                    // rejects. When our overlay broke an otherwise-valid subscription, fall back to
+                    // the clean fetched subscription so the update still works, and surface that the
+                    // local edits could not be applied. PreexistingBroken also uses the fetched body
+                    // as-is (the breakage is the subscription's own, not our merge's).
                     when (verdict) {
                         MergeEngineVerdict.MergeIntroduced -> {
-                            Log.w("Merge BROKE an otherwise-valid subscription for ${snapshot.uuid}: $mergedError")
+                            Log.w("Overlay broke a valid subscription for ${snapshot.uuid}; applying clean fetched instead. $mergedError")
                             ServiceStore(context).setUpdateEngineWarning(snapshot.uuid, true)
                         }
                         MergeEngineVerdict.PreexistingBroken ->
-                            Log.w("Merged config invalid for ${snapshot.uuid}, but fetched was already invalid (continuing): $mergedError")
+                            Log.w("Merged invalid for ${snapshot.uuid}, but fetched was already invalid (using fetched): $mergedError")
                         MergeEngineVerdict.Ok -> Unit
                     }
-                    configFile.writeText(merged)
+                    configFile.writeText(if (verdict.appliesMergedConfig()) merged else fetchedText)
                     Log.d("Subscription merge preserved local overlays: rules/rule-providers/proxy-providers reapplied for ${snapshot.uuid}")
 
                     // Subscription providers are already on disk from the fetch above;

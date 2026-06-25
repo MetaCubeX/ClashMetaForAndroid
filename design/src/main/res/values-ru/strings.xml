@@ -56,7 +56,7 @@
     <string name="home_import_file_row">Из файла</string>
     <string name="home_import_file_sub">Выберите локальный конфиг (.yaml) и импортируйте как профиль.</string>
     <string name="profiles_update_all_failed">Не удалось обновить подписок: %1$d.</string>
-    <string name="profiles_update_engine_warning">Обновление сохранено, но движок забраковал собранный конфиг. Проверь профиль.</string>
+    <string name="profiles_update_engine_warning">Подписка обновлена, но твои локальные правки не подошли к новому конфигу и в этот раз не применились. Проверь их.</string>
     <string name="profiles_orphaned_rules_dropped">Отключено правил: %1$d — их прокси/группы больше нет в новой подписке.</string>
 
     <!-- DNS & Hosts -->
