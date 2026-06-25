@@ -202,7 +202,7 @@ object SubscriptionUpdateMerge {
     private fun gcUnusedRuleProviders(root: MutableMap<String, Any?>) {
         val providers = root["rule-providers"] as? Map<*, *> ?: return
         if (providers.isEmpty()) return
-        val referenced = collectRuleSetTargets(root["rules"])
+        val referenced = collectAllRuleSetRefs(root)
         val kept = LinkedHashMap<String, Any?>()
         for ((k, v) in providers) {
             val name = k?.toString() ?: continue
@@ -243,6 +243,9 @@ object SubscriptionUpdateMerge {
      */
     private val ruleSetRef = Regex("RULE-SET\\s*,\\s*([^,()]+)", RegexOption.IGNORE_CASE)
 
+    /** Prefix on `dns.nameserver-policy` keys / `dns.fake-ip-filter` entries that name a rule-set. */
+    private val RULE_SET_PREFIX = "rule-set:"
+
     private fun collectRuleSetTargets(rulesNode: Any?): Set<String> {
         val list = rulesNode as? List<*> ?: return emptySet()
         val out = HashSet<String>()
@@ -257,6 +260,37 @@ object SubscriptionUpdateMerge {
             }
         }
         return out
+    }
+
+    /**
+     * Every rule-provider a config references — NOT just `rules:`. A provider can be used by:
+     *  - `rules:` and `sub-rules:` (via `RULE-SET,<name>`),
+     *  - `dns.nameserver-policy` keys (`rule-set:a,b,c:` — comma-separated, `rule-set:` prefix),
+     *  - `dns.fake-ip-filter` entries (`rule-set:<name>`).
+     * Missing the DNS sources GC'd a provider used only by DNS (e.g. `ip-check` referenced solely
+     * in nameserver-policy), which then failed the next update with `not found rule-set: <name>`.
+     */
+    private fun collectAllRuleSetRefs(root: Map<String, Any?>): Set<String> {
+        val out = HashSet<String>()
+        out += collectRuleSetTargets(root["rules"])
+        // sub-rules: map of <name> -> list of rule lines.
+        (root["sub-rules"] as? Map<*, *>)?.values?.forEach { out += collectRuleSetTargets(it) }
+
+        val dns = root["dns"] as? Map<*, *>
+        if (dns != null) {
+            (dns["nameserver-policy"] as? Map<*, *>)?.keys?.forEach { addRuleSetPrefixed(it?.toString(), out) }
+            (dns["fake-ip-filter"] as? List<*>)?.forEach { addRuleSetPrefixed(it?.toString(), out) }
+        }
+        return out
+    }
+
+    /** Parse a `rule-set:a,b,c` token (DNS sections) into provider names. No-op otherwise. */
+    private fun addRuleSetPrefixed(value: String?, out: MutableSet<String>) {
+        val v = value?.trim() ?: return
+        if (!v.startsWith(RULE_SET_PREFIX, ignoreCase = true)) return
+        v.substring(RULE_SET_PREFIX.length).split(',').forEach { name ->
+            name.trim().takeIf { it.isNotEmpty() }?.let { out.add(it) }
+        }
     }
 
     private fun collectProxyProviderUsage(groupsNode: Any?): Pair<Set<String>, Boolean> {

@@ -221,6 +221,46 @@ class SubscriptionUpdateMergeTest {
     }
 
     @Test
+    fun gc_keepsRuleProvidersReferencedOnlyInDns() {
+        // A rule-provider can be used by DNS config, not only `rules:` — `dns.nameserver-policy`
+        // keys (`rule-set:a,b,c:`) and `dns.fake-ip-filter` entries (`rule-set:x`). Real-world
+        // break: `ip-check` was referenced solely in nameserver-policy (its `rules:` line was
+        // commented out), so the GC dropped it and the next update failed with
+        // `not found rule-set: ip-check`.
+        val fetched = """
+            proxies:
+              - {name: p1, type: socks5, server: 127.0.0.1, port: 1080}
+            rule-providers:
+              ip-check:    {type: http, behavior: domain, format: mrs, url: https://e/x.mrs, path: ./ip.mrs}
+              geo-private: {type: http, behavior: domain, format: mrs, url: https://e/x.mrs, path: ./gp.mrs}
+              ru-inline:   {type: http, behavior: classical, url: https://e/x.yaml, path: ./ru.yaml}
+              setUnused:   {type: http, behavior: domain, format: mrs, url: https://e/x.mrs, path: ./z.mrs}
+            dns:
+              enhanced-mode: fake-ip
+              fake-ip-filter:
+                - rule-set:geo-private
+                - "*.lan"
+              nameserver-policy:
+                rule-set:ru-inline,ip-check:
+                  - https://8.8.8.8/dns-query
+                raw.githubusercontent.com:
+                  - https://1.1.1.1/dns-query
+            rules:
+              - MATCH,p1
+        """.trimIndent() + "\n"
+
+        val preserved = SubscriptionUpdateMerge.extractPreserved(
+            snapshot(rules = listOf("DOMAIN,kept.local,DIRECT")),
+        )
+        val merged = SubscriptionUpdateMerge.mergeAfterFetch(fetched, preserved)
+
+        for (name in listOf("ip-check", "geo-private", "ru-inline")) {
+            assertTrue("$name (referenced only in DNS) must survive GC", merged.contains(name))
+        }
+        assertFalse("setUnused (unreferenced) should be dropped", merged.contains("setUnused"))
+    }
+
+    @Test
     fun gc_keepsRuleProviderWhoseNameContainsSpaces() {
         // Regression: rule-provider names may contain spaces (valid in mihomo).
         // The reference regex stopped at the first whitespace, so `RULE-SET,Ad Block`
