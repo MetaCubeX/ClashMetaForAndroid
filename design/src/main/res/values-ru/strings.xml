@@ -1039,6 +1039,7 @@
     <string name="about_download_started">Загрузка обновления…</string>
     <string name="about_enable_unknown_apps">Разрешите установку из этого источника, затем снова нажмите «Проверить обновления».</string>
     <string name="about_github_repo">ClashFest на GitHub</string>
+    <string name="about_telegram_community">ClashFest в Telegram — баг-репорты и обсуждения</string>
     <string name="about_open_release">Открыть страницу релиза</string>
     <string name="about_powered_by">ClashFest для Android</string>
     <string name="about_update_available">Доступно обновление: %1$s</string>

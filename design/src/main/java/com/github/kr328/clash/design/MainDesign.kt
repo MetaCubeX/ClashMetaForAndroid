@@ -1219,6 +1219,19 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
                 }
             }
 
+            binding.aboutTelegramIcon.apply {
+                visibility = View.VISIBLE
+                setOnClickListener {
+                    runCatching {
+                        val url = context.getString(R.string.clashfest_telegram_url)
+                        context.startActivity(
+                            Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+                        )
+                    }
+                }
+            }
+
             val support = uiStore.supportUrl.takeIf { it.isNotBlank() }
             if (support != null) {
                 binding.aboutSupportButton.apply {

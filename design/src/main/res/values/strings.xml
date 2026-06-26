@@ -808,6 +808,8 @@ Presets only change <b>where</b> files are downloaded from (CDN / host). It is s
     <string name="google_play_url" translatable="false">https://play.google.com/store/apps/details?id=com.github.kr328.clash</string>
     <string name="about_github_repo">ClashFest on GitHub</string>
     <string name="clashfest_repo_url" translatable="false">https://github.com/Nemu-x/ClashFest</string>
+    <string name="about_telegram_community">ClashFest on Telegram — bug reports &amp; discussion</string>
+    <string name="clashfest_telegram_url" translatable="false">https://t.me/nemux_dev</string>
     <string name="about_check_updates">Check updates</string>
     <string name="update_notification_channel_name">App updates</string>
     <string name="update_notification_channel_description">Periodic ClashFest update checks</string>

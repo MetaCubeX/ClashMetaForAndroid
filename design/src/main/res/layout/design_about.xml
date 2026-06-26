@@ -98,6 +98,18 @@
                     android:src="@drawable/ic_github_logo"
                     android:visibility="gone"
                     app:tint="?attr/colorOnSurface" />
+
+                <ImageButton
+                    android:id="@+id/about_telegram_icon"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:layout_marginStart="6dp"
+                    android:background="@drawable/bg_m3_status_chip_neutral"
+                    android:contentDescription="@string/about_telegram_community"
+                    android:padding="6dp"
+                    android:src="@drawable/ic_telegram_plane"
+                    android:visibility="gone"
+                    app:tint="?attr/colorOnSurface" />
             </LinearLayout>
 
             <TextView

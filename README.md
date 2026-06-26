@@ -16,6 +16,13 @@ https://img.shields.io/github/actions/workflow/status/Nemu-x/ClashFest/android-d
 
 ---
 
+## Community & support
+
+- **Telegram** — [t.me/nemux_dev](https://t.me/nemux_dev) — bug reports, discussion, and feature requests (EN / RU)
+- **GitHub issues** — [report a bug or request a feature](https://github.com/Nemu-x/ClashFest/issues)
+
+---
+
 ## Highlights
 
 | Area | What you get |
