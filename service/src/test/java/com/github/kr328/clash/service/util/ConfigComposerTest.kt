@@ -32,6 +32,21 @@ class ConfigComposerTest {
         assertTrue("MATCH,DIRECT" in out, "subscription content must remain")
     }
 
+    @Test fun rule_providers_layer_is_unioned_in() {
+        val layer = UserLayer(
+            ruleProviders = "myset:\n  type: http\n  behavior: domain\n  url: https://e/m.yaml\n  path: ./m.yaml",
+        )
+        val out = ConfigComposer.compose(fetched, layer, geo, ProxyHardeningMode.Off)
+        assertTrue("myset" in out, "user rule-provider must be composed in: $out")
+        assertTrue("MATCH,DIRECT" in out, "subscription content remains")
+    }
+
+    @Test fun relay_group_is_appended() {
+        val layer = UserLayer(relayGroups = listOf(RelayGroup(name = "MyRelay", providerKeys = listOf("provA"))))
+        val out = ConfigComposer.compose(fetched, layer, geo, ProxyHardeningMode.Off)
+        assertTrue("MyRelay" in out, "relay group must be appended: $out")
+    }
+
     @Test fun proxy_chain_dialer_is_composed_onto_config_proxies() {
         val withProxy = """
             mixed-port: 7890

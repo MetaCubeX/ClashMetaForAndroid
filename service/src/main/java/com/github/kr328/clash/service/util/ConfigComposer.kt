@@ -49,6 +49,12 @@ object ConfigComposer {
         layer.proxyProviders?.takeIf { it.isNotBlank() }?.let {
             doc = ProxyProvidersYamlEdit.mergeIntoConfig(doc, it)
         }
+        layer.ruleProviders?.takeIf { it.isNotBlank() }?.let {
+            doc = RuleProvidersYamlEdit.mergeIntoConfig(doc, it)
+        }
+        for (group in layer.relayGroups) {
+            doc = ProxyGroupsYamlEdit.appendSelectGroupUsingProviders(doc, group.name, group.providerKeys) ?: doc
+        }
         if (layer.proxyChain.isNotEmpty()) {
             // dialer-proxy on `proxies:` in config.yaml; targets inside provider files are replayed
             // file-side on the apply path (no file access here).

@@ -20,6 +20,8 @@ import java.util.UUID
  *  - [tunnels]        the user's `tunnels:` override (whole-block replace)
  *  - [proxyProviders] user-added proxy-providers as the inner-map YAML under `proxy-providers:`
  *                     (exactly what `ProxyProvidersYamlEdit.mergeIntoConfig` consumes; union)
+ *  - [ruleProviders]  user-added rule-providers as the inner-map YAML under `rule-providers:`
+ *                     (`RuleProvidersYamlEdit.mergeIntoConfig`; union)
  *  - [proxyChain]     proxy-chain (dialer-proxy) intent: target proxy name → dialer proxy name
  *
  * Population of the slots (re-pointing the editors) is Group 2.3; composition is Group 3. Until
@@ -33,6 +35,8 @@ data class UserLayer(
     val dnsHosts: DnsHostsConfig? = null,
     val tunnels: TunnelsConfig? = null,
     val proxyProviders: String? = null,
+    val ruleProviders: String? = null,
+    val relayGroups: List<RelayGroup> = emptyList(),
     val proxyChain: Map<String, String> = emptyMap(),
 ) {
     /** True when the user has no edits — nothing to compose on top of the subscription. */
@@ -42,12 +46,21 @@ data class UserLayer(
             dnsHosts == null &&
             tunnels == null &&
             proxyProviders.isNullOrBlank() &&
+            ruleProviders.isNullOrBlank() &&
+            relayGroups.isEmpty() &&
             proxyChain.isEmpty()
 
     companion object {
         const val CURRENT_VERSION = 1
     }
 }
+
+/** A user-created `select` proxy-group fed by proxy-providers (the relay feature). */
+@Serializable
+data class RelayGroup(
+    val name: String,
+    val providerKeys: List<String> = emptyList(),
+)
 
 /**
  * Reads/writes the per-profile [UserLayer] at `importedDir/<uuid>/user_layer.json`, mirroring how
