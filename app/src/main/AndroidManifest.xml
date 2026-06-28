@@ -16,6 +16,11 @@
         tools:ignore="QueryAllPackagesPermission" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+
+    <!-- Workaround for Android 17+ cross profile loopback networking restrictions.
+         This permission allows CMFA to connect to loopback addresses and ports bound
+         by the same app running in different profiles.
+         It can only be granted via ADB. -->
     <uses-permission android:name="android.permission.INTERACT_ACROSS_USERS"
         tools:ignore="ProtectedPermissions" />
 
