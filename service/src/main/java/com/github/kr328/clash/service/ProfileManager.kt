@@ -31,6 +31,10 @@ import com.github.kr328.clash.service.util.TunnelsConfig
 import com.github.kr328.clash.service.util.TunnelsYamlEdit
 import com.github.kr328.clash.service.util.directoryLastModified
 import com.github.kr328.clash.service.util.generateProfileUUID
+import com.github.kr328.clash.service.util.GeoDataSources
+import com.github.kr328.clash.service.util.GeoDataUrls
+import com.github.kr328.clash.service.util.ProfileComposer
+import com.github.kr328.clash.service.util.UserLayerStore
 import com.github.kr328.clash.service.util.importedDir
 import com.github.kr328.clash.service.util.sendProfileUpdateCompleted
 import com.github.kr328.clash.service.util.sendProfileUpdateFailed
@@ -65,6 +69,33 @@ class ProfileManager(private val context: Context) : IProfileManager,
     private val ruleApplyService = RuleApplyService(context)
     private val previewJson = Json { ignoreUnknownKeys = true }
     private val previewCache = LinkedHashMap<String, CachedPreview>()
+
+    /** User edit layer (config-overlay-architecture): edits live here as intent, not in config.yaml. */
+    private val userLayerStore = UserLayerStore(context.importedDir)
+
+    /** Geo-data URLs resolved from current settings (rule rendering / composition need them). */
+    private fun resolvedGeoDataUrls(): GeoDataUrls = GeoDataSources.resolve(
+        preset = store.geoDataSourcePreset,
+        customGeoIp = store.geoDataCustomGeoIp,
+        customGeoSite = store.geoDataCustomGeoSite,
+        customMmdb = store.geoDataCustomMmdb,
+        customAsn = store.geoDataCustomAsn,
+    )
+
+    /**
+     * Re-derive `config.yaml` from `subscription.yaml` + the user layer (the effective config the
+     * engine loads). Idempotent — always composes from the canonical subscription. Call after every
+     * edit / update. Inert until the editors and apply path are switched over (Group 2.3 / wiring).
+     */
+    private fun materializeProfile(uuid: UUID): Boolean {
+        val dir = File(context.importedDir, uuid.toString())
+        return ProfileComposer.materialize(
+            profileDir = dir,
+            layer = userLayerStore.load(uuid),
+            geoDataUrls = resolvedGeoDataUrls(),
+            hardeningMode = store.proxyHardeningMode,
+        )
+    }
 
     /**
      * In-memory cache of parsed [ProfileSnapshot] keyed by profile UUID.
