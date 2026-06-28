@@ -32,6 +32,30 @@ class ConfigComposerTest {
         assertTrue("MATCH,DIRECT" in out, "subscription content must remain")
     }
 
+    @Test fun proxy_chain_dialer_is_composed_onto_config_proxies() {
+        val withProxy = """
+            mixed-port: 7890
+            proxies:
+              - name: US-1
+                type: ss
+                server: 1.2.3.4
+                port: 8388
+                cipher: aes-128-gcm
+                password: pass
+              - name: JP-2
+                type: ss
+                server: 5.6.7.8
+                port: 8388
+                cipher: aes-128-gcm
+                password: pass
+            rules:
+              - MATCH,DIRECT
+        """.trimIndent()
+        val layer = UserLayer(proxyChain = mapOf("US-1" to "JP-2"))
+        val out = ConfigComposer.compose(withProxy, layer, geo, ProxyHardeningMode.Off)
+        assertTrue("dialer-proxy: JP-2" in out, "proxy-chain dialer must be applied to US-1: $out")
+    }
+
     @Test fun strict_hardening_runs_last_on_composed_config() {
         val withListener = """
             mixed-port: 7890

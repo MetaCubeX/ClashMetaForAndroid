@@ -40,15 +40,20 @@ object ConfigComposer {
         var doc = fetchedYaml
 
         if (layer.rules.rules.isNotEmpty() || layer.rules.providers.isNotEmpty()) {
-            doc = RuleMapper.mergeStateIntoConfig(doc, layer.rules, geoDataUrls)
+            // Additive (prepend rules + union providers) — NOT mergeStateIntoConfig, which replaces
+            // both blocks and would wipe the subscription's rules/providers.
+            doc = RuleMapper.composeUserRulesOnto(doc, layer.rules, geoDataUrls)
         }
         layer.dnsHosts?.let { doc = DnsHostsYamlEdit.render(doc, it) }
         layer.tunnels?.let { doc = TunnelsYamlEdit.render(doc, it) }
         layer.proxyProviders?.takeIf { it.isNotBlank() }?.let {
             doc = ProxyProvidersYamlEdit.mergeIntoConfig(doc, it)
         }
-        // TODO(Group 3): proxy-chain (dialer-proxy) — needs a text-oriented variant of
-        // ProxyDialerYamlEdit; folded in as its own sub-step.
+        if (layer.proxyChain.isNotEmpty()) {
+            // dialer-proxy on `proxies:` in config.yaml; targets inside provider files are replayed
+            // file-side on the apply path (no file access here).
+            doc = ProxyDialerYamlEdit.applyChainToConfigText(doc, layer.proxyChain)
+        }
 
         // Hardening LAST — on everything that will reach the engine.
         return YamlHardener.hardenYaml(doc, hardeningMode) ?: doc

@@ -98,6 +98,46 @@ object RuleMapper {
         return document.renderReplacing("rule-providers", "rules", "geodata-mode", "geox-url")
     }
 
+    /**
+     * Additive composition of a USER rule layer onto a fetched subscription
+     * (config-overlay-architecture, Group 3). Unlike [mergeStateIntoConfig] — which renders a
+     * COMPLETE captured state and *replaces* both blocks — this keeps everything the subscription
+     * declares and only layers the user's edits on top, Clash-Verge-Rev style:
+     *  - the user's enabled rule-providers are **unioned** into the fetched ones (user wins on a key
+     *    clash); nothing is dropped, so a provider referenced only by `dns.nameserver-policy` survives;
+     *  - the user's enabled rules are **prepended** to the subscription's rules (overrides evaluated
+     *    first).
+     */
+    fun composeUserRulesOnto(configText: String, userRules: RuleState, geoDataUrls: GeoDataUrls): String {
+        val document = MihomoConfigDocument.parseOrEmpty(configText)
+        val root = document.root
+
+        val mergedProviders = LinkedHashMap<String, Any?>()
+        (root["rule-providers"] as? Map<*, *>)?.forEach { (k, v) ->
+            if (k != null) mergedProviders[k.toString()] = v
+        }
+        userRules.providers.filter { it.enabled }.forEach { p ->
+            mergedProviders[p.name] = linkedMapOf<String, Any?>(
+                "type" to p.type,
+                "behavior" to p.behavior,
+                "url" to p.url,
+                "path" to p.path.ifBlank { "./ruleset/${p.name}.yaml" },
+                "interval" to p.interval,
+            ).apply { if (p.format.isNotBlank()) put("format", p.format) }
+        }
+        if (mergedProviders.isNotEmpty()) root["rule-providers"] = mergedProviders
+
+        val userLines = userRules.rules
+            .filter { it.enabled && !it.deleted }
+            .sortedBy { it.order }
+            .map { toRuleLine(it) }
+        val existingLines = (root["rules"] as? List<*>).orEmpty().mapNotNull { it?.toString() }
+        root["rules"] = (userLines + existingLines).distinct()
+        ensureGeositeConnectivity(root, userRules.rules, geoDataUrls)
+
+        return document.renderReplacing("rule-providers", "rules", "geodata-mode", "geox-url")
+    }
+
     private fun ensureGeositeConnectivity(
         root: MutableMap<String, Any?>,
         rules: List<RuleItem>,
