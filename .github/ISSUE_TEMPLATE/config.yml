@@ -1,1 +1,61 @@
-blank_issues_enabled: false
+mixed-port: 7890
+allow-lan: false
+mode: rule
+log-level: info
+ipv6: false
+
+dns:
+  enable: true
+  listen: 0.0.0.0:53
+  default-nameserver:
+    - 8.8.8.8
+    - 1.1.1.1
+  nameserver:
+    - https://dns.google/dns-query
+    - https://cloudflare-dns.com/dns-query
+  enhanced-mode: fake-ip
+  fake-ip-range: 198.18.0.1/16
+  fake-ip-filter:
+    - '*.lan'
+    - '*.local'
+
+proxies:
+  - name: "VMess-WS"
+    type: vmess
+    server: kontol.tytyd.eu.cc
+    port: 443
+    uuid: ac174a3e-ad85-415e-99b9-76a288bc2409
+    alterId: 0
+    cipher: auto
+    tls: true
+    servername: listen.noice.id
+    skip-cert-verify: true
+    network: ws
+    ws-opts:
+      path: /vmess-ws
+      headers:
+        Host: kontol.tytyd.eu.cc
+
+proxy-groups:
+  - name: "Proxy"
+    type: select
+    proxies:
+      - "VMess-WS"
+      - DIRECT
+
+  - name: "Auto"
+    type: url-test
+    proxies:
+      - "VMess-WS"
+    url: http://www.gstatic.com/generate_204
+    interval: 300
+    tolerance: 50
+
+rules:
+  - DOMAIN-SUFFIX,local,DIRECT
+  - IP-CIDR,192.168.0.0/16,DIRECT
+  - IP-CIDR,10.0.0.0/8,DIRECT
+  - IP-CIDR,127.0.0.0/8,DIRECT
+  - GEOSITE,id,DIRECT
+  - GEOIP,ID,DIRECT
+  - MATCH,Proxy
