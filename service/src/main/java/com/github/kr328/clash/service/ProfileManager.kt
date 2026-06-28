@@ -31,6 +31,12 @@ import com.github.kr328.clash.service.util.TunnelsConfig
 import com.github.kr328.clash.service.util.TunnelsYamlEdit
 import com.github.kr328.clash.service.util.directoryLastModified
 import com.github.kr328.clash.service.util.generateProfileUUID
+import com.github.kr328.clash.service.util.GeoDataSources
+import com.github.kr328.clash.service.util.GeoDataUrls
+import com.github.kr328.clash.service.util.ProfileComposer
+import com.github.kr328.clash.service.util.ProfileMigration
+import com.github.kr328.clash.service.util.ProfileOverlay
+import com.github.kr328.clash.service.util.UserLayerStore
 import com.github.kr328.clash.service.util.importedDir
 import com.github.kr328.clash.service.util.sendProfileUpdateCompleted
 import com.github.kr328.clash.service.util.sendProfileUpdateFailed
@@ -65,6 +71,70 @@ class ProfileManager(private val context: Context) : IProfileManager,
     private val ruleApplyService = RuleApplyService(context)
     private val previewJson = Json { ignoreUnknownKeys = true }
     private val previewCache = LinkedHashMap<String, CachedPreview>()
+
+    /** User edit layer (config-overlay-architecture): edits live here as intent, not in config.yaml. */
+    private val userLayerStore = UserLayerStore(context.importedDir)
+
+    /** Geo-data URLs resolved from current settings (rule rendering / composition need them). */
+    private fun resolvedGeoDataUrls(): GeoDataUrls = GeoDataSources.resolve(
+        preset = store.geoDataSourcePreset,
+        customGeoIp = store.geoDataCustomGeoIp,
+        customGeoSite = store.geoDataCustomGeoSite,
+        customMmdb = store.geoDataCustomMmdb,
+        customAsn = store.geoDataCustomAsn,
+    )
+
+    /**
+     * Re-derive `config.yaml` from `subscription.yaml` + the user layer (the effective config the
+     * engine loads). Idempotent — always composes from the canonical subscription. Call after every
+     * edit / update. Inert until the editors and apply path are switched over (Group 2.3 / wiring).
+     */
+    private fun materializeProfile(uuid: UUID): Boolean {
+        val dir = File(context.importedDir, uuid.toString())
+        return ProfileOverlay.refresh(
+            profileDir = dir,
+            uuid = uuid,
+            userLayerStore = userLayerStore,
+            rulesStateJson = runCatching { ruleApplyService.readStateJson(uuid) }.getOrNull(),
+            dnsHostsManaged = store.isDnsHostsManaged(uuid),
+            tunnelsManaged = store.isTunnelsManaged(uuid),
+            geoDataUrls = resolvedGeoDataUrls(),
+            hardeningMode = store.proxyHardeningMode,
+            parseSnapshot = { d -> runCatching { Clash.parseProfileSnapshot(d) }.getOrNull() },
+        )
+    }
+
+    /**
+     * After an in-app edit writes `config.yaml`, re-derive the user layer from it so the edit
+     * survives the next subscription update (config-overlay-architecture). `config.yaml` already
+     * holds the edit; this only keeps the intent layer in sync. Migrates first if needed (so a
+     * legacy profile gets its `subscription.yaml` base on the first edit).
+     */
+    private fun syncLayerFromConfig(uuid: UUID) {
+        val dir = File(context.importedDir, uuid.toString())
+        if (!File(dir, "config.yaml").isFile) return
+        val parse: (File) -> com.github.kr328.clash.core.model.ProfileSnapshot? =
+            { d -> runCatching { Clash.parseProfileSnapshot(d) }.getOrNull() }
+        // Ensure subscription.yaml exists (treat the pre-edit config as the base on first edit).
+        ProfileMigration.migrateIfNeeded(
+            profileDir = dir,
+            uuid = uuid,
+            store = userLayerStore,
+            rulesStateJson = runCatching { ruleApplyService.readStateJson(uuid) }.getOrNull(),
+            dnsHostsManaged = store.isDnsHostsManaged(uuid),
+            tunnelsManaged = store.isTunnelsManaged(uuid),
+            parseSnapshot = parse,
+        )
+        val layer = ProfileMigration.buildLayerFromConfig(
+            profileDir = dir,
+            rulesStateJson = runCatching { ruleApplyService.readStateJson(uuid) }.getOrNull(),
+            dnsHostsManaged = store.isDnsHostsManaged(uuid),
+            tunnelsManaged = store.isTunnelsManaged(uuid),
+            parseSnapshot = parse,
+            base = userLayerStore.load(uuid),
+        )
+        userLayerStore.save(uuid, layer)
+    }
 
     /**
      * In-memory cache of parsed [ProfileSnapshot] keyed by profile UUID.
@@ -114,6 +184,12 @@ class ProfileManager(private val context: Context) : IProfileManager,
         val uuid: UUID,
         val files: List<CachedFile>,
         val ruleStateJson: String? = null,
+        /**
+         * Overlay: a layer mutation to apply when this preview is committed — for edits whose user
+         * delta cannot be re-extracted from config.yaml (raw proxy-/rule-provider YAML). In-memory
+         * only (CachedPreview is never serialized), so a closure is fine. config-overlay-architecture.
+         */
+        val layerMutation: ((com.github.kr328.clash.service.util.UserLayer) -> com.github.kr328.clash.service.util.UserLayer)? = null,
     )
 
     init {
@@ -637,6 +713,11 @@ class ProfileManager(private val context: Context) : IProfileManager,
                 file.writeText(merged)
                 // Keep structured repository synchronized with manual YAML edits.
                 ruleApplyService.readStateJson(uuid)
+                // Overlay: capture the user's rule-providers delta into the layer (survives updates).
+                runCatching {
+                    syncLayerFromConfig(uuid)
+                    userLayerStore.update(uuid) { it.copy(ruleProviders = yaml) }
+                }
                 context.sendProfileChanged(uuid)
                 true
             } catch (_: Exception) {
@@ -646,7 +727,11 @@ class ProfileManager(private val context: Context) : IProfileManager,
     }
 
     override suspend fun previewReplaceRuleProvidersYaml(uuid: UUID, yaml: String): String? {
-        return previewConfigMutation(uuid, "Rule providers") { current ->
+        return previewConfigMutation(
+            uuid,
+            "Rule providers",
+            layerMutation = { it.copy(ruleProviders = yaml) },
+        ) { current ->
             RuleProvidersYamlEdit.mergeIntoConfig(current, yaml)
         }
     }
@@ -680,6 +765,11 @@ class ProfileManager(private val context: Context) : IProfileManager,
             try {
                 val merged = ProxyProvidersYamlEdit.mergeIntoConfig(file.readText(), yaml)
                 file.writeText(merged)
+                // Overlay: capture the user's proxy-providers delta into the layer (survives updates).
+                runCatching {
+                    syncLayerFromConfig(uuid)
+                    userLayerStore.update(uuid) { it.copy(proxyProviders = yaml) }
+                }
                 context.sendProfileChanged(uuid)
                 true
             } catch (_: Exception) {
@@ -689,7 +779,11 @@ class ProfileManager(private val context: Context) : IProfileManager,
     }
 
     override suspend fun previewReplaceProxyProvidersYaml(uuid: UUID, yaml: String): String? {
-        return previewConfigMutation(uuid, "Proxy providers") { current ->
+        return previewConfigMutation(
+            uuid,
+            "Proxy providers",
+            layerMutation = { it.copy(proxyProviders = yaml) },
+        ) { current ->
             ProxyProvidersYamlEdit.mergeIntoConfig(current, yaml)
         }
     }
@@ -712,6 +806,16 @@ class ProfileManager(private val context: Context) : IProfileManager,
                 val merged = ProxyGroupsYamlEdit.appendSelectGroupUsingProviders(text, groupName, providerKeys)
                     ?: return@withContext false
                 file.writeText(merged)
+                // Overlay: capture the relay group so it survives subscription updates.
+                runCatching {
+                    syncLayerFromConfig(uuid)
+                    userLayerStore.update(uuid) { l ->
+                        l.copy(
+                            relayGroups = l.relayGroups.filterNot { it.name == groupName } +
+                                com.github.kr328.clash.service.util.RelayGroup(groupName, providerKeys),
+                        )
+                    }
+                }
                 context.sendProfileChanged(uuid)
                 true
             } catch (_: Exception) {
@@ -725,7 +829,16 @@ class ProfileManager(private val context: Context) : IProfileManager,
         groupName: String,
         providerKeys: List<String>,
     ): String? {
-        return previewConfigMutation(uuid, "Proxy group") { current ->
+        return previewConfigMutation(
+            uuid,
+            "Proxy group",
+            layerMutation = { l ->
+                l.copy(
+                    relayGroups = l.relayGroups.filterNot { it.name == groupName } +
+                        com.github.kr328.clash.service.util.RelayGroup(groupName, providerKeys),
+                )
+            },
+        ) { current ->
             ProxyGroupsYamlEdit.appendSelectGroupUsingProviders(current, groupName, providerKeys)
                 ?: throw IllegalArgumentException("Proxy group already exists")
         }
@@ -744,6 +857,10 @@ class ProfileManager(private val context: Context) : IProfileManager,
                 val merged = ProxyGroupsYamlEdit.removeGroupByName(file.readText(), groupName)
                     ?: return@withContext false
                 file.writeText(merged)
+                runCatching {
+                    syncLayerFromConfig(uuid)
+                    userLayerStore.update(uuid) { l -> l.copy(relayGroups = l.relayGroups.filterNot { it.name == groupName }) }
+                }
                 context.sendProfileChanged(uuid)
                 true
             } catch (_: Exception) {
@@ -753,7 +870,11 @@ class ProfileManager(private val context: Context) : IProfileManager,
     }
 
     override suspend fun previewRemoveProxyGroup(uuid: UUID, groupName: String): String? {
-        return previewConfigMutation(uuid, "Proxy group") { current ->
+        return previewConfigMutation(
+            uuid,
+            "Proxy group",
+            layerMutation = { l -> l.copy(relayGroups = l.relayGroups.filterNot { it.name == groupName }) },
+        ) { current ->
             ProxyGroupsYamlEdit.removeGroupByName(current, groupName)
                 ?: throw IllegalArgumentException("Proxy group was not found")
         }
@@ -771,7 +892,10 @@ class ProfileManager(private val context: Context) : IProfileManager,
             val dir = File(context.importedDir, uuid.toString())
             try {
                 val ok = ProxyDialerYamlEdit.applyDialerProxy(dir, targetProxyName, dialerProxyName)
-                if (ok) context.sendProfileChanged(uuid)
+                if (ok) {
+                    runCatching { syncLayerFromConfig(uuid) }
+                    context.sendProfileChanged(uuid)
+                }
                 ok
             } catch (_: Exception) {
                 false
@@ -887,6 +1011,7 @@ class ProfileManager(private val context: Context) : IProfileManager,
         return withContext(Dispatchers.IO) {
             if (ImportedDao().queryByUUID(uuid) == null) return@withContext false
             val ok = ruleApplyService.applyStateJson(uuid, stateJson)
+            if (ok) runCatching { syncLayerFromConfig(uuid) }
             Log.d("applyRuleState ok=$ok")
             ok
         }
@@ -985,6 +1110,12 @@ class ProfileManager(private val context: Context) : IProfileManager,
                 cached.ruleStateJson?.let {
                     ruleApplyService.saveStateJson(cached.uuid, it)
                 }
+                // Overlay: keep the user layer in sync with the just-committed config.yaml so the
+                // edit survives the next subscription update (config-overlay-architecture). The
+                // clean sections are re-derived from config.yaml; raw provider edits carry an
+                // explicit layer mutation (their user delta can't be re-extracted from config.yaml).
+                runCatching { syncLayerFromConfig(cached.uuid) }
+                cached.layerMutation?.let { mut -> runCatching { userLayerStore.update(cached.uuid, mut) } }
                 context.sendProfileChanged(cached.uuid)
                 true
             } catch (e: Exception) {
@@ -1096,6 +1227,7 @@ class ProfileManager(private val context: Context) : IProfileManager,
     private suspend fun previewConfigMutation(
         uuid: UUID,
         title: String,
+        layerMutation: ((com.github.kr328.clash.service.util.UserLayer) -> com.github.kr328.clash.service.util.UserLayer)? = null,
         mutate: (String) -> String,
     ): String? {
         return withContext(Dispatchers.IO) {
@@ -1113,6 +1245,7 @@ class ProfileManager(private val context: Context) : IProfileManager,
                     files = listOf(filePreview(dir, "config.yaml", current, proposed)),
                     currentYaml = current,
                     proposedYaml = proposed,
+                    layerMutation = layerMutation,
                 )
             } catch (e: Exception) {
                 createInvalidPreview(title, current, current, e)
@@ -1144,10 +1277,11 @@ class ProfileManager(private val context: Context) : IProfileManager,
             useProposed = true,
         ),
         ruleStateJson: String? = null,
+        layerMutation: ((com.github.kr328.clash.service.util.UserLayer) -> com.github.kr328.clash.service.util.UserLayer)? = null,
     ): String {
         val id = UUID.randomUUID().toString()
         synchronized(previewCache) {
-            previewCache[id] = CachedPreview(uuid, files, ruleStateJson)
+            previewCache[id] = CachedPreview(uuid, files, ruleStateJson, layerMutation)
             while (previewCache.size > 16) {
                 previewCache.remove(previewCache.keys.first())
             }

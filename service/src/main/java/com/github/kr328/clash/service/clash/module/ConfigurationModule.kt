@@ -9,6 +9,7 @@ import com.github.kr328.clash.service.data.ImportedDao
 import com.github.kr328.clash.service.data.SelectionDao
 import com.github.kr328.clash.service.store.ServiceStore
 import com.github.kr328.clash.service.util.GeoUrlSanitizer
+import com.github.kr328.clash.service.util.ProfileOverlay
 import com.github.kr328.clash.service.util.ProxyDialerYamlEdit
 import com.github.kr328.clash.service.util.ProxyGroupsYamlEdit
 import com.github.kr328.clash.service.util.ProxyHardener
@@ -139,6 +140,23 @@ class ConfigurationModule(service: Service) : Module<ConfigurationModule.LoadExc
 
                     Log.d("Active profile loaded")
                 }
+
+                // Overlay (config-overlay-architecture): re-derive config.yaml from subscription.yaml
+                // + the user layer before loading (migrates a legacy profile on first contact).
+                // Runtime gate: if our composition broke a previously-valid config, restore it so we
+                // never load something worse than before.
+                runCatching {
+                    val configFile = java.io.File(profileDir, "config.yaml")
+                    val backup = configFile.takeIf { it.isFile }?.readText()
+                    ProfileOverlay.refreshFromStore(profileDir, active.uuid, service.importedDir, store)
+                    if (backup != null) {
+                        val newErr = Clash.validateProfileBytes(configFile.readText())
+                        if (newErr != null && Clash.validateProfileBytes(backup) == null) {
+                            Log.w("Overlay-composed config invalid at load; restoring previous valid config: $newErr")
+                            configFile.writeText(backup)
+                        }
+                    }
+                }.onFailure { Log.w("Overlay refresh failed for ${active.uuid}; loading existing config.yaml", it) }
 
                 var dialerRecoveryAttempted = false
                 var loadFailures = 0

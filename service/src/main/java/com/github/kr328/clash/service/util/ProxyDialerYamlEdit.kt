@@ -131,6 +131,28 @@ object ProxyDialerYamlEdit {
     }
 
     /**
+     * Text-in/text-out: applies the proxy-chain intent (`target proxy name → dialer proxy name`)
+     * to the `proxies:` list of the given config YAML. Used by [ConfigComposer] to replay the user
+     * layer's proxy-chain onto the freshly fetched subscription at apply time.
+     *
+     * Targets that live in proxy-provider *files* are not reachable here (no file access); the apply
+     * path replays those separately via [applyDialerProxy] after providers are fetched. A target not
+     * found in `proxies:` is simply skipped (no error) — the engine gate is the final judge.
+     */
+    fun applyChainToConfigText(configText: String, chain: Map<String, String>): String {
+        if (chain.isEmpty()) return configText
+        val document = MihomoConfigDocument.parse(configText) ?: return configText
+        val root = document.root
+        var changed = false
+        for ((target, dialer) in chain) {
+            val t = target.trim()
+            if (t.isEmpty()) continue
+            if (patchProxiesList(root, t, dialer)) changed = true
+        }
+        return if (changed) document.renderReplacing("proxies") else configText
+    }
+
+    /**
      * @param dialerProxyName upstream proxy name, or **null** to remove dialer-proxy
      * @return true if a file was updated
      */
