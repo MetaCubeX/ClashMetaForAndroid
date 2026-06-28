@@ -5,7 +5,18 @@ import com.github.kr328.clash.service.model.RuleState
 object RuleValidator {
     private val builtInPolicies = setOf("DIRECT", "REJECT", "REJECT-DROP", "PASS")
 
-    fun validate(state: RuleState, availableProxyGroups: Set<String> = emptySet()) {
+    /**
+     * @param availablePolicies proxy-group names **and** proxy (node) names a rule may target —
+     *        in mihomo a rule policy can be a single proxy, not only a group.
+     * @param allowUnknownPolicy when the config pulls proxies from proxy-providers their names are
+     *        not statically known, so an unknown policy can't be confidently rejected; the engine
+     *        gate is the real check. Set true in that case to avoid false rejections.
+     */
+    fun validate(
+        state: RuleState,
+        availablePolicies: Set<String> = emptySet(),
+        allowUnknownPolicy: Boolean = false,
+    ) {
         val duplicateProvider = state.providers
             .map { it.name.trim() }
             .filter { it.isNotBlank() }
@@ -36,8 +47,8 @@ object RuleValidator {
             require(it.policy.isNotBlank()) { "Rule policy is empty" }
             val policy = it.policy.trim()
             val knownPolicy = builtInPolicies.any { b -> b.equals(policy, true) } ||
-                availableProxyGroups.any { g -> g.equals(policy, true) }
-            require(knownPolicy) { "Unknown rule policy/group: $policy" }
+                availablePolicies.any { g -> g.equals(policy, true) }
+            require(allowUnknownPolicy || knownPolicy) { "Unknown rule policy/group: $policy" }
         }
     }
 }

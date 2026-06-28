@@ -8,6 +8,7 @@ import com.github.kr328.clash.service.model.RuleEditorBundle
 import com.github.kr328.clash.service.model.RuleState
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonPrimitive
 import com.github.kr328.clash.service.model.RuleSource
 import com.github.kr328.clash.service.store.ServiceStore
 import kotlinx.serialization.json.Json
@@ -156,7 +157,17 @@ class RuleApplyService(
         val mergedYaml = RuleMapper.mergeStateIntoConfig(currentYaml, normalized, geoDataUrls)
         val mergedSnapshot = Clash.parseProfileSnapshotFromYaml(mergedYaml)
         val proxyGroups = ProxyGroupsYamlPreview.listProxyGroupNames(mergedSnapshot).toSet()
-        RuleValidator.validate(normalized, proxyGroups)
+        // In mihomo a rule policy can be a single proxy (node), not only a group — accept both.
+        val proxyNames = mergedSnapshot.proxies.mapNotNull {
+            it["name"]?.jsonPrimitive?.contentOrNull?.trim()?.takeIf { n -> n.isNotEmpty() }
+        }.toSet()
+        RuleValidator.validate(
+            normalized,
+            availablePolicies = proxyGroups + proxyNames,
+            // Proxies pulled from proxy-providers aren't statically listed; don't reject a policy we
+            // can't see (the engine gate is the real check).
+            allowUnknownPolicy = mergedSnapshot.proxyProviders.isNotEmpty(),
+        )
         // Soft engine check: ask mihomo whether it would accept the merged
         // YAML and surface its verdict in the log. We do NOT block the write
         // on failure - ParseRawConfig also loads provider files, which means

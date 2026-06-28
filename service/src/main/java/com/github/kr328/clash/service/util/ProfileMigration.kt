@@ -2,6 +2,7 @@ package com.github.kr328.clash.service.util
 
 import com.github.kr328.clash.common.log.Log
 import com.github.kr328.clash.core.model.ProfileSnapshot
+import com.github.kr328.clash.service.model.RuleSource
 import com.github.kr328.clash.service.model.RuleState
 import kotlinx.serialization.json.Json
 import java.io.File
@@ -88,8 +89,17 @@ object ProfileMigration {
         parseSnapshot: (File) -> ProfileSnapshot?,
         base: UserLayer = UserLayer(),
     ): UserLayer {
+        // Store only the user's MANUAL delta in the layer; subscription-owned (PROVIDER) rules and
+        // rule-providers come from subscription.yaml at compose time, so they stay fresh across
+        // updates and never bloat / freeze the layer.
         val rules = rulesStateJson
             ?.let { runCatching { json.decodeFromString(RuleState.serializer(), it) }.getOrNull() }
+            ?.let { full ->
+                full.copy(
+                    rules = full.rules.filter { it.source == RuleSource.MANUAL },
+                    providers = full.providers.filter { it.source == RuleSource.MANUAL },
+                )
+            }
             ?: RuleState()
 
         val chain = runCatching { ProxyDialerYamlEdit.listDialerChains(profileDir) }

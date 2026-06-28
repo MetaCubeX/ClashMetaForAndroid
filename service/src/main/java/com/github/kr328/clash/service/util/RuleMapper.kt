@@ -116,7 +116,7 @@ object RuleMapper {
         (root["rule-providers"] as? Map<*, *>)?.forEach { (k, v) ->
             if (k != null) mergedProviders[k.toString()] = v
         }
-        userRules.providers.filter { it.enabled }.forEach { p ->
+        userRules.providers.filter { it.enabled && it.source == RuleSource.MANUAL }.forEach { p ->
             mergedProviders[p.name] = linkedMapOf<String, Any?>(
                 "type" to p.type,
                 "behavior" to p.behavior,
@@ -128,7 +128,7 @@ object RuleMapper {
         if (mergedProviders.isNotEmpty()) root["rule-providers"] = mergedProviders
 
         val userLines = userRules.rules
-            .filter { it.enabled && !it.deleted }
+            .filter { it.enabled && !it.deleted && it.source == RuleSource.MANUAL }
             .sortedBy { it.order }
             .map { toRuleLine(it) }
         val existingLines = (root["rules"] as? List<*>).orEmpty().mapNotNull { it?.toString() }

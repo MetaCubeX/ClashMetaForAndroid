@@ -16,7 +16,6 @@ import com.github.kr328.clash.service.util.GeoUrlSanitizer
 import com.github.kr328.clash.service.util.MihomoConfigDocument
 import com.github.kr328.clash.service.util.RuleApplyService
 import com.github.kr328.clash.service.util.RuleMapper
-import com.github.kr328.clash.service.util.SubscriptionUpdateMerge
 import com.github.kr328.clash.service.util.FetchErrorClassifier
 import com.github.kr328.clash.service.util.MergeEngineVerdict
 import com.github.kr328.clash.service.util.ConfigComposer
@@ -43,15 +42,6 @@ import java.io.File
 import java.util.*
 import java.util.concurrent.TimeUnit
 
-/** `(type,value,policy)` keys of the `rules:` in a raw config text — for source reconcile. */
-private fun ruleKeysOf(configText: String): Set<String> = runCatching {
-    (MihomoConfigDocument.parseOrEmpty(configText).root["rules"] as? List<*>)
-        .orEmpty()
-        .mapNotNull { it as? String }
-        .mapIndexedNotNull { i, line -> RuleMapper.parseRuleLine(line, i) }
-        .map { "${it.type.uppercase()},${it.value.uppercase()},${it.policy.uppercase()}" }
-        .toSet()
-}.getOrDefault(emptySet())
 
 object ProfileProcessor {
     private val profileLock = Mutex()
@@ -307,11 +297,8 @@ object ProfileProcessor {
                 // if THIS merge breaks a config / drops an orphaned rule.
                 ServiceStore(context).setUpdateEngineWarning(snapshot.uuid, false)
                 ServiceStore(context).setOrphanedRulesDropped(snapshot.uuid, emptyList())
-                // Captured from the raw fetched config (pre-merge) for rule-source reconcile.
-                var fetchedSubRuleKeys: Set<String> = emptySet()
                 if (configFile.isFile) {
                     val fetchedText = configFile.readText()
-                    fetchedSubRuleKeys = ruleKeysOf(fetchedText)
                     // The freshly fetched subscription is the new canonical base; persist it and
                     // compose the captured user layer on top (Clash-Verge-Rev style overlay).
                     File(context.processingDir, ProfileComposer.SUBSCRIPTION_FILE).writeText(fetchedText)
