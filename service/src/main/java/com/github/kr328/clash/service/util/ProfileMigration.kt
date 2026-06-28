@@ -56,6 +56,38 @@ object ProfileMigration {
         File(profileDir, ProfileComposer.SUBSCRIPTION_FILE).writeText(config.readText())
 
         // 2. Extract the user's edits as intent.
+        val layer = buildLayerFromConfig(
+            profileDir = profileDir,
+            rulesStateJson = rulesStateJson,
+            dnsHostsManaged = dnsHostsManaged,
+            tunnelsManaged = tunnelsManaged,
+            parseSnapshot = parseSnapshot,
+            base = store.load(uuid),
+        )
+        store.save(uuid, layer)
+        Log.d("ProfileMigration: migrated ${profileDir.name} (rules=${layer.rules.rules.size} chain=${layer.proxyChain.size} dns=${layer.dnsHosts != null} tunnels=${layer.tunnels != null})")
+        return true
+    }
+
+    /**
+     * Re-derive the user layer's config-backed sections from `config.yaml` + the rule state, on top
+     * of [base] (which preserves sections this extractor does not own, e.g. proxy-providers). Used
+     * by both [migrateIfNeeded] and the post-edit layer sync so the layer faithfully tracks the
+     * effective config — which keeps the user's edits across the next subscription update.
+     *
+     *  - rules      ← `rules_state.json` (the rule editor's own intent store)
+     *  - proxyChain ← `dialer-proxy` fields in config.yaml / provider files
+     *  - dnsHosts   ← config.yaml `dns`/`hosts` when the user owns them (managed flag)
+     *  - tunnels    ← config.yaml `tunnels` when the user owns them (managed flag)
+     */
+    fun buildLayerFromConfig(
+        profileDir: File,
+        rulesStateJson: String?,
+        dnsHostsManaged: Boolean,
+        tunnelsManaged: Boolean,
+        parseSnapshot: (File) -> ProfileSnapshot?,
+        base: UserLayer = UserLayer(),
+    ): UserLayer {
         val rules = rulesStateJson
             ?.let { runCatching { json.decodeFromString(RuleState.serializer(), it) }.getOrNull() }
             ?: RuleState()
@@ -80,17 +112,11 @@ object ProfileMigration {
             null
         }
 
-        val layer = UserLayer(
+        return base.copy(
             rules = rules,
             dnsHosts = dnsHosts,
             tunnels = tunnels,
             proxyChain = chain,
         )
-        store.save(uuid, layer)
-        Log.d(
-            "ProfileMigration: migrated ${profileDir.name} " +
-                "(rules=${rules.rules.size} chain=${chain.size} dns=${dnsHosts != null} tunnels=${tunnels != null})",
-        )
-        return true
     }
 }

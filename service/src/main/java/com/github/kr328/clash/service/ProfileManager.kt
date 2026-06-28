@@ -34,6 +34,7 @@ import com.github.kr328.clash.service.util.generateProfileUUID
 import com.github.kr328.clash.service.util.GeoDataSources
 import com.github.kr328.clash.service.util.GeoDataUrls
 import com.github.kr328.clash.service.util.ProfileComposer
+import com.github.kr328.clash.service.util.ProfileMigration
 import com.github.kr328.clash.service.util.ProfileOverlay
 import com.github.kr328.clash.service.util.UserLayerStore
 import com.github.kr328.clash.service.util.importedDir
@@ -101,6 +102,38 @@ class ProfileManager(private val context: Context) : IProfileManager,
             hardeningMode = store.proxyHardeningMode,
             parseSnapshot = { d -> runCatching { Clash.parseProfileSnapshot(d) }.getOrNull() },
         )
+    }
+
+    /**
+     * After an in-app edit writes `config.yaml`, re-derive the user layer from it so the edit
+     * survives the next subscription update (config-overlay-architecture). `config.yaml` already
+     * holds the edit; this only keeps the intent layer in sync. Migrates first if needed (so a
+     * legacy profile gets its `subscription.yaml` base on the first edit).
+     */
+    private fun syncLayerFromConfig(uuid: UUID) {
+        val dir = File(context.importedDir, uuid.toString())
+        if (!File(dir, "config.yaml").isFile) return
+        val parse: (File) -> com.github.kr328.clash.core.model.ProfileSnapshot? =
+            { d -> runCatching { Clash.parseProfileSnapshot(d) }.getOrNull() }
+        // Ensure subscription.yaml exists (treat the pre-edit config as the base on first edit).
+        ProfileMigration.migrateIfNeeded(
+            profileDir = dir,
+            uuid = uuid,
+            store = userLayerStore,
+            rulesStateJson = runCatching { ruleApplyService.readStateJson(uuid) }.getOrNull(),
+            dnsHostsManaged = store.isDnsHostsManaged(uuid),
+            tunnelsManaged = store.isTunnelsManaged(uuid),
+            parseSnapshot = parse,
+        )
+        val layer = ProfileMigration.buildLayerFromConfig(
+            profileDir = dir,
+            rulesStateJson = runCatching { ruleApplyService.readStateJson(uuid) }.getOrNull(),
+            dnsHostsManaged = store.isDnsHostsManaged(uuid),
+            tunnelsManaged = store.isTunnelsManaged(uuid),
+            parseSnapshot = parse,
+            base = userLayerStore.load(uuid),
+        )
+        userLayerStore.save(uuid, layer)
     }
 
     /**
@@ -808,7 +841,10 @@ class ProfileManager(private val context: Context) : IProfileManager,
             val dir = File(context.importedDir, uuid.toString())
             try {
                 val ok = ProxyDialerYamlEdit.applyDialerProxy(dir, targetProxyName, dialerProxyName)
-                if (ok) context.sendProfileChanged(uuid)
+                if (ok) {
+                    runCatching { syncLayerFromConfig(uuid) }
+                    context.sendProfileChanged(uuid)
+                }
                 ok
             } catch (_: Exception) {
                 false
@@ -924,6 +960,7 @@ class ProfileManager(private val context: Context) : IProfileManager,
         return withContext(Dispatchers.IO) {
             if (ImportedDao().queryByUUID(uuid) == null) return@withContext false
             val ok = ruleApplyService.applyStateJson(uuid, stateJson)
+            if (ok) runCatching { syncLayerFromConfig(uuid) }
             Log.d("applyRuleState ok=$ok")
             ok
         }
@@ -1022,6 +1059,9 @@ class ProfileManager(private val context: Context) : IProfileManager,
                 cached.ruleStateJson?.let {
                     ruleApplyService.saveStateJson(cached.uuid, it)
                 }
+                // Overlay: keep the user layer in sync with the just-committed config.yaml so the
+                // edit survives the next subscription update (config-overlay-architecture).
+                runCatching { syncLayerFromConfig(cached.uuid) }
                 context.sendProfileChanged(cached.uuid)
                 true
             } catch (e: Exception) {
