@@ -34,7 +34,7 @@ import com.github.kr328.clash.service.util.generateProfileUUID
 import com.github.kr328.clash.service.util.GeoDataSources
 import com.github.kr328.clash.service.util.GeoDataUrls
 import com.github.kr328.clash.service.util.ProfileComposer
-import com.github.kr328.clash.service.util.ProfileMigration
+import com.github.kr328.clash.service.util.ProfileOverlay
 import com.github.kr328.clash.service.util.UserLayerStore
 import com.github.kr328.clash.service.util.importedDir
 import com.github.kr328.clash.service.util.sendProfileUpdateCompleted
@@ -90,22 +90,16 @@ class ProfileManager(private val context: Context) : IProfileManager,
      */
     private fun materializeProfile(uuid: UUID): Boolean {
         val dir = File(context.importedDir, uuid.toString())
-        // Lazily migrate legacy "baked into config.yaml" profiles to the overlay model the first
-        // time we touch them (creates subscription.yaml + extracts edits; config.yaml unchanged).
-        ProfileMigration.migrateIfNeeded(
+        return ProfileOverlay.refresh(
             profileDir = dir,
             uuid = uuid,
-            store = userLayerStore,
+            userLayerStore = userLayerStore,
             rulesStateJson = runCatching { ruleApplyService.readStateJson(uuid) }.getOrNull(),
             dnsHostsManaged = store.isDnsHostsManaged(uuid),
             tunnelsManaged = store.isTunnelsManaged(uuid),
-            parseSnapshot = { d -> runCatching { Clash.parseProfileSnapshot(d) }.getOrNull() },
-        )
-        return ProfileComposer.materialize(
-            profileDir = dir,
-            layer = userLayerStore.load(uuid),
             geoDataUrls = resolvedGeoDataUrls(),
             hardeningMode = store.proxyHardeningMode,
+            parseSnapshot = { d -> runCatching { Clash.parseProfileSnapshot(d) }.getOrNull() },
         )
     }
 
