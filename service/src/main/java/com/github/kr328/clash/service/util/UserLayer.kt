@@ -110,5 +110,30 @@ class UserLayerStore(private val importedDir: File) {
 
     companion object {
         const val FILE_NAME = "user_layer.json"
+
+        private val flatJson = Json {
+            ignoreUnknownKeys = true
+            encodeDefaults = true
+            prettyPrint = true
+        }
+
+        /** Load the layer directly from a profile directory (flat, e.g. the processing dir). */
+        fun loadAt(profileDir: File): UserLayer {
+            val f = File(profileDir, FILE_NAME)
+            if (!f.isFile) return UserLayer()
+            return runCatching { flatJson.decodeFromString(UserLayer.serializer(), f.readText()) }
+                .getOrElse { UserLayer() }
+        }
+
+        /** Save the layer directly into a profile directory (flat); empty layer removes the file. */
+        fun saveAt(profileDir: File, layer: UserLayer) {
+            val f = File(profileDir, FILE_NAME)
+            if (layer.isEmpty()) {
+                f.delete()
+                return
+            }
+            f.parentFile?.mkdirs()
+            f.writeText(flatJson.encodeToString(UserLayer.serializer(), layer))
+        }
     }
 }

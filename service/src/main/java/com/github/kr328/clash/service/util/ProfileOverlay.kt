@@ -1,7 +1,9 @@
 package com.github.kr328.clash.service.util
 
+import com.github.kr328.clash.core.Clash
 import com.github.kr328.clash.core.model.ProfileSnapshot
 import com.github.kr328.clash.service.model.ProxyHardeningMode
+import com.github.kr328.clash.service.store.ServiceStore
 import java.io.File
 import java.util.UUID
 
@@ -43,6 +45,39 @@ object ProfileOverlay {
             layer = userLayerStore.load(uuid),
             geoDataUrls = geoDataUrls,
             hardeningMode = hardeningMode,
+        )
+    }
+
+    /**
+     * Production convenience over [refresh] that resolves every input from [store] + the native
+     * engine. Used by the live call sites (VPN start, subscription import/update). Kept separate
+     * from the pure [refresh] so the latter stays unit-testable without JNI/Android.
+     */
+    fun refreshFromStore(
+        profileDir: File,
+        uuid: UUID,
+        importedDir: File,
+        store: ServiceStore,
+    ): Boolean {
+        val rulesStateJson = File(profileDir, "rules_state.json")
+            .takeIf { it.isFile }
+            ?.let { runCatching { it.readText() }.getOrNull() }
+        return refresh(
+            profileDir = profileDir,
+            uuid = uuid,
+            userLayerStore = UserLayerStore(importedDir),
+            rulesStateJson = rulesStateJson,
+            dnsHostsManaged = store.isDnsHostsManaged(uuid),
+            tunnelsManaged = store.isTunnelsManaged(uuid),
+            geoDataUrls = GeoDataSources.resolve(
+                preset = store.geoDataSourcePreset,
+                customGeoIp = store.geoDataCustomGeoIp,
+                customGeoSite = store.geoDataCustomGeoSite,
+                customMmdb = store.geoDataCustomMmdb,
+                customAsn = store.geoDataCustomAsn,
+            ),
+            hardeningMode = store.proxyHardeningMode,
+            parseSnapshot = { d -> runCatching { Clash.parseProfileSnapshot(d) }.getOrNull() },
         )
     }
 }
