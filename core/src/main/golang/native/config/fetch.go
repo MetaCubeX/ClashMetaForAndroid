@@ -50,14 +50,23 @@ func openContent(url string) (io.ReadCloser, error) {
 	return app.OpenContent(url)
 }
 
-// 20s per single fetch keeps a stuck rule-provider from holding up the whole
-// import. With 60s and sequential fetches, one slow CDN edge could turn a
-// 10-provider import into a 10-minute hang. With parallel fetches (see
-// [fetchProviders]) the slowest individual stream is also the worst-case
-// total — 20s gives enough room for honest slow links without making the user
-// wait.
-func fetch(url *U.URL, file string) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+const (
+	// The main subscription is the single critical download — give it generous
+	// room (matches upstream ClashMetaForAndroid) so a slow CDN / DPI-laggy link
+	// doesn't fail the whole update.
+	subscriptionFetchTimeout = 60 * time.Second
+	// Each rule-/proxy-provider runs on a short budget so one stuck provider can't
+	// hold up the parallel import (see [fetchProviders] / [maxProviderConcurrency]).
+	providerFetchTimeout = 20 * time.Second
+)
+
+// Downloads a single URL to a file with a caller-supplied timeout. The timeout
+// is decoupled per use case (see [subscriptionFetchTimeout] / [providerFetchTimeout]):
+// the main subscription is one critical fetch and gets generous room for slow
+// CDNs / DPI, while each rule-/proxy-provider runs on a short budget so a stuck
+// provider can't hold up the (parallel, see [fetchProviders]) import.
+func fetch(url *U.URL, file string, timeout time.Duration) error {
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
 	var reader io.ReadCloser
@@ -132,7 +141,7 @@ func FetchAndValid(
 
 		reportStatus(string(bytes))
 
-		if err := fetch(parsed, configPath); err != nil {
+		if err := fetch(parsed, configPath, subscriptionFetchTimeout); err != nil {
 			return err
 		}
 	}
@@ -276,7 +285,7 @@ func fetchProviders(rawCfg *config.RawConfig, force bool, reportStatus func(stri
 			// behaviour): a missing rule-provider should not abort the whole
 			// import — the user can still activate the profile and the
 			// provider re-fetches on the next FetchProvidersAndValid pass.
-			_ = fetch(t.url, t.path)
+			_ = fetch(t.url, t.path, providerFetchTimeout)
 
 			current := atomic.AddInt32(&done, 1)
 			bytes, _ := json.Marshal(&Status{
