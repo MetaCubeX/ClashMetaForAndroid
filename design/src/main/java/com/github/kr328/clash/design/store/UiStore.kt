@@ -78,6 +78,21 @@ class UiStore(context: Context) {
         defaultValue = false,
     )
 
+    var webdavUrl: String by store.string(
+        key = "webdav_url",
+        defaultValue = "",
+    )
+
+    var webdavUsername: String by store.string(
+        key = "webdav_username",
+        defaultValue = "",
+    )
+
+    var webdavPassword: String by store.string(
+        key = "webdav_password",
+        defaultValue = "",
+    )
+
     companion object {
         private const val PREFERENCE_NAME = "ui"
 
