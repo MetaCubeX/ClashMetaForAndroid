@@ -59,14 +59,25 @@ class StaticNotificationModule(service: Service) : Module<Unit>(service) {
     }
 
     companion object {
-        const val CHANNEL_ID = "clash_status_channel"
+        // Bumped from the original "clash_status_channel": a channel's showBadge can't be changed
+        // after creation (Android ignores in-place updates), so the no-badge fix only reaches
+        // existing installs by recreating the channel under a new id (+ deleting the old one).
+        const val CHANNEL_ID = "clash_status_channel_v2"
+        private const val LEGACY_CHANNEL_ID = "clash_status_channel"
 
         fun createNotificationChannel(service: Service) {
-            NotificationManagerCompat.from(service).createNotificationChannel(
+            val manager = NotificationManagerCompat.from(service)
+            manager.deleteNotificationChannel(LEGACY_CHANNEL_ID)
+            manager.createNotificationChannel(
                 NotificationChannelCompat.Builder(
                     CHANNEL_ID,
                     NotificationManagerCompat.IMPORTANCE_LOW
-                ).setName(service.getText(R.string.clash_service_status_channel)).build()
+                )
+                    .setName(service.getText(R.string.clash_service_status_channel))
+                    // The persistent VPN-foreground notification must not put a "1" badge on the
+                    // launcher icon — users read it as an unread alert and can't swipe it away.
+                    .setShowBadge(false)
+                    .build()
             )
         }
 
