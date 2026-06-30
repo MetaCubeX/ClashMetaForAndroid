@@ -396,7 +396,7 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         supportUrl: String?,
         source: String?,
     ): String {
-        val payload = "$message ${url.orEmpty()} ${supportUrl.orEmpty()} ${source.orEmpty()}"
+        val payload = "$message\u0000${url.orEmpty()}\u0000${supportUrl.orEmpty()}\u0000${source.orEmpty()}"
         val md = java.security.MessageDigest.getInstance("SHA-256")
         val bytes = md.digest(payload.toByteArray(Charsets.UTF_8))
         return buildString(bytes.size * 2) {

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- iOS-lux connect button (idle/disconnected): soft vertical gradient body with a subtle
+     top highlight ring for tactile depth. Real elevation shadow comes from the view. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="oval">
+            <gradient
+                android:angle="270"
+                android:startColor="#2C2C32"
+                android:centerColor="#222227"
+                android:endColor="#17171B"
+                android:type="linear" />
+            <stroke
+                android:width="1dp"
+                android:color="#26FFFFFF" />
+        </shape>
+    </item>
+    <!-- inner soft highlight at the top edge -->
+    <item android:gravity="top" android:height="2dp">
+        <shape android:shape="rectangle">
+            <solid android:color="#1AFFFFFF" />
+        </shape>
+    </item>
+</layer-list>
