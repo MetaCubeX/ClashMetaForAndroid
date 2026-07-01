@@ -386,8 +386,8 @@
                 app:cardBackgroundColor="?attr/colorSurfaceContainer"
                 app:cardCornerRadius="22dp"
                 app:cardElevation="6dp"
-                app:strokeColor="@android:color/transparent"
-                app:strokeWidth="0dp">
+                app:strokeColor="@color/lumen_hairline"
+                app:strokeWidth="1dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -815,7 +815,8 @@
                 app:cardBackgroundColor="?attr/colorSurfaceContainer"
                 app:cardCornerRadius="22dp"
                 app:cardElevation="6dp"
-                app:strokeWidth="0dp">
+                app:strokeColor="@color/lumen_hairline"
+                app:strokeWidth="1dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"

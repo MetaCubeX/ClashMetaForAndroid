@@ -88,6 +88,9 @@
     <color name="proto_wireguard">#2E7D32</color>
     <color name="proto_default">#5F6368</color>
 
+    <!-- Lumen lux-card hairline (light: a faint dark edge). -->
+    <color name="lumen_hairline">#14000000</color>
+
     <!-- Proxy-group type chips — shared palette with SlothClash (brand unity), light variants. -->
     <color name="group_urltest">#1F7A44</color>
     <color name="group_selector">#6A45B8</color>

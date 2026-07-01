@@ -12,15 +12,16 @@
     android:gravity="center_vertical"
     android:minHeight="56dp"
     android:orientation="horizontal"
-    android:paddingStart="0dp"
+    android:paddingStart="14dp"
     android:paddingEnd="14dp"
     android:paddingVertical="9dp">
 
+    <!-- Selection is now shown by the accent outline (bg_proxy_node_row) + check, so the left
+         rail is retired. Kept as a 0-width view because selection tracking reads its visibility. -->
     <View
         android:id="@+id/selected_bar"
-        android:layout_width="2dp"
+        android:layout_width="0dp"
         android:layout_height="34dp"
-        android:layout_marginEnd="12dp"
         android:background="@drawable/bg_proxy_node_rail"
         android:visibility="invisible" />
 
