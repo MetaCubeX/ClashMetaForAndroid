@@ -13,7 +13,7 @@
     <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="?attr/colorSurface"
+        android:background="@drawable/bg_home_canvas"
         android:paddingStart="@{self.surface.insets.start}"
         android:paddingEnd="@{self.surface.insets.end}">
 
@@ -119,8 +119,10 @@
                         android:padding="16dp">
 
                         <ImageView
-                            android:layout_width="30dp"
-                            android:layout_height="30dp"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:background="@drawable/bg_flag_circle"
+                            android:padding="10dp"
                             android:contentDescription="@string/companion_title"
                             android:src="@drawable/ic_baseline_stack"
                             app:tint="?attr/colorPrimary" />
@@ -172,8 +174,10 @@
                         android:padding="16dp">
 
                         <ImageView
-                            android:layout_width="30dp"
-                            android:layout_height="30dp"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:background="@drawable/bg_flag_circle"
+                            android:padding="10dp"
                             android:contentDescription="@string/settings_geo"
                             android:src="@drawable/ic_baseline_language"
                             app:tint="?attr/colorPrimary" />
@@ -225,8 +229,10 @@
                         android:padding="16dp">
 
                         <ImageView
-                            android:layout_width="30dp"
-                            android:layout_height="30dp"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:background="@drawable/bg_flag_circle"
+                            android:padding="10dp"
                             android:contentDescription="@string/network"
                             android:src="@drawable/ic_baseline_vpn_lock"
                             app:tint="?attr/colorPrimary" />
@@ -278,8 +284,10 @@
                         android:padding="16dp">
 
                         <ImageView
-                            android:layout_width="30dp"
-                            android:layout_height="30dp"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:background="@drawable/bg_flag_circle"
+                            android:padding="10dp"
                             android:contentDescription="@string/meta_features"
                             android:src="@drawable/ic_baseline_extension"
                             app:tint="?attr/colorPrimary" />
@@ -333,8 +341,10 @@
                         android:padding="16dp">
 
                         <ImageView
-                            android:layout_width="30dp"
-                            android:layout_height="30dp"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:background="@drawable/bg_flag_circle"
+                            android:padding="10dp"
                             android:contentDescription="@string/dns_hosts_title"
                             android:src="@drawable/ic_baseline_language"
                             app:tint="?attr/colorPrimary" />
@@ -388,8 +398,10 @@
                         android:padding="16dp">
 
                         <ImageView
-                            android:layout_width="30dp"
-                            android:layout_height="30dp"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:background="@drawable/bg_flag_circle"
+                            android:padding="10dp"
                             android:contentDescription="@string/tunnels_title"
                             android:src="@drawable/ic_baseline_swap_horiz"
                             app:tint="?attr/colorPrimary" />
@@ -443,8 +455,10 @@
                         android:padding="16dp">
 
                         <ImageView
-                            android:layout_width="30dp"
-                            android:layout_height="30dp"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:background="@drawable/bg_flag_circle"
+                            android:padding="10dp"
                             android:contentDescription="@string/config_override"
                             android:src="@drawable/ic_baseline_bolt"
                             app:tint="?attr/colorPrimary" />

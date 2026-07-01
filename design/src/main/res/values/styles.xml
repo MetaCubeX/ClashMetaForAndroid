@@ -48,9 +48,17 @@
 
     <style name="AppCard.Outlined" parent="Widget.Material3.CardView.Outlined" />
 
-    <style name="AppCard.Filled" parent="Widget.Material3.CardView.Filled" />
+    <!-- Lumen lux edge: a whisper of light on every filled card, app-wide (batch). Cards that
+         want no edge can override strokeWidth=0dp locally. -->
+    <style name="AppCard.Filled" parent="Widget.Material3.CardView.Filled">
+        <item name="strokeColor">@color/lumen_hairline</item>
+        <item name="strokeWidth">1dp</item>
+    </style>
 
-    <style name="AppCard.Surface" parent="Widget.Material3.CardView.Filled" />
+    <style name="AppCard.Surface" parent="Widget.Material3.CardView.Filled">
+        <item name="strokeColor">@color/lumen_hairline</item>
+        <item name="strokeWidth">1dp</item>
+    </style>
 
     <style name="AppCard.Action" parent="Widget.Material3.CardView.Filled" />
 

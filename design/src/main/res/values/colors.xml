@@ -11,10 +11,12 @@
     <color name="color_light_control_disabled">#FFCAD2DC</color>
     <color name="color_error">#FFB00020</color>
 
-    <!-- Dark Tech palette (ClashFest default dark) -->
-    <color name="tech_bg">#0B0F14</color>
-    <color name="tech_surface">#121821</color>
-    <color name="tech_card">#1A2330</color>
+    <!-- Dark Tech palette (ClashFest default dark) — retuned from cool blue-grey to neutral
+         "obsidian" so windowBackground / dashboard gradient match the md3_dark surface ramp
+         (Home canvas). These feed android:windowBackground + bg_main_gradient. -->
+    <color name="tech_bg">#0A0A0B</color>
+    <color name="tech_surface">#141415</color>
+    <color name="tech_card">#1A1A1C</color>
     <!-- Neon green (cyberpunk primary) -->
     <color name="tech_primary">#00E676</color>
     <color name="tech_on_primary">#0B0F14</color>
@@ -22,7 +24,7 @@
     <color name="tech_secondary_soft">#664ADE80</color>
     <color name="tech_text_primary">#E6EDF3</color>
     <color name="tech_text_secondary">#9BA3AF</color>
-    <color name="tech_divider">#2A3344</color>
+    <color name="tech_divider">#333237</color>
 
     <!-- Legacy dark aliases → Dark Tech -->
     <color name="color_clash_dark">@color/tech_primary</color>
@@ -31,7 +33,7 @@
     <color name="color_dark_control_disabled">#809BA3AF</color>
 
     <!-- Home dashboard -->
-    <color name="main_gradient_top">#151C28</color>
+    <color name="main_gradient_top">#141416</color>
     <color name="main_gradient_bottom">@color/tech_bg</color>
     <color name="main_gradient_top_light">#E5ECF4</color>
     <color name="main_gradient_bottom_light">#F2F6FA</color>

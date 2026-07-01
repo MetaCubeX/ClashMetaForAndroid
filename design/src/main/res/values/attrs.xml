@@ -5,6 +5,10 @@
     <attr name="colorBackground" format="color" />
     <attr name="colorOnBackground" format="color" />
 
+    <!-- Ambient top-glow tint used by bg_home_canvas. White-ish on normal dark, transparent on
+         pure-black (TrueBlack) so pure black stays pure. -->
+    <attr name="homeGlowColor" format="color" />
+
     <attr name="colorClashStopped" format="color" />
     <attr name="colorControlDisabled" format="color" />
     <attr name="colorLogo" format="color" />

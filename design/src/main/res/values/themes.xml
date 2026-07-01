@@ -116,6 +116,7 @@
     </style>
 
     <style name="AppThemeLightBase" parent="Theme.Material3.Light.NoActionBar">
+        <item name="homeGlowColor">#0DFFFFFF</item>
         <item name="android:windowBackground">@color/color_light_background</item>
         <item name="android:ambientShadowAlpha">0.08</item>
         <item name="android:spotShadowAlpha">0.08</item>
@@ -220,6 +221,7 @@
     </style>
 
     <style name="AppThemeDarkBase" parent="Theme.Material3.Dark.NoActionBar">
+        <item name="homeGlowColor">#2BFFFFFF</item>
         <item name="android:windowBackground">@color/tech_bg</item>
         <item name="android:ambientShadowAlpha">0.12</item>
         <item name="android:spotShadowAlpha">0.14</item>
@@ -553,6 +555,7 @@
     </style>
 
     <style name="ThemeOverlay_ClashFest_TrueBlack">
+        <item name="homeGlowColor">@android:color/transparent</item>
         <item name="android:windowBackground">@color/theme_true_black_bg</item>
         <item name="colorBackground">@color/theme_true_black_bg</item>
         <item name="colorSurface">@color/theme_true_black_surface</item>

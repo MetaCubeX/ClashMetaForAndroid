@@ -33,7 +33,7 @@
     <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="?attr/colorSurface"
+        android:background="@drawable/bg_home_canvas"
         android:clipChildren="true"
         android:clipToPadding="true"
         android:paddingStart="@{self.surface.insets.start}"
@@ -920,6 +920,7 @@
 
         <LinearLayout
             android:id="@+id/main_profiles_page"
+            android:background="@drawable/bg_home_canvas"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical"
@@ -1057,6 +1058,7 @@
 
         <androidx.core.widget.NestedScrollView
             android:id="@+id/main_routing_page"
+            android:background="@drawable/bg_home_canvas"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:clipToPadding="false"
@@ -1164,8 +1166,10 @@
                         android:padding="16dp">
 
                         <ImageView
-                            android:layout_width="30dp"
-                            android:layout_height="30dp"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:background="@drawable/bg_flag_circle"
+                            android:padding="10dp"
                             android:contentDescription="@string/proxy_chain_title"
                             android:src="@drawable/ic_baseline_swap_horiz"
                             app:tint="?attr/colorPrimary" />
@@ -1219,8 +1223,10 @@
                         android:padding="16dp">
 
                         <ImageView
-                            android:layout_width="30dp"
-                            android:layout_height="30dp"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:background="@drawable/bg_flag_circle"
+                            android:padding="10dp"
                             android:contentDescription="@string/access_control_packages"
                             android:src="@drawable/ic_baseline_subscriptions"
                             app:tint="?attr/colorPrimary" />
@@ -1255,6 +1261,7 @@
 
         <androidx.core.widget.NestedScrollView
             android:id="@+id/main_operator_page"
+            android:background="@drawable/bg_home_canvas"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:clipToPadding="false"
@@ -1278,7 +1285,7 @@
                     app:cardBackgroundColor="?attr/colorSurfaceContainer"
                     app:cardCornerRadius="22dp"
                     app:cardElevation="0dp"
-                    app:strokeColor="?attr/colorOutlineVariant"
+                    app:strokeColor="@color/lumen_hairline"
                     app:strokeWidth="1dp">
 
                     <LinearLayout
@@ -1391,6 +1398,7 @@
 
         <androidx.core.widget.NestedScrollView
             android:id="@+id/main_settings_page"
+            android:background="@drawable/bg_home_canvas"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:clipToPadding="false"
@@ -1498,8 +1506,10 @@
                         android:padding="16dp">
 
                         <ImageView
-                            android:layout_width="30dp"
-                            android:layout_height="30dp"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:background="@drawable/bg_flag_circle"
+                            android:padding="10dp"
                             android:contentDescription="@string/theme_settings"
                             android:src="@drawable/ic_baseline_brightness_4"
                             app:tint="?attr/colorPrimary" />
@@ -1551,8 +1561,10 @@
                         android:padding="16dp">
 
                         <ImageView
-                            android:layout_width="30dp"
-                            android:layout_height="30dp"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:background="@drawable/bg_flag_circle"
+                            android:padding="10dp"
                             android:contentDescription="@string/subscription_identity"
                             android:src="@drawable/ic_baseline_subscriptions"
                             app:tint="?attr/colorPrimary" />
@@ -1604,8 +1616,10 @@
                         android:padding="16dp">
 
                         <ImageView
-                            android:layout_width="30dp"
-                            android:layout_height="30dp"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:background="@drawable/bg_flag_circle"
+                            android:padding="10dp"
                             android:contentDescription="@string/nav_connections"
                             android:src="@drawable/ic_baseline_swap_horiz"
                             app:tint="?attr/colorPrimary" />
@@ -1657,8 +1671,10 @@
                         android:padding="16dp">
 
                         <ImageView
-                            android:layout_width="30dp"
-                            android:layout_height="30dp"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:background="@drawable/bg_flag_circle"
+                            android:padding="10dp"
                             android:contentDescription="@string/logs"
                             android:src="@drawable/ic_baseline_article"
                             app:tint="?attr/colorPrimary" />
@@ -1710,8 +1726,10 @@
                         android:padding="16dp">
 
                         <ImageView
-                            android:layout_width="30dp"
-                            android:layout_height="30dp"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:background="@drawable/bg_flag_circle"
+                            android:padding="10dp"
                             android:contentDescription="@string/about"
                             android:src="@drawable/ic_baseline_info"
                             app:tint="?attr/colorPrimary" />
@@ -1757,7 +1775,7 @@
             app:cardElevation="@dimen/main_bottom_nav_elevation"
             app:cardUseCompatPadding="false"
             app:rippleColor="?attr/colorControlHighlight"
-            app:strokeColor="?attr/colorOutlineVariant"
+            app:strokeColor="@color/lumen_hairline"
             app:strokeWidth="1dp">
 
             <LinearLayout

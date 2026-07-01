@@ -9,8 +9,7 @@
         android:layout_marginBottom="12dp"
         app:cardBackgroundColor="?attr/colorSurfaceContainer"
         app:cardCornerRadius="20dp"
-        app:cardElevation="0dp"
-        app:strokeWidth="0dp">
+        app:cardElevation="0dp">
 
         <TextView
             android:id="@+id/tips"
