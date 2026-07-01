@@ -4,7 +4,9 @@
      premium depth on dark and is barely-there on light). Redesign 1.0. -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item>
-        <color android:color="?android:attr/colorBackground" />
+        <!-- Material ?attr/colorBackground (not ?android:attr/...) so the TrueBlack overlay, which
+             sets the custom colorBackground, repaints the canvas to #000000 on pure black. -->
+        <color android:color="?attr/colorBackground" />
     </item>
     <item>
         <shape android:shape="rectangle">

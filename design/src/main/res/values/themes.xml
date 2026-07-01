@@ -568,5 +568,15 @@
         <item name="profileCardBackground">@color/theme_true_black_surface</item>
         <item name="profileProxyBlockBackground">@color/theme_true_black_surface</item>
         <item name="android:navigationBarColor">@color/theme_true_black_bg</item>
+        <!-- Non-container attrs the brand neutral-surface pin leaves grey (#49454F/#938F99) —
+             re-pin to black-tier so pure black is truly black everywhere (power ring tint, card
+             strokes, dividers, tonal fills). This overlay is re-applied AFTER BrandNeutralSurfaces. -->
+        <item name="colorSurfaceVariant">#131313</item>
+        <item name="colorOutline">#2E2E2E</item>
+        <item name="colorOutlineVariant">#1E1E1E</item>
+        <!-- Kill the M3 tonal-elevation overlay so elevated cards (elevation>0) don't lighten the
+             black surface back to grey on OLED (the Mode/Profile/Node + announcement cards). -->
+        <item name="elevationOverlayEnabled">false</item>
+        <item name="elevationOverlayColor">@android:color/transparent</item>
     </style>
 </resources>
