@@ -277,6 +277,8 @@
                 android:id="@+id/main_home_active_content"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:clipChildren="false"
+                android:clipToPadding="false"
                 android:orientation="vertical"
                 android:visibility="@{hasProfiles ? View.VISIBLE : View.GONE}">
 
@@ -284,6 +286,8 @@
                 android:id="@+id/power_status_group"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:clipChildren="false"
+                android:clipToPadding="false"
                 android:gravity="center_horizontal"
                 android:orientation="vertical"
                 android:paddingTop="2dp">
@@ -304,12 +308,14 @@
                     android:id="@+id/main_power_shell"
                     android:layout_width="210dp"
                     android:layout_height="210dp"
-                    android:layout_marginTop="12dp">
+                    android:layout_marginTop="12dp"
+                    android:clipChildren="false"
+                    android:clipToPadding="false">
 
                     <View
                         android:id="@+id/power_halo"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
+                        android:layout_width="240dp"
+                        android:layout_height="240dp"
                         android:layout_gravity="center"
                         android:alpha="0.12"
                         android:background="@drawable/bg_power_glow" />
@@ -349,6 +355,43 @@
                         app:iconGravity="textStart"
                         app:iconPadding="0dp"
                         app:iconSize="48dp" />
+
+                    <!-- Top-light sheen overlaid on the button so it reads as a lit 3D orb.
+                         High elevation draws it above the button fill; outlineProvider=none
+                         keeps it from casting its own shadow. -->
+                    <!-- Dome vignette (deepens the rim → volumetric fill). Connected-only. -->
+                    <View
+                        android:id="@+id/power_dome"
+                        android:layout_width="148dp"
+                        android:layout_height="148dp"
+                        android:layout_gravity="center"
+                        android:alpha="0"
+                        android:background="@drawable/bg_power_dome"
+                        android:elevation="12dp"
+                        android:importantForAccessibility="no"
+                        android:outlineProvider="none" />
+
+                    <View
+                        android:id="@+id/power_sheen"
+                        android:layout_width="148dp"
+                        android:layout_height="148dp"
+                        android:layout_gravity="center"
+                        android:background="@drawable/bg_power_sheen"
+                        android:elevation="14dp"
+                        android:importantForAccessibility="no"
+                        android:outlineProvider="none" />
+
+                    <!-- Rotating glint (alive light sweep). Connected-only; rotation driven in code. -->
+                    <View
+                        android:id="@+id/power_sweep"
+                        android:layout_width="148dp"
+                        android:layout_height="148dp"
+                        android:layout_gravity="center"
+                        android:alpha="0"
+                        android:background="@drawable/bg_power_sweep"
+                        android:elevation="15dp"
+                        android:importantForAccessibility="no"
+                        android:outlineProvider="none" />
                 </FrameLayout>
 
                 <TextView

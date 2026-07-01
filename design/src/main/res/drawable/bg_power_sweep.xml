@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Soft angular glint that slowly rotates around the orb when connected — a subtle premium
+     shimmer. Kept quiet on purpose (louder alive effects read cheap). Accent-agnostic white. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+    <gradient
+        android:centerColor="#45FFFFFF"
+        android:endColor="#00FFFFFF"
+        android:startColor="#00FFFFFF"
+        android:type="sweep" />
+</shape>

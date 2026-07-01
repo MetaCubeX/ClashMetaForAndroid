@@ -4,13 +4,17 @@ import android.animation.ValueAnimator
 import android.content.res.ColorStateList
 import android.content.Context
 import android.content.Intent
+import android.graphics.Color
 import android.net.Uri
+import android.view.HapticFeedbackConstants
 import android.view.MotionEvent
 import android.view.View
 import android.view.animation.AccelerateDecelerateInterpolator
+import android.view.animation.OvershootInterpolator
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.ImageView
+import androidx.core.graphics.ColorUtils
 import androidx.core.view.doOnLayout
 import com.google.android.material.R as MaterialR
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -138,6 +142,7 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
     private var powerHaloBreathAnimator: ValueAnimator? = null
     private var powerRingInnerBreathAnimator: ValueAnimator? = null
     private var powerRingOuterBreathAnimator: ValueAnimator? = null
+    private var powerSweepAnimator: android.animation.ObjectAnimator? = null
 
     /**
      * Tracks the running flag the breath animators were last spun up for, so
@@ -756,6 +761,23 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         button.iconTint = ColorStateList.valueOf(context.resolveThemedColor(iconAttr))
         button.setTextColor(context.resolveThemedColor(iconAttr))
         button.elevation = elevationDp * context.resources.displayMetrics.density
+        // Lux bezel: a lit rim on the button edge — a lighter blend of the fill. Bright and
+        // present when running (glowing orb), whisper-subtle when off (calm disc).
+        val bezelColor = ColorUtils.blendARGB(bgColor, Color.WHITE, if (running) 0.36f else 0.10f)
+        button.strokeWidth = (2 * context.resources.displayMetrics.density).toInt()
+        button.setStrokeColor(ColorStateList.valueOf(bezelColor))
+        // Dimensional sheen belongs to the CONNECTED state — off is a calm, near-flat obsidian
+        // disc; on is a lit 3D orb. So the top-light is understated idle, full when running.
+        binding.powerSheen.alpha = when {
+            running -> 1.0f
+            starting -> 0.6f
+            else -> 0.22f
+        }
+        // Dome vignette (volumetric fill) + soft shimmer are CONNECTED-only.
+        val overlayAlpha = if (running) 1.0f else 0.0f
+        binding.powerDome.animate().alpha(overlayAlpha).setDuration(240L).start()
+        binding.powerSweep.backgroundTintList = null
+        binding.powerSweep.animate().alpha(overlayAlpha).setDuration(240L).start()
         // Live speed shows only while connected (redesign 1.0, #101).
         binding.mainSpeed.visibility = if (running) View.VISIBLE else View.GONE
 
@@ -782,30 +804,22 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         }
         haloAnim.start()
 
-        // Outer ring: alpha is breath-owned in running. Idle/connecting fade
-        // it all the way out — rings only exist as part of the breath ripple,
-        // so when there is no breath there should be no rings at all (just
-        // the bare button + halo). This is what makes "press → rings appear"
-        // read as the rings actually igniting on connect, not just dimming.
+        // Lumen single-glow: the outer ring is retired (kept in the view tree at alpha 0). The
+        // halo is the ONE soft glow — when running it tints to the active accent for the
+        // "lamp is on" feel; idle stays neutral.
         binding.powerRingOuter.animate().cancel()
-        if (!running) {
-            binding.powerRingOuter.animate()
-                .alpha(0.0f)
-                .setDuration(220L)
-                .start()
-        }
+        binding.powerRingOuter.alpha = 0f
 
-        // Persistent accent: when VPN is running, the halo + outer ring tint
-        // to the active accent (brand or M3 primary). Idle/starting states
-        // fall back to colorSurfaceVariant for a neutral look. This is what
-        // gives the home screen its "lamp is on" feel without animation.
-        val ringTint = if (running) {
+        val glowTint = if (running) {
             accentBg
         } else {
             context.resolveThemedColor(com.google.android.material.R.attr.colorSurfaceVariant)
         }
-        binding.powerHalo.backgroundTintList = ColorStateList.valueOf(ringTint)
-        binding.powerRingOuter.backgroundTintList = ColorStateList.valueOf(ringTint)
+        binding.powerHalo.backgroundTintList = ColorStateList.valueOf(glowTint)
+        // The faint idle ambient ring (inner) reads neutral, never accent.
+        binding.powerRingInner.backgroundTintList = ColorStateList.valueOf(
+            context.resolveThemedColor(com.google.android.material.R.attr.colorOutline),
+        )
 
         // Status pill: accent-tinted background + on-primary text when running,
         // neutral chip otherwise. Subtle but immediately readable as "active".
@@ -844,54 +858,47 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         powerHaloBreathAnimator?.cancel()
         powerRingInnerBreathAnimator?.cancel()
         powerRingOuterBreathAnimator?.cancel()
+        powerSweepAnimator?.cancel()
         powerBreathAnimator = null
         powerHaloBreathAnimator = null
         powerRingInnerBreathAnimator = null
         powerRingOuterBreathAnimator = null
+        powerSweepAnimator = null
 
         val button = binding.mainPowerCard
         val halo = binding.powerHalo
         val innerRing = binding.powerRingInner
         val outerRing = binding.powerRingOuter
 
+        // Outer ring is retired in the single-glow design — always dark.
+        outerRing.animate().cancel()
+        outerRing.alpha = 0f
+
         if (!running) {
-            // Idle / connecting: rings fade out completely. They only exist
-            // as the "ignition wave" of the breath loop, so when no breath
-            // is running there is no ring visible — just the button and the
-            // halo glow. Inner ring uses its own .animate() because (unlike
-            // outer ring, halo, button) it has no driver in applyPowerVisuals.
+            // Idle / connecting: no ripple. A faint neutral ambient ring sits under the raised
+            // button (Lumen); the halo glow is dim (its alpha is driven in applyPowerVisuals).
             button.scaleX = 1.0f
             button.scaleY = 1.0f
             innerRing.animate().cancel()
             innerRing.animate()
-                .alpha(0.0f)
-                .setDuration(220L)
+                .alpha(0.18f)
+                .setDuration(260L)
                 .start()
             return
         }
 
-        // Running breath: four-layer outward ripple. Each layer shares the
-        // same 2s period but starts with a progressively larger startDelay
-        // so the inhale radiates outward (button → halo → inner ring →
-        // outer ring) instead of every layer pulsing in lockstep.
-        //
-        // Rings start completely dark (alpha 0) on enter-running and "light
-        // up" on the inhale — peak brightness reached around mid-cycle, then
-        // they fade back out on the exhale. This is the "lighthouse"
-        // feeling the user wants: the rings are extinguished at rest and
-        // ignite with each breath, with a visible delay between layers so
-        // you can see the wave travel outward.
-        val period = 2000L
+        // Running: ONE soft glow (Lumen). No ring ripple — the halo breathes slowly for a calm
+        // "lamp is on" feel and the button gives a gentle scale. Rings stay dark. A longer period
+        // (2.6s) reads premium/unhurried vs the old 2s ripple.
+        val period = 2600L
         button.scaleX = 1.0f
         button.scaleY = 1.0f
-        // Pre-set the "off" baseline so the first frame of each animator
-        // doesn't visually jump from whatever alpha the view had in idle.
-        halo.alpha = 0.34f
+        innerRing.animate().cancel()
         innerRing.alpha = 0.0f
-        outerRing.alpha = 0.0f
+        halo.alpha = 0.20f
 
-        // Layer 0: button scale (epicentre, no delay).
-        powerBreathAnimator = ValueAnimator.ofFloat(1.0f, 1.06f).apply {
+        // Button: gentle scale breath (epicentre).
+        powerBreathAnimator = ValueAnimator.ofFloat(1.0f, 1.04f).apply {
             duration = period
             repeatCount = ValueAnimator.INFINITE
             repeatMode = ValueAnimator.REVERSE
@@ -903,12 +910,10 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
             }
             start()
         }
-        // Layer 1: halo alpha pulse — slight phase shift, halo is right
-        // under the button so it reads as part of the same "breath". Stays
-        // bright on average (0.34→0.50) because it's the "glow", not a ring.
-        powerHaloBreathAnimator = ValueAnimator.ofFloat(0.34f, 0.50f).apply {
+        // The single soft glow: halo alpha breathes under the button, slightly phase-shifted.
+        powerHaloBreathAnimator = ValueAnimator.ofFloat(0.20f, 0.40f).apply {
             duration = period
-            startDelay = 90L
+            startDelay = 120L
             repeatCount = ValueAnimator.INFINITE
             repeatMode = ValueAnimator.REVERSE
             interpolator = AccelerateDecelerateInterpolator()
@@ -917,31 +922,15 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
             }
             start()
         }
-        // Layer 2: inner ring fully off → bright (0.0 → 0.85). With ~180ms
-        // delay this is where the user perceives the ring "switching on".
-        powerRingInnerBreathAnimator = ValueAnimator.ofFloat(0.0f, 0.85f).apply {
-            duration = period
-            startDelay = 180L
+        // Soft conic shimmer slowly rotating around the orb — a subtle premium glint (kept quiet
+        // on purpose; louder "alive" effects read cheap on the orb).
+        powerSweepAnimator = android.animation.ObjectAnimator.ofFloat(
+            binding.powerSweep, View.ROTATION, 0f, 360f,
+        ).apply {
+            duration = 4600L
             repeatCount = ValueAnimator.INFINITE
-            repeatMode = ValueAnimator.REVERSE
-            interpolator = AccelerateDecelerateInterpolator()
-            addUpdateListener { animator ->
-                innerRing.alpha = animator.animatedValue as Float
-            }
-            start()
-        }
-        // Layer 3: outer ring off → near-full (0.0 → 0.95). Furthest delay
-        // (~310ms) — the wave "arrives" at the outer edge last and lights
-        // it up brightest, then it fades back to dark.
-        powerRingOuterBreathAnimator = ValueAnimator.ofFloat(0.0f, 0.95f).apply {
-            duration = period
-            startDelay = 310L
-            repeatCount = ValueAnimator.INFINITE
-            repeatMode = ValueAnimator.REVERSE
-            interpolator = AccelerateDecelerateInterpolator()
-            addUpdateListener { animator ->
-                outerRing.alpha = animator.animatedValue as Float
-            }
+            repeatMode = ValueAnimator.RESTART
+            interpolator = android.view.animation.LinearInterpolator()
             start()
         }
     }
@@ -1766,13 +1755,17 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         card.setOnTouchListener { v, event ->
             when (event.actionMasked) {
                 MotionEvent.ACTION_DOWN -> {
+                    v.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
                     v.animate().cancel()
-                    v.animate().scaleX(0.95f).scaleY(0.95f).setDuration(90L).start()
+                    v.animate().scaleX(0.94f).scaleY(0.94f).setDuration(90L).start()
                 }
                 MotionEvent.ACTION_UP,
                 MotionEvent.ACTION_CANCEL,
                 -> {
-                    v.animate().scaleX(1f).scaleY(1f).setDuration(120L).start()
+                    // Spring back with a soft overshoot — the connect tap feels physical.
+                    v.animate().scaleX(1f).scaleY(1f)
+                        .setInterpolator(OvershootInterpolator(2.4f))
+                        .setDuration(340L).start()
                 }
             }
             false
