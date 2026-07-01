@@ -87,4 +87,11 @@
     <color name="proto_shadowsocks">#0277BD</color>
     <color name="proto_wireguard">#2E7D32</color>
     <color name="proto_default">#5F6368</color>
+
+    <!-- Proxy-group type chips — shared palette with SlothClash (brand unity), light variants. -->
+    <color name="group_urltest">#1F7A44</color>
+    <color name="group_selector">#6A45B8</color>
+    <color name="group_fallback">#0F766E</color>
+    <color name="group_loadbalance">#5F5F1E</color>
+    <color name="group_relay">#2E5BB8</color>
 </resources>

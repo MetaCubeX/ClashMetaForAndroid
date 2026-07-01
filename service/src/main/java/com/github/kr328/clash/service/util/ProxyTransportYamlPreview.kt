@@ -95,10 +95,12 @@ object ProxyTransportYamlPreview {
         // explicit tls: true. Mihomo accepts both forms.
         val realityOpts = p["reality-opts"] as? JsonObject
         val reality = realityOpts != null && realityOpts.isNotEmpty()
+        val type = p.stringField("type")?.trim()?.lowercase().orEmpty()
         return ProxyTransportInfo(
             network = network,
             tls = tls,
             reality = reality,
+            type = type,
         )
     }
 
@@ -107,10 +109,12 @@ object ProxyTransportYamlPreview {
         val tls = truthy(p["tls"])
         val realityOpts = p["reality-opts"] as? Map<*, *>
         val reality = realityOpts != null && realityOpts.isNotEmpty()
+        val type = (p["type"] as? String)?.trim()?.lowercase().orEmpty()
         return ProxyTransportInfo(
             network = network,
             tls = tls,
             reality = reality,
+            type = type,
         )
     }
 

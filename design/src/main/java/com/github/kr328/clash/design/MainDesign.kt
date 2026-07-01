@@ -10,6 +10,8 @@ import android.view.View
 import android.view.animation.AccelerateDecelerateInterpolator
 import android.view.ViewGroup
 import android.widget.FrameLayout
+import android.widget.ImageView
+import androidx.core.view.doOnLayout
 import com.google.android.material.R as MaterialR
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.DefaultItemAnimator
@@ -33,6 +35,9 @@ import com.github.kr328.clash.design.util.applyLinearAdapter
 import com.github.kr328.clash.design.util.isTelevision
 import com.github.kr328.clash.design.util.layoutInflater
 import com.github.kr328.clash.design.util.patchDataSet
+import com.github.kr328.clash.design.util.FlagDrawableLoader
+import com.github.kr328.clash.design.util.FlagParser
+import com.github.kr328.clash.design.util.ParsedFlag
 import com.github.kr328.clash.design.util.resolveThemedColor
 import com.github.kr328.clash.design.util.resolveThemedResourceId
 import com.github.kr328.clash.design.util.root
@@ -149,6 +154,7 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
     /** Profiles-tab cards expanded into their proxy groups (independent of the Home set). */
     private val tabExpandedProfileUuids: LinkedHashSet<UUID> = linkedSetOf()
     private var currentModeSegment: TunnelState.Mode = TunnelState.Mode.Rule
+    private var suppressModeSegment = false
     private var activeProfileForQuickActions: Profile? = null
     private var activeAnnouncementSupportUrl: String? = null
     private var activeAnnouncementOnOpenUrl: ((String) -> Unit)? = null
@@ -723,17 +729,19 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
             running -> Triple(
                 com.google.android.material.R.attr.colorPrimary,
                 com.google.android.material.R.attr.colorOnPrimary,
-                6f,
+                10f,
             )
             starting -> Triple(
                 com.google.android.material.R.attr.colorPrimaryContainer,
                 com.google.android.material.R.attr.colorOnPrimaryContainer,
-                5f,
+                8f,
             )
             else -> Triple(
-                com.google.android.material.R.attr.colorSurfaceVariant,
+                // Raised "block" surface (brightest container) reads as a floating element
+                // against the ambient canvas — depth, not a flat Material fill. Redesign 1.0.
+                com.google.android.material.R.attr.colorSurfaceContainerHighest,
                 com.google.android.material.R.attr.colorOnSurfaceVariant,
-                4f,
+                7f,
             )
         }
         // Operator brand accent applies ONLY in the running state — that's the
@@ -748,6 +756,8 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         button.iconTint = ColorStateList.valueOf(context.resolveThemedColor(iconAttr))
         button.setTextColor(context.resolveThemedColor(iconAttr))
         button.elevation = elevationDp * context.resources.displayMetrics.density
+        // Live speed shows only while connected (redesign 1.0, #101).
+        binding.mainSpeed.visibility = if (running) View.VISIBLE else View.GONE
 
         val targetAlpha = when {
             running -> 0.34f
@@ -942,6 +952,13 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         }
     }
 
+    /** Live ↓/↑ speed under the connect hero (redesign 1.0, issue #101). */
+    suspend fun setSpeed(down: String, up: String) {
+        withContext(Dispatchers.Main) {
+            binding.mainSpeed.text = context.getString(R.string.main_speed_fmt, down, up)
+        }
+    }
+
     suspend fun setMode(mode: TunnelState.Mode) {
         withContext(Dispatchers.Main) {
             val normalized = normalizeMode(mode)
@@ -950,6 +967,12 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
                 TunnelState.Mode.Global -> context.getString(R.string.global_mode)
                 else -> context.getString(R.string.rule_mode)
             }
+            // Reflect on the segmented control without re-triggering the change request.
+            suppressModeSegment = true
+            binding.mainModeSegment.check(
+                if (normalized == TunnelState.Mode.Global) R.id.main_mode_global else R.id.main_mode_rule,
+            )
+            suppressModeSegment = false
         }
     }
 
@@ -1020,6 +1043,62 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         binding.mainActiveProfileUpdate.visibility = if (showUpdate) View.VISIBLE else View.GONE
         val showSupport = !resolveSupportUrl().isNullOrBlank()
         binding.mainActiveProfileSupport.visibility = if (showSupport) View.VISIBLE else View.GONE
+        // Redesign 1.0: Node row shows the active node as a circular flag icon (like the picker) +
+        // the clean name, and opens the proxy picker for the active profile (loads groups first).
+        val nodeName = p?.let { profileAdapter.activeNodeDisplayName(it) }
+        val nodeFlag = FlagParser.parse(nodeName)
+        bindMainNodeFlag(nodeFlag)
+        val cleanName = nodeName?.let { n ->
+            nodeFlag?.let { n.removePrefix(it.emoji).trimStart(' ', '|', '-', '_', '.', ':').ifBlank { n } } ?: n
+        }
+        binding.mainActiveNodeValue.text = cleanName ?: context.getString(R.string.main_node_choose)
+        binding.mainActiveNodeRow.setOnClickListener { p?.let { openNodePicker(it) } }
+    }
+
+    /** SVG → [ImageView.setImageBitmap] at the view's pixel width; emoji/globe fallbacks otherwise. */
+    private fun bindMainNodeFlag(flag: ParsedFlag?) {
+        val image = binding.mainActiveNodeFlag
+        val emoji = binding.mainActiveNodeFlagEmoji
+
+        fun applyGlobe() {
+            emoji.visibility = View.GONE
+            image.visibility = View.VISIBLE
+            image.scaleType = ImageView.ScaleType.FIT_CENTER
+            val pad = (9 * context.resources.displayMetrics.density).toInt()
+            image.setPadding(pad, pad, pad, pad)
+            image.setImageResource(R.drawable.ic_baseline_language)
+            image.imageTintList = ColorStateList.valueOf(
+                context.resolveThemedColor(MaterialR.attr.colorPrimary),
+            )
+        }
+
+        if (flag == null) {
+            applyGlobe()
+            return
+        }
+
+        fun applyFlag(sizePx: Int) {
+            if (sizePx <= 0) return
+            val bitmap = FlagDrawableLoader.loadBitmap(context, flag.code, sizePx)
+            if (bitmap != null) {
+                image.setPadding(0, 0, 0, 0)
+                image.scaleType = ImageView.ScaleType.CENTER_CROP
+                image.imageTintList = null
+                image.setImageBitmap(bitmap)
+                image.visibility = View.VISIBLE
+                emoji.visibility = View.GONE
+            } else {
+                image.visibility = View.GONE
+                emoji.text = flag.emoji
+                emoji.visibility = View.VISIBLE
+            }
+        }
+
+        if (image.width > 0) {
+            applyFlag(image.width)
+        } else {
+            image.doOnLayout { applyFlag(it.width.coerceAtLeast(1)) }
+        }
     }
 
     private fun resolveSupportUrl(): String? =
@@ -1162,6 +1241,21 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         }
         tabProfileAdapter.setExpandedUuids(tabExpandedProfileUuids.toSet())
         profileExpandChanged.trySend(Unit)
+    }
+
+    /**
+     * Node-row entry to the proxy picker (redesign 1.0). Unlike a bare [openProxySheetWhenReady],
+     * this first ensures the profile's proxy groups are loaded (the same load `toggleProfileExpand`
+     * triggers) so the sheet isn't empty; then opens it. Does not toggle the card's expand state.
+     */
+    private fun openNodePicker(profile: Profile) {
+        if (!profile.imported) return
+        if (!profileAdapter.hasProxyGroupsFor(profile)) {
+            expandedProfileUuids.add(profile.uuid)
+            profileAdapter.setExpandedUuids(expandedProfileUuids.toSet())
+            profileExpandChanged.trySend(Unit)
+        }
+        openProxySheetWhenReady(profile)
     }
 
     private fun openProxySheetWhenReady(profile: Profile, attempt: Int = 0) {
@@ -1693,7 +1787,14 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         binding.mainNavOperator.setOnClickListener { selectMainTab(MainTab.Operator) }
         binding.mainNavSettings.setOnClickListener { selectMainTab(MainTab.Settings) }
         binding.mainHeaderUpdateBadge.setOnClickListener { onUpdateBadgeTap?.invoke() }
-        binding.mainModeRow.setOnClickListener { showModeSheet() }
+        // Redesign 1.0: Mode is an in-place segmented control (Rule/Global) instead of a row+sheet.
+        binding.mainModeSegment.addOnButtonCheckedListener { _, checkedId, isChecked ->
+            if (!isChecked || suppressModeSegment) return@addOnButtonCheckedListener
+            when (checkedId) {
+                R.id.main_mode_rule -> requests.trySend(Request.PatchModeRule)
+                R.id.main_mode_global -> requests.trySend(Request.PatchModeGlobal)
+            }
+        }
         binding.mainActiveProfileUpdate.setOnClickListener {
             activeProfileForQuickActions?.let { profile ->
                 if (profile.imported && profile.type != Profile.Type.File) {

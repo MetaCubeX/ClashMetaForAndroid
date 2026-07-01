@@ -111,26 +111,46 @@
     </style>
 
     <!-- ========== Material 3 TextAppearance Styles ========== -->
+    <!-- Redesign 1.0 (Lumen): Space Grotesk on all Display/Headline/Title text app-wide (premium
+         geometric titles + values). Body/Label stay on the system font for neutral legibility. -->
     <!-- Display -->
-    <style name="TextAppearance.App.DisplayLarge" parent="TextAppearance.Material3.DisplayLarge" />
+    <style name="TextAppearance.App.DisplayLarge" parent="TextAppearance.Material3.DisplayLarge">
+        <item name="android:fontFamily">@font/space_grotesk</item>
+    </style>
 
-    <style name="TextAppearance.App.DisplayMedium" parent="TextAppearance.Material3.DisplayMedium" />
+    <style name="TextAppearance.App.DisplayMedium" parent="TextAppearance.Material3.DisplayMedium">
+        <item name="android:fontFamily">@font/space_grotesk</item>
+    </style>
 
-    <style name="TextAppearance.App.DisplaySmall" parent="TextAppearance.Material3.DisplaySmall" />
+    <style name="TextAppearance.App.DisplaySmall" parent="TextAppearance.Material3.DisplaySmall">
+        <item name="android:fontFamily">@font/space_grotesk</item>
+    </style>
 
     <!-- Headline -->
-    <style name="TextAppearance.App.HeadlineLarge" parent="TextAppearance.Material3.HeadlineLarge" />
+    <style name="TextAppearance.App.HeadlineLarge" parent="TextAppearance.Material3.HeadlineLarge">
+        <item name="android:fontFamily">@font/space_grotesk</item>
+    </style>
 
-    <style name="TextAppearance.App.HeadlineMedium" parent="TextAppearance.Material3.HeadlineMedium" />
+    <style name="TextAppearance.App.HeadlineMedium" parent="TextAppearance.Material3.HeadlineMedium">
+        <item name="android:fontFamily">@font/space_grotesk</item>
+    </style>
 
-    <style name="TextAppearance.App.HeadlineSmall" parent="TextAppearance.Material3.HeadlineSmall" />
+    <style name="TextAppearance.App.HeadlineSmall" parent="TextAppearance.Material3.HeadlineSmall">
+        <item name="android:fontFamily">@font/space_grotesk</item>
+    </style>
 
     <!-- Title -->
-    <style name="TextAppearance.App.TitleLarge" parent="TextAppearance.Material3.TitleLarge" />
+    <style name="TextAppearance.App.TitleLarge" parent="TextAppearance.Material3.TitleLarge">
+        <item name="android:fontFamily">@font/space_grotesk</item>
+    </style>
 
-    <style name="TextAppearance.App.TitleMedium" parent="TextAppearance.Material3.TitleMedium" />
+    <style name="TextAppearance.App.TitleMedium" parent="TextAppearance.Material3.TitleMedium">
+        <item name="android:fontFamily">@font/space_grotesk</item>
+    </style>
 
-    <style name="TextAppearance.App.TitleSmall" parent="TextAppearance.Material3.TitleSmall" />
+    <style name="TextAppearance.App.TitleSmall" parent="TextAppearance.Material3.TitleSmall">
+        <item name="android:fontFamily">@font/space_grotesk</item>
+    </style>
 
     <!-- Body -->
     <style name="TextAppearance.App.BodyLarge" parent="TextAppearance.Material3.BodyLarge" />

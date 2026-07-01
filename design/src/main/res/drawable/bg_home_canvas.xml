@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Home canvas: the themed window background plus a soft ambient light glow from the top-centre.
+     Theme-safe (base reads the theme attr; the glow is a low-alpha white radial that reads as
+     premium depth on dark and is barely-there on light). Redesign 1.0. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <color android:color="?android:attr/colorBackground" />
+    </item>
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:centerX="0.5"
+                android:centerY="0.04"
+                android:endColor="#00FFFFFF"
+                android:gradientRadius="720dp"
+                android:startColor="#17FFFFFF"
+                android:type="radial" />
+        </shape>
+    </item>
+</layer-list>

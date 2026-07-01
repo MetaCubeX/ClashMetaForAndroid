@@ -10,6 +10,9 @@ data class ProxyTransportInfo(
     val network: String = "",
     val tls: Boolean = false,
     val reality: Boolean = false,
+    /** Raw mihomo proxy `type` (e.g. "vless", "ss") — lets the picker show the protocol
+     *  badge offline, when there's no live engine to report the type. Empty = unknown. */
+    val type: String = "",
 ) : Parcelable {
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         Parcelizer.encodeToParcel(serializer(), parcel, this)

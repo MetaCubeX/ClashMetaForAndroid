@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Lumen: the node list sits on a recessed floating surface (depth, not borders). -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
-    <solid android:color="?attr/colorSurfaceContainer" />
+    <solid android:color="?attr/colorSurfaceContainerLow" />
     <corners android:radius="20dp" />
 </shape>

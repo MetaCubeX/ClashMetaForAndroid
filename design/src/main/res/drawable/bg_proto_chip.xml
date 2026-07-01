@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Lumen: soft tinted protocol chip. Solid is white so backgroundTintList (set in
+     code to the protocol colour @ ~14%) controls the fill. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="@android:color/white" />
+    <corners android:radius="6dp" />
+</shape>

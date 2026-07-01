@@ -41,6 +41,8 @@ import com.github.kr328.clash.common.util.ticker
 import com.github.kr328.clash.core.Clash
 import com.github.kr328.clash.core.bridge.*
 import com.github.kr328.clash.core.model.Proxy
+import com.github.kr328.clash.core.util.trafficDownload
+import com.github.kr328.clash.core.util.trafficUpload
 import com.github.kr328.clash.core.model.ProxyGroup
 import com.github.kr328.clash.core.model.TunnelState
 import com.github.kr328.clash.design.MainDesign
@@ -1288,6 +1290,8 @@ class MainActivity : BaseActivity<MainDesign>() {
                 lastForwardedTrafficTotal = total
                 setForwarded(total)
             }
+            val now = queryTrafficNow()
+            setSpeed(now.trafficDownload(), now.trafficUpload())
         }
     }
 

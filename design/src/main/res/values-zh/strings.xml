@@ -1122,4 +1122,9 @@
     <string name="companion_show_pin_summary">通过输入代码配对电脑（如 SlothClash）</string>
     <string name="companion_pin_dialog_message">在另一台设备上输入此 PIN（60秒内有效）</string>
     <string name="companion_starting">正在启动远程控制…请稍后重试</string>
+    <string name="main_node_title">节点</string>
+    <string name="main_node_choose">选择节点</string>
+    <string name="rule_mode_short">规则</string>
+    <string name="global_mode_short">全局</string>
+    <string name="main_speed_fmt">↓ %1$s/s   ↑ %2$s/s</string>
 </resources>
