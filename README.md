@@ -24,9 +24,9 @@
 
 <p align="center">
   <img src="docs/screenshots/home_on.png" width="200" />
-  <img src="docs/screenshots/node_list.png" width="200" />
-  <img src="docs/screenshots/profiles_main.jpg" width="200" />
-  <img src="docs/screenshots/routing.jpg" width="200" />
+  <img src="docs/screenshots/proxy_picker.png" width="200" />
+  <img src="docs/screenshots/profiles.png" width="200" />
+  <img src="docs/screenshots/rule_editor.png" width="200" />
 </p>
 
 ---
@@ -62,10 +62,10 @@ defaults for everyday use.
 ## More screenshots
 
 <p align="center">
-  <img src="docs/screenshots/home_off.jpg" width="180"/>
-  <img src="docs/screenshots/profiles_edit.jpg" width="180"/>
-  <img src="docs/screenshots/settings.jpg" width="180"/>
-  <img src="docs/screenshots/themes.jpg" width="180"/>
+  <img src="docs/screenshots/home_off.png" width="180"/>
+  <img src="docs/screenshots/routing.png" width="180"/>
+  <img src="docs/screenshots/add_profile.jpg" width="180"/>
+  <img src="docs/screenshots/about.jpg" width="180"/>
 </p>
 
 ---
