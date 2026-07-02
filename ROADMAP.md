@@ -17,13 +17,12 @@ if something you need is missing.
 
 | Item | Notes |
 |------|-------|
-| **Android TV + remote** | A TV-friendly layout of the same app, with the external controller doubling as a remote-control protocol. Large effort, but on the way. |
+| **Control dashboard** | A live Home — real-time traffic, active connections, and per-node latency at a glance, in our own Lumen design. The Home speed widget is the first step toward it. |
 
 ## 🔭 Exploring
 
 | Item | Notes |
 |------|-------|
-| **Control dashboard** | A live home screen — real-time traffic, active connections, per-node latency (zashboard-style). |
 | Custom rule-provider manager ([#98](https://github.com/Nemu-x/ClashFest/issues/98)) | Add/manage `mrs` / `yaml` / `text` rule-sets in-app. The core already supports those formats; today providers come from the subscription, and exclusions are done by rule order. |
 | SDNS / DNSCrypt ([#69](https://github.com/Nemu-x/ClashFest/issues/69)) | `sdns://` resolvers aren't supported by the mihomo core today. Tracking upstream — if the core gains DNSCrypt, ClashFest follows. |
 
@@ -45,6 +44,14 @@ if something you need is missing.
 | "Fallback List" auto-learning ([#100](https://github.com/Nemu-x/ClashFest/issues/100)) | Auto-detecting a failed page load, retrying on the other mode, and silently rewriting the user's rules is opinionated and error-prone (defining "failed" reliably is the hard part). Out of scope for now. |
 
 ## ✅ Recently shipped
+
+**Latest — Lumen redesign & platform reach**
+- **Lumen redesign** — obsidian surfaces, single-accent glow, pure-black (OLED) theme, Manrope + Space Grotesk type
+- **New app icon** — sleeping-sloth mark, part of the same brand family as [SlothClash](https://github.com/Nemu-x/SlothClash)
+- **Android TV** — D-pad-friendly layout, focus navigation, leanback banner (the same app on the big screen)
+- **Companion / remote control** — pair a device over LAN via QR; the external controller doubles as a TV remote
+- **Home-screen speed widget** ([#101](https://github.com/Nemu-x/ClashFest/issues/101)) — live ↑/↓ rate, tap to connect/disconnect, responsive sizing
+- **Block IPv6 (AAAA)** ([#116](https://github.com/Nemu-x/ClashFest/issues/116)) — a DNS toggle that drops AAAA answers to fix broken / high-latency IPv6
 
 **0.8.0**
 - **Reworked rule editor** ([#70](https://github.com/Nemu-x/ClashFest/issues/70)) — unified ordered list of user + subscription rules, intent-style add/edit, drag-reorder, dry-run before apply; subscription rules survive refresh by identity

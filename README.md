@@ -3,7 +3,7 @@
 </h1>
 
 <p align="center">
-  <b>Clash Meta (Mihomo)</b> client for <b>Android</b><br />
+  <b>Clash Meta (Mihomo)</b> client for <b>Android</b> — phone &amp; Android&nbsp;TV<br />
   Redesigned Home · cleaner subscriptions &amp; nodes · routing tools · safe defaults
 </p>
 
@@ -20,10 +20,6 @@
   <img src="https://img.shields.io/badge/platform-Android-3DDC84" alt="Platform: Android" />
   <img src="https://img.shields.io/github/v/release/Nemu-x/ClashFest?display_name=tag" alt="Latest Release" />
   <img src="https://img.shields.io/badge/status-Active%20development-1f8bff" alt="Status: Active development" />
-</p>
-
-<p align="center">
-  <img src="docs/screenshots/home_on.png" width="260" />
 </p>
 
 ---
@@ -52,6 +48,8 @@ defaults for everyday use.
 | **Subscriptions** | HTTP(S) / `content:` profiles; **`mierus://`** shares parsed via the same pipeline as other URL imports |
 | **Updates** | In-app manual update check, merged **About & updates**, Home indicator when an update is available |
 | **Quick start** | Quick Settings tile flow with VPN permission handling and one-tap startup |
+| **Android TV** | D-pad-friendly layout with focus navigation and a leanback banner — the same app on the big screen |
+| **Companion / remote** | Pair a device over LAN via QR and drive ClashFest remotely — the external controller doubles as a **TV remote** |
 | **Connections** | Live connections view with resilient snapshot decoding and lower polling load |
 | **App** | Dark mode, pure-black (OLED), optional **UI language** (system / EN / RU / ZH), notification & recents options |
 | **Look** | **Lumen** design language — obsidian surfaces, single-accent glow, Manrope + Space Grotesk type; sleeping-sloth branding |
@@ -59,6 +57,10 @@ defaults for everyday use.
 ## Screenshots
 
 <table>
+  <tr>
+    <td width="50%" align="center"><img src="docs/screenshots/home_on.png" /><br /><sub><b>Home — connected</b> — connect orb, mode, active node, live speed</sub></td>
+    <td width="50%" align="center"><img src="docs/screenshots/home_off.png" /><br /><sub><b>Home — idle</b> — disconnected state, one-tap connect</sub></td>
+  </tr>
   <tr>
     <td width="50%" align="center"><img src="docs/screenshots/proxy_picker.png" /><br /><sub><b>Nodes</b> — grouped picker with latency, search &amp; protocol chips</sub></td>
     <td width="50%" align="center"><img src="docs/screenshots/profiles.png" /><br /><sub><b>Profiles</b> — subscriptions, proxy groups, per-profile tools</sub></td>
