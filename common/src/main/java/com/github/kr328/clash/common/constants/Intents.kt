@@ -25,6 +25,11 @@ object Intents {
     val ACTION_OVERRIDE_CHANGED = "$packageName.intent.action.OVERRIDE_CHANGED"
     val ACTION_CONNECTIONS_CHANGED = "$packageName.intent.action.CONNECTIONS_CHANGED"
 
+    // Home-screen speed widget (#101). Fired by the widget's on/off tap (explicit component to
+    // the provider). Live traffic frames are rendered directly by the service via
+    // SpeedWidgetRenderer — no broadcast needed for updates.
+    val ACTION_WIDGET_TOGGLE = "$packageName.intent.action.WIDGET_TOGGLE"
+
     const val EXTRA_STOP_REASON = "stop_reason"
     const val EXTRA_UUID = "uuid"
     const val EXTRA_FAIL_REASON = "fail_reason"
