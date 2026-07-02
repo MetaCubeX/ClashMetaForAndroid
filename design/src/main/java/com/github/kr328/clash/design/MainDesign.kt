@@ -14,7 +14,22 @@ import android.view.animation.OvershootInterpolator
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.ImageView
+import android.widget.ArrayAdapter
+import android.widget.Button
+import android.widget.EditText
+import android.widget.LinearLayout
+import android.widget.ScrollView
+import android.widget.Spinner
+import android.widget.TextView
+import android.widget.Toast
 import androidx.core.graphics.ColorUtils
+import androidx.core.graphics.drawable.toBitmap
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.github.kr328.clash.common.branding.BrandManifest
+import com.github.kr328.clash.service.branding.BrandStore
+import com.github.kr328.clash.service.store.ServiceStore
+import java.io.File
+import java.io.FileOutputStream
 import androidx.core.view.doOnLayout
 import com.google.android.material.R as MaterialR
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -1271,6 +1286,121 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         profileAdapter.updateElapsed()
     }
 
+    /**
+     * Hidden dev/testing panel (About logo ×10, debug builds only): inject a full fake operator
+     * [BrandManifest] into the active profile so branding can be exercised live, without a real
+     * branded subscription. Every field editable; the three flags are Unset/Yes/No dropdowns;
+     * Randomize fills sample values; "Mock logo" writes the app icon as the brand logo.
+     * Branding is explicit opt-in — nothing applies unless **Enabled = Yes** (X-Branding-Enabled).
+     * See architecture/backend/branding.md (F-BRAND-3).
+     */
+    private fun showBrandDevDialog() {
+        val activity = context as? android.app.Activity ?: return
+        val uuid = ServiceStore(context).activeProfile
+        if (uuid == null) {
+            Toast.makeText(context, "No active profile — select a subscription first", Toast.LENGTH_LONG).show()
+            return
+        }
+        val store = BrandStore(context)
+        val cur = store.manifestFor(uuid)
+        val dp = context.resources.displayMetrics.density
+        fun px(v: Int) = (v * dp).toInt()
+
+        fun field(value: String?): EditText = EditText(context).apply {
+            setText(value ?: ""); setSingleLine()
+        }
+        val boolOpts = arrayOf("Unset", "Yes", "No")
+        fun boolSpinner(v: Boolean?): Spinner = Spinner(context).apply {
+            adapter = ArrayAdapter(context, android.R.layout.simple_spinner_dropdown_item, boolOpts)
+            setSelection(when (v) { true -> 1; false -> 2; else -> 0 })
+        }
+        fun Spinner.boolValue(): Boolean? = when (selectedItemPosition) { 1 -> true; 2 -> false; else -> null }
+
+        val fName = field(cur.name); val fTagline = field(cur.tagline); val fAccent = field(cur.accentColor)
+        val fLogo = field(cur.logoUrl); val fLogoLight = field(cur.logoLightUrl)
+        val fWebsite = field(cur.websiteUrl); val fSupport = field(cur.supportUrl)
+        val fTelegram = field(cur.telegramUrl); val fBot = field(cur.botUrl)
+        val fPrivacy = field(cur.privacyUrl); val fTerms = field(cur.termsUrl)
+        val fHelp = field(cur.helpUrl); val fStatus = field(cur.statusUrl)
+        val fRenew = field(cur.renewUrl); val fCabinet = field(cur.cabinetUrl)
+        val fUser = field(cur.userDisplayName); val fGreeting = field(cur.greeting)
+        val sEnabled = boolSpinner(cur.enabled ?: true)      // default Yes so Apply themes immediately
+        val sHideRouting = boolSpinner(cur.hideRouting)
+        val sOperatorTab = boolSpinner(cur.showOperatorTab)
+
+        val container = LinearLayout(context).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(px(20), px(4), px(20), 0)
+        }
+        fun row(l: String, v: View) {
+            container.addView(TextView(context).apply {
+                text = l; textSize = 12f; setPadding(0, px(10), 0, px(2))
+                setTextColor(context.resolveThemedColor(MaterialR.attr.colorOnSurfaceVariant))
+            })
+            container.addView(v)
+        }
+
+        val randomBtn = Button(context).apply { text = "🎲 Randomize" }
+        val mockLogoBtn = Button(context).apply { text = "🖼 Mock logo (app icon)" }
+        container.addView(randomBtn); container.addView(mockLogoBtn)
+
+        row("Enabled (master switch)", sEnabled)
+        row("Name", fName); row("Tagline", fTagline); row("Accent hex (#RRGGBB)", fAccent)
+        row("Logo URL", fLogo); row("Logo Light URL", fLogoLight)
+        row("Hide Routing tab", sHideRouting); row("Show Operator tab", sOperatorTab)
+        row("User display name", fUser); row("Greeting", fGreeting)
+        row("Website URL", fWebsite); row("Support URL", fSupport); row("Telegram URL", fTelegram)
+        row("Bot URL", fBot); row("Privacy URL", fPrivacy); row("Terms URL", fTerms)
+        row("Help URL", fHelp); row("Status URL", fStatus); row("Renew URL", fRenew); row("Cabinet URL", fCabinet)
+
+        randomBtn.setOnClickListener {
+            val palette = listOf("#7C5CFF", "#5EE6A8", "#FF5E35", "#7FB2FF", "#F2C14E", "#EC4899", "#22D3EE")
+            val n = (100..999).random()
+            fName.setText("Operator $n"); fTagline.setText("Fast & secure, always on")
+            fAccent.setText(palette.random())
+            fWebsite.setText("https://example.com"); fSupport.setText("https://t.me/nemux_dev")
+            fTelegram.setText("https://t.me/nemux_dev"); fBot.setText("https://t.me/some_bot")
+            fPrivacy.setText("https://example.com/privacy"); fTerms.setText("https://example.com/terms")
+            fHelp.setText("https://example.com/help"); fStatus.setText("https://example.com/status")
+            fRenew.setText("https://example.com/renew"); fCabinet.setText("https://t.me/some_bot?startapp=demo")
+            fUser.setText("dev_user_$n"); fGreeting.setText("Welcome back — 30 days left")
+            sEnabled.setSelection(1); sHideRouting.setSelection((0..2).random()); sOperatorTab.setSelection(1)
+        }
+        mockLogoBtn.setOnClickListener {
+            runCatching {
+                val bmp = context.packageManager.getApplicationIcon(context.packageName).toBitmap(px(96), px(96))
+                val f = File(context.filesDir, "brand_mock_logo.png")
+                FileOutputStream(f).use { bmp.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, it) }
+                store.setLogoPaths(uuid, f.absolutePath, f.absolutePath)
+                Toast.makeText(context, "Mock logo set — press Apply", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        MaterialAlertDialogBuilder(context)
+            .setTitle("Brand tester (dev)")
+            .setView(ScrollView(context).apply { addView(container) })
+            .setPositiveButton("Apply") { _, _ ->
+                fun s(e: EditText) = e.text?.toString()?.trim()?.takeIf { it.isNotBlank() }
+                store.setManifest(
+                    uuid,
+                    BrandManifest(
+                        name = s(fName), tagline = s(fTagline), accentColor = s(fAccent),
+                        logoUrl = s(fLogo), logoLightUrl = s(fLogoLight),
+                        websiteUrl = s(fWebsite), supportUrl = s(fSupport), telegramUrl = s(fTelegram),
+                        botUrl = s(fBot), privacyUrl = s(fPrivacy), termsUrl = s(fTerms),
+                        helpUrl = s(fHelp), statusUrl = s(fStatus), renewUrl = s(fRenew),
+                        cabinetUrl = s(fCabinet), userDisplayName = s(fUser), greeting = s(fGreeting),
+                        hideRouting = sHideRouting.boolValue(), showOperatorTab = sOperatorTab.boolValue(),
+                        enabled = sEnabled.boolValue(),
+                    ),
+                )
+                activity.recreate()
+            }
+            .setNeutralButton("Clear brand") { _, _ -> store.clearFor(uuid); activity.recreate() }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
     suspend fun showAbout(
         versionName: String,
         coreVersion: String,
@@ -1288,6 +1418,19 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
             val dialog = AppBottomSheetDialog(context, fitContentHeight = true)
             dialog.setContentView(binding.root)
             applyBrandToAbout(binding)
+
+            // Hidden dev brand tester: tap the app icon ×10 (debug builds only).
+            val debuggable = (context.applicationInfo.flags and
+                android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE) != 0
+            if (debuggable) {
+                var iconTaps = 0
+                binding.aboutAppIcon.setOnClickListener {
+                    if (++iconTaps >= 10) {
+                        iconTaps = 0
+                        showBrandDevDialog()
+                    }
+                }
+            }
 
             binding.aboutGithubIcon.apply {
                 visibility = View.VISIBLE
