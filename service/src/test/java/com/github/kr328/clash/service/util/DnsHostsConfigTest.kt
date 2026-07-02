@@ -50,6 +50,24 @@ class DnsHostsConfigTest {
     }
 
     @Test
+    fun ipv6_block_round_trips_and_overlays() {
+        // parse dns.ipv6:false from a snapshot (the #116 "block AAAA" case)
+        val c = DnsHostsConfig.from(obj("""{"enable":true,"ipv6":false}"""), null)
+        assertEquals(false, c.ipv6)
+        assertEquals(false, c.toDnsBlock()!!["ipv6"])
+
+        // overlay: block writes ipv6:false onto an existing dns block; unset removes it
+        val existing = linkedMapOf<String, Any?>("ipv6" to true, "enable" to true)
+        DnsHostsConfig(ipv6 = false).mergeIntoDns(existing)
+        assertEquals(false, existing["ipv6"])
+        DnsHostsConfig(ipv6 = null).mergeIntoDns(existing)
+        assertTrue(!existing.containsKey("ipv6"))
+
+        // unset ipv6 is omitted entirely (no engine default written)
+        assertTrue(!DnsHostsConfig(enable = true).toDnsBlock()!!.containsKey("ipv6"))
+    }
+
+    @Test
     fun empty_model_writes_nothing() {
         val c = DnsHostsConfig()
         assertNull(c.toDnsBlock())
