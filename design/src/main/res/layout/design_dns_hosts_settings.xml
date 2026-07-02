@@ -113,6 +113,21 @@
                     android:layout_marginTop="10dp"
                     android:text="@string/dns_hosts_enable_dns" />
 
+                <com.google.android.material.materialswitch.MaterialSwitch
+                    android:id="@+id/block_ipv6"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:text="@string/dns_hosts_block_ipv6" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="@string/dns_hosts_block_ipv6_summary"
+                    android:textAppearance="@style/TextAppearance.App.BodyMedium"
+                    android:textColor="?attr/colorOnSurfaceVariant" />
+
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"

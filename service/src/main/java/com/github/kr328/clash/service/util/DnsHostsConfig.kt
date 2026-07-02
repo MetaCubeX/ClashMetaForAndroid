@@ -21,6 +21,7 @@ import kotlinx.serialization.json.jsonPrimitive
 @Serializable
 data class DnsHostsConfig(
     var enable: Boolean? = null,
+    var ipv6: Boolean? = null,
     var enhancedMode: String? = null,
     var listen: String? = null,
     var cacheAlgorithm: String? = null,
@@ -34,6 +35,7 @@ data class DnsHostsConfig(
     fun toDnsBlock(): Map<String, Any?>? {
         val m = LinkedHashMap<String, Any?>()
         enable?.let { m["enable"] = it }
+        ipv6?.let { m["ipv6"] = it }
         enhancedMode?.takeIf { it.isNotBlank() }?.let { m["enhanced-mode"] = it }
         listen?.takeIf { it.isNotBlank() }?.let { m["listen"] = it }
         cacheAlgorithm?.takeIf { it.isNotBlank() }?.let { m["cache-algorithm"] = it }
@@ -61,7 +63,7 @@ data class DnsHostsConfig(
     /**
      * Overlays the managed DNS fields onto an EXISTING `dns:` map, preserving
      * any keys this editor doesn't model (respect-rules, nameserver-policy,
-     * fake-ip-filter, ipv6, prefer-h3, use-hosts, …). A managed field that is
+     * fake-ip-filter, prefer-h3, use-hosts, …). A managed field that is
      * empty/cleared is removed from the map (so the user can drop it) without
      * touching unknown keys. This prevents Save from wiping the rest of a rich
      * provider `dns:` block.
@@ -71,6 +73,7 @@ data class DnsHostsConfig(
             if (value != null) existing[key] = value else existing.remove(key)
         }
         set("enable", enable)
+        set("ipv6", ipv6)
         set("enhanced-mode", enhancedMode?.takeIf { it.isNotBlank() })
         set("listen", listen?.takeIf { it.isNotBlank() })
         set("cache-algorithm", cacheAlgorithm?.takeIf { it.isNotBlank() })
@@ -95,6 +98,7 @@ data class DnsHostsConfig(
             val c = DnsHostsConfig()
             if (dns != null) {
                 c.enable = dns["enable"]?.jsonPrimitive?.booleanOrNull
+                c.ipv6 = dns["ipv6"]?.jsonPrimitive?.booleanOrNull
                 c.enhancedMode = dns.str("enhanced-mode")
                 c.listen = dns.str("listen")
                 c.cacheAlgorithm = dns.str("cache-algorithm")
