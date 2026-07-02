@@ -28,12 +28,26 @@ import java.util.concurrent.TimeUnit
 class SpeedWidgetModule(service: Service) : Module<Unit>(service) {
     private val widgetManager = AppWidgetManager.getInstance(service)
 
-    private fun hasWidgets(): Boolean = runCatching {
-        widgetManager.getAppWidgetIds(SpeedWidgetRenderer.provider(service)).isNotEmpty()
-    }.getOrDefault(false)
+    private var widgetsPresent = false
+    private var tickCounter = 0
+
+    /**
+     * Widgets are rarely added/removed, so re-check presence only every ~30 fast ticks (~30s)
+     * instead of an AppWidgetManager IPC every second — needless battery otherwise. A newly-added
+     * widget still renders immediately via the provider's onUpdate; live frames catch up here. (O-05)
+     */
+    private fun widgetsPresent(): Boolean {
+        if (tickCounter % 30 == 0) {
+            widgetsPresent = runCatching {
+                widgetManager.getAppWidgetIds(SpeedWidgetRenderer.provider(service)).isNotEmpty()
+            }.getOrDefault(false)
+        }
+        tickCounter++
+        return widgetsPresent
+    }
 
     private fun push(running: Boolean) {
-        if (!hasWidgets()) return
+        if (!widgetsPresent()) return
         val now = if (running) Clash.queryTrafficNow() else 0L
         SpeedWidgetRenderer.renderAll(
             service,
