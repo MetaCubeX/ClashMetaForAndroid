@@ -116,6 +116,9 @@
     </style>
 
     <style name="AppThemeLightBase" parent="Theme.Material3.Light.NoActionBar">
+        <!-- App-wide body font: Manrope (Cyrillic-safe, pairs with Space Grotesk on titles). -->
+        <item name="android:fontFamily">@font/manrope</item>
+        <item name="fontFamily">@font/manrope</item>
         <item name="homeGlowColor">#0DFFFFFF</item>
         <item name="android:windowBackground">@color/color_light_background</item>
         <item name="android:ambientShadowAlpha">0.08</item>
@@ -221,6 +224,9 @@
     </style>
 
     <style name="AppThemeDarkBase" parent="Theme.Material3.Dark.NoActionBar">
+        <!-- App-wide body font: Manrope (Cyrillic-safe, pairs with Space Grotesk on titles). -->
+        <item name="android:fontFamily">@font/manrope</item>
+        <item name="fontFamily">@font/manrope</item>
         <item name="homeGlowColor">#2BFFFFFF</item>
         <item name="android:windowBackground">@color/tech_bg</item>
         <item name="android:ambientShadowAlpha">0.12</item>
