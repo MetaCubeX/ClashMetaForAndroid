@@ -308,6 +308,18 @@
         </service>
 
         <receiver
+            android:name=".SpeedWidget"
+            android:exported="false"
+            android:label="@string/widget_speed_label">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_speed_info" />
+        </receiver>
+
+        <receiver
             android:name=".RestartReceiver"
             android:enabled="false"
             android:exported="true">

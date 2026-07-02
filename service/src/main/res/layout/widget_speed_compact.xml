@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Speed widget — COMPACT tier (1 cell): the sloth mark filling the tile like an app icon
+     (B&W when OFF, colour when ON — swapped in SpeedWidgetRenderer) + an ON status dot. Whole
+     tile toggles the VPN. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_bg"
+    android:padding="6dp">
+
+    <ImageView
+        android:id="@+id/widget_icon"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:adjustViewBounds="true"
+        android:contentDescription="@string/widget_speed_label"
+        android:scaleType="fitCenter"
+        android:src="@drawable/widget_sloth_off" />
+
+    <ImageView
+        android:id="@+id/widget_dot"
+        android:layout_width="11dp"
+        android:layout_height="11dp"
+        android:layout_gravity="top|end"
+        android:contentDescription="@null"
+        android:src="@drawable/widget_dot"
+        android:visibility="gone" />
+</FrameLayout>
