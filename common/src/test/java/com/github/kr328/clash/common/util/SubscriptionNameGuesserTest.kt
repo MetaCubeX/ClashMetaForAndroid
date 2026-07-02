@@ -98,4 +98,22 @@ class SubscriptionNameGuesserTest {
     fun trailing_slash_url_uses_host_brand() {
         assertEquals("myvpn", SubscriptionNameGuesser.guessFast("https://myvpn.io/"))
     }
+
+    // --- looksLikeOpaqueToken: the ONE shared token predicate for import + update (E-17) ---
+
+    @Test
+    fun opaque_token_needs_mixed_case_and_digit() {
+        assertEquals(true, SubscriptionNameGuesser.looksLikeOpaqueToken("aB3xK9mQ2pLz"))
+        assertEquals(true, SubscriptionNameGuesser.looksLikeOpaqueToken("gsU8_wQwF814_Eo"))
+    }
+
+    @Test
+    fun opaque_token_rejects_human_names() {
+        // The E-17 divergence case: all-lowercase "premiumplan1" must NOT be treated as a token,
+        // so the update path never overwrites a name import kept.
+        assertFalse(SubscriptionNameGuesser.looksLikeOpaqueToken("premiumplan1"))
+        assertFalse(SubscriptionNameGuesser.looksLikeOpaqueToken("Premium Plan")) // no digit
+        assertFalse(SubscriptionNameGuesser.looksLikeOpaqueToken("PREMIUM123"))   // no lowercase
+        assertFalse(SubscriptionNameGuesser.looksLikeOpaqueToken("short1A"))      // core < 8
+    }
 }

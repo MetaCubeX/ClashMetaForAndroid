@@ -523,10 +523,13 @@ class ProfileManager(private val context: Context) : IProfileManager,
 
     private fun looksLikeGeneratedTokenName(name: String): Boolean {
         val n = name.trim()
-        if (n.length < 12 || n.length > 48) return false
-        if (n.contains(' ')) return false
-        if (n.contains('.') || n.contains('/')) return false
-        return n.matches(Regex("^[A-Za-z0-9_-]{12,48}$"))
+        // Guard rails: only ever reconsider a medium-length single-word label — never rename a
+        // human name with spaces/dots or a very short/long one.
+        if (n.length !in 12..48) return false
+        if (n.contains(' ') || n.contains('.') || n.contains('/')) return false
+        // Shared predicate so import and update agree on what a token is (E-17): a name import
+        // deliberately kept (e.g. all-lowercase "premiumplan1") is no longer replaced on update.
+        return SubscriptionNameGuesser.looksLikeOpaqueToken(n)
     }
 
     override suspend fun commit(uuid: UUID, callback: IFetchObserver?) {
