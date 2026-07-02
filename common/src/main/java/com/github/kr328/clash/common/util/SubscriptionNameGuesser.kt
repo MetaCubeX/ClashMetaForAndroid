@@ -92,6 +92,32 @@ object SubscriptionNameGuesser {
             fallbackName(requestUrl)
         }
 
+    /**
+     * Resolve a subscription display title from ALREADY-FETCHED response headers, using the SAME
+     * decoding chain as [guess] (explicit title headers → `Content-Disposition` filename* (RFC-5987)
+     * → `Subscription-Userinfo`), so the update path (`ProfileManager.updateFlow`) gets identical
+     * quality to import without a second network round-trip. Returns null when nothing usable. (E-19)
+     */
+    fun titleFromHeaders(get: (String) -> String?): String? {
+        listOf(
+            "Subscription-Title",
+            "Profile-Title",
+            "X-Subscription-Title",
+            "Display-Name",
+            "X-Display-Name",
+            "Subscription-Display-Name",
+        ).forEach { key ->
+            val raw = get(key)?.let(::normalizeHeaderValue)?.takeIf { it.isNotBlank() } ?: return@forEach
+            val name = sanitizeName(decodeMaybeEncodedName(raw) ?: raw)
+            if (!name.isNullOrBlank()) return name
+        }
+        get("Content-Disposition")?.let(::parseFilenameFromContentDisposition)
+            ?.let(::sanitizeName)?.takeIf { it.isNotBlank() }?.let { return it }
+        get("Subscription-Userinfo")?.let(::parseSubscriptionUserinfo)
+            ?.let(::sanitizeName)?.takeIf { it.isNotBlank() }?.let { return it }
+        return null
+    }
+
     /** First non-empty line starts with `mierus://` (QR / clipboard mierus share). */
     private fun isMierusLinkForSubscriptionTitle(trimmed: String): Boolean {
         val first = trimmed.lineSequence().map { it.trim() }.firstOrNull { it.isNotEmpty() }

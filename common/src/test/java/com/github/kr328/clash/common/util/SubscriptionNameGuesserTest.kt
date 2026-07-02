@@ -25,4 +25,77 @@ class SubscriptionNameGuesserTest {
         // Percent-encoded spaces decode: "Home VPN", not "Home%20VPN".
         assertEquals("Home VPN", SubscriptionNameGuesser.guessFast("https://myvpn.io/x#Home%20VPN"))
     }
+
+    // --- titleFromHeaders: shared import/update resolver (E-19) ---
+
+    private fun title(headers: Map<String, String>): String? =
+        SubscriptionNameGuesser.titleFromHeaders { key -> headers[key] }
+
+    @Test
+    fun title_from_explicit_header() {
+        assertEquals("Premium Plan", title(mapOf("Subscription-Title" to "Premium Plan")))
+        assertEquals("Premium Plan", title(mapOf("X-Subscription-Title" to "\"Premium Plan\"")))
+    }
+
+    // Note: base64 title decoding relies on android.util.Base64 (device-only; stubbed to throw in
+    // plain JVM unit tests), so it's exercised on-device via the import path, not asserted here.
+
+    @Test
+    fun title_from_content_disposition_rfc5987() {
+        assertEquals(
+            "Home VPN",
+            title(mapOf("Content-Disposition" to "attachment; filename*=UTF-8''Home%20VPN")),
+        )
+    }
+
+    @Test
+    fun title_absent_returns_null() {
+        assertEquals(null, title(mapOf("Content-Type" to "text/plain")))
+        assertEquals(null, title(emptyMap()))
+    }
+
+    @Test
+    fun explicit_title_header_beats_content_disposition() {
+        // The account-id filename must never win over a real display title.
+        assertEquals(
+            "Real Name",
+            title(
+                mapOf(
+                    "Subscription-Title" to "Real Name",
+                    "Content-Disposition" to "attachment; filename*=UTF-8''BRIDGE_ACCOUNT_ID",
+                ),
+            ),
+        )
+    }
+
+    @Test
+    fun blank_title_header_falls_through_to_next() {
+        assertEquals(
+            "Fallback",
+            title(mapOf("Subscription-Title" to "   ", "Profile-Title" to "Fallback")),
+        )
+    }
+
+    @Test
+    fun title_header_is_unquoted_and_trimmed() {
+        assertEquals("Premium", title(mapOf("Display-Name" to "  \"Premium\"  ")))
+    }
+
+    @Test
+    fun content_disposition_plain_filename() {
+        assertEquals(
+            "MyPlan",
+            title(mapOf("Content-Disposition" to "attachment; filename=\"MyPlan\"")),
+        )
+    }
+
+    @Test
+    fun url_name_param_fragment_decodes() {
+        assertEquals("My VPN", SubscriptionNameGuesser.guessFast("https://myvpn.io/x#name=My%20VPN"))
+    }
+
+    @Test
+    fun trailing_slash_url_uses_host_brand() {
+        assertEquals("myvpn", SubscriptionNameGuesser.guessFast("https://myvpn.io/"))
+    }
 }
