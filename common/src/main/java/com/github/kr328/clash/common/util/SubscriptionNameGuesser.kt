@@ -360,7 +360,7 @@ object SubscriptionNameGuesser {
             val uri = URL(urlString)
             val pathSeg = uri.path?.trim('/')?.split('/')?.filter { it.isNotBlank() }?.lastOrNull()
             val humanPath = pathSeg?.let { trimFileExtension(it) }
-                ?.takeIf { looksHumanReadable(it) && !looksLikeToken(it) }
+                ?.takeIf { looksHumanReadable(it) && !looksLikeOpaqueToken(it) }
             val byHost = uri.host?.let(::brandFromHost)
             // Prefer a readable path label, but fall back to the host brand when
             // the last segment is an opaque subscription token (gsU8_wQwF814_Eo).
@@ -398,7 +398,13 @@ object SubscriptionNameGuesser {
      * lower-case letters (e.g. `gsU8_wQwF814_Eo`). Plain word labels
      * (`premium`, `My-Plan`, `my_vpn`) are NOT flagged.
      */
-    private fun looksLikeToken(segment: String): Boolean {
+    /**
+     * True when a string looks like a random opaque token (mixed case + a digit, ≥8 core chars) —
+     * a subscription id / auth token, not a human name. Shared by import (URL-segment guessing) and
+     * update (ProfileManager decides whether to replace a stored name), so both agree on what a
+     * "token" is and the update path never overwrites a name that import deliberately kept. (E-17)
+     */
+    fun looksLikeOpaqueToken(segment: String): Boolean {
         val core = segment.replace(Regex("[_-]"), "")
         if (core.length < 8) return false
         return core.any { it.isDigit() } &&
