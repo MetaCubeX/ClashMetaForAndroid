@@ -167,6 +167,8 @@ class ConfigurationModule(service: Service) : Module<ConfigurationModule.LoadExc
                         Clash.load(profileDir).await()
                         applyPostLoad()
                         break
+                    } catch (e: kotlinx.coroutines.CancellationException) {
+                        throw e // normal stop cancelled the load — not a load failure (O-02)
                     } catch (e: Exception) {
                         loadFailures++
                         if (loadFailures > 48) {
@@ -211,6 +213,8 @@ class ConfigurationModule(service: Service) : Module<ConfigurationModule.LoadExc
                         }
                     }
                 }
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e // normal stop — not a load failure (O-02)
             } catch (e: Exception) {
                 Log.e("Failed to load active profile, keeping runtime alive", e)
                 if (loaded == null) {

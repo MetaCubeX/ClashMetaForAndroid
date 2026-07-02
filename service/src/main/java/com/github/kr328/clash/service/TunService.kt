@@ -71,6 +71,10 @@ class TunService : VpnService(), CoroutineScope by CoroutineScope(Dispatchers.De
 
                 if (quit) break
             }
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            // Normal VPN stop cancels the runtime scope — not a failure. Rethrow so it isn't logged
+            // as "Create clash runtime failed" on every stop, and structured cancellation works. (O-01)
+            throw e
         } catch (e: Exception) {
             Log.e("Create clash runtime failed", e)
 
