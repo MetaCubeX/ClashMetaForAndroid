@@ -23,10 +23,7 @@
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/home_on.png" width="200" />
-  <img src="docs/screenshots/proxy_picker.png" width="200" />
-  <img src="docs/screenshots/profiles.png" width="200" />
-  <img src="docs/screenshots/rule_editor.png" width="200" />
+  <img src="docs/screenshots/home_on.png" width="260" />
 </p>
 
 ---
@@ -59,14 +56,22 @@ defaults for everyday use.
 | **App** | Dark mode, pure-black (OLED), optional **UI language** (system / EN / RU / ZH), notification & recents options |
 | **Look** | **Lumen** design language — obsidian surfaces, single-accent glow, Manrope + Space Grotesk type; sleeping-sloth branding |
 
-## More screenshots
+## Screenshots
 
-<p align="center">
-  <img src="docs/screenshots/home_off.png" width="180"/>
-  <img src="docs/screenshots/routing.png" width="180"/>
-  <img src="docs/screenshots/add_profile.jpg" width="180"/>
-  <img src="docs/screenshots/about.jpg" width="180"/>
-</p>
+<table>
+  <tr>
+    <td width="50%" align="center"><img src="docs/screenshots/proxy_picker.png" /><br /><sub><b>Nodes</b> — grouped picker with latency, search &amp; protocol chips</sub></td>
+    <td width="50%" align="center"><img src="docs/screenshots/profiles.png" /><br /><sub><b>Profiles</b> — subscriptions, proxy groups, per-profile tools</sub></td>
+  </tr>
+  <tr>
+    <td width="50%" align="center"><img src="docs/screenshots/rule_editor.png" /><br /><sub><b>Rules</b> — intent-style add / edit, DIRECT · REJECT · route to group</sub></td>
+    <td width="50%" align="center"><img src="docs/screenshots/routing.png" /><br /><sub><b>Routing</b> — subscription + user rules in effective order</sub></td>
+  </tr>
+  <tr>
+    <td width="50%" align="center"><img src="docs/screenshots/add_profile.jpg" /><br /><sub><b>Import</b> — add a subscription / profile from URL, QR or clipboard</sub></td>
+    <td width="50%" align="center"><img src="docs/screenshots/about.jpg" /><br /><sub><b>Settings</b> — about &amp; updates, appearance, language, network</sub></td>
+  </tr>
+</table>
 
 ---
 
