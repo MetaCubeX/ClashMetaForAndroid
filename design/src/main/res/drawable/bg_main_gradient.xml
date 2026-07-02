@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
+    <!-- Theme-driven so the "ClashFest" (Preview) home background follows the theme — obsidian on
+         normal dark, near-black under TrueBlack (OLED), warm under Sloth. Was hardcoded to
+         main_gradient_* which ignored the theme and stayed grey under pure black. -->
     <gradient
         android:angle="180"
-        android:endColor="@color/main_gradient_bottom"
-        android:startColor="@color/main_gradient_top"
+        android:endColor="?attr/colorBackground"
+        android:startColor="?attr/colorSurface"
         android:type="linear" />
 </shape>

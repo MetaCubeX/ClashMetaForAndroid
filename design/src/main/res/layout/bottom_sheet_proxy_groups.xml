@@ -19,8 +19,8 @@
             android:background="@drawable/bg_subscription_pill"
             android:gravity="center_vertical"
             android:orientation="horizontal"
-            android:paddingHorizontal="14dp"
-            android:paddingVertical="12dp">
+            android:paddingHorizontal="16dp"
+            android:paddingVertical="14dp">
 
             <View
                 android:id="@+id/proxy_sheet_sub_avatar"
@@ -53,6 +53,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="3dp"
                     android:ellipsize="end"
+                    android:fontFamily="@font/space_grotesk"
                     android:maxLines="1"
                     android:textAppearance="@style/TextAppearance.App.BodyLarge"
                     android:textColor="?attr/colorOnSurface"
@@ -77,8 +78,11 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="10dp"
+                android:background="@drawable/bg_status_pill"
                 android:gravity="center_vertical"
-                android:orientation="horizontal">
+                android:orientation="horizontal"
+                android:paddingHorizontal="10dp"
+                android:paddingVertical="5dp">
 
                 <View
                     android:id="@+id/proxy_sheet_sub_status_dot"
@@ -180,16 +184,16 @@
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="40dp"
-            android:layout_marginTop="10dp"
+            android:layout_height="48dp"
+            android:layout_marginTop="12dp"
             android:background="@drawable/bg_proxy_search_pill"
             android:gravity="center_vertical"
             android:orientation="horizontal"
-            android:paddingHorizontal="12dp">
+            android:paddingHorizontal="14dp">
 
             <ImageView
-                android:layout_width="18dp"
-                android:layout_height="18dp"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
                 android:layout_marginEnd="10dp"
                 android:importantForAccessibility="no"
                 android:src="@drawable/ic_baseline_search"
@@ -241,28 +245,40 @@
                 android:id="@+id/proxy_sheet_sort_button"
                 style="@style/Widget.Material3.Button.TonalButton"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="44dp"
                 android:layout_marginEnd="4dp"
                 android:layout_weight="1"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
                 android:gravity="start|center_vertical"
                 android:textAllCaps="false"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:textSize="13sp"
+                app:backgroundTint="?attr/colorSurfaceContainerHigh"
                 app:icon="@drawable/ic_baseline_swap_vert"
                 app:iconGravity="textStart"
                 app:iconSize="18dp"
+                app:iconTint="?attr/colorOnSurfaceVariant"
                 tools:text="Config order" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/proxy_sheet_filter_button"
                 style="@style/Widget.Material3.Button.TonalButton"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="44dp"
                 android:layout_marginStart="4dp"
                 android:layout_weight="1"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
                 android:gravity="start|center_vertical"
                 android:textAllCaps="false"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:textSize="13sp"
+                app:backgroundTint="?attr/colorSurfaceContainerHigh"
                 app:icon="@drawable/ic_baseline_filter_list"
                 app:iconGravity="textStart"
                 app:iconSize="18dp"
+                app:iconTint="?attr/colorOnSurfaceVariant"
                 tools:text="Current group" />
         </LinearLayout>
 
@@ -312,17 +328,23 @@
             android:id="@+id/proxy_sheet_scroll"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_marginTop="6dp"
+            android:layout_marginTop="8dp"
             android:layout_weight="1"
+            android:background="@drawable/bg_proxy_list_surface"
             android:clipToPadding="false"
             android:overScrollMode="never"
+            android:paddingHorizontal="6dp"
+            android:paddingTop="6dp"
             android:paddingBottom="8dp">
 
             <LinearLayout
                 android:id="@+id/proxy_sheet_nodes_list"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical" />
+                android:divider="@drawable/divider_node_hairline"
+                android:dividerPadding="14dp"
+                android:orientation="vertical"
+                android:showDividers="middle" />
         </androidx.core.widget.NestedScrollView>
     </LinearLayout>
 </layout>

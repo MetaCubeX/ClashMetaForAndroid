@@ -65,6 +65,16 @@ object BrandThemeApplier {
         //    disconnected / unchecked surfaces don't read as the accent.
         activity.theme.applyStyle(R.style.ThemeOverlay_App_BrandNeutralSurfaces, true)
 
+        // 3) Pure-black (OLED) must win over the neutral pin — re-apply TrueBlack surfaces here in
+        //    the SAME theme pass (right after the neutral pin) so grey cards don't survive on the
+        //    black canvas. Only touches surfaces/background, so the brand accent above still wins.
+        val nightMode = (activity.resources.configuration.uiMode and
+            android.content.res.Configuration.UI_MODE_NIGHT_MASK) ==
+            android.content.res.Configuration.UI_MODE_NIGHT_YES
+        if (nightMode && com.github.kr328.clash.design.store.UiStore(activity).trueBlack) {
+            activity.theme.applyStyle(R.style.ThemeOverlay_ClashFest_TrueBlack, true)
+        }
+
         // Mark the accent that's now baked into this Activity's theme.
         // [maybeRecreateOnAccentChange] reads this on the next dashboard tick
         // and compares to the desired-for-active-profile accent.

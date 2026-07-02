@@ -1200,4 +1200,9 @@ Presets only change <b>where</b> files are downloaded from (CDN / host). It is s
     <string name="companion_show_pin_summary">Pair a PC (e.g. SlothClash) by entering a code</string>
     <string name="companion_pin_dialog_message">Enter this PIN on the other device (valid 60s)</string>
     <string name="companion_starting">Starting remote control… try again in a moment</string>
+    <string name="main_node_title">Node</string>
+    <string name="main_node_choose">Choose node</string>
+    <string name="rule_mode_short">Rule</string>
+    <string name="global_mode_short">Global</string>
+    <string name="main_speed_fmt">↓ %1$s/s   ↑ %2$s/s</string>
 </resources>

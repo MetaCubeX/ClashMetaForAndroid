@@ -1195,4 +1195,9 @@
     <string name="companion_show_pin_summary">Сопрягите ПК (например SlothClash) вводом кода</string>
     <string name="companion_pin_dialog_message">Введите этот PIN на другом устройстве (действует 60с)</string>
     <string name="companion_starting">Запускаю удалённое управление… повтори через секунду</string>
+    <string name="main_node_title">Нода</string>
+    <string name="main_node_choose">Выбрать ноду</string>
+    <string name="rule_mode_short">Правила</string>
+    <string name="global_mode_short">Глобал</string>
+    <string name="main_speed_fmt">↓ %1$s/s   ↑ %2$s/s</string>
 </resources>

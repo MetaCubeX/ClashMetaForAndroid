@@ -2,13 +2,17 @@ package com.github.kr328.clash.design.dialog
 
 import android.app.Dialog
 import android.content.Context
+import android.graphics.Color
+import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
 import android.widget.FrameLayout
 import androidx.coordinatorlayout.widget.CoordinatorLayout
+import androidx.core.graphics.ColorUtils
 import androidx.core.view.ViewCompat
+import com.google.android.material.color.MaterialColors
 import com.github.kr328.clash.common.compat.isAllowForceDarkCompat
 import com.github.kr328.clash.common.compat.isSystemBarsTranslucentCompat
 import com.github.kr328.clash.design.R
@@ -43,6 +47,12 @@ class AppBottomSheetDialog(
     private val fitContentHeight: Boolean = false,
 ) : BottomSheetDialog(context) {
     private var insets: Insets = Insets.EMPTY
+
+    // Resolve the accent from the HOST (activity) context — the dialog's own theme falls back to
+    // the base emerald, not the user's dynamic/brand accent.
+    private val hostAccent: Int = MaterialColors.getColor(
+        context, com.google.android.material.R.attr.colorPrimary, Color.TRANSPARENT,
+    )
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -121,6 +131,28 @@ class AppBottomSheetDialog(
                 // bottom (content is kept above the gesture via the inset padding above).
                 isGestureInsetBottomIgnored = true
                 state = BottomSheetBehavior.STATE_EXPANDED
+            }
+
+            // Soft accent glow at the sheet's TOP edge only — not a hard perimeter frame. A hard
+            // stroke framed the whole card and read cheap; a vertical gradient from a faint accent
+            // tint at the very top fading to transparent (with the rounded-top corners) gives a
+            // soft "lit edge" like the reference, with no visible side/bottom line.
+            if (hostAccent != Color.TRANSPARENT) {
+                findViewById<FrameLayout>(com.google.android.material.R.id.design_bottom_sheet)?.let { sheet ->
+                    val r = 28f * sheet.resources.displayMetrics.density
+                    sheet.foreground = GradientDrawable(
+                        GradientDrawable.Orientation.TOP_BOTTOM,
+                        intArrayOf(
+                            ColorUtils.setAlphaComponent(hostAccent, 0x2E), // ~18% at the top rim
+                            Color.TRANSPARENT,
+                            Color.TRANSPARENT,
+                            Color.TRANSPARENT,
+                            Color.TRANSPARENT,
+                        ),
+                    ).apply {
+                        cornerRadii = floatArrayOf(r, r, r, r, 0f, 0f, 0f, 0f)
+                    }
+                }
             }
         }
     }

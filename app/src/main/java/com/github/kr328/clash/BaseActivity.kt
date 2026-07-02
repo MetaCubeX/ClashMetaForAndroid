@@ -251,8 +251,9 @@ abstract class BaseActivity<D : Design<*>> : AppCompatActivity(),
 
         // Operator brand accent — applied as the FINAL theme overlay so the
         // brand always wins over user palette / system dynamic-color choices.
-        // applyToActivity also pins neutral surface attrs after the
-        // harmoniser, keeping off-state widgets unambiguously neutral.
+        // applyToActivity also pins neutral surface attrs after the harmoniser, keeping off-state
+        // widgets unambiguously neutral — and re-applies TrueBlack surfaces when pure-black is on
+        // (otherwise the neutral pin leaves grey cards on the black canvas).
         com.github.kr328.clash.design.branding.BrandThemeApplier.applyToActivity(this)
 
         window.isAllowForceDarkCompat = false

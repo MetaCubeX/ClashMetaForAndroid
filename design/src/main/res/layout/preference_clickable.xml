@@ -12,8 +12,7 @@
         android:foreground="?attr/selectableItemBackground"
         app:cardBackgroundColor="?attr/colorSurfaceContainer"
         app:cardCornerRadius="22dp"
-        app:cardElevation="0dp"
-        app:strokeWidth="0dp">
+        app:cardElevation="0dp">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -22,11 +21,21 @@
             android:orientation="horizontal"
             android:padding="16dp">
 
-            <View
+            <FrameLayout
                 android:id="@+id/icon_view"
-                android:layout_width="@dimen/item_header_component_size"
-                android:layout_height="@dimen/item_header_component_size"
-                android:layout_marginEnd="14dp" />
+                android:layout_width="38dp"
+                android:layout_height="38dp"
+                android:layout_marginEnd="14dp"
+                android:background="@drawable/bg_flag_circle">
+
+                <ImageView
+                    android:id="@+id/icon_image"
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:layout_gravity="center"
+                    android:importantForAccessibility="no"
+                    app:tint="?attr/colorPrimary" />
+            </FrameLayout>
 
             <LinearLayout
                 android:layout_width="0dp"

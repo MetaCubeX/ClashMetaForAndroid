@@ -26,28 +26,29 @@
     <color name="md3_dark_errorContainer">#93000A</color>
     <color name="md3_dark_onErrorContainer">#FFDAD6</color>
 
-    <!-- Background Colors -->
-    <color name="md3_dark_background">#0B0F14</color>
-    <color name="md3_dark_onBackground">#E6EDF3</color>
+    <!-- Background Colors — Lumen "obsidian": deep neutral near-black (warm-neutral, no blue
+         cast) so cards read premium against the canvas and any dynamic accent sits cleanly. -->
+    <color name="md3_dark_background">#0A0A0B</color>
+    <color name="md3_dark_onBackground">#EDECEF</color>
 
     <!-- Surface Colors -->
-    <color name="md3_dark_surface">#121821</color>
-    <color name="md3_dark_onSurface">#E6EDF3</color>
+    <color name="md3_dark_surface">#141415</color>
+    <color name="md3_dark_onSurface">#EDECEF</color>
 
     <!-- Surface Variant Colors -->
-    <color name="md3_dark_surfaceVariant">#1A2330</color>
-    <color name="md3_dark_onSurfaceVariant">#9BA3AF</color>
+    <color name="md3_dark_surfaceVariant">#201F22</color>
+    <color name="md3_dark_onSurfaceVariant">#9B9AA0</color>
 
     <!-- Outline Colors -->
-    <color name="md3_dark_outline">#5C6978</color>
-    <color name="md3_dark_outlineVariant">#3E4754</color>
+    <color name="md3_dark_outline">#55545A</color>
+    <color name="md3_dark_outlineVariant">#333237</color>
 
-    <!-- Surface Container Colors -->
-    <color name="md3_dark_surfaceContainerLowest">#0A0E13</color>
-    <color name="md3_dark_surfaceContainerLow">#101820</color>
-    <color name="md3_dark_surfaceContainer">#151C25</color>
-    <color name="md3_dark_surfaceContainerHigh">#1A2330</color>
-    <color name="md3_dark_surfaceContainerHighest">#232E3D</color>
+    <!-- Surface Container Colors — deliberate depth ladder (recessed → raised) -->
+    <color name="md3_dark_surfaceContainerLowest">#0B0B0C</color>
+    <color name="md3_dark_surfaceContainerLow">#141416</color>
+    <color name="md3_dark_surfaceContainer">#1A1A1C</color>
+    <color name="md3_dark_surfaceContainerHigh">#212023</color>
+    <color name="md3_dark_surfaceContainerHighest">#29282B</color>
 
     <!-- Inverse Colors -->
     <color name="md3_dark_inverseSurface">#E6EDF3</color>
@@ -87,4 +88,14 @@
     <color name="proto_shadowsocks">#7FC7FF</color>
     <color name="proto_wireguard">#A5D6A7</color>
     <color name="proto_default">#A8AFB5</color>
+
+    <!-- Lumen lux-card hairline: a whisper of light on the card edge (top-light feel). -->
+    <color name="lumen_hairline">#16FFFFFF</color>
+
+    <!-- Proxy-group type chips — shared palette with SlothClash (brand unity). -->
+    <color name="group_urltest">#7EE0A8</color>
+    <color name="group_selector">#C4B5FD</color>
+    <color name="group_fallback">#5EEAD4</color>
+    <color name="group_loadbalance">#D2D27A</color>
+    <color name="group_relay">#82AAFF</color>
 </resources>

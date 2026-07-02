@@ -11,7 +11,7 @@
     <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="?attr/colorSurface"
+        android:background="@drawable/bg_home_canvas"
         android:paddingStart="@{surface.insets.start}"
         android:paddingEnd="@{surface.insets.end}">
 

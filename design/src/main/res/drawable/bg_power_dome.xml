@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Edge/bottom vignette: deepens the rim while the sheen lifts the top → the connected fill
+     reads as a volumetric dome, not a flat disc. Black so it works over any dynamic accent. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+    <gradient
+        android:centerX="0.5"
+        android:centerY="0.40"
+        android:endColor="#40000000"
+        android:gradientRadius="76dp"
+        android:startColor="#00000000"
+        android:type="radial" />
+</shape>

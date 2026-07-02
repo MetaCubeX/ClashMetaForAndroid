@@ -12,15 +12,16 @@
     android:gravity="center_vertical"
     android:minHeight="56dp"
     android:orientation="horizontal"
-    android:paddingStart="0dp"
+    android:paddingStart="14dp"
     android:paddingEnd="14dp"
     android:paddingVertical="9dp">
 
+    <!-- Selection is now shown by the accent outline (bg_proxy_node_row) + check, so the left
+         rail is retired. Kept as a 0-width view because selection tracking reads its visibility. -->
     <View
         android:id="@+id/selected_bar"
-        android:layout_width="2dp"
+        android:layout_width="0dp"
         android:layout_height="34dp"
-        android:layout_marginEnd="12dp"
         android:background="@drawable/bg_proxy_node_rail"
         android:visibility="invisible" />
 
@@ -103,6 +104,9 @@
                 android:id="@+id/proxy_type_badge"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:background="@drawable/bg_proto_chip"
+                android:paddingHorizontal="6dp"
+                android:paddingVertical="2dp"
                 android:fontFamily="monospace"
                 android:letterSpacing="0.08"
                 android:maxLines="1"
@@ -119,6 +123,9 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
+                android:background="@drawable/bg_proto_chip"
+                android:paddingHorizontal="6dp"
+                android:paddingVertical="2dp"
                 android:fontFamily="monospace"
                 android:letterSpacing="0.08"
                 android:maxLines="1"
@@ -135,6 +142,9 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
+                android:background="@drawable/bg_proto_chip"
+                android:paddingHorizontal="6dp"
+                android:paddingVertical="2dp"
                 android:fontFamily="monospace"
                 android:letterSpacing="0.08"
                 android:maxLines="1"
@@ -177,12 +187,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="10dp"
-        android:background="@drawable/bg_delay_good"
-        android:gravity="center_vertical"
-        android:minWidth="62dp"
-        android:orientation="horizontal"
-        android:paddingHorizontal="10dp"
-        android:paddingVertical="5dp">
+        android:gravity="center_vertical|end"
+        android:minWidth="58dp"
+        android:orientation="horizontal">
 
         <View
             android:id="@+id/latency_dot"
@@ -195,6 +202,7 @@
             android:id="@+id/proxy_delay"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:fontFamily="@font/space_grotesk"
             android:gravity="center"
             android:textAppearance="@style/TextAppearance.App.LabelMedium"
             android:textStyle="bold"

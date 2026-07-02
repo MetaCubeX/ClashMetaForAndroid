@@ -28,6 +28,7 @@ import com.github.kr328.clash.common.branding.BrandManifest
 import com.github.kr328.clash.service.model.Profile
 import com.github.kr328.clash.service.model.ProxyGroupPreviewRow
 import com.github.kr328.clash.service.model.ProxyTransportInfo
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.color.MaterialColors
 import java.util.UUID
 
@@ -579,6 +580,14 @@ class ProfileAdapter(
     fun hasProxyGroupsFor(profile: Profile): Boolean =
         effectiveGroupsForProfile(profile).isNotEmpty()
 
+    /**
+     * Active node's display name (with its flag prefix) for the Home "Node" row (redesign 1.0),
+     * or null when nothing is selected / groups aren't loaded yet. Same source the profile card
+     * uses, so the Node row shows the flag + node exactly like the picker.
+     */
+    fun activeNodeDisplayName(profile: Profile): String? =
+        resolveCurrentNodeDisplayName(profile)?.takeIf { it.isNotBlank() }
+
     private fun groupsForSelectionSummary(profile: Profile): List<String> {
         if (!profile.imported) return emptyList()
         return if (useEngineFor(profile)) {
@@ -619,6 +628,42 @@ class ProfileAdapter(
         }
     }
 
+    /**
+     * Resolve a leaf node's protocol type **offline** from the parsed transport info
+     * (config-overlay: config.yaml is the composed effective config). Without this the
+     * picker shows no protocol/transport badge unless the engine is running — the type
+     * was hard-coded to Unknown for offline placeholders. Empty/absent → Unknown.
+     */
+    private fun offlineProxyType(uuid: UUID, name: String): Proxy.Type {
+        val leaf = proxyTypeFromYamlName(transportInfoByProfile[uuid]?.get(name)?.type)
+        if (leaf != Proxy.Type.Unknown) return leaf
+        // Not a leaf proxy → it may be a nested auto-group; surface its group type
+        // (url-test / fallback / …) so the picker can chip it distinctly offline too.
+        return offlinePreviewByProfile[uuid]?.get(name)?.type ?: Proxy.Type.Unknown
+    }
+
+    private fun proxyTypeFromYamlName(raw: String?): Proxy.Type = when (raw?.trim()?.lowercase()) {
+        "ss", "shadowsocks" -> Proxy.Type.Shadowsocks
+        "ssr", "shadowsocksr" -> Proxy.Type.ShadowsocksR
+        "snell" -> Proxy.Type.Snell
+        "socks5", "socks" -> Proxy.Type.Socks5
+        "http", "https" -> Proxy.Type.Http
+        "vmess" -> Proxy.Type.Vmess
+        "vless" -> Proxy.Type.Vless
+        "trojan" -> Proxy.Type.Trojan
+        "hysteria" -> Proxy.Type.Hysteria
+        "hysteria2", "hy2" -> Proxy.Type.Hysteria2
+        "tuic" -> Proxy.Type.Tuic
+        "wireguard", "wg" -> Proxy.Type.WireGuard
+        "ssh" -> Proxy.Type.Ssh
+        "mieru" -> Proxy.Type.Mieru
+        "anytls" -> Proxy.Type.AnyTLS
+        "masque" -> Proxy.Type.Masque
+        "trusttunnel" -> Proxy.Type.TrustTunnel
+        "direct" -> Proxy.Type.Direct
+        else -> Proxy.Type.Unknown
+    }
+
     private fun proxyGroupForRow(profile: Profile, groupName: String): ProxyGroup? {
         if (useEngineFor(profile)) {
             val live = proxyDetails[groupName]
@@ -639,7 +684,7 @@ class ProfileAdapter(
                     val merged = buildList {
                         offlineRow.members.forEach { name ->
                             if (seen.add(name)) {
-                                add(liveByName[name] ?: Proxy(name, name, "", Proxy.Type.Unknown, -1))
+                                add(liveByName[name] ?: Proxy(name, name, "", offlineProxyType(profile.uuid, name), -1))
                             }
                         }
                         // Trailing live-only proxies (DIRECT/REJECT/etc. that aren't in the
@@ -662,7 +707,7 @@ class ProfileAdapter(
             // subscription's member names as a placeholder so the row is usable immediately;
             // live engine data overwrites it on the next setProxyDetails tick.
             val placeholderMembers = row?.members.orEmpty().map { n ->
-                Proxy(n, n, "", Proxy.Type.Unknown, -1)
+                Proxy(n, n, "", offlineProxyType(profile.uuid, n), -1)
             }
             return ProxyGroup(
                 type,
@@ -679,7 +724,7 @@ class ProfileAdapter(
         return ProxyGroup(
             row.type,
             names.map { n ->
-                Proxy(n, n, "", Proxy.Type.Unknown, -1)
+                Proxy(n, n, "", offlineProxyType(profile.uuid, n), -1)
             },
             now,
         ).withSelectionOverlay(profile.uuid, groupName)
@@ -1034,13 +1079,15 @@ class ProfileAdapter(
 
         dialog.setContentView(sheet.root)
         dialog.show()
-        // Re-introduce the collapsed state for THIS sheet (the base forces
-        // skipCollapsed=true). With a long node list on a small screen, that made
-        // a drag past the top of the list close the sheet outright; now the first
-        // drag collapses to peek (so you can dwell on the top nodes) and only a
-        // second drag dismisses.
-        dialog.behavior.skipCollapsed = false
-        dialog.behavior.peekHeight = (context.resources.displayMetrics.heightPixels * 0.55f).toInt()
+        // Open fully expanded, single-state (no collapsed peek). A previous peek override
+        // (skipCollapsed=false + peekHeight=0.55h) caused two real bugs: (1) the sheet flashed
+        // at peek then animated to full on the next frame ("comes out in two stages"), and
+        // (2) on a short list, dragging to the end settled into the collapsed state and
+        // dismissed instead of just stopping. The base AppBottomSheetDialog already forces
+        // skipCollapsed=true + STATE_EXPANDED on show, so scrolling to the list end simply
+        // stops and only a deliberate drag-down from the top dismisses.
+        dialog.behavior.skipCollapsed = true
+        dialog.behavior.state = BottomSheetBehavior.STATE_EXPANDED
     }
 
     private fun bindSubscriptionStatus(
@@ -1575,9 +1622,9 @@ class ProfileAdapter(
             if (flag != null) {
                 flagCard.visibility = View.VISIBLE
                 val sizePx = context.dp(28)
-                val svgDrawable = FlagDrawableLoader.load(context, flag.code, sizePx)
-                if (svgDrawable != null) {
-                    flagImage.setImageDrawable(svgDrawable)
+                val bitmap = FlagDrawableLoader.loadBitmap(context, flag.code, sizePx)
+                if (bitmap != null) {
+                    flagImage.setImageBitmap(bitmap)
                     flagImage.visibility = View.VISIBLE
                     flagText.visibility = View.GONE
                 } else {
@@ -1590,35 +1637,44 @@ class ProfileAdapter(
             }
 
             val typeBadge = row.findViewById<TextView>(R.id.proxy_type_badge)
-            val typeName = p.type.name
-            val showBadge = typeName != "Unknown" && !p.type.group
-            if (showBadge) {
-                typeBadge.visibility = View.VISIBLE
-                typeBadge.text = typeName.uppercase()
-                typeBadge.setTextColor(
-                    ContextCompat.getColor(context, protocolFamilyColor(typeName))
-                )
-            } else {
-                typeBadge.visibility = View.GONE
-            }
-
-            val transportInfo = if (showBadge) transportInfoByProfile[profile.uuid]?.get(p.name) else null
             val transportBadge = row.findViewById<TextView>(R.id.proxy_transport_badge)
-            val transportLabel = transportLabel(transportInfo)
-            if (transportLabel != null) {
-                transportBadge.visibility = View.VISIBLE
-                transportBadge.text = transportLabel
-                transportBadge.setTextColor(ContextCompat.getColor(context, R.color.proto_transport))
-            } else {
-                transportBadge.visibility = View.GONE
-            }
             val realityBadge = row.findViewById<TextView>(R.id.proxy_reality_badge)
-            if (transportInfo?.reality == true) {
-                realityBadge.visibility = View.VISIBLE
-                realityBadge.text = "REALITY"
-                realityBadge.setTextColor(ContextCompat.getColor(context, R.color.proto_reality))
-            } else {
+            val typeName = p.type.name
+
+            // Leaf node → protocol chips (VLESS / GRPC / REALITY). Nested auto-group →
+            // a single group-type chip (URL-TEST / FALLBACK / …) so groups read distinctly
+            // from nodes. Both resolve offline (overlay: type from transport/groups preview).
+            val groupTypeLabel = groupTypeLabel(p.type)
+            val showBadge: Boolean
+            if (p.type.group) {
+                if (groupTypeLabel != null) {
+                    applyProtoChip(typeBadge, groupTypeLabel, ContextCompat.getColor(context, groupTypeColor(p.type)))
+                } else {
+                    typeBadge.visibility = View.GONE
+                }
+                transportBadge.visibility = View.GONE
                 realityBadge.visibility = View.GONE
+                showBadge = groupTypeLabel != null
+            } else {
+                showBadge = typeName != "Unknown"
+                if (showBadge) {
+                    applyProtoChip(typeBadge, typeName.uppercase(), ContextCompat.getColor(context, protocolFamilyColor(typeName)))
+                } else {
+                    typeBadge.visibility = View.GONE
+                }
+
+                val transportInfo = if (showBadge) transportInfoByProfile[profile.uuid]?.get(p.name) else null
+                val transportLabel = transportLabel(transportInfo)
+                if (transportLabel != null) {
+                    applyProtoChip(transportBadge, transportLabel, ContextCompat.getColor(context, R.color.proto_transport))
+                } else {
+                    transportBadge.visibility = View.GONE
+                }
+                if (transportInfo?.reality == true) {
+                    applyProtoChip(realityBadge, "REALITY", ContextCompat.getColor(context, R.color.proto_reality))
+                } else {
+                    realityBadge.visibility = View.GONE
+                }
             }
 
             val rawSubtitle = p.subtitle
@@ -1808,13 +1864,9 @@ class ProfileAdapter(
     }
 
     private fun bindGroupType(view: TextView, profile: Profile, groupName: String) {
-        val groupType = proxyGroupForRow(profile, groupName)?.type
-        if (groupType != null && groupType.group) {
-            view.visibility = View.VISIBLE
-            view.text = groupType.name
-        } else {
-            view.visibility = View.GONE
-        }
+        // The group's type is now shown inline as a per-row chip (groupTypeLabel), so the
+        // standalone "Selector"/"URLTest" caption above the list is redundant — keep it hidden.
+        view.visibility = View.GONE
     }
 
     private fun shouldHideProxyOption(groupName: String, proxy: Proxy): Boolean {
@@ -1928,6 +1980,35 @@ class ProfileAdapter(
         else -> R.color.proto_default
     }
 
+    /** Lumen protocol chip: coloured label on a soft (~14% alpha) tint of the same colour. */
+    private fun applyProtoChip(badge: TextView, label: String, color: Int) {
+        badge.visibility = View.VISIBLE
+        badge.text = label
+        badge.setTextColor(color)
+        val tint = (color and 0x00FFFFFF) or (0x24 shl 24) // ~14% alpha fill
+        badge.backgroundTintList = ColorStateList.valueOf(tint)
+    }
+
+    /** Label for a nested auto-group member (url-test / fallback / …); null for leaf nodes. */
+    private fun groupTypeLabel(type: Proxy.Type): String? = when (type) {
+        Proxy.Type.URLTest -> "URL-TEST"
+        Proxy.Type.Fallback -> "FALLBACK"
+        Proxy.Type.LoadBalance -> "LOAD-BALANCE"
+        Proxy.Type.Selector -> "SELECTOR"
+        Proxy.Type.Relay -> "RELAY"
+        else -> null
+    }
+
+    /** Per-type chip colour — shared semantic palette with SlothClash (brand unity). */
+    private fun groupTypeColor(type: Proxy.Type): Int = when (type) {
+        Proxy.Type.URLTest -> R.color.group_urltest
+        Proxy.Type.Fallback -> R.color.group_fallback
+        Proxy.Type.LoadBalance -> R.color.group_loadbalance
+        Proxy.Type.Selector -> R.color.group_selector
+        Proxy.Type.Relay -> R.color.group_relay
+        else -> R.color.proto_default
+    }
+
     private fun applyDelayStyle(
         capsule: View,
         dot: View,
@@ -1935,14 +2016,15 @@ class ProfileAdapter(
         delayMs: Int,
         context: Context,
     ) {
-        val (bgRes, colorRes) = when {
-            delayMs in 0..200 -> R.drawable.bg_delay_good to R.color.delay_good
-            delayMs in 201..500 -> R.drawable.bg_delay_medium to R.color.delay_medium
-            delayMs in 501..Short.MAX_VALUE -> R.drawable.bg_delay_bad to R.color.delay_bad
-            else -> R.drawable.bg_delay_timeout to R.color.delay_timeout
+        // Lumen: delay reads as a coloured dot + value (Space Grotesk), no filled capsule.
+        val colorRes = when {
+            delayMs in 0..200 -> R.color.delay_good
+            delayMs in 201..500 -> R.color.delay_medium
+            delayMs in 501..Short.MAX_VALUE -> R.color.delay_bad
+            else -> R.color.delay_timeout
         }
         val color = ContextCompat.getColor(context, colorRes)
-        capsule.setBackgroundResource(bgRes)
+        capsule.setBackgroundResource(0)
         dot.backgroundTintList = ColorStateList.valueOf(color)
         text.setTextColor(color)
     }
@@ -2036,9 +2118,9 @@ class ProfileAdapter(
             binding.profileIcon.visibility = View.GONE
             binding.profileIconEmoji.visibility = View.GONE
             val sizePx = context.dp(40)
-            val svgDrawable = FlagDrawableLoader.load(context, flag.code, sizePx)
-            if (svgDrawable != null) {
-                binding.profileFlagImage.setImageDrawable(svgDrawable)
+            val bitmap = FlagDrawableLoader.loadBitmap(context, flag.code, sizePx)
+            if (bitmap != null) {
+                binding.profileFlagImage.setImageBitmap(bitmap)
                 binding.profileFlagImage.visibility = View.VISIBLE
                 binding.profileFlag.visibility = View.GONE
             } else {

@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?attr/colorSurface">
+    android:background="@drawable/bg_home_canvas">
 
     <androidx.core.widget.NestedScrollView
         android:id="@+id/dns_hosts_scroll"
