@@ -295,6 +295,8 @@ Presets only change <b>where</b> files are downloaded from (CDN / host). It is s
     <string name="dns_hosts_master_summary">When on, your settings apply and survive subscription updates. Turning off reverts cleanly.</string>
     <string name="dns_hosts_section_dns">DNS</string>
     <string name="dns_hosts_enable_dns">Enable DNS</string>
+    <string name="dns_hosts_block_ipv6">Block IPv6 (AAAA)</string>
+    <string name="dns_hosts_block_ipv6_summary">Return no IPv6 addresses (drops AAAA DNS answers). Fixes stalls and slow loads on broken or high-latency IPv6.</string>
     <string name="dns_hosts_mode">Resolution mode</string>
     <string name="dns_hosts_mode_off">Off</string>
     <string name="dns_hosts_mode_redir">Redir-host</string>

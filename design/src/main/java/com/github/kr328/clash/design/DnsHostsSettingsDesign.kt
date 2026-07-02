@@ -38,6 +38,7 @@ class DnsHostsSettingsDesign(context: Context) : Design<DnsHostsSettingsDesign.R
     private val content: View = rootView.findViewById(R.id.content)
     private val masterToggle: MaterialSwitch = rootView.findViewById(R.id.master_toggle)
     private val dnsEnable: MaterialSwitch = rootView.findViewById(R.id.dns_enable)
+    private val blockIpv6: MaterialSwitch = rootView.findViewById(R.id.block_ipv6)
     private val modeGroup: MaterialButtonToggleGroup = rootView.findViewById(R.id.mode_group)
     private val cacheGroup: MaterialButtonToggleGroup = rootView.findViewById(R.id.cache_group)
     private val listenInput: TextInputEditText = rootView.findViewById(R.id.listen_input)
@@ -84,6 +85,7 @@ class DnsHostsSettingsDesign(context: Context) : Design<DnsHostsSettingsDesign.R
 
         masterToggle.isChecked = managed
         dnsEnable.isChecked = config.enable == true
+        blockIpv6.isChecked = config.ipv6 == false
         checkMode(config.enhancedMode)
         checkCache(config.cacheAlgorithm)
         listenInput.setText(config.listen.orEmpty())
@@ -99,6 +101,7 @@ class DnsHostsSettingsDesign(context: Context) : Design<DnsHostsSettingsDesign.R
     /** Reads the form into a model. */
     fun readModel(): DnsHostsConfig = DnsHostsConfig(
         enable = if (dnsEnable.isChecked) true else null,
+        ipv6 = if (blockIpv6.isChecked) false else null,
         enhancedMode = modeValue(),
         listen = listenInput.text?.toString()?.trim()?.takeIf { it.isNotEmpty() },
         cacheAlgorithm = cacheValue(),
