@@ -55,6 +55,18 @@ class AppBottomSheetDialog(
     )
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Pure-black (OLED): the bottom-sheet dialog has its OWN theme (colorSurface = tech_surface)
+        // and does not inherit the activity's TrueBlack overlay, so the sheet stayed obsidian-grey on
+        // a black app. Re-apply the overlay to the DIALOG theme before the sheet background resolves,
+        // so bg_bottom_sheet (?attr/colorSurface) + the nav bar go black-tier under TrueBlack. (F-BRAND-1)
+        val night = (context.resources.configuration.uiMode and
+            android.content.res.Configuration.UI_MODE_NIGHT_MASK) ==
+            android.content.res.Configuration.UI_MODE_NIGHT_YES
+        val isTrueBlack = night && com.github.kr328.clash.design.store.UiStore(context).trueBlack
+        if (isTrueBlack) {
+            getContext().theme.applyStyle(R.style.ThemeOverlay_ClashFest_TrueBlack, true)
+        }
+
         super.onCreate(savedInstanceState)
 
         setCancelable(true)
@@ -137,8 +149,19 @@ class AppBottomSheetDialog(
             // stroke framed the whole card and read cheap; a vertical gradient from a faint accent
             // tint at the very top fading to transparent (with the rounded-top corners) gives a
             // soft "lit edge" like the reference, with no visible side/bottom line.
-            if (hostAccent != Color.TRANSPARENT) {
-                findViewById<FrameLayout>(com.google.android.material.R.id.design_bottom_sheet)?.let { sheet ->
+            findViewById<FrameLayout>(com.google.android.material.R.id.design_bottom_sheet)?.let { sheet ->
+                if (isTrueBlack) {
+                    // The sheet dialog theme's colorSurface (tech_surface, obsidian-grey) is NOT
+                    // reachable by the activity's TrueBlack overlay, so force the sheet background
+                    // to pure black (keeping the rounded-top shape via tint) and drop the accent
+                    // glow — the whole sheet reads pure-black on OLED. (F-BRAND-1)
+                    val black = androidx.core.content.ContextCompat.getColor(context, R.color.theme_true_black_bg)
+                    sheet.backgroundTintList = android.content.res.ColorStateList.valueOf(black)
+                    sheet.foreground = null
+                } else if (hostAccent != Color.TRANSPARENT) {
+                    // Soft accent glow at the sheet's TOP edge only (normal dark) — a vertical
+                    // gradient from a faint accent tint fading to transparent, with rounded-top
+                    // corners: a soft "lit edge", no hard perimeter frame.
                     val r = 28f * sheet.resources.displayMetrics.density
                     sheet.foreground = GradientDrawable(
                         GradientDrawable.Orientation.TOP_BOTTOM,
