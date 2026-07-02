@@ -2,7 +2,7 @@ package com.github.kr328.clash.service
 
 import android.content.Context
 import com.github.kr328.clash.common.log.Log
-import com.github.kr328.clash.common.util.MaybeBase64
+import com.github.kr328.clash.common.util.SubscriptionNameGuesser
 import com.github.kr328.clash.common.util.SubscriptionOverrides
 import com.github.kr328.clash.common.util.SubscriptionRequestHeaders
 import com.github.kr328.clash.common.util.SubscriptionUsage
@@ -473,13 +473,12 @@ class ProfileManager(private val context: Context) : IProfileManager,
                 // (not a transient failure) and feeds the debounced auto-clear.
                 BrandRefresh.apply(context, old.uuid, brand, confirmedResponse = true)
 
-                if (response.headers["subscription-userinfo"] == null) return
-
+                // Re-derive the display name on EVERY update — not only when the panel sends
+                // subscription-userinfo. Tying the rename to the quota header meant subscriptions
+                // that don't send it never had their name corrected on update (the "белиберда /
+                // URL-tail" name bug). Usage/expiry still come from subscription-userinfo when
+                // present, but its absence must not skip the rename. (E-16)
                 val usage = SubscriptionUsage.parse(response.headers["subscription-userinfo"])
-                val upload = usage?.upload ?: 0L
-                val download = usage?.download ?: 0L
-                val total = usage?.total ?: 0L
-                val expire = usage?.expireAt?.times(1000L) ?: 0L
                 val renamed = deriveTitleFromHeaders(response.headers)
                 val effectiveName = if (looksLikeGeneratedTokenName(old.name) && !renamed.isNullOrBlank()) {
                     renamed
@@ -487,24 +486,27 @@ class ProfileManager(private val context: Context) : IProfileManager,
                     old.name
                 }
 
+                // Keep the previous quota/expiry when the panel didn't send subscription-userinfo
+                // this time, instead of zeroing them.
                 val new = Imported(
                     old.uuid,
                     effectiveName,
                     old.type,
                     old.source,
                     old.interval,
-                    upload,
-                    download,
-                    total,
-                    expire,
+                    usage?.upload ?: old.upload,
+                    usage?.download ?: old.download,
+                    usage?.total ?: old.total,
+                    usage?.expireAt?.times(1000L) ?: old.expire,
                     old.createdAt,
                     old.profileOrder,
                 )
 
-                ImportedDao().update(new)
-
-                PendingDao().remove(new.uuid)
-                context.sendProfileChanged(new.uuid)
+                if (new != old) {
+                    ImportedDao().update(new)
+                    PendingDao().remove(new.uuid)
+                    context.sendProfileChanged(new.uuid)
+                }
             }
 
         } catch (e: Exception) {
@@ -512,23 +514,12 @@ class ProfileManager(private val context: Context) : IProfileManager,
         }
     }
 
-    private fun deriveTitleFromHeaders(headers: okhttp3.Headers): String? {
-        val raw = listOf(
-            "Subscription-Title",
-            "Profile-Title",
-            "X-Subscription-Title",
-            "Display-Name",
-            "X-Display-Name",
-            "Subscription-Display-Name",
-        ).firstNotNullOfOrNull { key ->
-            headers[key]?.trim()?.trim('"', '\'')
-        } ?: return null
-
-        val decoded = MaybeBase64.decode(raw).trim()
-        if (decoded.isBlank()) return null
-        if (decoded.length > 64) return decoded.take(64)
-        return decoded
-    }
+    // Delegate to the shared resolver so import and update decode headers identically (E-19):
+    // title headers → Content-Disposition filename* (RFC-5987) → Subscription-Userinfo. Keep the
+    // 64-char safety cap.
+    private fun deriveTitleFromHeaders(headers: okhttp3.Headers): String? =
+        SubscriptionNameGuesser.titleFromHeaders { key -> headers[key] }
+            ?.let { if (it.length > 64) it.take(64) else it }
 
     private fun looksLikeGeneratedTokenName(name: String): Boolean {
         val n = name.trim()
