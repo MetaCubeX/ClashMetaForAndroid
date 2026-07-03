@@ -86,10 +86,20 @@ fastly.jsdelivr.net
 - Кнопка «О приложении» **только** внутри Settings (`SettingsDesign.Request.StartAbout`), не на главном экране.
 - Per-app routing: один экран со списком приложений (иконка+имя+чекбокс), вверху сегментированный переключатель Allow-list / Block-list / All, поиск, сортировка, кнопка «Сбросить». Доступ — через «Правила» → «По приложениям» (а также через Settings → Network → Access Control Packages для совместимости).
 
-## 6. Изменения в YAML/конфигах
+## 6. Изменения в YAML/конфигах (config-overlay-architecture)
 
-- Источник истины — текст профиля на диске. «Hardening»-логика применяется как пост-процессинг при сохранении/обновлении профиля (`YamlHardener.hardenProfile`).
-- Оригинальный пользовательский YAML сохраняется рядом как `config.original.yaml` (создаётся при первой правке, далее не перезаписывается) для возможности восстановления.
+Модель конфига — **overlay**, а не переписывание подписки:
+
+- **Подписка неприкосновенна.** Полученный конфиг сохраняется как есть в `subscription.yaml` (база) и НЕ переписывается/не мержится/не GC-ится. Правки пользователя живут отдельным **user-layer** (`user_layer.json`, `UserLayerStore`) как intent/delta: rules / dns / hosts / tunnels / rule-providers / proxy-providers / proxy-chain. Итоговый `config.yaml`, который получает движок, **композируется** at apply time: `ConfigComposer.compose(subscription.yaml + user_layer)` (на VPN-старте и на обновлении подписки).
+- **Только non-reconciling операции.** Композиция использует ТОЛЬКО: wholesale-replace верхнеуровневых ключей (dns/hosts/tunnels), list-prepend (правила юзера идут первыми, побеждают), map-union (rule-/proxy-providers, **без GC**), replay-intent (auto-select группа перегенерируется на свежем конфиге). **Никакого identity-reconciliation, orphan-detection, garbage-collection** — это источник дивергенции с семантикой mihomo (класс багов «not found rule-set: …»).
+- **Hard engine-gate.** Перед применением любого композированного/обновлённого конфига — валидировать реальным движком (`Clash.validateProfileBytes`). Если композиция сломала иначе-валидную подписку — применить чистую подписку (обновление всё равно работает) и сообщить, какая правка не легла (`MergeEngineVerdict`). НИКОГДА не отдавать движку конфиг, который он отвергает.
+- **Store — единственный источник истины для правок**, когда overlay активен (`ProfileMigration.isMigrated` = есть `subscription.yaml`). Редакторы (`*YamlEdit`) пишут store напрямую; **не переизвлекать** layer из `config.yaml` (string-extraction = тот самый reconciling-путь). Легаси-инсталлы мигрируются один раз (`ProfileMigration.migrateIfNeeded`), без потери правок.
+- **ПОЛИТИКА (обязательно): никаких config-переписывающих/мержащих трансформов без engine-oracle теста.** Любой новый трансформ, который парсит/мержит/переписывает конфиг, обязан иметь тест, сверяющий результат с реальным движком mihomo (`ValidateBytes`) — образцы: `ConfigCompositionFidelityTest`, `MergeEngineVerdictTest`, `WritePipelineOracleFixtureTest`. **Предпочитай делегировать движку** (query snapshot / API — Path-B), а не реимплементировать его семантику: read-only превью групп/транспорта берутся из snapshot движка (`ProxyGroupsYamlPreview`/…), YAML-парсинг — только для offline-случая.
+
+Пост-процессинг и бэкап (ортогонально overlay):
+
+- «Hardening»-логика применяется как пост-процессинг к композированному `config.yaml` при сохранении/обновлении (`YamlHardener.hardenProfile` + рантайм `ProxyHardener`).
+- Оригинальный пользовательский YAML сохраняется рядом как `config.original.yaml` (создаётся при первой hardening-правке, далее не перезаписывается) для возможности восстановления.
 
 ## 7. Git / Workflow
 
@@ -124,4 +134,4 @@ fastly.jsdelivr.net
 
 ---
 
-Файл версии: 2. Любые изменения этих правил — отдельным PR с явным согласованием.
+Файл версии: 3. Любые изменения этих правил — отдельным PR с явным согласованием.

@@ -188,15 +188,15 @@ class RuleApplyService(
     /**
      * Reconcile after a subscription refresh. Reads MANUAL rules from the saved state file
      * (anything the user added through the UI), reads PROVIDER rules from the freshly fetched
-     * config, and re-applies them through the same merge code path used by applyState. This
-     * is the structured complement to [SubscriptionUpdateMerge]'s string-based merge: if a
-     * state file exists, MANUAL vs PROVIDER classification beats heuristic line matching.
+     * config, and re-applies them through the same merge code path used by applyState. It relies
+     * on structured MANUAL-vs-PROVIDER classification from the saved state file rather than
+     * heuristic line matching.
      *
      * Files are passed in explicitly because the caller runs against `processingDir`, not the
      * usual `importedDir/<uuid>`.
      *
      * @return true if reconciliation rewrote the config; false on any failure (caller should
-     *         leave whatever [SubscriptionUpdateMerge] produced alone in that case).
+     *         leave the freshly fetched config alone in that case).
      */
     fun reconcileWithStoredState(
         configFile: File,

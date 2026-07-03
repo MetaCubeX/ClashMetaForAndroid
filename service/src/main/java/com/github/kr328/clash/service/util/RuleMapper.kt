@@ -36,9 +36,9 @@ object RuleMapper {
     // that no longer contained them (e.g. GEOSITE,category-ads-all,REJECT
     // surviving across an update that deleted it).
     //
-    // Kept in sync with SubscriptionUpdateMerge.SUBSCRIPTION_OWNED_RULE_TYPES
-    // by intent: those are the same types the merge step drops from preserved
-    // overlays. Both files own a copy to keep the dependency direction clean.
+    // These are the rule types the overlay composition treats as subscription-owned: the
+    // user's MANUAL rules are list-prepended and win, while these PROVIDER-sourced types come
+    // fresh from subscription.yaml on every update and are never frozen into the user layer.
     private val SUBSCRIPTION_OWNED_RULE_TYPES = setOf(
         "RULE-SET", "GEOSITE", "GEOIP", "MATCH",
         "SUB-RULE", "AND", "OR", "NOT",

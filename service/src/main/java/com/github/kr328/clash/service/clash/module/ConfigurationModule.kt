@@ -41,8 +41,8 @@ class ConfigurationModule(service: Service) : Module<ConfigurationModule.LoadExc
     }
 
     /**
-     * [outboundgroup.getProxies]/getProviders — stale member names in merged `proxy-groups` after
-     * subscription update ([SubscriptionUpdateMerge]).
+     * [outboundgroup.getProxies]/getProviders — stale member names in composed `proxy-groups`
+     * after a subscription update (overlay composition).
      */
     private fun extractQuotedNotFoundName(e: Throwable): String? {
         val re = Regex("'([^']*)'\\s+not\\s+found", RegexOption.IGNORE_CASE)
