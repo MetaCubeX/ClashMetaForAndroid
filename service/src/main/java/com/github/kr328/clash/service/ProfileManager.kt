@@ -31,8 +31,6 @@ import com.github.kr328.clash.service.util.TunnelsConfig
 import com.github.kr328.clash.service.util.TunnelsYamlEdit
 import com.github.kr328.clash.service.util.directoryLastModified
 import com.github.kr328.clash.service.util.generateProfileUUID
-import com.github.kr328.clash.service.util.GeoDataSources
-import com.github.kr328.clash.service.util.GeoDataUrls
 import com.github.kr328.clash.service.util.ProfileComposer
 import com.github.kr328.clash.service.util.ProfileMigration
 import com.github.kr328.clash.service.util.ProfileOverlay
@@ -76,40 +74,6 @@ class ProfileManager(private val context: Context) : IProfileManager,
     private val userLayerStore = UserLayerStore(context.importedDir)
 
     /** Geo-data URLs resolved from current settings (rule rendering / composition need them). */
-    private fun resolvedGeoDataUrls(): GeoDataUrls = GeoDataSources.resolve(
-        preset = store.geoDataSourcePreset,
-        customGeoIp = store.geoDataCustomGeoIp,
-        customGeoSite = store.geoDataCustomGeoSite,
-        customMmdb = store.geoDataCustomMmdb,
-        customAsn = store.geoDataCustomAsn,
-    )
-
-    /**
-     * Re-derive `config.yaml` from `subscription.yaml` + the user layer (the effective config the
-     * engine loads). Idempotent — always composes from the canonical subscription. Call after every
-     * edit / update. Inert until the editors and apply path are switched over (Group 2.3 / wiring).
-     */
-    private fun materializeProfile(uuid: UUID): Boolean {
-        val dir = File(context.importedDir, uuid.toString())
-        return ProfileOverlay.refresh(
-            profileDir = dir,
-            uuid = uuid,
-            userLayerStore = userLayerStore,
-            rulesStateJson = runCatching { ruleApplyService.readStateJson(uuid) }.getOrNull(),
-            dnsHostsManaged = store.isDnsHostsManaged(uuid),
-            tunnelsManaged = store.isTunnelsManaged(uuid),
-            geoDataUrls = resolvedGeoDataUrls(),
-            hardeningMode = store.proxyHardeningMode,
-            parseSnapshot = { d -> runCatching { Clash.parseProfileSnapshot(d) }.getOrNull() },
-        )
-    }
-
-    /**
-     * After an in-app edit writes `config.yaml`, re-derive the user layer from it so the edit
-     * survives the next subscription update (config-overlay-architecture). `config.yaml` already
-     * holds the edit; this only keeps the intent layer in sync. Migrates first if needed (so a
-     * legacy profile gets its `subscription.yaml` base on the first edit).
-     */
     /**
      * Ensure the `subscription.yaml` base exists and run the one-time legacy migration (baked edits
      * in `config.yaml` → `user_layer.json`) on first contact. E-01/E-05: the editors now write their
