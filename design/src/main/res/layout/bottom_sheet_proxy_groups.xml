@@ -324,27 +324,34 @@
         </LinearLayout>
 
         <!-- Nodes list -->
-        <androidx.core.widget.NestedScrollView
-            android:id="@+id/proxy_sheet_scroll"
+        <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_marginTop="8dp"
             android:layout_weight="1"
-            android:background="@drawable/bg_proxy_list_surface"
-            android:clipToPadding="false"
-            android:overScrollMode="never"
-            android:paddingHorizontal="6dp"
-            android:paddingTop="6dp"
-            android:paddingBottom="8dp">
+            android:background="@drawable/bg_proxy_list_surface">
 
-            <LinearLayout
+            <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/proxy_sheet_nodes_list"
                 android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:clipToPadding="false"
+                android:overScrollMode="never"
+                android:paddingHorizontal="6dp"
+                android:paddingTop="6dp"
+                android:paddingBottom="8dp"
+                tools:listitem="@layout/adapter_home_proxy_node" />
+
+            <TextView
+                android:id="@+id/proxy_sheet_empty"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:divider="@drawable/divider_node_hairline"
-                android:dividerPadding="14dp"
-                android:orientation="vertical"
-                android:showDividers="middle" />
-        </androidx.core.widget.NestedScrollView>
+                android:layout_gravity="center"
+                android:padding="8dp"
+                android:textColor="@color/delay_timeout"
+                android:visibility="gone"
+                tools:text="Connect the VPN to load nodes"
+                tools:visibility="visible" />
+        </FrameLayout>
     </LinearLayout>
 </layout>
