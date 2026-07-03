@@ -115,8 +115,7 @@ class RuleMapperTest {
         // Rules read from config.yaml are PROVIDER by default — they came from the
         // (effective) subscription, regardless of rule TYPE. Subscriptions routinely
         // author plain DOMAIN/IP-CIDR rules, so the old "plain type => MANUAL" heuristic
-        // mislabelled them. MANUAL is set only by the editor + healed via the raw-fetch
-        // reconcile (see reconcileWithStoredState).
+        // mislabelled them. MANUAL is set only by the editor.
         val snapshot = snapshotWith(
             "DOMAIN,example.com,DIRECT",
             "DOMAIN-SUFFIX,corp.local,DIRECT",
