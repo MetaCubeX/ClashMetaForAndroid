@@ -110,12 +110,18 @@ class ProfileManager(private val context: Context) : IProfileManager,
      * holds the edit; this only keeps the intent layer in sync. Migrates first if needed (so a
      * legacy profile gets its `subscription.yaml` base on the first edit).
      */
+    /**
+     * Ensure the `subscription.yaml` base exists and run the one-time legacy migration (baked edits
+     * in `config.yaml` → `user_layer.json`) on first contact. E-01/E-05: the editors now write their
+     * intent to the user layer directly, so we no longer re-extract the whole layer from config.yaml
+     * on every edit — the layer, not config.yaml, is the source of truth. (Name kept for its call
+     * sites; effectively "ensure base + migrate once".)
+     */
     private fun syncLayerFromConfig(uuid: UUID) {
         val dir = File(context.importedDir, uuid.toString())
         if (!File(dir, "config.yaml").isFile) return
         val parse: (File) -> com.github.kr328.clash.core.model.ProfileSnapshot? =
             { d -> runCatching { Clash.parseProfileSnapshot(d) }.getOrNull() }
-        // Ensure subscription.yaml exists (treat the pre-edit config as the base on first edit).
         ProfileMigration.migrateIfNeeded(
             profileDir = dir,
             uuid = uuid,
@@ -125,15 +131,6 @@ class ProfileManager(private val context: Context) : IProfileManager,
             tunnelsManaged = store.isTunnelsManaged(uuid),
             parseSnapshot = parse,
         )
-        val layer = ProfileMigration.buildLayerFromConfig(
-            profileDir = dir,
-            rulesStateJson = runCatching { ruleApplyService.readStateJson(uuid) }.getOrNull(),
-            dnsHostsManaged = store.isDnsHostsManaged(uuid),
-            tunnelsManaged = store.isTunnelsManaged(uuid),
-            parseSnapshot = parse,
-            base = userLayerStore.load(uuid),
-        )
-        userLayerStore.save(uuid, layer)
     }
 
     /**
@@ -922,6 +919,16 @@ class ProfileManager(private val context: Context) : IProfileManager,
                     uuid = uuid,
                     title = "Proxy chain",
                     files = listOf(filePreview(dir, patch.relativePath, patch.currentYaml, patch.proposedYaml)),
+                    // E-01/E-05: the proxy-chain UI applies via preview->commit, so the chain intent
+                    // must be recorded on the layer here (same {target: dialer} map compose expects),
+                    // otherwise it's lost on recompose now that config.yaml extraction is gone.
+                    layerMutation = { l ->
+                        val dp = dialerProxyName?.takeIf { it.isNotBlank() }
+                        l.copy(
+                            proxyChain = if (dp != null) l.proxyChain + (targetProxyName to dp)
+                            else l.proxyChain - targetProxyName,
+                        )
+                    },
                 )
             } catch (e: Exception) {
                 createInvalidPreview("Proxy chain", "", "", e)
@@ -976,6 +983,9 @@ class ProfileManager(private val context: Context) : IProfileManager,
                     uuid = uuid,
                     title = "Proxy chains",
                     files = patches.map { filePreview(dir, it.relativePath, it.currentYaml, it.proposedYaml) },
+                    // E-01/E-05: clearing all chains must clear the layer intent too, else compose
+                    // re-applies them from the store on recompose.
+                    layerMutation = { it.copy(proxyChain = emptyMap()) },
                 )
             } catch (e: Exception) {
                 createInvalidPreview("Proxy chains", "", "", e)
@@ -1019,7 +1029,14 @@ class ProfileManager(private val context: Context) : IProfileManager,
         return withContext(Dispatchers.IO) {
             if (ImportedDao().queryByUUID(uuid) == null) return@withContext false
             val ok = ruleApplyService.applyStateJson(uuid, stateJson)
-            if (ok) runCatching { syncLayerFromConfig(uuid) }
+            if (ok) runCatching {
+                syncLayerFromConfig(uuid)
+                // E-01/E-05: mirror the saved (normalized) rule state into the user layer directly,
+                // so the layer holds explicit rule intent instead of it being re-derived on sync.
+                ruleApplyService.readStateJson(uuid)?.let { saved ->
+                    userLayerStore.update(uuid) { it.copy(rules = ruleApplyService.parseState(saved)) }
+                }
+            }
             Log.d("applyRuleState ok=$ok")
             ok
         }

@@ -49,6 +49,9 @@ class RuleApplyService(
         repository.save(uuid, repository.parseStateJson(stateJson))
     }
 
+    /** Parse a rule-state JSON into the normalized [RuleState] (for mirroring into the user layer). */
+    fun parseState(json: String): RuleState = repository.parseStateJson(json)
+
     /**
      * Dry-run an arbitrary candidate state JSON for the rule editor's preview.
      * Returns the proposed merged config (and normalized state), or null when the
