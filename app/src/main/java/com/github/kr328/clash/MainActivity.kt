@@ -279,29 +279,6 @@ class MainActivity : BaseActivity<MainDesign>() {
     }
 
     /**
-     * Runs [healthCheck] on every auto proxy group after connect, regardless
-     * of tunnel mode.
-     *
-     * Earlier this only ran in Global mode because the original concern was
-     * that in Rule mode it would fight [ConfigurationModule] applying
-     * [SelectionDao] and flash the active card. That guard turned out to be
-     * over-conservative for two reasons:
-     *  1. [SelectionDao] only stores picks for Selector groups; auto types
-     *     (URLTest / Fallback / LoadBalance) have no user-stored selection,
-     *     so a health check on them can never overwrite a user's pick.
-     *  2. Subscriptions that wrap an entire url-test/fallback subtree behind
-     *     a single select root with `hidden: true` on the children (a very
-     *     common kaso.fyi-style layout) leave every node ping-less in Rule
-     *     mode without a warmup.
-     *
-     * A brief UI flash on connect is the acceptable trade-off for pings
-     * actually working on those subscriptions.
-     */
-    private suspend fun warmUpAutoProxyGroupsForGlobalOnly(): Set<String> {
-        return warmUpAutoProxyGroups()
-    }
-
-    /**
      * Run a per-proxy health check on [group] and stream each proxy's delay
      * into the active card as soon as URLTest resolves. Suspends until every
      * proxy has reported (or the call early-outed because the group is
@@ -345,47 +322,36 @@ class MainActivity : BaseActivity<MainDesign>() {
         }
     }
 
-    private suspend fun warmUpAutoProxyGroups(): Set<String> = coroutineScope {
+    /** Groups already warmed up this session, so a group is url-tested at most once (O-07). */
+    private val warmedGroups = java.util.Collections.synchronizedSet(mutableSetOf<String>())
+
+    /**
+     * Warm up (url-test) a single group and its nested auto subtree — once per session. This is the
+     * lazy replacement for the old blanket connect-time warmup that url-tested EVERY auto group;
+     * on a heavy subscription (200-node url-test groups) that saturated the engine on connect, which
+     * showed up as an "infinite ping" and made proxy switching sluggish (O-07). We now test only the
+     * group the user actually looks at (see [MainActivity]'s visibleGroupChanged handler); the
+     * subtree walk still covers kaso.fyi-style layouts where the visible root is a plain select over
+     * a `hidden: true` url-test subtree.
+     */
+    private suspend fun warmUpGroupSubtree(rootGroup: String): Set<String> = coroutineScope {
+        if (rootGroup.isBlank() || !warmedGroups.add(rootGroup)) return@coroutineScope emptySet()
         waitForProxyEngineReady()
 
-        // Walk every group (including hidden) so subscriptions whose entire
-        // url-test/fallback subtree is `hidden: true` (visible root is a
-        // plain select) still get warmed up. Filtering by visibility was the
-        // bug: hidden auto-groups were skipped entirely, so pings never ran.
-        val allGroupNames = runCatching {
-            withClash { queryAllProxyGroupNamesIncludingHidden() }
-        }.getOrDefault(emptyList())
-        val visibleGroupNames = runCatching {
-            withClash { queryProxyGroupNames(false) }
-        }.getOrDefault(emptyList())
-        if (allGroupNames.isEmpty() && visibleGroupNames.isEmpty()) return@coroutineScope emptySet()
-
-        val allGroupSet = allGroupNames.toSet()
+        val subtree = collectRuntimeGroupTree(rootGroup).ifEmpty { setOf(rootGroup) }
         val autoGroups = linkedSetOf<String>()
-        // Iterate over the union so we can both flag visible auto roots and
-        // discover hidden auto subgroups via their members.
-        for (groupName in (allGroupNames + visibleGroupNames).distinct()) {
+        for (groupName in subtree) {
             val group = runCatching {
                 withClash { queryProxyGroup(groupName, com.github.kr328.clash.core.model.ProxySort.Default) }
             }.getOrNull() ?: continue
             if (isAutoProxyGroup(groupName, group)) {
                 autoGroups += groupName
             }
-            for (proxy in group.proxies) {
-                if (proxy.name in allGroupSet &&
-                    (proxy.type == Proxy.Type.URLTest ||
-                        proxy.type == Proxy.Type.Fallback ||
-                        proxy.type == Proxy.Type.LoadBalance)
-                ) {
-                    autoGroups += proxy.name
-                }
-            }
         }
         if (autoGroups.isEmpty()) return@coroutineScope emptySet()
 
-        // Prime engine state so per-proxy push has rows to land on. Without
-        // this, the first warmup cycle on cold start would have nowhere to
-        // write — proxyDetails is empty until the user scrolls into a group.
+        // Prime engine state so per-proxy push has rows to land on. Without this, the first warmup
+        // cycle would have nowhere to write — proxyDetails is empty until the user scrolls in.
         val primed = refreshRuntimeGroupDetails(autoGroups)
         if (primed.isNotEmpty()) {
             design?.patchProxyDetails(primed)
@@ -865,6 +831,20 @@ class MainActivity : BaseActivity<MainDesign>() {
                 design.profileVisibleGroupChanged.onReceive { (profile, group) ->
                     uiStore.proxyLastGroup = group
                     scheduleProxyDetailsRefresh(profile, group)
+                    // Lazy warmup (O-07): url-test this group's subtree once, only when the user
+                    // actually opens it — instead of every auto group up front on connect.
+                    launch {
+                        try {
+                            val warmed = warmUpGroupSubtree(group)
+                            if (warmed.isNotEmpty()) {
+                                val patches = refreshRuntimeGroupDetails(warmed)
+                                if (patches.isNotEmpty()) design?.patchProxyDetails(patches)
+                            }
+                        } catch (e: CancellationException) {
+                            throw e
+                        } catch (_: Exception) {
+                        }
+                    }
                 }
 
                 proxyDetailRequests.onReceive { (profile, group) ->
@@ -1324,7 +1304,12 @@ class MainActivity : BaseActivity<MainDesign>() {
                     waitForProxyEngineReady()
                     waitForProfileLoadEpochAfter(loadEpochSnapshot)
                     d?.fetch()
-                    val warmed = warmUpAutoProxyGroupsForGlobalOnly()
+                    // O-07: warm up ONLY the group the user last looked at (+ its nested auto
+                    // subtree), not every auto group. The old blanket warmup url-tested 200-node
+                    // groups on connect and saturated the engine ("infinite ping" + sluggish
+                    // switch). Other groups warm lazily when opened (see visibleGroupChanged).
+                    warmedGroups.clear()
+                    val warmed = warmUpGroupSubtree(uiStore.proxyLastGroup)
                     d?.fetch()
                     // Force-push fresh delays into the UI immediately instead
                     // of waiting for the next dashboard ticker (interactive=2s,
