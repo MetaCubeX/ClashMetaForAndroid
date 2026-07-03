@@ -888,6 +888,16 @@ class ProfileManager(private val context: Context) : IProfileManager,
                 val ok = ProxyDialerYamlEdit.applyDialerProxy(dir, targetProxyName, dialerProxyName)
                 if (ok) {
                     runCatching { syncLayerFromConfig(uuid) }
+                    // E-01/E-05: record the proxy-chain intent directly in the user layer.
+                    runCatching {
+                        val dp = dialerProxyName?.takeIf { it.isNotBlank() }
+                        userLayerStore.update(uuid) { l ->
+                            l.copy(
+                                proxyChain = if (dp != null) l.proxyChain + (targetProxyName to dp)
+                                else l.proxyChain - targetProxyName,
+                            )
+                        }
+                    }
                     context.sendProfileChanged(uuid)
                 }
                 ok
@@ -943,7 +953,11 @@ class ProfileManager(private val context: Context) : IProfileManager,
             val dir = File(context.importedDir, uuid.toString())
             try {
                 val ok = ProxyDialerYamlEdit.clearAllDialerProxies(dir)
-                if (ok) context.sendProfileChanged(uuid)
+                if (ok) {
+                    // E-01/E-05: clear the proxy-chain intent in the user layer too.
+                    runCatching { userLayerStore.update(uuid) { it.copy(proxyChain = emptyMap()) } }
+                    context.sendProfileChanged(uuid)
+                }
                 ok
             } catch (_: Exception) {
                 false
@@ -1025,8 +1039,14 @@ class ProfileManager(private val context: Context) : IProfileManager,
     }
 
     override suspend fun previewSetDnsHosts(uuid: UUID, configJson: String): String? {
-        return previewConfigMutation(uuid, "DNS & Hosts") { current ->
-            val config = previewJson.decodeFromString(DnsHostsConfig.serializer(), configJson)
+        val config = previewJson.decodeFromString(DnsHostsConfig.serializer(), configJson)
+        // E-01/E-05: write the DNS/hosts intent to the user layer directly (explicit intent), the
+        // same way rule-/proxy-providers already do, instead of relying on config.yaml extraction.
+        return previewConfigMutation(
+            uuid,
+            "DNS & Hosts",
+            layerMutation = { it.copy(dnsHosts = config) },
+        ) { current ->
             DnsHostsYamlEdit.render(current, config)
         }
     }
@@ -1052,8 +1072,13 @@ class ProfileManager(private val context: Context) : IProfileManager,
     }
 
     override suspend fun previewSetTunnels(uuid: UUID, configJson: String): String? {
-        return previewConfigMutation(uuid, "Tunnels") { current ->
-            val config = previewJson.decodeFromString(TunnelsConfig.serializer(), configJson)
+        val config = previewJson.decodeFromString(TunnelsConfig.serializer(), configJson)
+        // E-01/E-05: write the tunnels intent to the user layer directly (explicit intent).
+        return previewConfigMutation(
+            uuid,
+            "Tunnels",
+            layerMutation = { it.copy(tunnels = config) },
+        ) { current ->
             TunnelsYamlEdit.render(current, config)
         }
     }
