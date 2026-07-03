@@ -234,10 +234,19 @@ object ProfileProcessor {
                 val serviceStore = ServiceStore(context)
                 val dnsHostsManaged = serviceStore.isDnsHostsManaged(snapshot.uuid)
                 val tunnelsManaged = serviceStore.isTunnelsManaged(snapshot.uuid)
-                // Overlay (config-overlay-architecture): capture the user's edit layer from the
-                // CURRENT (pre-fetch) config — before the fetch overwrites it — so it can be composed
-                // onto the freshly fetched subscription below. Replaces SubscriptionUpdateMerge.
-                val capturedLayer = if (configFile.isFile) {
+                // Overlay (config-overlay-architecture): the user's edit layer is composed onto the
+                // freshly fetched subscription below. Stage C — the user_layer store is the single
+                // source of truth once the overlay is active, so we no longer re-extract it from the
+                // (composed) config.yaml on every update: that string-extraction was the last
+                // reconciling path, exactly the divergence class this epic removes.
+                val capturedLayer = if (ProfileMigration.isMigrated(context.processingDir)) {
+                    // Overlay active: carry the store as-is. Every editor writes it directly, so it
+                    // already holds the authoritative intent; re-deriving from config.yaml could only
+                    // diverge.
+                    UserLayerStore.loadAt(context.processingDir)
+                } else if (configFile.isFile) {
+                    // Legacy install updating before its first post-upgrade VPN-start migration: one
+                    // time, extract the edits baked into the current config.yaml so nothing is lost.
                     ProfileMigration.buildLayerFromConfig(
                         profileDir = context.processingDir,
                         rulesStateJson = File(context.processingDir, "rules_state.json").takeIf { it.isFile }

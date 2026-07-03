@@ -11,8 +11,8 @@ import kotlinx.serialization.json.JsonPrimitive
  * `Clash.parseProfileSnapshot`) into plain Kotlin Map/List/scalar trees
  * that SnakeYAML can dump back to YAML without surprises.
  *
- * The WRITE helpers in [MihomoConfigDocument] and SubscriptionUpdateMerge
- * still operate on raw Map/List/Any? because they need to feed SnakeYAML;
+ * The WRITE helpers in [MihomoConfigDocument] still operate on raw Map/List/Any?
+ * because they need to feed SnakeYAML;
  * READ now comes from the engine as JsonElement. This bridge lets the two
  * worlds coexist while we migrate read helpers piecewise.
  */
