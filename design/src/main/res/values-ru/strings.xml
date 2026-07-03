@@ -91,6 +91,8 @@
     <string name="dns_hosts_disabled">DNS и Hosts откатаны для этого профиля.</string>
     <string name="dns_hosts_err_listen">Адрес DNS listen: loopback (127.0.0.1:порт), форма по умолчанию (:порт) или пусто.</string>
     <string name="dns_hosts_err_invalid">Движок отклонил эту конфигурацию.</string>
+    <string name="dns_hosts_block_ipv6">Блокировать IPv6 (AAAA)</string>
+    <string name="dns_hosts_block_ipv6_summary">Не возвращать IPv6-адреса (отбрасывает AAAA-ответы DNS). Устраняет зависания и медленную загрузку при неработающем или высоколатентном IPv6.</string>
 
     <!-- Tunnels -->
     <string name="tunnels_title">Туннели</string>

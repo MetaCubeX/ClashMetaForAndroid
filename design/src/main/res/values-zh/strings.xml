@@ -464,6 +464,8 @@
     <string name="dns_hosts_disabled">已为此配置还原 DNS 与 Hosts。</string>
     <string name="dns_hosts_err_listen">DNS 监听需为回环 (127.0.0.1:端口)、默认形式 (:端口) 或留空。</string>
     <string name="dns_hosts_err_invalid">引擎拒绝了此配置。</string>
+    <string name="dns_hosts_block_ipv6">屏蔽 IPv6 (AAAA)</string>
+    <string name="dns_hosts_block_ipv6_summary">不返回 IPv6 地址（丢弃 AAAA DNS 应答）。修复 IPv6 故障或高延迟导致的卡顿与加载缓慢。</string>
 
     <!-- Tunnels -->
     <string name="tunnels_title">隧道</string>
@@ -737,6 +739,7 @@
     <string name="headers_desc_brand_hide_routing">与 Show-Operator-Tab=true 配对:用运营商标签替换路由标签。单独使用无效。</string>
     <!-- I18N-R2: zh backfill (design) — first pass, pending native review -->
     <string name="about_github_repo">ClashFest 在 GitHub</string>
+    <string name="about_telegram_community">ClashFest 的 Telegram — 问题反馈与讨论</string>
     <string name="about_support">联系支持</string>
     <string name="add">添加</string>
     <string name="allow_all_apps_description">所有应用都使用 VPN</string>
