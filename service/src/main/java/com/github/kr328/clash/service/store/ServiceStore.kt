@@ -91,7 +91,9 @@ class ServiceStore(context: Context) {
      */
     var allowExternalControl by store.boolean(
         key = "allow_external_control",
-        defaultValue = true
+        // Secure-by-default (H-01): external apps can't drive the VPN unless the user opts in.
+        // Existing installs are preserved to ON by runMigrations so automation keeps working.
+        defaultValue = false
     )
 
     /**
@@ -242,19 +244,36 @@ class ServiceStore(context: Context) {
 
     companion object {
         private const val KEY_ALLOW_BYPASS = "allow_bypass"
+        private const val KEY_ALLOW_EXTERNAL_CONTROL = "allow_external_control"
+        private const val KEY_ACTIVE_PROFILE = "active_profile"
         private const val MIGRATION_ALLOW_BYPASS_OFF_V1 = "migration_allow_bypass_off_v1"
+        private const val MIGRATION_EXTERNAL_CONTROL_DEFAULT_V1 = "migration_external_control_default_v1"
 
-        /**
-         * One-time: force allow-bypass off for upgrades (previously default true).
-         * Keeps the preference key for a future dev/advanced toggle.
-         */
+        /** One-time upgrade migrations. Each is idempotent and guarded by its own flag. */
         fun runMigrations(context: Context) {
             val prefs = PreferenceProvider.createSharedPreferencesFromContext(context)
-            if (prefs.getBoolean(MIGRATION_ALLOW_BYPASS_OFF_V1, false)) return
-            prefs.edit()
-                .putBoolean(KEY_ALLOW_BYPASS, false)
-                .putBoolean(MIGRATION_ALLOW_BYPASS_OFF_V1, true)
-                .apply()
+
+            // Force allow-bypass off for upgrades (previously default true); keep the key for a
+            // future dev/advanced toggle.
+            if (!prefs.getBoolean(MIGRATION_ALLOW_BYPASS_OFF_V1, false)) {
+                prefs.edit()
+                    .putBoolean(KEY_ALLOW_BYPASS, false)
+                    .putBoolean(MIGRATION_ALLOW_BYPASS_OFF_V1, true)
+                    .apply()
+            }
+
+            // H-01: external control now defaults OFF (secure-by-default). Preserve it ON for installs
+            // that already have an active profile, so existing automation keeps working; fresh installs
+            // stay off. Users can toggle it in App settings either way.
+            if (!prefs.getBoolean(MIGRATION_EXTERNAL_CONTROL_DEFAULT_V1, false)) {
+                val existingInstall = prefs.getString(KEY_ACTIVE_PROFILE, null) != null
+                prefs.edit().apply {
+                    if (existingInstall && !prefs.contains(KEY_ALLOW_EXTERNAL_CONTROL)) {
+                        putBoolean(KEY_ALLOW_EXTERNAL_CONTROL, true)
+                    }
+                    putBoolean(MIGRATION_EXTERNAL_CONTROL_DEFAULT_V1, true)
+                }.apply()
+            }
         }
     }
 }
