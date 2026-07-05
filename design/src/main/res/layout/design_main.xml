@@ -857,7 +857,7 @@
                 android:visibility="gone"
                 app:cardBackgroundColor="?attr/colorSurfaceContainer"
                 app:cardCornerRadius="22dp"
-                app:cardElevation="6dp"
+                app:cardElevation="0dp"
                 app:strokeColor="@color/lumen_hairline"
                 app:strokeWidth="1dp">
 
