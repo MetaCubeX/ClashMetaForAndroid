@@ -474,31 +474,6 @@
         <item name="colorTertiaryContainer">#57435A</item>
     </style>
 
-    <style name="ThemeOverlay_ClashFest_PaletteMono_Light">
-        <item name="colorPrimary">#5F5E62</item>
-        <item name="colorOnPrimary">#FFFFFF</item>
-        <item name="colorPrimaryContainer">#E6E1E7</item>
-        <item name="colorOnPrimaryContainer">#1C1B1F</item>
-        <item name="colorSecondary">#625B66</item>
-        <item name="colorSecondaryContainer">#E8DEF8</item>
-        <item name="colorTertiary">#7D5260</item>
-        <item name="colorTertiaryContainer">#FFD8E4</item>
-        <item name="colorSurfaceContainerLow">#F4EFF4</item>
-        <item name="colorSurfaceContainer">#EEE8EE</item>
-        <item name="colorSurfaceContainerHigh">#E8E2E8</item>
-    </style>
-
-    <style name="ThemeOverlay_ClashFest_PaletteMono_Dark">
-        <item name="colorPrimary">#C9C5CB</item>
-        <item name="colorOnPrimary">#312F35</item>
-        <item name="colorPrimaryContainer">#48464C</item>
-        <item name="colorOnPrimaryContainer">#E6E1E7</item>
-        <item name="colorSecondary">#CBC2CF</item>
-        <item name="colorSecondaryContainer">#4A4450</item>
-        <item name="colorTertiary">#EFB8C8</item>
-        <item name="colorTertiaryContainer">#633B48</item>
-    </style>
-
     <!-- SlothClash brand palette: warm gold accent (#C9A86C / #936B38) on a
          warm cream (light) / brown surface (dark), with an olive tertiary that
          echoes SlothClash's ok-green. -->

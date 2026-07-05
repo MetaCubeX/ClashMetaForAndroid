@@ -88,8 +88,10 @@
     <color name="proto_wireguard">#2E7D32</color>
     <color name="proto_default">#5F6368</color>
 
-    <!-- Lumen lux-card hairline (light: a faint dark edge). -->
-    <color name="lumen_hairline">#14000000</color>
+    <!-- Lumen lux-card hairline (light: a clearly visible dark edge so cards keep a crisp contour
+         without relying on elevation shadow. Black on a light surface reads lower-contrast than the
+         dark theme's white hairline, so it needs a higher alpha (~25%) to look equivalent). -->
+    <color name="lumen_hairline">#40000000</color>
 
     <!-- Proxy-group type chips — shared palette with SlothClash (brand unity), light variants. -->
     <color name="group_urltest">#1F7A44</color>

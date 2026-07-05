@@ -8,5 +8,4 @@ enum class ThemePalette {
     Amber,
     Mint,
     Graphite,
-    Mono,
 }

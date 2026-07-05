@@ -1043,6 +1043,8 @@
     <string name="support_url_placeholder">https://t.me/your_support_bot</string>
     <string name="theme_auto">自动</string>
     <string name="theme_color">主题颜色</string>
+    <string name="theme_custom_accent_pick">自定义颜色</string>
+    <string name="theme_custom_accent_dialog_title">自定义强调色</string>
     <string name="theme_dark">深色</string>
     <string name="theme_dynamic_colors">Material You</string>
     <string name="theme_light">浅色</string>
@@ -1052,7 +1054,6 @@
     <string name="theme_palette_clash">ClashFest</string>
     <string name="theme_palette_graphite">石墨</string>
     <string name="theme_palette_mint">薄荷</string>
-    <string name="theme_palette_mono">单色</string>
     <string name="home_background_sloth">SlothClash</string>
     <string name="theme_palette_rose">玫瑰</string>
     <string name="theme_palette_violet">紫罗兰</string>

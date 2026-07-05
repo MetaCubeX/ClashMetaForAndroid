@@ -1013,6 +1013,8 @@
     <string name="theme_light">Светлая</string>
     <string name="theme_dark">Тёмная</string>
     <string name="theme_color">Цвет темы</string>
+    <string name="theme_custom_accent_pick">Свой цвет</string>
+    <string name="theme_custom_accent_dialog_title">Свой акцент</string>
     <string name="theme_dynamic_colors">Material You</string>
     <string name="theme_true_black">Чисто чёрный режим</string>
     <string name="theme_true_black_summary">Использует чёрные поверхности в тёмной теме для OLED-экранов.</string>
@@ -1029,7 +1031,6 @@
     <string name="theme_palette_amber">Янтарная</string>
     <string name="theme_palette_mint">Мятная</string>
     <string name="theme_palette_graphite">Графитовая</string>
-    <string name="theme_palette_mono">Моно</string>
     <string name="home_background_sloth">SlothClash</string>
     <!-- I18N-R2: RU backfill (design) -->
     <string name="about_app_version_label">Версия приложения</string>

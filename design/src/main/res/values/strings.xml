@@ -1133,6 +1133,8 @@ Presets only change <b>where</b> files are downloaded from (CDN / host). It is s
     <string name="theme_light">Light</string>
     <string name="theme_dark">Dark</string>
     <string name="theme_color">Theme color</string>
+    <string name="theme_custom_accent_pick">Custom color</string>
+    <string name="theme_custom_accent_dialog_title">Custom accent</string>
     <string name="theme_dynamic_colors">Material You</string>
     <string name="theme_true_black">Pure black mode</string>
     <string name="theme_true_black_summary">Uses black surfaces in dark mode for OLED screens.</string>
@@ -1149,7 +1151,6 @@ Presets only change <b>where</b> files are downloaded from (CDN / host). It is s
     <string name="theme_palette_amber">Amber</string>
     <string name="theme_palette_mint">Mint</string>
     <string name="theme_palette_graphite">Graphite</string>
-    <string name="theme_palette_mono">Mono</string>
     <string name="home_background_sloth">SlothClash</string>
     <!-- Companion remote control (clashctl) -->
     <string name="companion_title">Remote control</string>

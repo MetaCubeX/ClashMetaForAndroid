@@ -30,6 +30,32 @@ import com.google.android.material.color.DynamicColorsOptions
  */
 object BrandThemeApplier {
 
+    /**
+     * Apply an accent [seed] color as a Material 3 harmonised palette + neutral off-state surface pin
+     * (+ TrueBlack re-pin in night). Shared by the operator brand and the user's custom accent so both
+     * produce the same premium result. Works on every Android version (precondition overridden — the
+     * default only enables dynamic color on Android 12+).
+     */
+    fun applySeed(activity: Activity, seed: Int) {
+        DynamicColors.applyToActivityIfAvailable(
+            activity,
+            DynamicColorsOptions.Builder()
+                .setContentBasedSource(seed)
+                .setPrecondition { _, _ -> true }
+                .build(),
+        )
+        // Pin off-state surface attrs back to default M3 neutrals so disconnected / unchecked
+        // surfaces don't read as the accent.
+        activity.theme.applyStyle(R.style.ThemeOverlay_App_BrandNeutralSurfaces, true)
+        // Pure-black (OLED) must win over the neutral pin — re-apply TrueBlack surfaces right after.
+        val nightMode = (activity.resources.configuration.uiMode and
+            android.content.res.Configuration.UI_MODE_NIGHT_MASK) ==
+            android.content.res.Configuration.UI_MODE_NIGHT_YES
+        if (nightMode && com.github.kr328.clash.design.store.UiStore(activity).trueBlack) {
+            activity.theme.applyStyle(R.style.ThemeOverlay_ClashFest_TrueBlack, true)
+        }
+    }
+
     fun applyToActivity(activity: Activity) {
         val store = com.github.kr328.clash.service.branding.BrandStore(activity)
         val activeUuid = com.github.kr328.clash.service.store.ServiceStore(activity).activeProfile
@@ -51,29 +77,8 @@ object BrandThemeApplier {
             return
         }
 
-        // 1) Brand harmoniser → palette from seed (works on every Android version
-        //    when we override the precondition; the default precondition checks
-        //    system dynamic-color support which is Android 12+).
-        DynamicColors.applyToActivityIfAvailable(
-            activity,
-            DynamicColorsOptions.Builder()
-                .setContentBasedSource(accent)
-                .setPrecondition { _, _ -> true }
-                .build(),
-        )
-        // 2) Pin off-state surface attrs back to default M3 neutrals so
-        //    disconnected / unchecked surfaces don't read as the accent.
-        activity.theme.applyStyle(R.style.ThemeOverlay_App_BrandNeutralSurfaces, true)
-
-        // 3) Pure-black (OLED) must win over the neutral pin — re-apply TrueBlack surfaces here in
-        //    the SAME theme pass (right after the neutral pin) so grey cards don't survive on the
-        //    black canvas. Only touches surfaces/background, so the brand accent above still wins.
-        val nightMode = (activity.resources.configuration.uiMode and
-            android.content.res.Configuration.UI_MODE_NIGHT_MASK) ==
-            android.content.res.Configuration.UI_MODE_NIGHT_YES
-        if (nightMode && com.github.kr328.clash.design.store.UiStore(activity).trueBlack) {
-            activity.theme.applyStyle(R.style.ThemeOverlay_ClashFest_TrueBlack, true)
-        }
+        // Harmonise the brand seed into a full M3 palette + neutral-surface pin (+ TrueBlack re-pin).
+        applySeed(activity, accent)
 
         // Mark the accent that's now baked into this Activity's theme.
         // [maybeRecreateOnAccentChange] reads this on the next dashboard tick

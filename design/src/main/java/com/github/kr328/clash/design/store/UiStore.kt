@@ -41,6 +41,23 @@ class UiStore(context: Context) {
         values = ThemePalette.values(),
     )
 
+    /** Raw backing store for [customAccent] — the ARGB int as a decimal string, "" when unset. */
+    private var customAccentRaw: String by store.string(
+        key = "custom_accent",
+        defaultValue = "",
+    )
+
+    /**
+     * User-chosen custom accent color (ARGB), or null when the user is on a preset palette / no custom
+     * accent. When set, it seeds the Material 3 harmoniser (same path as the operator brand) and takes
+     * precedence over preset palettes and Material You; the operator brand still overrides it.
+     */
+    var customAccent: Int?
+        get() = customAccentRaw.toIntOrNull()
+        set(value) {
+            customAccentRaw = value?.toString() ?: ""
+        }
+
     var trueBlack: Boolean by store.boolean(
         key = "true_black",
         defaultValue = false,

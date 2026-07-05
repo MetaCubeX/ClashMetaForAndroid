@@ -23,7 +23,7 @@ class ThemeSettingsActivity : BaseActivity<ThemeSettingsDesign>() {
     }
 
     override suspend fun main() {
-        fun newDesign() = ThemeSettingsDesign(this, uiStore) { applyThemeFromUiStore() }
+        fun newDesign() = ThemeSettingsDesign(this, uiStore) { syncNightModeFromUiStore() }
         var current = newDesign()
         setContentDesign(current)
 

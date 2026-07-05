@@ -39,6 +39,7 @@ class MainApplication : Application() {
 
         if (processName == packageName) {
             applyAppLanguage()
+            applyNightMode()
             ServiceStore.runMigrations(this)
             Remote.launch()
             setupShortcuts()
@@ -56,6 +57,18 @@ class MainApplication : Application() {
             LocaleListCompat.forLanguageTags(tag)
         }
         AppCompatDelegate.setApplicationLocales(locales)
+    }
+
+    /**
+     * Drive day/night through AppCompat's night mode so the real Configuration night bit follows the
+     * user's darkMode choice. The config-qualified base theme (BootstrapTheme -> AppThemeLight/Dark)
+     * and values-night/ colors then resolve to match the chosen mode — this is what makes a forced
+     * dark theme on a light-system device render (and not crash). Replaces the old approach of faking
+     * day/night with theme.applyStyle(AppThemeDark/Light) while leaving the config untouched.
+     */
+    private fun applyNightMode() {
+        val darkMode = runCatching { UiStore(this).darkMode }.getOrNull() ?: return
+        AppCompatDelegate.setDefaultNightMode(nightModeFor(darkMode))
     }
 
     private fun setupShortcuts() {
