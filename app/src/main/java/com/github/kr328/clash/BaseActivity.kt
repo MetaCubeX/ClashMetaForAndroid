@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.view.View
 import androidx.activity.result.contract.ActivityResultContract
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.getSystemService
 import com.github.kr328.clash.common.compat.isAllowForceDarkCompat
 import com.github.kr328.clash.common.compat.isLightNavigationBarCompat
@@ -35,6 +36,14 @@ import java.util.concurrent.atomic.AtomicInteger
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 import com.github.kr328.clash.design.R
+
+/** Maps the app's darkMode choice to an AppCompat night mode (the single source of truth for the
+ *  Configuration night bit, so config-qualified resources resolve to match the chosen theme). */
+fun nightModeFor(darkMode: DarkMode): Int = when (darkMode) {
+    DarkMode.ForceLight -> AppCompatDelegate.MODE_NIGHT_NO
+    DarkMode.ForceDark -> AppCompatDelegate.MODE_NIGHT_YES
+    DarkMode.Auto -> AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
+}
 
 abstract class BaseActivity<D : Design<*>> : AppCompatActivity(),
     CoroutineScope by MainScope(),
@@ -217,17 +226,27 @@ abstract class BaseActivity<D : Design<*>> : AppCompatActivity(),
         }
     }
 
-    fun applyThemeFromUiStore(config: Configuration = resources.configuration) {
-        applyDayNight(config)
+    /**
+     * Keep AppCompat night mode in sync with the user's darkMode. When it changes, AppCompat
+     * recreates every activity with the new Configuration — a single clean, full re-theme (this is
+     * what makes in-app dark/light switching actually take effect and never show a mixed transient).
+     * Palette / accent / true-black changes don't touch night mode; ThemeSettings recreates for those.
+     */
+    fun syncNightModeFromUiStore() {
+        val mode = nightModeFor(uiStore.darkMode)
+        if (AppCompatDelegate.getDefaultNightMode() != mode) {
+            AppCompatDelegate.setDefaultNightMode(mode)
+        }
     }
 
     private fun applyDayNight(config: Configuration = resources.configuration) {
         val dayNight = queryDayNight(config)
         val night = dayNight == DayNight.Night
-        when (dayNight) {
-            DayNight.Night -> theme.applyStyle(R.style.AppThemeDark, true)
-            DayNight.Day -> theme.applyStyle(R.style.AppThemeLight, true)
-        }
+        // Day/night is NOT faked here anymore: AppCompatDelegate night mode (set from darkMode in
+        // MainApplication + on change) drives the real Configuration, so the config-qualified base
+        // theme (BootstrapTheme -> AppThemeLight in values/, AppThemeDark in values-night/) and the
+        // values-night/ colors already resolve to the correct mode. We only layer the OPTIONAL
+        // overlays (Sloth / palette / dynamic-color / user-accent / brand / true-black) on top.
         // SlothClash skin is an exclusive look (warm surfaces + gold accent),
         // selected via the Home background picker — it owns colors, so it
         // bypasses palette / dynamic-color / true-black.
@@ -238,14 +257,22 @@ abstract class BaseActivity<D : Design<*>> : AppCompatActivity(),
                 true,
             )
         } else {
-            paletteOverlay(uiStore.themePalette, dayNight)?.let {
-                theme.applyStyle(it, true)
-            }
-            if (uiStore.dynamicColors) {
-                DynamicColors.applyToActivityIfAvailable(this)
-            }
-            if (night && uiStore.trueBlack) {
-                theme.applyStyle(R.style.ThemeOverlay_ClashFest_TrueBlack, true)
+            val accent = uiStore.customAccent
+            if (accent != null) {
+                // User custom accent: harmonise a full M3 palette from the seed (same path as the
+                // operator brand). Takes precedence over preset palette / Material You; the operator
+                // brand (applied below) still overrides it. applySeed also re-pins TrueBlack in night.
+                com.github.kr328.clash.design.branding.BrandThemeApplier.applySeed(this, accent)
+            } else {
+                paletteOverlay(uiStore.themePalette, dayNight)?.let {
+                    theme.applyStyle(it, true)
+                }
+                if (uiStore.dynamicColors) {
+                    DynamicColors.applyToActivityIfAvailable(this)
+                }
+                if (night && uiStore.trueBlack) {
+                    theme.applyStyle(R.style.ThemeOverlay_ClashFest_TrueBlack, true)
+                }
             }
         }
 
@@ -283,7 +310,6 @@ abstract class BaseActivity<D : Design<*>> : AppCompatActivity(),
             ThemePalette.Amber -> if (night) R.style.ThemeOverlay_ClashFest_PaletteAmber_Dark else R.style.ThemeOverlay_ClashFest_PaletteAmber_Light
             ThemePalette.Mint -> if (night) R.style.ThemeOverlay_ClashFest_PaletteMint_Dark else R.style.ThemeOverlay_ClashFest_PaletteMint_Light
             ThemePalette.Graphite -> if (night) R.style.ThemeOverlay_ClashFest_PaletteGraphite_Dark else R.style.ThemeOverlay_ClashFest_PaletteGraphite_Light
-            ThemePalette.Mono -> if (night) R.style.ThemeOverlay_ClashFest_PaletteMono_Dark else R.style.ThemeOverlay_ClashFest_PaletteMono_Light
         }
     }
 

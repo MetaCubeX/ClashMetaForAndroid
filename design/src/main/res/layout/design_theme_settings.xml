@@ -111,52 +111,36 @@
                     android:columnCount="4"
                     android:useDefaultMargins="false" />
 
-                <com.google.android.material.card.MaterialCardView
-                    style="@style/AppCard.Surface"
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="24dp"
-                    app:cardBackgroundColor="?attr/colorSurfaceContainer"
-                    app:cardCornerRadius="20dp"
-                    app:cardElevation="0dp">
+                    android:layout_marginTop="18dp"
+                    android:baselineAligned="false"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
 
-                    <LinearLayout
-                        android:layout_width="match_parent"
+                    <TextView
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:padding="16dp">
+                        android:layout_weight="1"
+                        android:text="@string/theme_true_black"
+                        android:textAppearance="@style/TextAppearance.App.TitleMedium"
+                        android:textColor="?attr/colorOnSurface"
+                        android:textStyle="bold" />
 
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:baselineAligned="false"
-                            android:gravity="center_vertical"
-                            android:orientation="horizontal">
+                    <com.google.android.material.switchmaterial.SwitchMaterial
+                        android:id="@+id/true_black_switch"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
+                </LinearLayout>
 
-                            <TextView
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:text="@string/theme_true_black"
-                                android:textAppearance="@style/TextAppearance.App.TitleSmall"
-                                android:textColor="?attr/colorOnSurface"
-                                android:textStyle="bold" />
-
-                            <com.google.android.material.switchmaterial.SwitchMaterial
-                                android:id="@+id/true_black_switch"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content" />
-                        </LinearLayout>
-
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
-                            android:text="@string/theme_true_black_summary"
-                            android:textAppearance="@style/TextAppearance.App.BodySmall"
-                            android:textColor="?attr/colorOnSurfaceVariant" />
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="@string/theme_true_black_summary"
+                    android:textAppearance="@style/TextAppearance.App.BodySmall"
+                    android:textColor="?attr/colorOnSurfaceVariant" />
 
                 <TextView
                     android:layout_width="match_parent"
