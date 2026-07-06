@@ -263,7 +263,17 @@ class ProfileAdapter(
                 pendingProxySelections.clear()
             }
         }
-        proxyGroupNames = names
+        // On a profile switch the engine keeps serving the PREVIOUS profile's config for a moment
+        // (async reload), so `names` can still be the old profile's groups — which showed the old
+        // profile's selectors/nodes in the picker until the reload landed. Detect that (fresh engine
+        // groups share nothing with the NEW active profile's offline preview) and suppress the stale
+        // list until reload completes; the picker then falls back to the new profile's offline groups
+        // (useEngineFor requires proxyGroupNames non-empty) instead of showing the old profile's.
+        val newActiveOfflineGroups = activeProfileUuid?.let { offlinePreviewByProfile[it]?.keys }.orEmpty()
+        val engineStaleAfterSwitch = activeProfileUuid != previousActiveUuid && names.isNotEmpty() &&
+            newActiveOfflineGroups.isNotEmpty() &&
+            names.none { n -> newActiveOfflineGroups.any { groupsMatchKey(n, it) } }
+        proxyGroupNames = if (engineStaleAfterSwitch) emptyList() else names
         if (offlinePreviewByProfile.isNotEmpty()) {
             cachedOfflinePreviewByProfile.putAll(offlinePreviewByProfile)
         }
