@@ -132,10 +132,23 @@ object ProxyGroupsYamlPreview {
         if (!hasDynamicMembership(g)) return emptyList()
         val universe = collectAllLeafProxyNames(snapshot, profileDir).sorted()
         val filterRaw = g.stringField("filter")?.trim().orEmpty()
-        if (filterRaw.isEmpty()) return universe
-        val patterns = compileFilterPatterns(filterRaw)
-        if (patterns.isEmpty()) return emptyList()
-        return universe.filter { name -> patterns.any { it.containsMatchIn(name) } }
+        val included = if (filterRaw.isEmpty()) {
+            universe
+        } else {
+            val patterns = compileFilterPatterns(filterRaw)
+            if (patterns.isEmpty()) return emptyList()
+            universe.filter { name -> patterns.any { it.containsMatchIn(name) } }
+        }
+        // Mirror the engine ([outboundgroup.GroupBase.getProxies]): `exclude-filter` drops any member
+        // whose name matches any pattern, applied AFTER the include `filter`. Without this the offline
+        // preview kept excluded nodes (e.g. a `🇸🇪|SE|Sweden` exclude still listed Sweden) while the
+        // running engine correctly dropped them — the include-only path was already honored, so only
+        // exclusions diverged.
+        val excludeRaw = g.stringField("exclude-filter")?.trim().orEmpty()
+        if (excludeRaw.isEmpty()) return included
+        val excludePatterns = compileFilterPatterns(excludeRaw)
+        if (excludePatterns.isEmpty()) return included
+        return included.filterNot { name -> excludePatterns.any { it.containsMatchIn(name) } }
     }
 
     private fun yamlGroupType(g: JsonObject): Proxy.Type {
