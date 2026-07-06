@@ -1219,6 +1219,22 @@ class MainActivity : BaseActivity<MainDesign>() {
         )
         if (!running || activeUuid == null || proxyNames.isEmpty()) {
             clearProxyDetails()
+        } else {
+            // After connect the Home "Node" row needs the active profile's summary group's live
+            // `now`, but nothing queries it until the user opens the picker — so it stayed blank for
+            // seconds. Prime just that one group (O-07-safe: a single query, not a blanket warmup),
+            // and only when it isn't already cached, so this is effectively one-shot per connect
+            // rather than a per-refresh engine hit.
+            val summaryGroup = active?.let { summaryGroupFor(it) }
+            if (!summaryGroup.isNullOrBlank() && !hasLiveDetailForGroup(summaryGroup)) {
+                val primed = refreshRuntimeGroupDetails(setOf(summaryGroup))
+                if (primed.isNotEmpty()) {
+                    patchProxyDetails(primed)
+                    // The Home node row was already bound above with empty details; re-render it now
+                    // that the summary group's `now` is loaded so it fills without user interaction.
+                    patchProfiles(profiles)
+                }
+            }
         }
         syncThemeToggleIcon(uiStore.darkMode)
 
