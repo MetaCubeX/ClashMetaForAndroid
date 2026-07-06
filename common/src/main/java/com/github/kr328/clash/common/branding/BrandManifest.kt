@@ -71,6 +71,14 @@ data class BrandManifest(
     val showOperatorTab: Boolean? = null,
 
     /**
+     * Operator POLICY, not cosmetic branding: hide the Home Rule/Global mode toggle and pin the app
+     * to Rule. Unlike every other field here, this applies WITHOUT `X-Branding-Enabled` — consumers
+     * read it directly (`hideGlobalMode == true`), never gated by [hasBrandIdentity]. See
+     * [BrandHeaders.HIDE_GLOBAL_MODE].
+     */
+    val hideGlobalMode: Boolean? = null,
+
+    /**
      * Master switch — explicit opt-in. Branding only applies when the
      * operator sends `X-Branding-Enabled: true`. Absent header / `false` /
      * `null` all mean "do not brand this subscription", regardless of any
@@ -97,6 +105,7 @@ data class BrandManifest(
             userDisplayName == null &&
             greeting == null &&
             hideRouting == null &&
+            hideGlobalMode == null &&
             showOperatorTab == null &&
             enabled == null
 
@@ -120,6 +129,15 @@ data class BrandManifest(
             !logoLightUrl.isNullOrBlank() ||
             !accentColor.isNullOrBlank()
     }
+
+    /**
+     * True when the manifest carries an operator POLICY flag that applies WITHOUT branding being
+     * enabled (currently only [hideGlobalMode]). Unlike [hasBrandIdentity], this ignores
+     * `X-Branding-Enabled` — policy is operator control, not cosmetic branding. The store and read
+     * paths surface a manifest when this is true even if there's no visual brand, and it survives
+     * the `X-Branding-Enabled: false` kill-switch.
+     */
+    fun hasPolicy(): Boolean = hideGlobalMode == true
 
     /**
      * Pick the right logo URL for the user's current theme.

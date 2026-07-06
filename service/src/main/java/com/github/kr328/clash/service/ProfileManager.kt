@@ -1187,7 +1187,11 @@ class ProfileManager(private val context: Context) : IProfileManager,
 
     override suspend fun readBrandJsonFor(uuid: UUID): String? = withContext(Dispatchers.IO) {
         val store = BrandStore(context)
-        if (!store.isActiveFor(uuid)) null else store.manifestFor(uuid).toJson()
+        val manifest = store.manifestFor(uuid)
+        // Visual brand needs isActiveFor (enabled + identity). Operator POLICY flags (hideGlobalMode)
+        // apply without branding, so surface the manifest when it carries policy too — otherwise the
+        // UI never sees the flag and the restriction silently does nothing.
+        if (store.isActiveFor(uuid) || manifest.hasPolicy()) manifest.toJson() else null
     }
 
     override suspend fun brandLogoPathFor(uuid: UUID, darkTheme: Boolean): String? = withContext(Dispatchers.IO) {
