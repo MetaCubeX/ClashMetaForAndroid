@@ -21,6 +21,7 @@ class ProxyGroupsYamlPreviewTest {
         hidden: Boolean = false,
         includeAllProxies: Boolean = false,
         filter: String? = null,
+        excludeFilter: String? = null,
     ): JsonObject {
         val fields = LinkedHashMap<String, kotlinx.serialization.json.JsonElement>()
         fields["name"] = JsonPrimitive(name)
@@ -30,6 +31,7 @@ class ProxyGroupsYamlPreviewTest {
         if (hidden) fields["hidden"] = JsonPrimitive(true)
         if (includeAllProxies) fields["include-all-proxies"] = JsonPrimitive(true)
         if (filter != null) fields["filter"] = JsonPrimitive(filter)
+        if (excludeFilter != null) fields["exclude-filter"] = JsonPrimitive(excludeFilter)
         return JsonObject(fields)
     }
 
@@ -166,6 +168,37 @@ class ProxyGroupsYamlPreviewTest {
         )
         val rows = ProxyGroupsYamlPreview.parseProxyGroupsPreview(snapshot)
         assertEquals(listOf("us-east", "us-west"), rows["UsOnly"]?.members)
+    }
+
+    @Test
+    fun parseProxyGroupsPreview_includeAllProxiesWithExcludeFilterDropsMatches() {
+        // Repro of the user report: exclude-filter must drop members in the offline preview too,
+        // mirroring the engine. Include path was already honored; exclusion was ignored.
+        val snapshot = ProfileSnapshot(
+            proxies = listOf(
+                proxy("🇩🇪 Germany"), proxy("🇫🇮 Finland"), proxy("🇳🇱 Netherlands 1"), proxy("🇸🇪 Sweden"),
+            ),
+            proxyGroups = listOf(group("Fastest", includeAllProxies = true, excludeFilter = "🇸🇪|SE|Sweden")),
+        )
+        val members = ProxyGroupsYamlPreview.parseProxyGroupsPreview(snapshot)["Fastest"]?.members.orEmpty()
+        assertFalse("Sweden must be excluded from the preview", members.any { "Sweden" in it })
+        assertEquals(listOf("🇩🇪 Germany", "🇫🇮 Finland", "🇳🇱 Netherlands 1"), members)
+    }
+
+    @Test
+    fun parseProxyGroupsPreview_excludeFilterAppliesAfterIncludeFilter() {
+        // filter (include) then exclude-filter, both honored — the working `filter` group and the
+        // broken `exclude-filter` group must now behave consistently.
+        val snapshot = ProfileSnapshot(
+            proxies = listOf(proxy("us-east"), proxy("us-west"), proxy("us-lab"), proxy("eu-central")),
+            proxyGroups = listOf(
+                group("UsNoLab", includeAllProxies = true, filter = "us-", excludeFilter = "lab"),
+            ),
+        )
+        assertEquals(
+            listOf("us-east", "us-west"),
+            ProxyGroupsYamlPreview.parseProxyGroupsPreview(snapshot)["UsNoLab"]?.members,
+        )
     }
 
     @Test

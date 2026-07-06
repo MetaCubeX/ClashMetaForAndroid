@@ -16,6 +16,74 @@ class ConfigComposerTest {
           - MATCH,DIRECT
     """.trimIndent()
 
+    @Test fun url_test_exclude_filter_survives_composition() {
+        // Repro of the user report: a url-test group with include-all + exclude-filter listing a flag
+        // emoji + codes. The engine applies exclude-filter correctly (proven by the Go oracle), so if
+        // the bug is real the field must be lost/mangled here, before the engine sees it.
+        val fetched = """
+            mixed-port: 7890
+            mode: rule
+            proxies:
+              - {name: "🇩🇪 Germany", type: ss, server: 1.1.1.1, port: 443, cipher: aes-128-gcm, password: a}
+              - {name: "🇸🇪 Sweden", type: ss, server: 1.1.1.6, port: 443, cipher: aes-128-gcm, password: a}
+            proxy-groups:
+              - name: "⚡ Fastest For All"
+                type: url-test
+                url: https://www.gstatic.com/generate_204
+                interval: 300
+                tolerance: 300
+                lazy: true
+                include-all: true
+                exclude-filter: '🇸🇪|SE|Sweden'
+                proxies: []
+            rules:
+              - MATCH,⚡ Fastest For All
+        """.trimIndent()
+        for (mode in listOf(ProxyHardeningMode.Off, ProxyHardeningMode.Strict, ProxyHardeningMode.Compat)) {
+            val out = ConfigComposer.compose(fetched, UserLayer(), geo, mode)
+            assertTrue("exclude-filter" in out, "[$mode] exclude-filter key must survive composition: $out")
+            assertTrue("Sweden" in out, "[$mode] exclude-filter value must survive intact: $out")
+            assertTrue("🇸🇪" in out, "[$mode] flag emoji in exclude-filter must survive: $out")
+            assertTrue("include-all" in out, "[$mode] include-all must survive: $out")
+        }
+    }
+
+    @Test fun url_test_exclude_filter_survives_with_remnawave_quirks() {
+        // Faithful to the reported subscription shape: a nonstandard `remnawave:` nested map inside the
+        // group + a `proxies:` list that is comment-only (parses to null). If our block-patcher/hardener
+        // mangles the group here, the engine gets a broken exclude-filter — reproducing the on-device
+        // "not excluded even when connected" case.
+        val fetched = """
+            mixed-port: 7890
+            mode: rule
+            proxies:
+              - {name: "🇩🇪 Germany", type: ss, server: 1.1.1.1, port: 443, cipher: aes-128-gcm, password: a}
+              - {name: "🇸🇪 Sweden", type: ss, server: 1.1.1.6, port: 443, cipher: aes-128-gcm, password: a}
+            proxy-groups:
+              - name: "⚡ Fastest For All"
+                type: url-test
+                url: https://www.gstatic.com/generate_204
+                interval: 300
+                tolerance: 300
+                lazy: true
+                include-all: true
+                exclude-filter: '🇸🇪|SE|Sweden'
+                remnawave:
+                  include-proxies: false
+                proxies:
+                  # LEAVE THIS LINE!
+            rules:
+              - MATCH,⚡ Fastest For All
+        """.trimIndent()
+        for (mode in listOf(ProxyHardeningMode.Off, ProxyHardeningMode.Strict, ProxyHardeningMode.Compat)) {
+            val out = ConfigComposer.compose(fetched, UserLayer(), geo, mode)
+            assertTrue("exclude-filter" in out, "[$mode] exclude-filter must survive: $out")
+            assertTrue("Sweden" in out, "[$mode] exclude value must survive: $out")
+            assertTrue("🇸🇪" in out, "[$mode] flag emoji must survive: $out")
+            assertTrue("include-all" in out, "[$mode] include-all must survive: $out")
+        }
+    }
+
     @Test fun empty_layer_leaves_subscription_rules_intact() {
         val out = ConfigComposer.compose(fetched, UserLayer(), geo, ProxyHardeningMode.Off)
         assertTrue(out.isNotBlank())

@@ -122,24 +122,40 @@ func QueryProxyGroup(name string, sortMode SortMode, uiSubtitlePattern *regexp2.
 		return nil
 	}
 
-	proxies := convertProxies(g.Proxies(), uiSubtitlePattern)
-	// Include provider-backed proxies (`use:` references and dynamic flags such as
-	// include-all-providers / include-all-proxies / include-all). mihomo expands those
-	// at routing time but g.Proxies() only returns the statically declared members.
-	// Without the merge, the picker shows three sub-groups even for subscriptions whose
-	// real node set lives in proxy-providers.
-	providerProxies := collectProviders(g.Providers(), uiSubtitlePattern)
-	if len(providerProxies) > 0 {
-		existing := make(map[string]struct{}, len(proxies)+len(providerProxies))
-		for _, p := range proxies {
-			existing[p.Name] = struct{}{}
+	rawMembers := g.Proxies()
+	proxies := convertProxies(rawMembers, uiSubtitlePattern)
+	// mihomo's g.Proxies() already expands include-all / include-all-proxies / include-all-providers
+	// and `use:` references down to the group's real leaf members, AND applies the group's `filter`
+	// and `exclude-filter`. So only fall back to enumerating the group's providers directly when
+	// g.Proxies() yielded NO dialable leaf — i.e. an empty group or a pure dispatch shell whose
+	// members are all sub-groups (the case this merge was originally added for, where the picker
+	// otherwise showed only sub-groups instead of the provider's nodes).
+	//
+	// Doing the merge unconditionally re-introduced nodes the group's exclude-filter had dropped:
+	// an excluded node is absent from g.Proxies() but still present in the backing provider, so
+	// collectProviders (which does not apply the group filter) added it right back — the reported
+	// "exclude-filter has no effect while connected" bug.
+	hasLeaf := false
+	for _, m := range rawMembers {
+		if _, isGroup := m.Adapter().(outboundgroup.ProxyGroup); !isGroup {
+			hasLeaf = true
+			break
 		}
-		for _, p := range providerProxies {
-			if _, ok := existing[p.Name]; ok {
-				continue
+	}
+	if !hasLeaf {
+		providerProxies := collectProviders(g.Providers(), uiSubtitlePattern)
+		if len(providerProxies) > 0 {
+			existing := make(map[string]struct{}, len(proxies)+len(providerProxies))
+			for _, p := range proxies {
+				existing[p.Name] = struct{}{}
 			}
-			existing[p.Name] = struct{}{}
-			proxies = append(proxies, p)
+			for _, p := range providerProxies {
+				if _, ok := existing[p.Name]; ok {
+					continue
+				}
+				existing[p.Name] = struct{}{}
+				proxies = append(proxies, p)
+			}
 		}
 	}
 
