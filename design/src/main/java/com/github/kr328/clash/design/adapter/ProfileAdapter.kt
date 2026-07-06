@@ -591,6 +591,17 @@ class ProfileAdapter(
     fun activeNodeDisplayName(profile: Profile): String? =
         resolveCurrentNodeDisplayName(profile)?.takeIf { it.isNotBlank() }
 
+    /**
+     * The proxy group whose current selection the Home "Node" summary displays for [profile].
+     * Callers (MainActivity) use this to prime that one group's live detail on connect so the row
+     * isn't blank until the user opens the picker.
+     */
+    fun summaryGroupForProfile(profile: Profile): String? = selectedGroupForSummary(profile)
+
+    /** True when live engine detail (carrying `now`) is already cached for [groupName]. */
+    fun hasLiveDetailForGroup(groupName: String): Boolean =
+        proxyDetails[groupName] != null || proxyDetails.keys.any { groupsMatchKey(groupName, it) }
+
     private fun groupsForSelectionSummary(profile: Profile): List<String> {
         if (!profile.imported) return emptyList()
         return if (useEngineFor(profile)) {

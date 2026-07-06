@@ -1186,6 +1186,12 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         }
     }
 
+    /** Group whose selection the Home "Node" row summarises for [profile] (for connect-time priming). */
+    fun summaryGroupFor(profile: Profile): String? = profileAdapter.summaryGroupForProfile(profile)
+
+    /** True when live engine detail for [groupName] is already cached (skip the connect-time prime). */
+    fun hasLiveDetailForGroup(groupName: String): Boolean = profileAdapter.hasLiveDetailForGroup(groupName)
+
     suspend fun patchSingleProxyDelay(group: String, proxy: String, delayMs: Int) {
         withContext(Dispatchers.Main) {
             profileAdapter.patchSingleProxyDelay(group, proxy, delayMs)
