@@ -51,42 +51,50 @@
                         android:orientation="vertical"
                         android:padding="16dp">
 
-                        <LinearLayout
+                        <HorizontalScrollView
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:gravity="center_vertical"
-                            android:orientation="horizontal">
+                            android:scrollbars="none"
+                            android:overScrollMode="never"
+                            android:fillViewport="true">
 
-                            <com.google.android.material.button.MaterialButton
-                                android:id="@+id/btn_connections_open_log"
-                                style="@style/Widget.Material3.Button.TextButton"
+                            <LinearLayout
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:minWidth="0dp"
-                                android:text="@string/connections_open_log"
-                                app:icon="@drawable/ic_outline_article"
-                                app:iconGravity="textStart" />
+                                android:gravity="center_vertical"
+                                android:orientation="horizontal">
 
-                            <com.google.android.material.button.MaterialButton
-                                android:id="@+id/btn_connections_open_requests"
-                                style="@style/Widget.Material3.Button.TextButton"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:minWidth="0dp"
-                                android:text="@string/request_history_short_title"
-                                app:icon="@drawable/ic_baseline_dns"
-                                app:iconGravity="textStart" />
+                                <com.google.android.material.button.MaterialButton
+                                    android:id="@+id/btn_connections_open_log"
+                                    style="@style/Widget.Material3.Button.TextButton"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:minWidth="0dp"
+                                    android:text="@string/connections_open_log"
+                                    app:icon="@drawable/ic_outline_article"
+                                    app:iconGravity="textStart" />
 
-                            <com.google.android.material.button.MaterialButton
-                                android:id="@+id/btn_connections_close_all"
-                                style="@style/Widget.Material3.Button.TextButton"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:minWidth="0dp"
-                                android:text="@string/connections_close_all"
-                                app:icon="@drawable/ic_baseline_close"
-                                app:iconGravity="textStart" />
-                        </LinearLayout>
+                                <com.google.android.material.button.MaterialButton
+                                    android:id="@+id/btn_connections_open_requests"
+                                    style="@style/Widget.Material3.Button.TextButton"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:minWidth="0dp"
+                                    android:text="@string/request_history_short_title"
+                                    app:icon="@drawable/ic_baseline_dns"
+                                    app:iconGravity="textStart" />
+
+                                <com.google.android.material.button.MaterialButton
+                                    android:id="@+id/btn_connections_close_all"
+                                    style="@style/Widget.Material3.Button.TextButton"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:minWidth="0dp"
+                                    android:text="@string/connections_close_all"
+                                    app:icon="@drawable/ic_baseline_close"
+                                    app:iconGravity="textStart" />
+                            </LinearLayout>
+                        </HorizontalScrollView>
 
                         <LinearLayout
                             android:layout_width="match_parent"
