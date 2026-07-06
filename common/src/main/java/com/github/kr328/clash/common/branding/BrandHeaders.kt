@@ -54,7 +54,19 @@ object BrandHeaders {
     const val GREETING = "X-Brand-Greeting"
 
     // --- UX simplification (v3) ---
+    // Gated by X-Branding-Enabled + the Operator tab (see MainDesign.reconcileTabsForBrand).
     const val HIDE_ROUTING = "X-Brand-Hide-Routing"
+
+    // --- Operator policy (v4) — applies WITHOUT X-Branding-Enabled ---
+    /**
+     * Operator restriction, NOT cosmetic branding: hides the Home Rule/Global mode toggle and pins
+     * the app to Rule mode. Because it's a policy (the operator restricting behaviour, e.g. stopping
+     * users from routing all traffic through the proxy and bypassing rules) rather than a look, it
+     * takes effect on header presence alone — it does NOT require `X-Branding-Enabled: true`.
+     * This is the one header that works unbranded; every X-Brand-* identity/tab/info field still
+     * needs branding explicitly enabled.
+     */
+    const val HIDE_GLOBAL_MODE = "X-Brand-Hide-Global-Mode"
 
     /**
      * Explicit opt-in for the dedicated Operator tab. Brand identity / accent /

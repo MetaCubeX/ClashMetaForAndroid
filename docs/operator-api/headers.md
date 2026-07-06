@@ -24,7 +24,7 @@ it's the optional override.
 |---|---|
 | Type | boolean |
 | Status | **v1** |
-| Required for | **Any branding to apply.** Without this header set to `true`, every other `X-Brand-*` field is ignored and the client shows the default ClashFest UI. |
+| Required for | **Any cosmetic branding to apply.** Without this header set to `true`, every `X-Brand-*` identity/tab/info field is ignored and the client shows the default ClashFest UI. **Exception:** operator *policy* headers (§4b, e.g. `X-Brand-Hide-Global-Mode`) apply without this switch. |
 | Default | absent / `false` / `null` → **branding off** |
 | Notes | Branding is **explicit opt-in per subscription**. Setting `X-Brand-Name`, `X-Brand-Logo-URL`, etc. without also sending `X-Branding-Enabled: true` is a no-op — the headers are parsed and persisted, but the UI stays default. To roll back a misconfigured deployment, drop this header (or set `false`); brand state on the client reverts immediately after the next subscription refresh. |
 
@@ -285,6 +285,27 @@ theme should follow user preference, not operator preference.
 | Type | boolean |
 | Status | **v1** |
 | Applied to | When paired with `X-Brand-Show-Operator-Tab=true`, the Operator tab **replaces** Routing in the bottom-nav slot (still 4 tabs, just different middle). Alone, this header has no effect — hiding Routing without something to replace it would just remove a section the user needs. |
+
+---
+
+## 4b. Operator policy — applies WITHOUT `X-Branding-Enabled`
+
+Everything above (identity, operator tab, info links, greeting, hide-routing)
+is **cosmetic branding** and requires `X-Branding-Enabled: true`. The headers
+below are **operator policy** — restrictions on user behaviour, not a look —
+so they apply on header presence alone, do **not** require branding to be
+enabled, and survive the `X-Branding-Enabled: false` kill-switch (which only
+wipes cosmetic branding).
+
+### `X-Brand-Hide-Global-Mode`
+
+| | |
+|---|---|
+| Type | boolean |
+| Status | **v4** |
+| Needs `X-Branding-Enabled`? | **No** — this is the one header that works fully unbranded. |
+| Applied to | Hides the Home **Global** mode button and pins the app to **Rule** (if the user was in Global, it flips back to Rule). The "Mode" row and the Rule button stay visible. |
+| Notes | Operator control, not branding: stops users from routing all traffic through the proxy and bypassing rules. Because it's policy, it takes effect whether `X-Branding-Enabled` is absent, `true`, or `false`. Every other `X-Brand-*` header still requires `X-Branding-Enabled: true`. |
 
 ---
 

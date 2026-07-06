@@ -103,6 +103,7 @@ object BrandManifestParser {
                 BrandValidation.GREETING_MAX_LENGTH,
             ),
             hideRouting = BrandValidation.parseBoolean(raw(BrandHeaders.HIDE_ROUTING)),
+            hideGlobalMode = BrandValidation.parseBoolean(raw(BrandHeaders.HIDE_GLOBAL_MODE)),
             showOperatorTab = BrandValidation.parseBoolean(raw(BrandHeaders.SHOW_OPERATOR_TAB)),
             enabled = BrandValidation.parseBoolean(raw(BrandHeaders.BRANDING_ENABLED)),
         )

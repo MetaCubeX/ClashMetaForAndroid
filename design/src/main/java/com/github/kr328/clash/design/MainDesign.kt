@@ -463,6 +463,7 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
             // not in XML.
             applyPowerVisuals()
             reconcileTabsForBrand()
+            reconcileGlobalModeForBrand()
             renderOperatorPage()
             profileAdapter.setBrandManifest(holder.manifest) { url ->
                 onOpenBrandUrl?.invoke(url)
@@ -1332,6 +1333,7 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         val fUser = field(cur.userDisplayName); val fGreeting = field(cur.greeting)
         val sEnabled = boolSpinner(cur.enabled ?: true)      // default Yes so Apply themes immediately
         val sHideRouting = boolSpinner(cur.hideRouting)
+        val sHideGlobal = boolSpinner(cur.hideGlobalMode)
         val sOperatorTab = boolSpinner(cur.showOperatorTab)
 
         val container = LinearLayout(context).apply {
@@ -1354,6 +1356,7 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         row("Name", fName); row("Tagline", fTagline); row("Accent hex (#RRGGBB)", fAccent)
         row("Logo URL", fLogo); row("Logo Light URL", fLogoLight)
         row("Hide Routing tab", sHideRouting); row("Show Operator tab", sOperatorTab)
+        row("Hide Global mode (policy — works even with Enabled=No)", sHideGlobal)
         row("User display name", fUser); row("Greeting", fGreeting)
         row("Website URL", fWebsite); row("Support URL", fSupport); row("Telegram URL", fTelegram)
         row("Bot URL", fBot); row("Privacy URL", fPrivacy); row("Terms URL", fTerms)
@@ -1397,6 +1400,7 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
                         helpUrl = s(fHelp), statusUrl = s(fStatus), renewUrl = s(fRenew),
                         cabinetUrl = s(fCabinet), userDisplayName = s(fUser), greeting = s(fGreeting),
                         hideRouting = sHideRouting.boolValue(), showOperatorTab = sOperatorTab.boolValue(),
+                        hideGlobalMode = sHideGlobal.boolValue(),
                         enabled = sEnabled.boolValue(),
                     ),
                 )
@@ -1753,6 +1757,24 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         if (desired == activeTabs) return
         activeTabs = desired
         if (pagerInitialised) rebuildMainPagerForTabs()
+    }
+
+    /**
+     * Operator POLICY (works WITHOUT X-Branding-Enabled): when X-Brand-Hide-Global-Mode is set, hide
+     * the Home Rule/Global mode toggle entirely and pin the app to Rule. Read straight off the
+     * manifest — deliberately NOT gated by [brandHolder]'s isActive — so an operator can restrict
+     * Global mode without opting into the full visual brand. Every other X-Brand-* field still
+     * requires branding to be explicitly enabled.
+     */
+    private fun reconcileGlobalModeForBrand() {
+        val hideGlobal = brandHolder.manifest.hideGlobalMode == true
+        // Hide only the Global segment (not the whole Mode row) so "Mode: Rule" still reads clearly
+        // and the card outline stays intact. The toggle group re-rounds the lone Rule button.
+        binding.mainModeGlobal.visibility = if (hideGlobal) View.GONE else View.VISIBLE
+        if (hideGlobal && currentModeSegment == TunnelState.Mode.Global) {
+            // Operator forbids Global — flip back to Rule, mirroring a user tap on the Rule segment.
+            requests.trySend(Request.PatchModeRule)
+        }
     }
 
     /**
