@@ -889,6 +889,8 @@ Presets only change <b>where</b> files are downloaded from (CDN / host). It is s
     <string name="always_light">Always Light</string>
 
     <string name="tun_stack_mode">Stack Mode</string>
+    <string name="tun_stack_auto">Auto (from subscription)</string>
+    <string name="tun_stack_from_sub_fmt">Auto — from subscription: %1$s</string>
     <string name="tun_stack_system">System Stack</string>
     <string name="tun_stack_gvisor">Gvisor Stack</string>
     <string name="tun_stack_mixed">Mixed Stack</string>

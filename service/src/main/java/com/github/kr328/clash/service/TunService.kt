@@ -13,6 +13,8 @@ import com.github.kr328.clash.service.clash.clashRuntime
 import com.github.kr328.clash.service.clash.module.*
 import com.github.kr328.clash.service.model.AccessControlMode
 import com.github.kr328.clash.service.store.ServiceStore
+import com.github.kr328.clash.service.util.TunStackResolver
+import com.github.kr328.clash.service.util.importedDir
 import com.github.kr328.clash.service.util.cancelAndJoinBlocking
 import com.github.kr328.clash.service.util.parseCIDR
 import com.github.kr328.clash.service.util.ProxyPropertyGuard
@@ -234,7 +236,9 @@ class TunService : VpnService(), CoroutineScope by CoroutineScope(Dispatchers.De
             TunModule.TunDevice(
                 fd = establish()?.detachFd()
                     ?: throw NullPointerException("Establish VPN rejected by system"),
-                stack = store.tunStackMode,
+                // Honour the subscription's declared `tun.stack` (mixed/system/gvisor); the app
+                // setting is only a fallback when the subscription doesn't specify one.
+                stack = TunStackResolver.resolve(readActiveProfileConfigYaml(), store.tunStackMode),
                 gateway = "$TUN_GATEWAY/$TUN_SUBNET_PREFIX" + if (store.allowIpv6) ",$TUN_GATEWAY6/$TUN_SUBNET_PREFIX6" else "",
                 portal = TUN_PORTAL + if (store.allowIpv6) ",$TUN_PORTAL6" else "",
                 dns = if (store.dnsHijacking) NET_ANY else (TUN_DNS + if (store.allowIpv6) ",$TUN_DNS6" else ""),
@@ -242,6 +246,14 @@ class TunService : VpnService(), CoroutineScope by CoroutineScope(Dispatchers.De
         }
 
         attach(device)
+    }
+
+    /** Composed `config.yaml` of the active profile (subscription as-is + user layer), or null. */
+    private fun readActiveProfileConfigYaml(): String? {
+        val uuid = ServiceStore(self).activeProfile ?: return null
+        return runCatching {
+            java.io.File(self.importedDir.resolve(uuid.toString()), "config.yaml").readText()
+        }.getOrNull()
     }
 
     companion object {

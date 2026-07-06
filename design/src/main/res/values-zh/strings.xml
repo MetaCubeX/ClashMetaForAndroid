@@ -653,6 +653,8 @@
     <string name="tun_stack_gvisor">Gvisor 栈</string>
     <string name="tun_stack_mixed">混合栈</string>
     <string name="tun_stack_mode">栈模式</string>
+    <string name="tun_stack_auto">自动（来自订阅）</string>
+    <string name="tun_stack_from_sub_fmt">自动 — 来自订阅：%1$s</string>
     <string name="tun_stack_system">系统栈</string>
     <string name="usage_unlimited_symbol">∞</string>
 
