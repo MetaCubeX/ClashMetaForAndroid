@@ -712,33 +712,6 @@
     <string name="subscription_docs_templates">面板模板变量</string>
     <string name="subscription_docs_security">安全与校验</string>
     <string name="subscription_docs_consolidated">深层链接</string>
-    <string name="headers_desc_userinfo">订阅配额和到期时间(upload/download/total/expire)。</string>
-    <string name="headers_desc_profile_title">个人资料卡上显示的订阅或用户名。</string>
-    <string name="headers_desc_update_interval">自动更新间隔(小时),强制不少于 15 分钟。</string>
-    <string name="headers_desc_share_links">按订阅:隐藏分享/复制链接操作并锁定 URL 编辑。</string>
-    <string name="headers_desc_x_hwid">面板侧设备绑定状态 (active / not-supported / max-reached / limit)。</string>
-    <string name="headers_desc_announce">运营商广播消息及可选 URL,显示为主页公告卡。</string>
-    <string name="headers_desc_legacy_support">旧版支持 URL(以及 Profile-Support-URL / Subscription-Support-URL)。通过公告卡的支持按钮显示;不会单独激活品牌界面。</string>
-    <string name="headers_desc_branding_enabled">必需的主开关。仅当设为 true 时品牌才会应用;否则所有 X-Brand-* 字段都会被忽略。</string>
-    <string name="headers_desc_brand_name">主屏幕标题栏和关于页面中显示的应用标题(≤32 个字符)。</string>
-    <string name="headers_desc_brand_tagline">品牌名称下方的一行副标题(≤64 个字符)。</string>
-    <string name="headers_desc_brand_logo">主(深色主题)Logo。HTTPS,PNG/WebP/JPEG,≤512KB。</string>
-    <string name="headers_desc_brand_logo_light">浅色主题 Logo,深色主题下会回退到主 Logo。</string>
-    <string name="headers_desc_brand_accent">Material 3 调色板的种子色(#RRGGBB)。</string>
-    <string name="headers_desc_brand_website">运营商网站链接。</string>
-    <string name="headers_desc_brand_support">运营商支持联系方式。建议替代旧版 support-url。</string>
-    <string name="headers_desc_brand_telegram">Telegram 频道链接。</string>
-    <string name="headers_desc_brand_bot">Telegram 机器人链接。</string>
-    <string name="headers_desc_brand_privacy">隐私政策链接。</string>
-    <string name="headers_desc_brand_terms">服务条款链接。</string>
-    <string name="headers_desc_brand_help">帮助/常见问题链接。</string>
-    <string name="headers_desc_brand_status">服务状态页(连接问题时显示)。</string>
-    <string name="headers_desc_brand_renew">订阅续订深度链接。点击临近到期标签会打开此链接。</string>
-    <string name="headers_desc_brand_cabinet">使用面板模板变量(如 {{SHORT_UUID}})构建的个人账户/计费深度链接。在运营商页显示为「个人中心」按钮。</string>
-    <string name="headers_desc_brand_user_display_name">在“关于”中显示的用户名(通过面板模板变量填充,例如 {{USERNAME}})。</string>
-    <string name="headers_desc_brand_greeting">运营商标签页的问候语。可结合模板变量实现动态内容。</string>
-    <string name="headers_desc_brand_show_tab">显式启用专用的运营商底部导航标签。</string>
-    <string name="headers_desc_brand_hide_routing">与 Show-Operator-Tab=true 配对:用运营商标签替换路由标签。单独使用无效。</string>
     <!-- I18N-R2: zh backfill (design) — first pass, pending native review -->
     <string name="about_github_repo">ClashFest 在 GitHub</string>
     <string name="about_telegram_community">ClashFest 的 Telegram — 问题反馈与讨论</string>
