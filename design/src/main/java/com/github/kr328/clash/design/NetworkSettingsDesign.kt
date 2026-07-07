@@ -130,19 +130,21 @@ class NetworkSettingsDesign(
                 title = R.string.tun_stack_mode,
                 configure = vpnDependencies::add,
             )
-            // When Auto is selected, surface which stack was actually pulled from the active
-            // subscription (mixed/system/gvisor) so the choice isn't opaque.
-            launch {
-                val resolved = withContext(Dispatchers.IO) {
-                    if (srvStore.tunStackMode != TunStackResolver.AUTO) return@withContext null
-                    val uuid = srvStore.activeProfile ?: return@withContext null
-                    val cfg = runCatching {
-                        File(context.importedDir.resolve(uuid.toString()), "config.yaml").readText()
-                    }.getOrNull()
-                    TunStackResolver.resolve(cfg, TunStackResolver.AUTO)
-                }
-                if (resolved != null) {
-                    stackPref.summary = context.getString(R.string.tun_stack_from_sub_fmt, resolved)
+            // While the VPN is running on Auto, show the stack actually in use (Auto: gvisor/system/
+            // mixed) resolved from the active subscription — so the effective stack isn't opaque.
+            if (running) {
+                launch {
+                    val resolved = withContext(Dispatchers.IO) {
+                        if (srvStore.tunStackMode != TunStackResolver.AUTO) return@withContext null
+                        val uuid = srvStore.activeProfile ?: return@withContext null
+                        val cfg = runCatching {
+                            File(context.importedDir.resolve(uuid.toString()), "config.yaml").readText()
+                        }.getOrNull()
+                        TunStackResolver.resolve(cfg, TunStackResolver.AUTO)
+                    }
+                    if (resolved != null) {
+                        stackPref.summary = context.getString(R.string.tun_stack_auto_fmt, resolved)
+                    }
                 }
             }
 
