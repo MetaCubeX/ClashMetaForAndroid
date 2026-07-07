@@ -564,7 +564,13 @@ class MainActivity : BaseActivity<MainDesign>() {
                             scheduleDashboardRefresh(
                                 includeAnnouncement = it == Event.ActivityStart ||
                                     it == Event.ProfileChanged,
-                                force = serviceStateEvent,
+                                // ProfileLoaded is the authoritative "engine finished loading the new
+                                // profile's config" signal — the UI MUST re-fetch to re-prime the Home
+                                // node against the new groups. It must bypass the refresh throttle: on
+                                // rapid profile switches ProfileLoaded lands within the throttle window
+                                // of the preceding ProfileChanged refresh and was silently dropped, so
+                                // the post-load fetch never ran and the Node row stuck on "Choose node".
+                                force = serviceStateEvent || it == Event.ProfileLoaded,
                             )
                             if (it == Event.ProfileLoaded || it == Event.ProfileChanged) {
                                 launch {
