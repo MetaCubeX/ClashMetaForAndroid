@@ -20,9 +20,14 @@ in your admin UI, see [headers.md](headers.md) for the full reference.
 
 ## Minimum viable branding
 
-The minimum that gives a noticeable "branded" feel is three headers:
+> ⚠️ **`X-Branding-Enabled: true` is required.** Branding is opt-in per subscription. Without
+> this master switch, **every other `X-Brand-*` header is parsed but ignored** and the app
+> stays default. This is the #1 reason "my branding doesn't show".
+
+The master switch plus three identity headers gives a noticeable "branded" feel:
 
 ```
+X-Branding-Enabled: true
 X-Brand-Name: SwiftVPN
 X-Brand-Logo-URL: https://cdn.example.com/swiftvpn-logo-dark.png
 X-Brand-Accent-Color: #5E35B1

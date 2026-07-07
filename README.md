@@ -8,6 +8,7 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/Nemu-x/ClashFest/wiki"><b>📖 Wiki</b></a> ·
   <a href="https://t.me/nemux_dev">Telegram</a> ·
   <a href="https://github.com/Nemu-x/ClashFest/releases">Releases</a> ·
   <a href="https://github.com/Nemu-x/ClashFest/issues">Issues</a> ·
