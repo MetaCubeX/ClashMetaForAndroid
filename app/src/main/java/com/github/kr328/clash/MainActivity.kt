@@ -103,6 +103,15 @@ class MainActivity : BaseActivity<MainDesign>() {
     private var lastForwardedTrafficTotal: Long = Long.MIN_VALUE
     private var isCheckingUpdates: Boolean = false
     private var isToggleStatusInFlight: Boolean = false
+
+    // When the user requests a stop, the service keeps reporting serviceRunning=true for a
+    // second or two while it tears down. A dashboard refresh landing in that window would
+    // read the stale "still running" snapshot and flip the power button back ON, so the
+    // button visibly bounces off -> on -> (secs later) off — the "disconnect lag". While
+    // this deadline is in the future we suppress reviving the button to ON; it clears as
+    // soon as the service actually reports stopped (or on a new start, or after the
+    // deadline as a safety net).
+    private var suppressRunningReviveUntil: Long = 0L
     private var pendingTunnelMode: TunnelState.Mode? = null
     private var pendingApkDownloadId: Long = -1L
     private var downloadReceiverRegistered: Boolean = false
@@ -579,15 +588,32 @@ class MainActivity : BaseActivity<MainDesign>() {
                                 if (isToggleStatusInFlight) return@launch
                                 isToggleStatusInFlight = true
                                 try {
+                                    // Optimistic visual: flip the power button OFF right now from the
+                                    // locally-known state, before the status IPC + service call. On the
+                                    // gVisor stack the service process is CPU-saturated during teardown,
+                                    // so the snapshot IPC can lag a few hundred ms — that lag was blocking
+                                    // the button repaint and making disconnect "feel" slow even though the
+                                    // engine tears down fast. The real state reconciles via the ClashStop
+                                    // broadcast (-> fetch -> setClashRunning) right after.
+                                    val optimisticStop = clashRunning
+                                    if (optimisticStop) {
+                                        // Latch BEFORE the flip so any refresh racing us can't revive ON.
+                                        suppressRunningReviveUntil = SystemClock.uptimeMillis() + 8000L
+                                        design.setClashRunning(false)
+                                        design.setTunnelStarting(false)
+                                    }
                                     val runningNow = withContext(Dispatchers.IO) {
                                         resolveStatusSnapshot().serviceRunning
                                     }
                                     Remote.broadcasts.clashRunning = runningNow
                                     if (runningNow) {
+                                        suppressRunningReviveUntil = SystemClock.uptimeMillis() + 8000L
                                         stopClashService()
                                         design.setClashRunning(false)
                                         design.setTunnelStarting(false)
                                     } else {
+                                        // User is (re)starting — drop any stale stop latch.
+                                        suppressRunningReviveUntil = 0L
                                         if (!maybePromptRuBypass()) {
                                             return@launch
                                         }
@@ -1117,7 +1143,14 @@ class MainActivity : BaseActivity<MainDesign>() {
         val status = withContext(Dispatchers.IO) { resolveStatusSnapshot() }
         val running = status.serviceRunning
         Remote.broadcasts.clashRunning = running
-        setClashRunning(running)
+        if (running && SystemClock.uptimeMillis() < suppressRunningReviveUntil) {
+            // User just asked to stop; the service still reports running mid-teardown.
+            // Keep the power button OFF instead of bouncing it back ON.
+            setClashRunning(false)
+        } else {
+            if (!running) suppressRunningReviveUntil = 0L
+            setClashRunning(running)
+        }
 
         var state = if (running) {
             runCatching {

@@ -85,6 +85,14 @@ class TunService : VpnService(), CoroutineScope by CoroutineScope(Dispatchers.De
             withContext(NonCancellable) {
                 tun.close()
 
+                // The tunnel is down at this point (runtime torn down + Clash.reset). Broadcast
+                // "stopped" NOW so the UI flips to Disconnected immediately, instead of waiting for
+                // onDestroy — Android delays onDestroy by up to a few seconds when a foreground
+                // service is stopped right after it started (immediate connect→disconnect), which
+                // otherwise leaves the dashboard stuck on "Connected". onDestroy re-sends it (the
+                // broadcast is idempotent) to cover paths where the runtime never reached here.
+                sendClashStopped(reason)
+
                 stopSelf()
             }
         }
