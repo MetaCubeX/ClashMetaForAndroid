@@ -426,7 +426,7 @@ class ProfileManager(private val context: Context) : IProfileManager,
                 // still need to brand the app. We do this BEFORE the
                 // subscription-userinfo early-return so brand survives even
                 // when the panel stops sending quota headers.
-                val brand = com.github.kr328.clash.common.branding.BrandManifestParser.parse { key ->
+                val brand = com.github.kr328.clash.common.branding.BrandManifestParser.parseHttpHeaders { key ->
                     response.headers[key]
                 }
                 // confirmedResponse=true: we're past `if (!response.isSuccessful) return`, so an
