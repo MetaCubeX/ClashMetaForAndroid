@@ -593,7 +593,7 @@
     <string name="subscription_docs_quickstart">Гайд для оператора</string>
     <string name="subscription_docs_templates">Переменные шаблонов панелей</string>
     <string name="subscription_docs_security">Безопасность и валидация</string>
-    <string name="subscription_docs_consolidated">Сводный справочник</string>
+    <string name="subscription_docs_consolidated">Диплинки</string>
 
     <string name="headers_desc_userinfo">Квота и срок действия подписки (upload/download/total/expire).</string>
     <string name="headers_desc_profile_title">Имя подписки/пользователя на карточке профиля.</string>
@@ -1058,12 +1058,12 @@
     <string name="application_name_alpha">ClashFest</string>
     <string name="application_name_meta">ClashFest</string>
     <string name="blacklist">Чёрный список</string>
-    <string name="docs_url_operator_headers">https://github.com/Nemu-x/ClashFest/blob/feat/init-clashfest/docs/operator-api/headers.md</string>
-    <string name="docs_url_operator_overview">https://github.com/Nemu-x/ClashFest/blob/feat/init-clashfest/docs/operator-api/README.md</string>
-    <string name="docs_url_operator_quickstart">https://github.com/Nemu-x/ClashFest/blob/feat/init-clashfest/docs/operator-api/branding-quickstart.md</string>
-    <string name="docs_url_operator_security">https://github.com/Nemu-x/ClashFest/blob/feat/init-clashfest/docs/operator-api/security.md</string>
-    <string name="docs_url_operator_templates">https://github.com/Nemu-x/ClashFest/blob/feat/init-clashfest/docs/operator-api/template-variables.md</string>
-    <string name="docs_url_supported_headers">https://github.com/Nemu-x/ClashFest/blob/feat/init-clashfest/docs/supported-headers.md</string>
+    <string name="docs_url_operator_headers">https://github.com/Nemu-x/ClashFest/wiki/Operator-API-Headers</string>
+    <string name="docs_url_operator_overview">https://github.com/Nemu-x/ClashFest/wiki/Operator-API</string>
+    <string name="docs_url_operator_quickstart">https://github.com/Nemu-x/ClashFest/wiki/Operator-API-Quick-Start</string>
+    <string name="docs_url_operator_security">https://github.com/Nemu-x/ClashFest/wiki/Operator-API-Security</string>
+    <string name="docs_url_operator_templates">https://github.com/Nemu-x/ClashFest/wiki/Operator-API-Template-Variables</string>
+    <string name="docs_url_supported_headers">https://github.com/Nemu-x/ClashFest/wiki/Deep-Links</string>
     <string name="external_controller">Внешний контроллер</string>
     <string name="external_controller_tls">TLS внешнего контроллера</string>
     <string name="fakeip_filter_mode">Режим фильтра Fake-IP</string>
@@ -1079,7 +1079,7 @@
     <string name="launch_name_alpha">ClashFest</string>
     <string name="launch_name_meta">ClashFest</string>
     <string name="main_open_subscription_identity_summary">HWID, схема clashfest:// и кнопки копирования</string>
-    <string name="operator_api_spec_url">https://github.com/Nemu-x/ClashFest/blob/feat/init-clashfest/docs/supported-headers.md</string>
+    <string name="operator_api_spec_url">https://github.com/Nemu-x/ClashFest/wiki/Operator-API</string>
     <string name="proxy_open_yaml">YAML прокси из конфига</string>
     <string name="proxy_yaml_missing">Этот прокси не указан в proxies: сохранённого конфига (имя только из подписки).</string>
     <string name="quick_actions">Быстрые действия</string>

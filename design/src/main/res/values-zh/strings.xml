@@ -711,7 +711,7 @@
     <string name="subscription_docs_quickstart">运营商快速上手</string>
     <string name="subscription_docs_templates">面板模板变量</string>
     <string name="subscription_docs_security">安全与校验</string>
-    <string name="subscription_docs_consolidated">汇总参考</string>
+    <string name="subscription_docs_consolidated">深层链接</string>
     <string name="headers_desc_userinfo">订阅配额和到期时间(upload/download/total/expire)。</string>
     <string name="headers_desc_profile_title">个人资料卡上显示的订阅或用户名。</string>
     <string name="headers_desc_update_interval">自动更新间隔(小时),强制不少于 15 分钟。</string>
@@ -796,12 +796,12 @@
     <string name="connections_uid_fmt">UID:%1$d</string>
     <string name="deny_selected_apps_description">所选应用绕过 VPN</string>
     <string name="dismiss">忽略</string>
-    <string name="docs_url_operator_headers">https://github.com/Nemu-x/ClashFest/blob/feat/init-clashfest/docs/operator-api/headers.md</string>
-    <string name="docs_url_operator_overview">https://github.com/Nemu-x/ClashFest/blob/feat/init-clashfest/docs/operator-api/README.md</string>
-    <string name="docs_url_operator_quickstart">https://github.com/Nemu-x/ClashFest/blob/feat/init-clashfest/docs/operator-api/branding-quickstart.md</string>
-    <string name="docs_url_operator_security">https://github.com/Nemu-x/ClashFest/blob/feat/init-clashfest/docs/operator-api/security.md</string>
-    <string name="docs_url_operator_templates">https://github.com/Nemu-x/ClashFest/blob/feat/init-clashfest/docs/operator-api/template-variables.md</string>
-    <string name="docs_url_supported_headers">https://github.com/Nemu-x/ClashFest/blob/feat/init-clashfest/docs/supported-headers.md</string>
+    <string name="docs_url_operator_headers">https://github.com/Nemu-x/ClashFest/wiki/Operator-API-Headers</string>
+    <string name="docs_url_operator_overview">https://github.com/Nemu-x/ClashFest/wiki/Operator-API</string>
+    <string name="docs_url_operator_quickstart">https://github.com/Nemu-x/ClashFest/wiki/Operator-API-Quick-Start</string>
+    <string name="docs_url_operator_security">https://github.com/Nemu-x/ClashFest/wiki/Operator-API-Security</string>
+    <string name="docs_url_operator_templates">https://github.com/Nemu-x/ClashFest/wiki/Operator-API-Template-Variables</string>
+    <string name="docs_url_supported_headers">https://github.com/Nemu-x/ClashFest/wiki/Deep-Links</string>
     <string name="effective_rules_search_hint">搜索规则、策略、提供方…</string>
     <string name="effective_rules_source_manual">手动</string>
     <string name="effective_rules_source_provider">提供方</string>
@@ -934,7 +934,7 @@
     <string name="nav_proxies">代理</string>
     <string name="nav_subscriptions">配置</string>
     <string name="not_set">未设置</string>
-    <string name="operator_api_spec_url">https://github.com/Nemu-x/ClashFest/blob/feat/init-clashfest/docs/supported-headers.md</string>
+    <string name="operator_api_spec_url">https://github.com/Nemu-x/ClashFest/wiki/Operator-API</string>
     <string name="per_app_counter">%1$d / %2$d</string>
     <string name="per_app_mode_all">所有应用</string>
     <string name="per_app_mode_allow">仅所选</string>

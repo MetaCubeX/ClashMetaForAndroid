@@ -236,15 +236,6 @@
                             android:textAppearance="@style/TextAppearance.Material3.BodySmall"
                             android:textColor="?attr/colorOnSurfaceVariant" />
 
-                        <TextView
-                            android:id="@+id/text_supported_response_headers"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="10dp"
-                            android:fontFamily="monospace"
-                            android:textAppearance="@style/TextAppearance.Material3.BodySmall"
-                            android:textIsSelectable="true" />
-
                         <com.github.kr328.clash.design.view.ActionLabel
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
