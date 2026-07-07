@@ -24,10 +24,20 @@ object BrandValidation {
 
     fun cleanTagline(raw: String?): String? = cleanString(raw, TAGLINE_MAX_LENGTH)
 
-    /** Strips control chars, trims, decodes base64 prefix, truncates to [maxLength]. */
+    /** Strips control chars, trims, decodes an EXPLICIT `base64:` prefix, truncates to [maxLength]. */
     fun cleanString(raw: String?, maxLength: Int): String? {
         if (raw.isNullOrBlank()) return null
-        val decoded = MaybeBase64.decode(raw.trim())
+        val trimmed = raw.trim()
+        // Decode base64 ONLY when the operator explicitly opts in with a "base64:" prefix.
+        // MaybeBase64's heuristic auto-detect (>=8 chars, all base64-charset) corrupts plausible
+        // plaintext display strings — e.g. an ASCII username/token like "n1Xk9zQv" — by decoding
+        // them into binary garbage (surfaced as "Hello, n<?>^<?>!" mojibake on the Operator tab).
+        // Brand fields are human-readable text; never auto-decode them.
+        val decoded = if (trimmed.startsWith("base64:", ignoreCase = true)) {
+            MaybeBase64.decode(trimmed)
+        } else {
+            trimmed
+        }
         val stripped = decoded.replace(CONTROL_CHARS, "").trim()
         if (stripped.isBlank()) return null
         return if (stripped.length > maxLength) stripped.substring(0, maxLength) else stripped

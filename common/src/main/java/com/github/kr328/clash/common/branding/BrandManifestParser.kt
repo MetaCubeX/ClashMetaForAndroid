@@ -62,9 +62,28 @@ object BrandManifestParser {
      * Reads brand headers off an already-connected HttpURLConnection.
      * Caller is responsible for connecting and checking response code.
      */
-    fun parseFromConnection(conn: HttpURLConnection): BrandManifest = parse { key ->
-        conn.getHeaderField(key)
-    }
+    fun parseFromConnection(conn: HttpURLConnection): BrandManifest =
+        parseHttpHeaders { key -> conn.getHeaderField(key) }
+
+    /**
+     * Parse from RAW HTTP header values — i.e. exactly what a transport hands back
+     * (`HttpURLConnection.getHeaderField`, OkHttp `Headers[key]`, …), which decode header
+     * bytes as ISO-8859-1. This applies [decodeHeaderUtf8] so UTF-8 values (Cyrillic / emoji
+     * display names, greetings) are recovered. Every real network fetch MUST go through here
+     * rather than raw [parse]; [parse] is the connection-free/decoded entry point used by tests.
+     */
+    fun parseHttpHeaders(headerLookup: (String) -> String?): BrandManifest =
+        parse { key -> headerLookup(key)?.let(::decodeHeaderUtf8) }
+
+    /**
+     * `HttpURLConnection.getHeaderField` decodes header bytes as ISO-8859-1 (per the HTTP spec's
+     * historical default), so a panel that sends a UTF-8 value — e.g. a Cyrillic / emoji
+     * `X-Brand-User-Display-Name: {{USERNAME}}` — arrives mojibake'd (each UTF-8 byte read as a
+     * Latin-1 char). Re-encode to the original bytes and decode as UTF-8 to recover it. ASCII values
+     * (URLs, hex colours, booleans) round-trip unchanged, so this is safe to apply to every header.
+     */
+    internal fun decodeHeaderUtf8(value: String): String =
+        String(value.toByteArray(Charsets.ISO_8859_1), Charsets.UTF_8)
 
     /**
      * Generic parser keyed on a lookup function — keeps the parser unit-testable

@@ -1144,6 +1144,8 @@
     <string name="tun_stack_gvisor">Стек gVisor</string>
     <string name="tun_stack_mixed">Смешанный стек</string>
     <string name="tun_stack_mode">Режим стека</string>
+    <string name="tun_stack_auto">Авто</string>
+    <string name="tun_stack_auto_fmt">Авто: %1$s</string>
     <string name="tun_stack_system">Системный стек</string>
     <string name="usage_unlimited_symbol">∞</string>
     <string name="whitelist">Белый список</string>

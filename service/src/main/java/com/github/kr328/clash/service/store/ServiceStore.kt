@@ -73,7 +73,8 @@ class ServiceStore(context: Context) {
 
     var tunStackMode by store.string(
         key = "tun_stack_mode",
-        defaultValue = "system"
+        // "auto" follows the subscription's tun.stack; explicit values override it. See TunStackResolver.
+        defaultValue = "auto"
     )
 
     var dynamicNotification by store.boolean(
