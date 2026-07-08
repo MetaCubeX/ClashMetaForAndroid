@@ -100,6 +100,7 @@ class Broadcasts(private val context: Application) {
             })
 
             clashRunning = StatusClient(context).currentProfile() != null
+            registered = true
         } catch (e: Exception) {
             Log.w("Register global receiver: $e", e)
         }
@@ -113,6 +114,7 @@ class Broadcasts(private val context: Application) {
             context.unregisterReceiver(broadcastReceiver)
 
             clashRunning = false
+            registered = false
         } catch (e: Exception) {
             Log.w("Unregister global receiver: $e", e)
         }
