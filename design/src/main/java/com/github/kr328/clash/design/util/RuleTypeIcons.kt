@@ -12,7 +12,7 @@ object RuleTypeIcons {
         "DST-PORT", "SRC-PORT", "IN-PORT" -> R.drawable.ic_baseline_bolt
         "PROCESS-NAME", "PROCESS-PATH", "PROCESS-NAME-REGEX" -> R.drawable.ic_baseline_get_app
         "NETWORK", "IN-TYPE" -> R.drawable.ic_baseline_route
-        "MATCH" -> R.drawable.ic_baseline_filter_list
+        "MATCH", "REMATCH-NAME" -> R.drawable.ic_baseline_filter_list
         else -> R.drawable.ic_baseline_extension
     }
 }
