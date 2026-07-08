@@ -305,6 +305,23 @@ class RuleMapperTest {
     }
 
     @Test
+    fun parseRuleLine_rematchName_roundTrips() {
+        // REMATCH-NAME (mihomo v1.19.28) is a plain three-part rule: value = the
+        // rematch mark, policy = second-pass target. It must survive our pipeline
+        // as a regular rule (not opaque, not stripped) and re-render byte-identical.
+        val line = "REMATCH-NAME,my-mark,Proxy-Selector"
+        val rule = RuleMapper.parseRuleLine(line, 0, defaultSource = RuleSource.PROVIDER)
+
+        assertNotNull(rule)
+        rule!!
+        assertEquals("REMATCH-NAME", rule.type)
+        assertEquals("my-mark", rule.value)
+        assertEquals("Proxy-Selector", rule.policy)
+        assertEquals(RuleSource.PROVIDER, rule.source)
+        assertEquals(line, RuleMapper.toRuleLine(rule))
+    }
+
+    @Test
     fun parseRuleLine_returnsNullForBlank() {
         assertEquals(null, RuleMapper.parseRuleLine("", 0))
         assertEquals(null, RuleMapper.parseRuleLine("   ", 0))

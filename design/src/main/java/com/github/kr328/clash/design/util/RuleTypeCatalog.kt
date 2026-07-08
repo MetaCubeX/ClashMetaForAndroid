@@ -92,6 +92,11 @@ object RuleTypeCatalog {
         "DOMAIN-REGEX", "IP-CIDR6", "IP-SUFFIX", "IP-ASN", "SRC-IP-CIDR", "SRC-PORT",
         "IN-PORT", "IN-TYPE", "IN-NAME", "PROCESS-PATH", "PROCESS-NAME-REGEX",
         "UID", "DSCP", "RULE-SET",
+        // Matches connections remarked by a `type: rematch` outbound (mihomo
+        // v1.19.28+): value = the rematch mark name, policy = where they go on
+        // the second pass. Only meaningful when the config declares a rematch
+        // proxy, hence advanced.
+        "REMATCH-NAME",
     ).map { type ->
         val numeric = type in setOf("SRC-PORT", "IN-PORT", "UID", "DSCP")
         RuleTypeMeta(
@@ -101,6 +106,7 @@ object RuleTypeCatalog {
             validate = when (type) {
                 "SRC-PORT", "IN-PORT" -> ::port
                 "SRC-IP-CIDR" -> ::cidr
+                "REMATCH-NAME" -> ::nonEmptyNoSep
                 else -> { v -> if (v.isBlank()) RuleValueError.EMPTY else null }
             },
         )
