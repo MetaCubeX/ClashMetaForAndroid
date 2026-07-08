@@ -1,29 +1,81 @@
 package com.github.kr328.clash.service.util
 
+import java.io.EOFException
 import java.io.File
+import java.net.SocketTimeoutException
+import java.net.UnknownHostException
 
 /**
- * Turns a cryptic fetch/parse failure into a clear reason when the subscription
- * server returned a NON-config body (an HTML error page, a rate-limit notice, or
- * an empty response) instead of YAML. In that case mihomo fails with a confusing
- * `yaml: line N: ...` pointing at the error page. A genuine config error (valid
- * YAML, invalid values) is left untouched so its precise engine message survives.
+ * Turns a cryptic fetch/parse failure into a clear, stable-coded reason. It handles
+ * the two failure classes where the raw error misleads the user:
+ *
+ *  - **Non-config body** (`E-10`/`E-11`): the server returned 200 but the body is an
+ *    empty response or an HTML error/rate-limit page instead of YAML. mihomo then
+ *    fails deep in parse with a confusing `yaml: line N: ...` pointing at the error
+ *    page.
+ *  - **Network unreachable** (`E-20`): nothing was downloaded at all — DNS/TLS/connect
+ *    timed out or the host is blocked — so the raw error is a stack-y
+ *    `java.net.SocketTimeouteException: failed to connect to ...`.
+ *
+ * A genuine config error (valid YAML, invalid values) is left **untouched** so its
+ * precise engine message (e.g. `proxy 'X' not found`) survives — see docs/errors.md
+ * Layer 3. Codes are stable so support/wiki can key troubleshooting to them.
  */
 object FetchErrorClassifier {
     fun clarify(processingDir: File, original: Throwable): Throwable {
         val file = File(processingDir, "config.yaml")
-        // No body downloaded → network/other failure; keep the original error.
-        if (!file.isFile) return original
+        // No body downloaded → network reachability failure (or an unrelated error we
+        // shouldn't mask). Classify only the recognizable network case.
+        if (!file.isFile) {
+            if (looksLikeNetworkFailure(original)) {
+                return IllegalStateException(
+                    "couldn't reach the subscription server — check your connection or " +
+                        "try again later (the host may be temporarily blocked). [E-20]",
+                    original,
+                )
+            }
+            return original
+        }
         val body = runCatching { file.readText() }.getOrNull() ?: return original
 
         val reason = when {
             body.isBlank() ->
-                "the subscription server returned an empty response"
+                "the subscription server returned an empty response — try again later. [E-10]"
             looksLikeHtml(body) ->
-                "the subscription server returned a web page, not a config (likely rate-limited or an error page)"
+                "the subscription server returned a web page, not a config " +
+                    "(likely rate-limited or an error page) — try again later. [E-11]"
             else -> return original // valid-looking config body → keep the engine's precise error
         }
-        return IllegalStateException("$reason — try again later.", original)
+        return IllegalStateException(reason, original)
+    }
+
+    /**
+     * Walks the cause chain (mihomo wraps the underlying I/O error in higher-level
+     * subscription/parser exceptions). Mirrors [com.github.kr328.clash.util.ImportRetry]'s
+     * transient set — the same reachability failures, here surfaced as a clear reason
+     * once the retries are exhausted.
+     */
+    internal fun looksLikeNetworkFailure(e: Throwable): Boolean {
+        var cur: Throwable? = e
+        while (cur != null) {
+            when (cur) {
+                is UnknownHostException, is SocketTimeoutException, is EOFException -> return true
+            }
+            val msg = cur.message?.lowercase().orEmpty()
+            if (
+                "unable to resolve host" in msg ||
+                "no address associated" in msg ||
+                "failed to connect" in msg ||
+                "connection reset" in msg ||
+                "connection refused" in msg ||
+                "timed out" in msg ||
+                "timeout" in msg ||
+                "unexpected end of stream" in msg ||
+                "network is unreachable" in msg
+            ) return true
+            cur = cur.cause
+        }
+        return false
     }
 
     internal fun looksLikeHtml(body: String): Boolean {

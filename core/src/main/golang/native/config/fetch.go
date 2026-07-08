@@ -240,6 +240,19 @@ func fetchProviders(rawCfg *config.RawConfig, force bool, reportStatus func(stri
 			return
 		}
 
+		// A provider that declares `proxy:` is meant to be downloaded THROUGH that
+		// proxy — mihomo honors it via WithSpecialProxy when it loads the provider.
+		// Our import-time fetch here is a plain DIRECT GET with no proxy, so for such
+		// a provider it cannot succeed on a host the proxy exists to reach (e.g. a
+		// geo/DPI-blocked raw.githubusercontent.com): it just burns the full
+		// providerFetchTimeout and the swallowed error leaves no file on disk anyway.
+		// Skip it — the engine fetches it correctly through the proxy on activation
+		// (Fetcher.Initial → Update with the proxy) and keeps it fresh on its
+		// background pull loop thereafter.
+		if px, ok := provider["proxy"].(string); ok && strings.TrimSpace(px) != "" {
+			return
+		}
+
 		if !force {
 			if _, err := os.Stat(ps); err == nil {
 				return
