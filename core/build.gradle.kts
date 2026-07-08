@@ -11,6 +11,16 @@ plugins {
 
 val golangSource = file("src/main/golang/native")
 
+// The mihomo submodule HEAD, tracked as a task input. The Go builds compile
+// `src/foss/golang` (module `foss`, `replace mihomo => ./clash`), but the golang
+// tasks historically only tracked `src/main/golang/native` — so bumping the
+// submodule left every golang task UP-TO-DATE and shipped a stale libclash.so.
+// Tracking the commit (not the whole tree: ~6k files, and a plain checkout never
+// mutates them) is enough to invalidate on every core bump.
+val mihomoHead = providers.exec {
+    commandLine("git", "-C", file("src/foss/golang/clash").absolutePath, "rev-parse", "HEAD")
+}.standardOutput.asText.map { it.trim() }
+
 // Run pure-Go unit tests in the snapshot package before any Java/Kotlin
 // compile. Snapshot is the engine-delegated read path for ClashFest UI
 // (see docs/path-b-engine-parsing.md); we cannot afford it to silently
@@ -30,6 +40,10 @@ val goTestNativeSnapshot by tasks.registering(Exec::class) {
     commandLine("go", "test", "-tags", "foss,with_gvisor,cmfa", "./native/snapshot/...")
 
     inputs.dir("src/main/golang/native/snapshot")
+    // Re-run against a bumped core too: the test exercises mihomo itself
+    // (module `cfa`, `replace mihomo => ../../foss/golang/clash`).
+    inputs.property("mihomoCommit", mihomoHead)
+    inputs.files("src/main/golang/go.mod", "src/main/golang/go.sum")
     val marker = layout.buildDirectory.file("go-tests/snapshot.passed")
     outputs.file(marker)
     doLast {
@@ -100,6 +114,8 @@ afterEvaluate {
     tasks.withType(GolangBuildTask::class.java).forEach {
         val task = it
         task.inputs.dir(golangSource)
+        task.inputs.property("mihomoCommit", mihomoHead)
+        task.inputs.files("src/foss/golang/go.mod", "src/foss/golang/go.sum")
         task.doFirst {
             val command = task.commandLine.map { argument: Any -> argument.toString() }.toMutableList()
             val tagsIndex = command.indexOf("-tags")
