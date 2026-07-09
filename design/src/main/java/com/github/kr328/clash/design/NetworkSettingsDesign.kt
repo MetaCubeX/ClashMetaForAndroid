@@ -81,6 +81,14 @@ class NetworkSettingsDesign(
                 summary = R.string.keep_connections_on_old_proxy_summary,
             )
 
+            // Read live by NetworkObserveModule on every network event — no VPN restart needed,
+            // hence not part of vpnDependencies.
+            switch(
+                value = srvStore::networkSwitchReaction,
+                title = R.string.network_switch_reaction,
+                summary = R.string.network_switch_reaction_summary,
+            )
+
             category(R.string.vpn_service_options)
 
             switch(

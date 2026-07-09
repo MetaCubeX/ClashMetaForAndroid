@@ -134,6 +134,17 @@ class ServiceStore(context: Context) {
         defaultValue = false
     )
 
+    /**
+     * When true (default), a default-network switch (Wi-Fi <-> cellular, Wi-Fi roaming,
+     * airplane-mode recovery) closes stale connections and force-runs group health checks so
+     * fallback/url-test groups converge immediately instead of waiting out their test interval.
+     * See NetworkObserveModule. Off = legacy behavior (DNS refresh only).
+     */
+    var networkSwitchReaction by store.boolean(
+        key = "network_switch_reaction",
+        defaultValue = true
+    )
+
     var geoDataSourcePreset: GeoDataSourcePreset by store.enum(
         key = "geo_data_source_preset",
         defaultValue = GeoDataSourcePreset.Global,

@@ -666,6 +666,8 @@ Presets only change <b>where</b> files are downloaded from (CDN / host). It is s
     <string name="keep_connections_on_old_proxy_summary">By default ClashFest closes active connections after a manual proxy switch so new traffic uses the selected proxy immediately. Enable this to keep running connections on the previous proxy — useful for long downloads, video streams, or game sessions you don\'t want to interrupt.</string>
     <string name="proxy_switch_selector_failed">Could not switch proxy. Existing connections were left untouched.</string>
     <string name="proxy_switch_close_connections_failed">Proxy switched, but active connections could not be closed.</string>
+    <string name="network_switch_reaction">React to network changes</string>
+    <string name="network_switch_reaction_summary">When the device switches networks (Wi-Fi ↔ mobile data), immediately close stale connections and re-test proxy groups so automatic groups pick a working server right away — instead of waiting for the next scheduled health check.</string>
 
     <string name="bypass_private_network">Bypass Private Network</string>
     <string name="bypass_private_network_summary">Bypass private network addresses</string>

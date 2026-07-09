@@ -876,6 +876,8 @@
     <string name="home_qr">二维码</string>
     <string name="keep_connections_on_old_proxy">切换后保留旧代理上的连接</string>
     <string name="keep_connections_on_old_proxy_summary">默认情况下,手动切换代理后 ClashFest 会关闭活动连接,使新流量立即走所选代理。开启此项可让正在进行的连接保留在旧代理上——适合不想中断的大文件下载、视频流或游戏会话。</string>
+    <string name="network_switch_reaction">响应网络切换</string>
+    <string name="network_switch_reaction_summary">当设备切换网络(Wi-Fi ↔ 移动数据)时,立即关闭失效连接并重新测试代理组,使自动组马上选择可用服务器,而不必等待下一次计划的健康检查。</string>
     <string name="launch_name_alpha">ClashFest</string>
     <string name="main_activity_summary">实时连接与诊断</string>
     <string name="main_activity_title">活动</string>
