@@ -86,10 +86,60 @@ object SubscriptionMetadataFetcher {
             }
         }
 
-    private fun parse(conn: HttpURLConnection): SubscriptionMetadata {
+    /**
+     * Single GET that yields the metadata AND the operator brand manifest from
+     * the same response. The screen-on metadata sync used to issue two
+     * identical requests back-to-back (one per parser) — panels count fetches
+     * against quota, so every avoidable GET matters.
+     */
+    suspend fun fetchWithBrand(
+        context: Context,
+        urlString: String,
+        userAgentOverride: String? = null,
+        allowHttpMetadata: Boolean = false,
+    ): Pair<SubscriptionMetadata, com.github.kr328.clash.common.branding.BrandManifest> =
+        withContext(Dispatchers.IO) {
+            val empty = SubscriptionMetadata() to com.github.kr328.clash.common.branding.BrandManifest()
+            val request = urlString.substringBefore('#')
+            if (request.startsWith("http://", ignoreCase = true) && !allowHttpMetadata) {
+                return@withContext empty
+            }
+            try {
+                val url = URL(request)
+                val conn = (url.openConnection() as HttpURLConnection).apply {
+                    requestMethod = "GET"
+                    connectTimeout = 15_000
+                    readTimeout = 15_000
+                    instanceFollowRedirects = true
+                    SubscriptionHttpHeaders.applyTo(this, context, userAgentOverride)
+                }
+                try {
+                    conn.connect()
+                    if (conn.responseCode !in 200..299) return@withContext empty
+                    parse(conn) to
+                        com.github.kr328.clash.common.branding.BrandManifestParser.parseFromConnection(conn)
+                } finally {
+                    conn.disconnect()
+                }
+            } catch (_: Exception) {
+                empty
+            }
+        }
+
+    private fun parse(conn: HttpURLConnection): SubscriptionMetadata =
+        parseHeaders { key -> conn.getHeaderField(key) }
+
+    /**
+     * Parses metadata from any header source — a live HttpURLConnection or the
+     * per-profile `fetch-headers.json` snapshot the Go fetch persists (values
+     * there are already correct UTF-8; this parser applies no transport
+     * charset recovery, only trimming and the base64 convention panels use
+     * for non-ASCII announce/title values).
+     */
+    fun parseHeaders(headerLookup: (String) -> String?): SubscriptionMetadata {
         fun header(vararg keys: String): String? {
             for (k in keys) {
-                val v = conn.getHeaderField(k)?.trim()?.trim('"', '\'')
+                val v = headerLookup(k)?.trim()?.trim('"', '\'')
                 if (!v.isNullOrBlank()) return v
             }
             return null

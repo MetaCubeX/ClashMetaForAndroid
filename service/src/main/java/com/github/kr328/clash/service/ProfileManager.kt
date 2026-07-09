@@ -418,7 +418,13 @@ class ProfileManager(private val context: Context) : IProfileManager,
             // still need to brand the app. We do this BEFORE the
             // subscription-userinfo early-return so brand survives even
             // when the panel stops sending quota headers.
-            val brand = com.github.kr328.clash.common.branding.BrandManifestParser.parseHttpHeaders { key ->
+            //
+            // parse(), NOT parseHttpHeaders(): the snapshot values are already
+            // correct UTF-8 (Go passes header bytes through and JSON preserves
+            // them). parseHttpHeaders' ISO-8859-1→UTF-8 recovery is only for
+            // live transports and would mangle non-ASCII (Cyrillic brand /
+            // display names) coming from the file.
+            val brand = com.github.kr328.clash.common.branding.BrandManifestParser.parse { key ->
                 headers.get(key)
             }
             // confirmedResponse=true: the header snapshot only exists for a fetch

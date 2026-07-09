@@ -60,6 +60,7 @@ import com.github.kr328.clash.service.model.Profile
 import com.github.kr328.clash.service.model.ProxyGroupPreviewRow
 import com.github.kr328.clash.service.remote.IProxyDelayObserver
 import com.github.kr328.clash.service.store.ServiceStore
+import com.github.kr328.clash.service.util.importedDir
 import com.github.kr328.clash.util.RussianBypassDefaults
 import com.github.kr328.clash.util.GitHubReleaseUpdate
 import com.github.kr328.clash.util.AppUpdateChecker
@@ -1929,18 +1930,33 @@ class MainActivity : BaseActivity<MainDesign>() {
             return
         }
 
-        val meta = com.github.kr328.clash.common.util.SubscriptionMetadataFetcher.fetch(
-            this,
-            url,
-            SubscriptionOverrides.getUserAgent(this, active.uuid),
-            uiStore.subscriptionMetadataAllowInsecureHttp,
-        )
-        val brandManifest = com.github.kr328.clash.common.branding.BrandManifestParser.fetch(
-            this,
-            url,
-            SubscriptionOverrides.getUserAgent(this, active.uuid),
-            uiStore.subscriptionMetadataAllowInsecureHttp,
-        )
+        // Prefer the per-profile header snapshot the Go fetch persisted
+        // (fetch-headers.json): when the subscription itself was fetched within
+        // the sync cooldown, this sync costs ZERO network requests. Snapshot
+        // values are already correct UTF-8, so the decoded parser entry points
+        // are used (no ISO-8859-1 transport recovery — it would mangle
+        // Cyrillic). Stale/absent snapshot → ONE combined GET (this used to be
+        // two identical back-to-back requests: metadata + brand; panels count
+        // every fetch against quota).
+        val profileDir = importedDir.resolve(active.uuid.toString())
+        val headersFile = com.github.kr328.clash.service.util.FetchHeadersFile.readFrom(profileDir)
+        val headersFresh = java.io.File(profileDir, com.github.kr328.clash.service.util.FetchHeadersFile.FILE_NAME)
+            .takeIf { it.isFile }
+            ?.let { System.currentTimeMillis() - it.lastModified() < cooldown * 1000L } == true
+
+        val (meta, brandManifest) = if (headersFile != null && headersFresh) {
+            com.github.kr328.clash.common.util.SubscriptionMetadataFetcher
+                .parseHeaders { key -> headersFile.get(key) } to
+                com.github.kr328.clash.common.branding.BrandManifestParser
+                    .parse { key -> headersFile.get(key) }
+        } else {
+            com.github.kr328.clash.common.util.SubscriptionMetadataFetcher.fetchWithBrand(
+                this,
+                url,
+                SubscriptionOverrides.getUserAgent(this, active.uuid),
+                uiStore.subscriptionMetadataAllowInsecureHttp,
+            )
+        }
         com.github.kr328.clash.service.branding.BrandRefresh.apply(this, active.uuid, brandManifest)
         meta.shareLinksDisable?.let {
             ServiceStore(this).setSubscriptionShareLinksLockedFor(active.uuid, it)
