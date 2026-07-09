@@ -52,6 +52,7 @@ import com.github.kr328.clash.design.model.DarkMode
 import com.github.kr328.clash.design.ui.ToastDuration
 import com.github.kr328.clash.design.util.applyFetchStatus
 import com.github.kr328.clash.design.util.isTelevision
+import com.github.kr328.clash.design.util.layoutInflater
 import com.github.kr328.clash.design.util.showExceptionToast
 import com.github.kr328.clash.remote.Remote
 import com.github.kr328.clash.remote.StatusClient
@@ -78,6 +79,8 @@ import io.github.g00fy2.quickie.QRResult.QRSuccess
 import io.github.g00fy2.quickie.QRResult.QRUserCanceled
 import io.github.g00fy2.quickie.ScanQRCode
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.Dispatchers
@@ -119,6 +122,34 @@ class MainActivity : BaseActivity<MainDesign>() {
     private val updatePrefs by lazy { getSharedPreferences("app_update", MODE_PRIVATE) }
     /** Incremented on each [onProfileLoaded] — used to await post-load selector patches. */
     private val profileLoadEpoch = AtomicInteger(0)
+
+    /** How [runDashboard] resolved. Cancellation (activity destroy) exits by exception instead. */
+    private enum class DashboardExit { SoftRecreate }
+
+    /**
+     * Doorbell: the current design's captured theme no longer matches desired state (brand
+     * accent changed, day/night flipped). Conflated — a burst of triggers collapses into one
+     * re-inflation, and the accent staleness check is level-based (desired vs applied), so an
+     * already-converged run never re-fires.
+     */
+    private val softRecreateRequests =
+        kotlinx.coroutines.channels.Channel<Unit>(kotlinx.coroutines.channels.Channel.CONFLATED)
+
+    /**
+     * Context for dialogs/menus/sheets spawned by MainActivity. The design's themed wrapper —
+     * the brand accent lives there, never on the Activity theme (see
+     * [themeOverlaysOnActivityTheme]). Falls back to the activity before the first design lands.
+     */
+    private val themedContext: Context
+        get() = design?.context ?: this
+
+    /**
+     * Main inflates its designs from [com.github.kr328.clash.design.branding.BrandThemeApplier
+     * .themedContextFor] wrappers so the accent path never has to destroy the Activity
+     * (Android 16 ContentCapture SIGABRT) — the Activity theme itself stays a virgin
+     * config-driven base theme that overlays are never baked into.
+     */
+    override val themeOverlaysOnActivityTheme: Boolean = false
 
     private fun clearPendingDownloadState() {
         pendingApkDownloadId = -1L
@@ -374,8 +405,9 @@ class MainActivity : BaseActivity<MainDesign>() {
     }
 
     private fun showHomeImportSheet(design: MainDesign) {
-        val dialog = AppBottomSheetDialog(this, fitContentHeight = false)
-        val view = layoutInflater.inflate(R.layout.bottom_sheet_home_import, null)
+        // design.context, not the activity: the brand accent lives in the design's themed wrapper.
+        val dialog = AppBottomSheetDialog(design.context, fitContentHeight = false)
+        val view = design.context.layoutInflater.inflate(R.layout.bottom_sheet_home_import, null)
         dialog.setContentView(view)
         view.findViewById<View>(R.id.opt_clipboard).setOnClickListener {
             dialog.dismiss()
@@ -424,7 +456,7 @@ class MainActivity : BaseActivity<MainDesign>() {
 
         try {
             FilesClient(this).copyDocument("$uuid/config.yaml", uri)
-            commitProfileWithProgress(uuid)
+            themedContext.commitProfileWithProgress(uuid)
         } catch (e: Exception) {
             showImportCommitFailureDialog(uuid, e)
             return
@@ -464,18 +496,59 @@ class MainActivity : BaseActivity<MainDesign>() {
     }
 
     override suspend fun main() {
-        val design = MainDesign(this)
-        design.applyInitialModeFromPreference(uiStore.tunnelModePreference)
+        // Design-generation loop (soft recreate, D2): the Activity object survives accent and
+        // day/night changes — destroying it probabilistically SIGABRTs the process on Android 16
+        // (platform ContentCapture teardown bug). Each iteration derives a fresh themed wrapper
+        // from current state, inflates a new MainDesign from it, and runs the dashboard loop
+        // until the captured theme goes stale.
+        var restoreTab: MainDesign.MainTab? = null
+        while (true) {
+            val themed = com.github.kr328.clash.design.branding.BrandThemeApplier.themedContextFor(this)
+            val design = MainDesign(themed)
+            design.applyInitialModeFromPreference(uiStore.tunnelModePreference)
+            restoreTab?.let { design.selectTab(it) }
+            val previous = this.design
+            setContentDesign(design)
+            // System bars follow the wrapper theme — the Activity theme is deliberately virgin.
+            applyWindowAppearance(themed)
+            // Mirror onDestroy for the replaced design; its jobs/tickers already died with the
+            // previous runDashboard scope.
+            previous?.cancel()
+            com.github.kr328.clash.common.log.Log.d(
+                "soft-recreate: dashboard inflated on live activity@" +
+                    Integer.toHexString(System.identityHashCode(this)),
+            )
 
-        setContentDesign(design)
+            val exit = runDashboard(design)
+            restoreTab = design.currentTab
+            if (exit != DashboardExit.SoftRecreate) break
+        }
+    }
+
+    /**
+     * The dashboard event loop — the moved (not rewritten) body of the pre-soft-recreate [main].
+     * Wrapped in [coroutineScope] so resolving cancels every child (tickers, the refresh
+     * consumer, proxy-detail jobs) via structured concurrency, with no manual bookkeeping of the
+     * old run. Only a [softRecreateRequests] signal resolves it; activity teardown cancels it by
+     * exception like before.
+     */
+    private suspend fun runDashboard(design: MainDesign): DashboardExit = coroutineScope {
+        // A fresh design starts from its default traffic label; drop the memo so the first
+        // fetchTraffic of this run always pushes the real total.
+        lastForwardedTrafficTotal = Long.MIN_VALUE
+        // These are normally reset by launched children (delayed unlock / finally), which die
+        // with this scope on a soft recreate — clear them so a recreate mid-flight can't wedge
+        // the power button or the About update check for the rest of the session.
+        isToggleStatusInFlight = false
+        isCheckingUpdates = false
 
         // Keep the companion agent alive whenever the app is open if the user enabled it — the
         // foreground service doesn't survive a process restart on its own, so a paired controller
         // could otherwise never reach this device after the app was killed.
-        if (com.github.kr328.clash.companion.CompanionStore(this).agentEnabled &&
+        if (com.github.kr328.clash.companion.CompanionStore(this@MainActivity).agentEnabled &&
             !com.github.kr328.clash.companion.agent.CompanionAgent.isReady()
         ) {
-            com.github.kr328.clash.companion.agent.CompanionGatewayService.start(this)
+            com.github.kr328.clash.companion.agent.CompanionGatewayService.start(this@MainActivity)
         }
         design.fetch()
         refreshAnnouncement(design)
@@ -546,8 +619,13 @@ class MainActivity : BaseActivity<MainDesign>() {
             }
         }
 
-        while (isActive) {
+        var exit: DashboardExit? = null
+        while (exit == null) {
             select<Unit> {
+                softRecreateRequests.onReceive {
+                    exit = DashboardExit.SoftRecreate
+                }
+
                 events.onReceive {
                     when (it) {
                         Event.ActivityStart,
@@ -555,7 +633,11 @@ class MainActivity : BaseActivity<MainDesign>() {
                         Event.ClashStop,
                         Event.ClashStart,
                         Event.ProfileLoaded,
-                        Event.ProfileChanged -> {
+                        Event.ProfileChanged,
+                        // Sub-bug #8: a subscription update can change or clear the brand accent
+                        // with no profile switch involved — the refresh below runs fetch(), whose
+                        // accent staleness check then converges the theme on this event.
+                        Event.ProfileUpdateCompleted -> {
                             // Coalesce expensive dashboard refreshes so a burst of
                             // service/profile broadcasts does not pile up parallel
                             // proxy-group queries and stall follow-up taps.
@@ -564,7 +646,10 @@ class MainActivity : BaseActivity<MainDesign>() {
                                 it == Event.ServiceRecreated
                             scheduleDashboardRefresh(
                                 includeAnnouncement = it == Event.ActivityStart ||
-                                    it == Event.ProfileChanged,
+                                    it == Event.ProfileChanged ||
+                                    // Updates rewrite fetch-headers.json (announce / support /
+                                    // brand headers) — re-render the announcement card too.
+                                    it == Event.ProfileUpdateCompleted,
                                 // ProfileLoaded is the authoritative "engine finished loading the new
                                 // profile's config" signal — the UI MUST re-fetch to re-prime the Home
                                 // node against the new groups. It must bypass the refresh throttle: on
@@ -721,7 +806,15 @@ class MainActivity : BaseActivity<MainDesign>() {
                                 DarkMode.ForceLight -> DarkMode.ForceDark
                                 else -> DarkMode.ForceLight
                             }
-                            recreate()
+                            // Config-driven day/night: sync AppCompat night mode; because Main
+                            // declares configChanges="uiMode", AppCompat delivers the flip as
+                            // onConfigurationChanged -> onDayNightChanged -> soft recreate (no
+                            // Activity destroy). The old raw recreate() here was both crash-prone
+                            // (ContentCapture SIGABRT) and skipped the night-mode sync entirely.
+                            syncNightModeFromUiStore()
+                            // No-op flip (e.g. ForceLight while already light): still refresh so
+                            // the theme-toggle icon reflects the stored preference.
+                            scheduleDashboardRefresh()
                         }
                     }
                 }
@@ -835,7 +928,7 @@ class MainActivity : BaseActivity<MainDesign>() {
                         // observer (onProfileUpdateCompleted / Failed). Don't
                         // toast "started" here — the user sees that *after*
                         // the modal closes, by which point the work is done.
-                        runCatching { updateProfileWithProgress(profile.uuid) }
+                        runCatching { themedContext.updateProfileWithProgress(profile.uuid) }
                         // Run metadata sync in the background so the UI tap returns
                         // immediately. The earlier race (announcement-card hiding the
                         // active-card support button for a tick) was structural — we
@@ -962,10 +1055,16 @@ class MainActivity : BaseActivity<MainDesign>() {
                 }
             }
         }
+
+        // Structured teardown of this run: tickers, the refresh consumer and any in-flight
+        // launches die here; the design-generation loop in main() takes over.
+        coroutineContext.cancelChildren()
+        checkNotNull(exit)
     }
 
     private fun showProfileOverflowMenu(design: MainDesign, profile: Profile, anchor: View) {
-        val popup = PopupMenu(this, anchor)
+        // anchor.context is the design's themed wrapper (the row was inflated from it).
+        val popup = PopupMenu(anchor.context, anchor)
         popup.menuInflater.inflate(R.menu.menu_profile_home, popup.menu)
         val m = popup.menu
         m.findItem(R.id.profile_menu_set_active).isVisible =
@@ -1017,7 +1116,7 @@ class MainActivity : BaseActivity<MainDesign>() {
                     true
                 }
                 R.id.profile_menu_delete -> {
-                    MaterialAlertDialogBuilder(this)
+                    MaterialAlertDialogBuilder(design.context)
                         .setTitle(R.string.delete)
                         .setMessage(R.string.profile_delete_confirm)
                         .setPositiveButton(R.string.delete) { _, _ ->
@@ -1067,7 +1166,7 @@ class MainActivity : BaseActivity<MainDesign>() {
             create(Profile.Type.Url, pending.preliminaryName, url)
         }
         try {
-            commitProfileWithProgress(uuid)
+            themedContext.commitProfileWithProgress(uuid)
         } catch (e: Exception) {
             pending.betterName.cancel()
             showImportCommitFailureDialog(uuid, e)
@@ -1115,7 +1214,7 @@ class MainActivity : BaseActivity<MainDesign>() {
         withContext(Dispatchers.Main) {
             val raw = e.message?.trim().orEmpty().ifBlank { e.javaClass.simpleName }
             val msg = if (raw.length > 6000) raw.take(6000) + "…" else raw
-            MaterialAlertDialogBuilder(this@MainActivity)
+            MaterialAlertDialogBuilder(themedContext)
                 .setTitle(getString(R.string.import_failed_title))
                 .setMessage(msg)
                 .setNegativeButton(android.R.string.cancel, null)
@@ -1128,9 +1227,10 @@ class MainActivity : BaseActivity<MainDesign>() {
 
     private suspend fun showProxyYamlDialog(title: String, body: String) {
         withContext(Dispatchers.Main) {
+            val themed = themedContext
             val pad = (16 * resources.displayMetrics.density).toInt()
-            val scroll = ScrollView(this@MainActivity)
-            val tv = TextView(this@MainActivity).apply {
+            val scroll = ScrollView(themed)
+            val tv = TextView(themed).apply {
                 text = body
                 setTextIsSelectable(true)
                 setPadding(pad, pad, pad, pad)
@@ -1138,7 +1238,7 @@ class MainActivity : BaseActivity<MainDesign>() {
                 typeface = Typeface.MONOSPACE
             }
             scroll.addView(tv)
-            MaterialAlertDialogBuilder(this@MainActivity)
+            MaterialAlertDialogBuilder(themed)
                 .setTitle(title)
                 .setView(scroll)
                 .setPositiveButton(android.R.string.ok, null)
@@ -1651,7 +1751,7 @@ class MainActivity : BaseActivity<MainDesign>() {
         val info = AppUpdateChecker.peekCachedRelease(this) ?: return
         val body = info.body.takeIf { it.isNotBlank() }
             ?: getString(R.string.update_dialog_message_fallback)
-        val dialog = MaterialAlertDialogBuilder(this)
+        val dialog = MaterialAlertDialogBuilder(themedContext)
             .setTitle(getString(R.string.update_dialog_title_fmt, info.tagName))
             .setMessage(body)
             .setNegativeButton(R.string.update_dialog_button_later, null)
@@ -1818,7 +1918,7 @@ class MainActivity : BaseActivity<MainDesign>() {
                 append("\n\n")
                 append(getString(R.string.ru_bypass_prompt_tile_note))
             }
-            val dialog = MaterialAlertDialogBuilder(this)
+            val dialog = MaterialAlertDialogBuilder(themedContext)
                 .setTitle(R.string.ru_bypass_prompt_title)
                 .setMessage(message)
                 .setPositiveButton(R.string.ru_bypass_prompt_apply) { d, _ ->
@@ -1860,6 +1960,25 @@ class MainActivity : BaseActivity<MainDesign>() {
     override fun onProfileLoaded() {
         profileLoadEpoch.incrementAndGet()
         super.onProfileLoaded()
+    }
+
+    /**
+     * Day/night flips ride the same soft path as accent changes (4.2): the wrapper for the next
+     * design is derived under the new Configuration, and the virgin config-driven Activity theme
+     * rebases by itself — no recreate, no ContentCapture teardown.
+     */
+    override fun onDayNightChanged() {
+        softRecreateRequests.trySend(Unit)
+    }
+
+    /**
+     * External nudge from other screens that used to `recreate()` Main (ThemeSettings palette /
+     * accent / true-black changes): re-derive the wrapper from current uiStore state and
+     * re-inflate, without destroying the Activity. NOT sufficient for font-scale or language
+     * changes — those are baked in attachBaseContext and still need a real recreate.
+     */
+    fun requestSoftRecreate() {
+        softRecreateRequests.trySend(Unit)
     }
 
     override fun onProfileUpdateCompleted(uuid: UUID?) {
@@ -2057,11 +2176,15 @@ class MainActivity : BaseActivity<MainDesign>() {
                 ),
             )
         } finally {
-            // Theme overlay is captured at inflate time. If the active profile's
-            // accent diverges from what's actually applied, recreate so the new
-            // (or absent) harmonised palette flows into every widget that reads
-            // ?attr/colorPrimary etc.
-            com.github.kr328.clash.design.branding.BrandThemeApplier.maybeRecreateOnAccentChange(this)
+            // Theme overlay is captured at design-inflation time. If the active profile's accent
+            // diverges from what the current design's wrapper carries, resolve the dashboard loop
+            // with a soft recreate so the new (or absent) harmonised palette flows into every
+            // widget that reads ?attr/colorPrimary etc. — without ever destroying the Activity
+            // (Android 16 ContentCapture SIGABRT). Runs on EVERY fetch, so switches, updates and
+            // brand clears all converge through the same level-based check.
+            if (com.github.kr328.clash.design.branding.BrandThemeApplier.accentStale(this)) {
+                softRecreateRequests.trySend(Unit)
+            }
         }
     }
 

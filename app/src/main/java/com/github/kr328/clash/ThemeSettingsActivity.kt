@@ -8,8 +8,18 @@ import kotlinx.coroutines.selects.select
 
 class ThemeSettingsActivity : BaseActivity<ThemeSettingsDesign>() {
 
-    private fun staggerRecreate(activities: List<Activity>) {
+    /**
+     * @param softMain route MainActivity through its soft path (design re-inflation, no Activity
+     * destroy — Android 16 ContentCapture SIGABRT) instead of `recreate()`. Only valid for pure
+     * theme-overlay changes (palette / accent / true-black); font scale and reset re-run
+     * attachBaseContext and need the real recreate.
+     */
+    private fun staggerRecreate(activities: List<Activity>, softMain: Boolean) {
         activities.forEachIndexed { index, activity ->
+            if (softMain && activity is MainActivity) {
+                activity.requestSoftRecreate()
+                return@forEachIndexed
+            }
             activity.window?.decorView?.postDelayed({
                 if (activity.isFinishing) return@postDelayed
                 if (activity.isDestroyed) return@postDelayed
@@ -36,6 +46,7 @@ class ThemeSettingsActivity : BaseActivity<ThemeSettingsDesign>() {
                         ThemeSettingsDesign.Request.ReCreateOtherActivities -> {
                             staggerRecreate(
                                 ApplicationObserver.createdActivities.filter { it !is ThemeSettingsActivity },
+                                softMain = true,
                             )
                             val old = current
                             current = newDesign()
@@ -43,7 +54,8 @@ class ThemeSettingsActivity : BaseActivity<ThemeSettingsDesign>() {
                             old.disposeForReplace()
                         }
                         ThemeSettingsDesign.Request.ReCreateAllActivities -> {
-                            staggerRecreate(ApplicationObserver.createdActivities.toList())
+                            // Font scale / reset — attachBaseContext must re-run, soft path can't.
+                            staggerRecreate(ApplicationObserver.createdActivities.toList(), softMain = false)
                         }
                     }
                 }
