@@ -20,4 +20,6 @@ data class Imported(
     @ColumnInfo(name = "expire") val expire: Long,
     @ColumnInfo(name = "createdAt") val createdAt: Long,
     @ColumnInfo(name = "profileOrder") val profileOrder: Long = createdAt,
+    /** age identity (AGE-SECRET-KEY-…) used to decrypt an age-encrypted subscription; null = plain. */
+    @ColumnInfo(name = "ageSecretKey") val ageSecretKey: String? = null,
 )

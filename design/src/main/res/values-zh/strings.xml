@@ -26,6 +26,9 @@
     <string name="subscription_copy_hwid_diagnostics">复制诊断</string>
     <string name="subscription_user_agent_override">订阅 User-Agent 覆盖</string>
     <string name="subscription_user_agent_custom">自定义 User-Agent</string>
+    <string name="age_secret_key">Age 密钥</string>
+    <string name="age_secret_key_helper">用于 age 加密的订阅。若面板提供普通 YAML，请留空。</string>
+    <string name="age_secret_key_error">必须以 AGE-SECRET-KEY- 开头</string>
     <string name="subscription_user_agent_preset_default">默认（ClashFest）</string>
     <string name="subscription_user_agent_preset_happ_ios">Happ iOS</string>
     <string name="subscription_user_agent_preset_happ_android">Happ Android</string>
@@ -1106,4 +1109,11 @@
     <string name="rule_mode_short">规则</string>
     <string name="global_mode_short">全局</string>
     <string name="main_speed_fmt">↓ %1$s/s   ↑ %2$s/s</string>
+    <string name="age_key_category">Age 密钥</string>
+    <string name="age_key_generate_summary">点按生成</string>
+    <string name="age_public_key">Age 公钥</string>
+    <string name="age_public_key_error">无效的 age 公钥</string>
+    <string name="age_key_generate">生成</string>
+    <string name="age_key_to_public">由私钥导出</string>
+    <string name="age_key_copy">复制</string>
 </resources>

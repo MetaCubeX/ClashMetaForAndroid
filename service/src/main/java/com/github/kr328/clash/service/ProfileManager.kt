@@ -253,6 +253,7 @@ class ProfileManager(private val context: Context) : IProfileManager,
                 download = imported.download,
                 expire = imported.expire,
                 profileOrder = profileOrder,
+                ageSecretKey = imported.ageSecretKey,
             )
 
             PendingDao().insert(pending)
@@ -261,7 +262,7 @@ class ProfileManager(private val context: Context) : IProfileManager,
         return newUUID
     }
 
-    override suspend fun patch(uuid: UUID, name: String, source: String, interval: Long) {
+    override suspend fun patch(uuid: UUID, name: String, source: String, interval: Long, ageSecretKey: String?) {
         val locked = store.subscriptionShareLinksLockedFor(uuid)
         val resolvedSource =
             if (!locked) {
@@ -291,6 +292,7 @@ class ProfileManager(private val context: Context) : IProfileManager,
                     download = 0,
                     expire = 0,
                     profileOrder = imported.profileOrder,
+                    ageSecretKey = ageSecretKey?.takeIf { it.isNotBlank() },
                 )
             )
         } else {
@@ -302,6 +304,7 @@ class ProfileManager(private val context: Context) : IProfileManager,
                 total = 0,
                 download = 0,
                 expire = 0,
+                ageSecretKey = ageSecretKey?.takeIf { it.isNotBlank() },
             )
 
             PendingDao().update(newPending)
@@ -461,6 +464,7 @@ class ProfileManager(private val context: Context) : IProfileManager,
                 usage?.expireAt?.times(1000L) ?: old.expire,
                 old.createdAt,
                 old.profileOrder,
+                ageSecretKey = old.ageSecretKey,
             )
 
             if (new != old) {
@@ -1359,7 +1363,8 @@ class ProfileManager(private val context: Context) : IProfileManager,
             expire,
             resolveUpdatedAt(uuid),
             imported != null,
-            pending != null
+            pending != null,
+            ageSecretKey = pending?.ageSecretKey ?: imported?.ageSecretKey,
         )
     }
 

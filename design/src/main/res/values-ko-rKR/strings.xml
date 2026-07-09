@@ -265,4 +265,14 @@
     <string name="proxy_chain_applied">체인이 저장되었습니다. 구성이 다시 로드됩니다.</string>
     <string name="proxy_chain_cleared">아웃바운드에서 다이얼러를 제거했습니다.</string>
     <string name="proxy_chain_not_found">구성 또는 프로바이더 파일에서 해당 프록시를 찾지 못했습니다.</string>
+    <string name="age_secret_key">Age secret key</string>
+    <string name="age_secret_key_helper">For age-encrypted subscriptions. Leave empty if the panel serves plain YAML.</string>
+    <string name="age_secret_key_error">Must start with AGE-SECRET-KEY-</string>
+    <string name="age_key_category">Age keys</string>
+    <string name="age_key_generate_summary">Tap to generate</string>
+    <string name="age_public_key">Age public key</string>
+    <string name="age_public_key_error">Invalid age public key</string>
+    <string name="age_key_generate">Generate</string>
+    <string name="age_key_to_public">From secret</string>
+    <string name="age_key_copy">Copy</string>
 </resources>

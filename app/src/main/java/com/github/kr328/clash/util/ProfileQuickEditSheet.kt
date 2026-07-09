@@ -71,7 +71,7 @@ fun BaseActivity<*>.showProfileQuickEditSheet(
         dialog.dismiss()
         launch {
             val effectiveSource = if (subscriptionLocked) profile.source else source
-            withProfile { patch(profile.uuid, name, effectiveSource, interval) }
+            withProfile { patch(profile.uuid, name, effectiveSource, interval, profile.ageSecretKey) }
             afterSaved()
             design.showToast(DesignR.string.profile_quick_saved, ToastDuration.Short)
         }

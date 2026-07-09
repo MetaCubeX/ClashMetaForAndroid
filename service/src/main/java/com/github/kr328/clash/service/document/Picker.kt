@@ -136,6 +136,7 @@ class Picker(private val context: Context) {
                 imported.interval,
                 0,0,0,0,
                 profileOrder = imported.profileOrder,
+                ageSecretKey = imported.ageSecretKey,
             )
         )
 

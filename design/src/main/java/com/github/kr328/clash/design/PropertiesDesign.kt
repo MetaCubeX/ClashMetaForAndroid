@@ -185,6 +185,15 @@ class PropertiesDesign(context: Context) : Design<PropertiesDesign.Request>(cont
             val interval = TimeUnit.MINUTES.toMillis(minutes.coerceAtLeast(0))
             profile = profile.copy(interval = interval)
         }
+        binding.editAgeSecretKey.doAfterTextChanged { text ->
+            if (suppressFieldSync) return@doAfterTextChanged
+            val raw = text?.toString()?.trim().orEmpty()
+            // Inline validation: empty (no encryption) or an age identity.
+            binding.layoutAgeSecretKey.error =
+                if (raw.isEmpty() || raw.startsWith("AGE-SECRET-KEY-", ignoreCase = true)) null
+                else context.getString(R.string.age_secret_key_error)
+            profile = profile.copy(ageSecretKey = raw.ifBlank { null })
+        }
         binding.editUserAgentPreset.setOnItemClickListener { _, _, position, _ ->
             userAgentPreset = when (position) {
                 1 -> UserAgentPreset.HappIos
@@ -233,6 +242,8 @@ class PropertiesDesign(context: Context) : Design<PropertiesDesign.Request>(cont
             if (binding.editName.text?.toString() != p.name) binding.editName.setText(p.name)
             if (binding.editUrl.text?.toString() != p.source) binding.editUrl.setText(p.source)
             if (binding.editInterval.text?.toString() != intervalText) binding.editInterval.setText(intervalText)
+            val ageKey = p.ageSecretKey.orEmpty()
+            if (binding.editAgeSecretKey.text?.toString() != ageKey) binding.editAgeSecretKey.setText(ageKey)
         } finally {
             suppressFieldSync = false
         }

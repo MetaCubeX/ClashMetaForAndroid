@@ -158,6 +158,25 @@
                                 android:maxLines="1" />
                         </com.google.android.material.textfield.TextInputLayout>
 
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/layout_age_secret_key"
+                            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginHorizontal="16dp"
+                            android:layout_marginVertical="@dimen/properties_element_margin_vertical"
+                            android:hint="@string/age_secret_key"
+                            app:helperText="@string/age_secret_key_helper"
+                            app:endIconMode="password_toggle">
+
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/edit_age_secret_key"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:inputType="textPassword|textNoSuggestions"
+                                android:maxLines="1" />
+                        </com.google.android.material.textfield.TextInputLayout>
+
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
