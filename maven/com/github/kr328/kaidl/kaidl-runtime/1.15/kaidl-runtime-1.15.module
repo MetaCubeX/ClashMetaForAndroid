@@ -1,0 +1,76 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "com.github.kr328.kaidl",
+    "module": "kaidl-runtime",
+    "version": "1.15",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "7.2"
+    }
+  },
+  "variants": [
+    {
+      "name": "releaseApiPublication",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.libraryelements": "aar",
+        "org.gradle.usage": "java-api"
+      },
+      "dependencies": [
+        {
+          "group": "org.jetbrains.kotlin",
+          "module": "kotlin-stdlib-jdk8",
+          "version": {
+            "requires": "1.5.30"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "kaidl-runtime-1.15.aar",
+          "url": "kaidl-runtime-1.15.aar",
+          "size": 25809,
+          "sha512": "ed01e6f1c2a04cafb648322887c0bb336e78845c3b36efdb8b4541c32abad6a3ad01da2f730ec9457e696fc2f48bb44b765e0765b5ee2901ef2647e1ba9d7fc1",
+          "sha256": "95ba24889032e4d3cee5d369946d4b37e23aa3069d982a619e4fd14fe309a8e4",
+          "sha1": "1f4aa59dd0cf04fdfcfb918db55e72b1d2aae4c0",
+          "md5": "33dd982d45103f40cec0d051e97aec47"
+        }
+      ]
+    },
+    {
+      "name": "releaseRuntimePublication",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.libraryelements": "aar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "dependencies": [
+        {
+          "group": "org.jetbrains.kotlin",
+          "module": "kotlin-stdlib-jdk8",
+          "version": {
+            "requires": "1.5.30"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "kaidl-runtime-1.15.aar",
+          "url": "kaidl-runtime-1.15.aar",
+          "size": 25809,
+          "sha512": "ed01e6f1c2a04cafb648322887c0bb336e78845c3b36efdb8b4541c32abad6a3ad01da2f730ec9457e696fc2f48bb44b765e0765b5ee2901ef2647e1ba9d7fc1",
+          "sha256": "95ba24889032e4d3cee5d369946d4b37e23aa3069d982a619e4fd14fe309a8e4",
+          "sha1": "1f4aa59dd0cf04fdfcfb918db55e72b1d2aae4c0",
+          "md5": "33dd982d45103f40cec0d051e97aec47"
+        }
+      ]
+    }
+  ]
+}

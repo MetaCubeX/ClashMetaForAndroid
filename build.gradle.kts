@@ -11,6 +11,12 @@ buildscript {
     repositories {
         mavenCentral()
         google()
+        // Vendored copy of the few kr328 artifacts (golang gradle-plugin, kaidl)
+        // that only exist in MetaCubeX/maven-backup — that repo is served from
+        // raw.githubusercontent.com, which rate-limits CI runners (HTTP 429
+        // killed two pipelines in a row). ~130 KB, byte-identical to the
+        // published files; the remote stays as a fallback for anything new.
+        maven(rootProject.projectDir.resolve("maven").toURI())
         maven("https://raw.githubusercontent.com/MetaCubeX/maven-backup/main/releases")
     }
     dependencies {
@@ -26,6 +32,9 @@ subprojects {
     repositories {
         mavenCentral()
         google()
+        // Same order as the buildscript block above: vendored maven/ first,
+        // rate-limited raw.githubusercontent as fallback.
+        maven(rootProject.projectDir.resolve("maven").toURI())
         maven("https://raw.githubusercontent.com/MetaCubeX/maven-backup/main/releases")
     }
 
