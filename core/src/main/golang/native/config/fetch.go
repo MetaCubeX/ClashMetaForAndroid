@@ -197,6 +197,19 @@ func FetchAndValid(
 		writeFetchHeaders(path, header)
 	}
 
+	// Terminate age encryption at the door: unlike upstream CMFA (where
+	// config.yaml is only ever read by the engine, which decrypts lazily),
+	// ClashFest runs a whole TEXT pipeline over the profile on the Kotlin
+	// side — overlay composition, YAML hardening, rule mapping, the error
+	// classifier. Those layers must see plain YAML, so decrypt the on-disk
+	// body right away using the engine keys (SetGlobalSecretKeys, installed
+	// by the caller before this call). Covers every entry: URL fetch,
+	// content:// file import, and an existing config revalidated later.
+	// Plain (non-age) bodies pass through untouched.
+	if err := decryptConfigInPlace(configPath); err != nil {
+		return err
+	}
+
 	defer runtime.GC()
 
 	rawCfg, err := UnmarshalAndPatch(path)

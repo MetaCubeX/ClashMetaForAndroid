@@ -27,6 +27,8 @@ data class Profile(
     val updatedAt: Long,
     val imported: Boolean,
     val pending: Boolean,
+    /** age identity (AGE-SECRET-KEY-…) for age-encrypted subscriptions; null = plain. */
+    val ageSecretKey: String? = null,
 ) : Parcelable {
     enum class Type {
         File, Url, External

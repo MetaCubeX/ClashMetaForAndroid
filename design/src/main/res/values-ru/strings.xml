@@ -728,6 +728,9 @@
     <string name="subscription_copy_hwid_diagnostics">Скопировать диагностику</string>
     <string name="subscription_user_agent_override">Переопределение User-Agent подписки</string>
     <string name="subscription_user_agent_custom">Свой User-Agent</string>
+    <string name="age_secret_key">Секретный ключ age</string>
+    <string name="age_secret_key_helper">Для подписок, зашифрованных age. Оставьте пустым, если панель отдаёт обычный YAML.</string>
+    <string name="age_secret_key_error">Должен начинаться с AGE-SECRET-KEY-</string>
     <string name="subscription_user_agent_preset_default">По умолчанию (ClashFest)</string>
     <string name="subscription_user_agent_preset_happ_ios">Happ iOS</string>
     <string name="subscription_user_agent_preset_happ_android">Happ Android</string>
@@ -1178,4 +1181,11 @@
     <string name="rule_mode_short">Правила</string>
     <string name="global_mode_short">Глобал</string>
     <string name="main_speed_fmt">↓ %1$s/s   ↑ %2$s/s</string>
+    <string name="age_key_category">Ключи age</string>
+    <string name="age_key_generate_summary">Нажмите, чтобы сгенерировать</string>
+    <string name="age_public_key">Публичный ключ age</string>
+    <string name="age_public_key_error">Неверный публичный ключ age</string>
+    <string name="age_key_generate">Сгенерировать</string>
+    <string name="age_key_to_public">Из секретного</string>
+    <string name="age_key_copy">Копировать</string>
 </resources>

@@ -46,6 +46,12 @@ object Bridge {
         subscriptionHeadersJson: String,
     )
 
+    external fun nativeSetAgeSecretKey(key: String?)
+    external fun nativeGenX25519KeyPair(): String?
+    external fun nativeGenHybridKeyPair(): String?
+    external fun nativeVeritySecretKeys(secretKeys: String): Boolean
+    external fun nativeToPublicKeys(secretKeys: String): String?
+    external fun nativeVerityPublicKeys(publicKeys: String): Boolean
     external fun nativeLoad(completable: CompletableDeferred<Unit>, path: String)
     external fun nativeValidateProfile(completable: CompletableDeferred<Unit>, path: String)
     external fun nativeParseProfileSnapshot(path: String): String

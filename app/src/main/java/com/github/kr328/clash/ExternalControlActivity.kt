@@ -52,7 +52,7 @@ class ExternalControlActivity : Activity(), CoroutineScope by MainScope() {
                             // File import must come from the in-app picker (which grants
                             // a content-URI), never from an untrusted deeplink path.
                             create(Profile.Type.Url, name).also {
-                                patch(it, name, url, 0)
+                                patch(it, name, url, 0, null)
                             }
                         }
                         startActivity(PropertiesActivity::class.intent.setUUID(uuid))

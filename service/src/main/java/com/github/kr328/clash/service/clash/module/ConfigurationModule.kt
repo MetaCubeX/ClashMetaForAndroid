@@ -110,6 +110,11 @@ class ConfigurationModule(service: Service) : Module<ConfigurationModule.LoadExc
 
                 val profileDir = service.importedDir.resolve(active.uuid.toString())
 
+                // age: config.yaml is normally already decrypted at fetch time, but a
+                // File-type profile imported as an age armor (or a pre-decrypt legacy
+                // fetch) still needs the engine-side key at load.
+                Clash.setAgeSecretKey(active.ageSecretKey?.takeIf { it.isNotBlank() })
+
                 suspend fun applyPostLoad() {
                     val staleProviderKeySelections = SelectionDao().querySelections(active.uuid)
                         .filter { it.selected.matches(Regex("^sub\\d+$", RegexOption.IGNORE_CASE)) }

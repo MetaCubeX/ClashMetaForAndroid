@@ -256,4 +256,14 @@
     <string name="proxy_chain_applied">Đã lưu chuỗi. Cấu hình sẽ tải lại.</string>
     <string name="proxy_chain_cleared">Đã xóa dialer khỏi outbound.</string>
     <string name="proxy_chain_not_found">Không tìm thấy proxy trong config hoặc file provider.</string>
+    <string name="age_secret_key">Age secret key</string>
+    <string name="age_secret_key_helper">For age-encrypted subscriptions. Leave empty if the panel serves plain YAML.</string>
+    <string name="age_secret_key_error">Must start with AGE-SECRET-KEY-</string>
+    <string name="age_key_category">Age keys</string>
+    <string name="age_key_generate_summary">Tap to generate</string>
+    <string name="age_public_key">Age public key</string>
+    <string name="age_public_key_error">Invalid age public key</string>
+    <string name="age_key_generate">Generate</string>
+    <string name="age_key_to_public">From secret</string>
+    <string name="age_key_copy">Copy</string>
 </resources>

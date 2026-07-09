@@ -8,6 +8,9 @@ import com.github.kr328.clash.common.Global
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
+import com.github.kr328.clash.core.model.AgeKeyPair
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.jsonPrimitive
@@ -255,6 +258,33 @@ object Clash {
             )
         }
     }
+
+    /**
+     * Installs the age identity (AGE-SECRET-KEY-…) the engine uses to decrypt
+     * age-encrypted configs/providers (mihomo component/age global keys). The
+     * key is process-global: set it right before fetchAndValid/load for the
+     * profile being processed; null clears it.
+     */
+    fun setAgeSecretKey(key: String?) {
+        Bridge.nativeSetAgeSecretKey(key)
+    }
+
+    fun genX25519KeyPair(): AgeKeyPair =
+        Json.Default.decodeFromString(AgeKeyPair.serializer(), checkNotNull(Bridge.nativeGenX25519KeyPair()))
+
+    fun genHybridKeyPair(): AgeKeyPair =
+        Json.Default.decodeFromString(AgeKeyPair.serializer(), checkNotNull(Bridge.nativeGenHybridKeyPair()))
+
+    fun veritySecretKeys(secretKeys: String): Boolean =
+        Bridge.nativeVeritySecretKeys(secretKeys)
+
+    fun toPublicKeys(secretKeys: String): List<String> =
+        Bridge.nativeToPublicKeys(secretKeys)
+            ?.let { Json.Default.decodeFromString(ListSerializer(String.serializer()), it) }
+            ?: emptyList()
+
+    fun verityPublicKeys(publicKeys: String): Boolean =
+        Bridge.nativeVerityPublicKeys(publicKeys)
 
     fun load(path: File): CompletableDeferred<Unit> {
         return CompletableDeferred<Unit>().apply {

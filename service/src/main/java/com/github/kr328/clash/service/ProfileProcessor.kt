@@ -69,6 +69,10 @@ object ProfileProcessor {
 
                 val userAgentOverride = SubscriptionOverrides.getUserAgent(context, snapshot.uuid)
                 val strictUserAgent = SubscriptionOverrides.isStrictUserAgent(context, snapshot.uuid)
+                // age: install this profile's identity before the fetch — the Go side
+                // decrypts the downloaded body in place (decryptConfigInPlace) so the
+                // rest of the (text-based) pipeline sees plain YAML.
+                Clash.setAgeSecretKey(snapshot.ageSecretKey?.takeIf { it.isNotBlank() })
                 try {
                     Clash.fetchAndValid(
                         context.processingDir,
@@ -156,6 +160,7 @@ object ProfileProcessor {
                                 expire,
                                 old?.createdAt ?: System.currentTimeMillis(),
                                 old?.profileOrder ?: snapshot.profileOrder,
+                                ageSecretKey = snapshot.ageSecretKey,
                             )
                             if (old != null) {
                                 ImportedDao().update(new)
@@ -182,6 +187,7 @@ object ProfileProcessor {
                                 expire,
                                 old?.createdAt ?: System.currentTimeMillis(),
                                 old?.profileOrder ?: snapshot.profileOrder,
+                                ageSecretKey = snapshot.ageSecretKey,
                             )
                             if (old != null) {
                                 ImportedDao().update(new)
@@ -253,6 +259,8 @@ object ProfileProcessor {
                 val userAgentOverride = SubscriptionOverrides.getUserAgent(context, snapshot.uuid)
                 val strictUserAgent = SubscriptionOverrides.isStrictUserAgent(context, snapshot.uuid)
                 var effectiveUserAgentOverride = userAgentOverride
+                // age: same as apply() — key first, the Go fetch decrypts on disk.
+                Clash.setAgeSecretKey(snapshot.ageSecretKey?.takeIf { it.isNotBlank() })
                 try {
                     Clash.fetchAndValid(
                         context.processingDir,

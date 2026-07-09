@@ -177,3 +177,78 @@ func clearOverride(slot C.int) {
 	defer guard("clearOverride")()
 	config.ClearOverride(config.OverrideSlot(slot))
 }
+
+//export setAgeSecretKey
+func setAgeSecretKey(key C.c_string) {
+	defer guard("setAgeSecretKey")()
+
+	if key == nil {
+		config.SetGlobalSecretKeys()
+		return
+	}
+
+	config.SetGlobalSecretKeys(C.GoString(key))
+}
+
+type ageKeyPair struct {
+	SecretKey string `json:"secretKey"`
+	PublicKey string `json:"publicKey"`
+}
+
+//export genX25519KeyPair
+func genX25519KeyPair() *C.char {
+	defer guard("genX25519KeyPair")()
+
+	secretKey, publicKey, err := config.GenX25519KeyPair()
+	if err != nil {
+		return nil
+	}
+
+	return marshalJson(ageKeyPair{SecretKey: secretKey, PublicKey: publicKey})
+}
+
+//export genHybridKeyPair
+func genHybridKeyPair() *C.char {
+	defer guard("genHybridKeyPair")()
+
+	secretKey, publicKey, err := config.GenHybridKeyPair()
+	if err != nil {
+		return nil
+	}
+
+	return marshalJson(ageKeyPair{SecretKey: secretKey, PublicKey: publicKey})
+}
+
+//export veritySecretKeys
+func veritySecretKeys(secretKeys C.c_string) C.int {
+	defer guard("veritySecretKeys")()
+
+	if config.VeritySecretKeys(C.GoString(secretKeys)) != nil {
+		return 0
+	}
+
+	return 1
+}
+
+//export toPublicKeys
+func toPublicKeys(secretKeys C.c_string) *C.char {
+	defer guard("toPublicKeys")()
+
+	publicKeys, err := config.ToPublicKeys(C.GoString(secretKeys))
+	if err != nil {
+		return nil
+	}
+
+	return marshalJson(publicKeys)
+}
+
+//export verityPublicKeys
+func verityPublicKeys(publicKeys C.c_string) C.int {
+	defer guard("verityPublicKeys")()
+
+	if config.VerityPublicKeys(C.GoString(publicKeys)) != nil {
+		return 0
+	}
+
+	return 1
+}
