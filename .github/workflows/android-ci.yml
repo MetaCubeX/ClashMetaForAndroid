@@ -26,6 +26,10 @@ jobs:
         with:
           distribution: temurin
           java-version: 21
+          # Caches ~/.gradle (wrapper dist + dependency cache) between runs, so a
+          # warm runner never re-downloads the golang gradle-plugin from the
+          # GitHub-raw maven mirror — that endpoint 429s under CI load.
+          cache: gradle
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
