@@ -12,6 +12,7 @@ import com.github.kr328.clash.service.data.PendingDao
 import com.github.kr328.clash.service.model.Profile
 import com.github.kr328.clash.service.remote.IFetchObserver
 import com.github.kr328.clash.service.store.ServiceStore
+import com.github.kr328.clash.service.util.FetchHeadersFile
 import com.github.kr328.clash.service.util.GeoUrlSanitizer
 import com.github.kr328.clash.service.util.MihomoConfigDocument
 import com.github.kr328.clash.service.util.RuleApplyService
@@ -36,8 +37,6 @@ import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
-import okhttp3.OkHttpClient
-import okhttp3.Request
 import java.io.File
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -134,27 +133,16 @@ object ProfileProcessor {
                         var total: Long = 0
                         var expire: Long = 0
                         if (snapshot?.type == Profile.Type.Url) {
-                            if (snapshot.source.startsWith("https://", true)) {
-                                val client = OkHttpClient()
-                                val request = Request.Builder()
-                                    .url(snapshot.source)
-                                    .apply {
-                                        SubscriptionRequestHeaders.build(
-                                            context,
-                                            SubscriptionOverrides.getUserAgent(context, snapshot.uuid),
-                                        ).forEach { (k, v) ->
-                                            header(k, v)
-                                        }
-                                    }
-                                    .build()
-
-                                client.newCall(request).execute().use { response ->
-                                    val usage = SubscriptionUsage.parse(response.headers["subscription-userinfo"])
-                                    upload = usage?.upload ?: 0L
-                                    download = usage?.download ?: 0L
-                                    total = usage?.total ?: 0L
-                                    expire = usage?.expireAt?.times(1000L) ?: 0L
-                                }
+                            // Quota comes from the header snapshot the Go fetch persisted
+                            // alongside config.yaml — the import above IS the request, so
+                            // no second GET (which doubled traffic on fetch-counting
+                            // panels and could race the primary download) is needed.
+                            FetchHeadersFile.readFrom(context.processingDir)?.let { headers ->
+                                val usage = SubscriptionUsage.parse(headers.get("subscription-userinfo"))
+                                upload = usage?.upload ?: 0L
+                                download = usage?.download ?: 0L
+                                total = usage?.total ?: 0L
+                                expire = usage?.expireAt?.times(1000L) ?: 0L
                             }
                             val new = Imported(
                                 snapshot.uuid,

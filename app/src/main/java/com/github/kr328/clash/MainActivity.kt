@@ -1962,11 +1962,21 @@ class MainActivity : BaseActivity<MainDesign>() {
         meta.subscriptionUserinfo?.let { uiStore.subscriptionUserinfo = it }
         meta.profileWebPageUrl?.let { uiStore.profileWebPageUrl = it }
         meta.profileUpdateIntervalHours?.let { hours ->
+            val previousHeaderMs =
+                java.util.concurrent.TimeUnit.HOURS.toMillis(uiStore.profileUpdateIntervalHours.toLong())
             uiStore.profileUpdateIntervalHours = hours
             if (!uiStore.subscriptionMetadataLockUser) {
-                val ms = java.util.concurrent.TimeUnit.HOURS.toMillis(hours.toLong())
-                runCatching {
-                    withProfile { applySubscriptionUpdateInterval(active.uuid, ms) }
+                // The header only *seeds* the interval — it must not override a value
+                // the user set by hand (upstream 71cb215d class of bug: the panel
+                // silently reverted a custom interval every metadata sync). Apply it
+                // only when auto-update is unconfigured, or the current interval is
+                // the one WE derived from the previous header value (i.e. untouched).
+                val userCustomized = active.interval != 0L && active.interval != previousHeaderMs
+                if (!userCustomized) {
+                    val ms = java.util.concurrent.TimeUnit.HOURS.toMillis(hours.toLong())
+                    runCatching {
+                        withProfile { applySubscriptionUpdateInterval(active.uuid, ms) }
+                    }
                 }
             }
         }

@@ -34,16 +34,18 @@ type providerFetchTask struct {
 	path string
 }
 
-func openUrl(ctx context.Context, url string) (io.ReadCloser, error) {
+func openUrl(ctx context.Context, url string) (io.ReadCloser, map[string][]string, error) {
 	base := http.Header{"User-Agent": {"ClashMetaForAndroid/" + app.VersionName()}}
 	hdr := app.MergeSubscriptionFetchHeaders(base)
 	response, err := clashHttp.HttpRequest(ctx, url, http.MethodGet, hdr, nil)
 
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	return response.Body, nil
+	// Plain map type: mihomo's forked metacubex/http.Header and net/http.Header
+	// are distinct named types over the same underlying map.
+	return response.Body, response.Header, nil
 }
 
 func openContent(url string) (io.ReadCloser, error) {
@@ -65,16 +67,22 @@ const (
 // the main subscription is one critical fetch and gets generous room for slow
 // CDNs / DPI, while each rule-/proxy-provider runs on a short budget so a stuck
 // provider can't hold up the (parallel, see [fetchProviders]) import.
-func fetch(url *U.URL, file string, timeout time.Duration) error {
+//
+// For http(s) URLs the response headers are returned too (nil for content://
+// and on error) — the subscription fetch persists them via [writeFetchHeaders]
+// so the Kotlin side can read subscription-userinfo / X-Brand-* / naming
+// headers without issuing a second GET of its own.
+func fetch(url *U.URL, file string, timeout time.Duration) (map[string][]string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
 	var reader io.ReadCloser
+	var header map[string][]string
 	var err error
 
 	switch url.Scheme {
 	case "http", "https":
-		reader, err = openUrl(ctx, url.String())
+		reader, header, err = openUrl(ctx, url.String())
 	case "content":
 		reader, err = openContent(url.String())
 	default:
@@ -82,7 +90,7 @@ func fetch(url *U.URL, file string, timeout time.Duration) error {
 	}
 
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	defer reader.Close()
@@ -91,7 +99,7 @@ func fetch(url *U.URL, file string, timeout time.Duration) error {
 
 	f, err := os.OpenFile(file, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0600)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	defer f.Close()
@@ -99,9 +107,47 @@ func fetch(url *U.URL, file string, timeout time.Duration) error {
 	_, err = io.Copy(f, reader)
 	if err != nil {
 		_ = os.Remove(file)
+		return nil, err
 	}
 
-	return err
+	return header, nil
+}
+
+// FetchHeadersFileName is the per-profile snapshot of the subscription
+// response headers, written next to config.yaml on every successful
+// subscription download. One flat JSON object, keys lowercased, multi-value
+// headers joined the HTTP way (", "). The Kotlin side feeds it to the same
+// header parsers (usage / brand / display-name) that used to run against a
+// SECOND OkHttp GET of the subscription — that extra request doubled traffic
+// (panels count fetches against quota), raced the primary download, and kept
+// a whole parallel header path alive (the mojibake class of bugs).
+const FetchHeadersFileName = "fetch-headers.json"
+
+func writeFetchHeaders(profilePath string, header map[string][]string) {
+	file := P.Join(profilePath, FetchHeadersFileName)
+
+	if header == nil {
+		// content:// / inline imports have no HTTP response; drop any stale
+		// snapshot from a previous source so consumers don't read old quota.
+		_ = os.Remove(file)
+		return
+	}
+
+	flat := make(map[string]string, len(header))
+	for key, values := range header {
+		if len(values) == 0 {
+			continue
+		}
+		flat[strings.ToLower(key)] = strings.Join(values, ", ")
+	}
+
+	bytes, err := json.Marshal(flat)
+	if err != nil {
+		return
+	}
+
+	// Best-effort: header persistence must never fail the import itself.
+	_ = os.WriteFile(file, bytes, 0600)
 }
 
 func FetchAndValid(
@@ -126,6 +172,8 @@ func FetchAndValid(
 		if err := writeConfigFromMierusShare(configPath, trimmed); err != nil {
 			return err
 		}
+
+		writeFetchHeaders(path, nil)
 	} else if _, err := os.Stat(configPath); os.IsNotExist(err) || force {
 		parsed, err := U.Parse(url)
 		if err != nil {
@@ -141,9 +189,12 @@ func FetchAndValid(
 
 		reportStatus(string(bytes))
 
-		if err := fetch(parsed, configPath, subscriptionFetchTimeout); err != nil {
+		header, err := fetch(parsed, configPath, subscriptionFetchTimeout)
+		if err != nil {
 			return err
 		}
+
+		writeFetchHeaders(path, header)
 	}
 
 	defer runtime.GC()
@@ -298,7 +349,9 @@ func fetchProviders(rawCfg *config.RawConfig, force bool, reportStatus func(stri
 			// behaviour): a missing rule-provider should not abort the whole
 			// import — the user can still activate the profile and the
 			// provider re-fetches on the next FetchProvidersAndValid pass.
-			_ = fetch(t.url, t.path, providerFetchTimeout)
+			// Provider response headers are irrelevant (only the subscription
+			// fetch persists them, see writeFetchHeaders).
+			_, _ = fetch(t.url, t.path, providerFetchTimeout)
 
 			current := atomic.AddInt32(&done, 1)
 			bytes, _ := json.Marshal(&Status{

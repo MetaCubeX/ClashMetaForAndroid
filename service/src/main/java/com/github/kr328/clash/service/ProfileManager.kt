@@ -3,8 +3,6 @@ package com.github.kr328.clash.service
 import android.content.Context
 import com.github.kr328.clash.common.log.Log
 import com.github.kr328.clash.common.util.SubscriptionNameGuesser
-import com.github.kr328.clash.common.util.SubscriptionOverrides
-import com.github.kr328.clash.common.util.SubscriptionRequestHeaders
 import com.github.kr328.clash.common.util.SubscriptionUsage
 import com.github.kr328.clash.core.Clash
 import com.github.kr328.clash.core.model.ProfileSnapshot
@@ -29,6 +27,7 @@ import com.github.kr328.clash.service.util.DnsHostsConfig
 import com.github.kr328.clash.service.util.DnsHostsYamlEdit
 import com.github.kr328.clash.service.util.TunnelsConfig
 import com.github.kr328.clash.service.util.TunnelsYamlEdit
+import com.github.kr328.clash.service.util.FetchHeadersFile
 import com.github.kr328.clash.service.util.directoryLastModified
 import com.github.kr328.clash.service.util.generateProfileUUID
 import com.github.kr328.clash.service.util.ProfileComposer
@@ -57,8 +56,6 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import okhttp3.OkHttpClient
-import okhttp3.Request
 import java.io.File
 import java.io.FileNotFoundException
 import java.util.*
@@ -404,72 +401,67 @@ class ProfileManager(private val context: Context) : IProfileManager,
     }
 
     suspend fun updateFlow(old: Imported) {
-        val client = OkHttpClient()
         try {
-            val request = Request.Builder()
-                .url(old.source)
-                .apply {
-                    SubscriptionRequestHeaders.build(
-                        context,
-                        SubscriptionOverrides.getUserAgent(context, old.uuid),
-                    ).forEach { (k, v) ->
-                        header(k, v)
-                    }
-                }
-                .build()
+            // ProfileProcessor.update just re-downloaded the subscription; the Go
+            // fetch persisted the response headers next to config.yaml
+            // (fetch-headers.json). Re-requesting the panel here — the old OkHttp
+            // GET — doubled traffic (panels count fetches against quota), could
+            // race the primary download, and kept a second header-decoding path
+            // alive. Absent snapshot = no HTTP response observed (content:// or a
+            // failed fetch) — same early-return the old `!response.isSuccessful`
+            // gave us.
+            val headers = FetchHeadersFile.readFrom(context.importedDir.resolve(old.uuid.toString()))
+                ?: return
 
-            client.newCall(request).execute().use { response ->
-                if (!response.isSuccessful) return
+            // Operator brand parses independently of subscription-userinfo —
+            // panels that don't carry quota (free tiers, custom auth flows)
+            // still need to brand the app. We do this BEFORE the
+            // subscription-userinfo early-return so brand survives even
+            // when the panel stops sending quota headers.
+            val brand = com.github.kr328.clash.common.branding.BrandManifestParser.parseHttpHeaders { key ->
+                headers.get(key)
+            }
+            // confirmedResponse=true: the header snapshot only exists for a fetch
+            // that completed AND passed engine validation (update() succeeded), so
+            // an empty brand here is a real "served the sub with no X-Brand-*
+            // headers" signal (not a transient failure) and feeds the debounced
+            // auto-clear.
+            BrandRefresh.apply(context, old.uuid, brand, confirmedResponse = true)
 
-                // Operator brand parses independently of subscription-userinfo —
-                // panels that don't carry quota (free tiers, custom auth flows)
-                // still need to brand the app. We do this BEFORE the
-                // subscription-userinfo early-return so brand survives even
-                // when the panel stops sending quota headers.
-                val brand = com.github.kr328.clash.common.branding.BrandManifestParser.parseHttpHeaders { key ->
-                    response.headers[key]
-                }
-                // confirmedResponse=true: we're past `if (!response.isSuccessful) return`, so an
-                // empty brand here is a real "served the sub with no X-Brand-* headers" signal
-                // (not a transient failure) and feeds the debounced auto-clear.
-                BrandRefresh.apply(context, old.uuid, brand, confirmedResponse = true)
-
-                // Re-derive the display name on EVERY update — not only when the panel sends
-                // subscription-userinfo. Tying the rename to the quota header meant subscriptions
-                // that don't send it never had their name corrected on update (the "белиберда /
-                // URL-tail" name bug). Usage/expiry still come from subscription-userinfo when
-                // present, but its absence must not skip the rename. (E-16)
-                val usage = SubscriptionUsage.parse(response.headers["subscription-userinfo"])
-                val renamed = deriveTitleFromHeaders(response.headers)
-                val effectiveName = if (looksLikeGeneratedTokenName(old.name) && !renamed.isNullOrBlank()) {
-                    renamed
-                } else {
-                    old.name
-                }
-
-                // Keep the previous quota/expiry when the panel didn't send subscription-userinfo
-                // this time, instead of zeroing them.
-                val new = Imported(
-                    old.uuid,
-                    effectiveName,
-                    old.type,
-                    old.source,
-                    old.interval,
-                    usage?.upload ?: old.upload,
-                    usage?.download ?: old.download,
-                    usage?.total ?: old.total,
-                    usage?.expireAt?.times(1000L) ?: old.expire,
-                    old.createdAt,
-                    old.profileOrder,
-                )
-
-                if (new != old) {
-                    ImportedDao().update(new)
-                    PendingDao().remove(new.uuid)
-                    context.sendProfileChanged(new.uuid)
-                }
+            // Re-derive the display name on EVERY update — not only when the panel sends
+            // subscription-userinfo. Tying the rename to the quota header meant subscriptions
+            // that don't send it never had their name corrected on update (the "белиберда /
+            // URL-tail" name bug). Usage/expiry still come from subscription-userinfo when
+            // present, but its absence must not skip the rename. (E-16)
+            val usage = SubscriptionUsage.parse(headers.get("subscription-userinfo"))
+            val renamed = deriveTitleFromHeaders(headers)
+            val effectiveName = if (looksLikeGeneratedTokenName(old.name) && !renamed.isNullOrBlank()) {
+                renamed
+            } else {
+                old.name
             }
 
+            // Keep the previous quota/expiry when the panel didn't send subscription-userinfo
+            // this time, instead of zeroing them.
+            val new = Imported(
+                old.uuid,
+                effectiveName,
+                old.type,
+                old.source,
+                old.interval,
+                usage?.upload ?: old.upload,
+                usage?.download ?: old.download,
+                usage?.total ?: old.total,
+                usage?.expireAt?.times(1000L) ?: old.expire,
+                old.createdAt,
+                old.profileOrder,
+            )
+
+            if (new != old) {
+                ImportedDao().update(new)
+                PendingDao().remove(new.uuid)
+                context.sendProfileChanged(new.uuid)
+            }
         } catch (e: Exception) {
             Log.w("updateFlow failed", e)
         }
@@ -478,8 +470,8 @@ class ProfileManager(private val context: Context) : IProfileManager,
     // Delegate to the shared resolver so import and update decode headers identically (E-19):
     // title headers → Content-Disposition filename* (RFC-5987) → Subscription-Userinfo. Keep the
     // 64-char safety cap.
-    private fun deriveTitleFromHeaders(headers: okhttp3.Headers): String? =
-        SubscriptionNameGuesser.titleFromHeaders { key -> headers[key] }
+    private fun deriveTitleFromHeaders(headers: FetchHeadersFile): String? =
+        SubscriptionNameGuesser.titleFromHeaders { key -> headers.get(key) }
             ?.let { if (it.length > 64) it.take(64) else it }
 
     private fun looksLikeGeneratedTokenName(name: String): Boolean {
