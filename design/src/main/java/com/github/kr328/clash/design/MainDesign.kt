@@ -100,7 +100,8 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         OpenCompanion,
     }
 
-    private enum class MainTab {
+    /** Public: MainActivity captures/restores the active tab across a soft recreate. */
+    enum class MainTab {
         Home,
         Profiles,
         Routing,
@@ -1302,7 +1303,6 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
      * See architecture/backend/branding.md (F-BRAND-3).
      */
     private fun showBrandDevDialog() {
-        val activity = context as? android.app.Activity ?: return
         val uuid = ServiceStore(context).activeProfile
         if (uuid == null) {
             Toast.makeText(context, "No active profile — select a subscription first", Toast.LENGTH_LONG).show()
@@ -1404,9 +1404,15 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
                         enabled = sEnabled.boolValue(),
                     ),
                 )
-                activity.recreate()
+                // Kick a dashboard refresh: fetch() re-reads the manifest and the accent
+                // staleness check resolves a soft recreate — same convergence path a real
+                // operator brand change takes (never Activity.recreate on Main).
+                profileExpandChanged.trySend(Unit)
             }
-            .setNeutralButton("Clear brand") { _, _ -> store.clearFor(uuid); activity.recreate() }
+            .setNeutralButton("Clear brand") { _, _ ->
+                store.clearFor(uuid)
+                profileExpandChanged.trySend(Unit)
+            }
             .setNegativeButton("Cancel", null)
             .show()
     }
@@ -1818,6 +1824,23 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
 
     /** Switch to the Profiles tab (the in-app profile manager) instead of opening a separate screen. */
     fun openProfilesTab() = selectMainTab(MainTab.Profiles)
+
+    /** The logical tab currently shown — captured by MainActivity before a soft recreate (D5). */
+    val currentTab: MainTab?
+        get() = mainTabForPagerPosition(binding.mainPager.currentItem)
+
+    /**
+     * Non-animated tab restore after a soft recreate. Reuses the pager-position math of
+     * [selectMainTab] but skips the smooth scroll + scroll-to-top behavior — this runs on a
+     * freshly inflated design before it is even attached. No-op if [tab] isn't in the current
+     * tab set (e.g. the Operator tab vanished with the brand that owned it).
+     */
+    fun selectTab(tab: MainTab) {
+        val logicalIndex = activeTabs.indexOf(tab)
+        if (logicalIndex < 0) return
+        binding.mainPager.setCurrentItem(logicalIndex + 1, false)
+        renderMainTab(tab)
+    }
 
     private fun selectMainTab(tab: MainTab) {
         val logicalIndex = activeTabs.indexOf(tab)

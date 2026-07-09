@@ -11,6 +11,7 @@ import com.github.kr328.clash.design.Design
 import com.github.kr328.clash.design.R as DesignR
 import com.github.kr328.clash.design.dialog.AppBottomSheetDialog
 import com.github.kr328.clash.design.ui.ToastDuration
+import com.github.kr328.clash.design.util.layoutInflater
 import com.github.kr328.clash.service.model.Profile
 import com.github.kr328.clash.service.store.ServiceStore
 import com.google.android.material.button.MaterialButton
@@ -25,8 +26,10 @@ fun BaseActivity<*>.showProfileQuickEditSheet(
     profile: Profile,
     afterSaved: suspend () -> Unit,
 ) {
-    val dialog = AppBottomSheetDialog(this, fitContentHeight = true)
-    val view = layoutInflater.inflate(R.layout.bottom_sheet_profile_quick_edit, null)
+    // Inflate from the design's context, not the activity: on the main screen the design carries
+    // the themed wrapper (brand accent lives there, never on the Activity theme).
+    val dialog = AppBottomSheetDialog(design.context, fitContentHeight = true)
+    val view = design.context.layoutInflater.inflate(R.layout.bottom_sheet_profile_quick_edit, null)
     dialog.setContentView(view)
 
     val nameInput = view.findViewById<EditText>(R.id.input_profile_name)

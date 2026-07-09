@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.github.kr328.clash.design.ui.Surface
 import com.github.kr328.clash.design.ui.ToastDuration
 import com.github.kr328.clash.design.util.currentWindowInsetsSnapshot
+import com.github.kr328.clash.design.util.hostActivity
 import com.github.kr328.clash.design.util.resolveThemedColor
 import com.github.kr328.clash.design.util.setOnInsertsChangedListener
 import com.google.android.material.snackbar.Snackbar
@@ -90,18 +91,19 @@ abstract class Design<R>(val context: Context) :
     }
 
     init {
-        when (context) {
-            is AppCompatActivity -> {
-                val decor = context.window.decorView
-                decor.currentWindowInsetsSnapshot()?.let {
-                    if (surface.insets != it) {
-                        surface.insets = it
-                    }
+        // Unwrap ContextThemeWrapper chains (MainDesign inflates from a themed wrapper over its
+        // activity) — insets always come from the hosting activity's decor.
+        val activity = context.hostActivity() as? AppCompatActivity
+        if (activity != null) {
+            val decor = activity.window.decorView
+            decor.currentWindowInsetsSnapshot()?.let {
+                if (surface.insets != it) {
+                    surface.insets = it
                 }
-                decor.setOnInsertsChangedListener {
-                    if (surface.insets != it) {
-                        surface.insets = it
-                    }
+            }
+            decor.setOnInsertsChangedListener {
+                if (surface.insets != it) {
+                    surface.insets = it
                 }
             }
         }

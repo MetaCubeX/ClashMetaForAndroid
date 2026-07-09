@@ -4,11 +4,11 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 /**
- * Guards the recreate-loop fix: `applyToActivity` (what's applied) and
- * `maybeRecreateOnAccentChange` (what's desired) both derive the accent through
+ * Guards the recreate-loop fix: `applyToActivity`/`themedContextFor` (what's applied) and
+ * `accentStale` (what's desired) all derive the accent through
  * [BrandThemeApplier.applicableAccent]. As long as that single function decides
  * applicability, applied and desired can never disagree, so an unapplicable accent
- * cannot ping-pong into an endless Activity recreate.
+ * cannot ping-pong into an endless soft-recreate storm.
  */
 class BrandThemeApplierTest {
 
