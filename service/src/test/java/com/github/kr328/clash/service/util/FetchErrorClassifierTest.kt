@@ -31,6 +31,16 @@ class FetchErrorClassifierTest {
         assertTrue(out.message!!.contains("[E-10]"), out.message)
     }
 
+    @Test fun age_armor_body_becomes_friendly() {
+        // The Go fetch decrypts in place on success; an armor body surviving to
+        // the error path means the key was missing or wrong.
+        val armor = listOf("-----BEGIN AGE ENCRYPTED FILE-----", "YWdlLWVuY3J5cHRpb24ub3JnL3Yx").joinToString(System.lineSeparator())
+        val out = FetchErrorClassifier.clarify(dirWith(armor), original)
+        assertTrue(out.message!!.contains("age-encrypted"), out.message)
+        assertTrue(out.message!!.contains("[E-30]"), out.message)
+        assertSame(original, out.cause)
+    }
+
     @Test fun valid_config_keeps_original() {
         assertSame(original, FetchErrorClassifier.clarify(dirWith("proxies: []\nrules:\n  - MATCH,DIRECT\n"), original))
     }

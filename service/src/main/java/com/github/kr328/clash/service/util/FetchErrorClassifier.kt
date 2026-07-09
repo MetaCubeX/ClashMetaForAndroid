@@ -44,6 +44,10 @@ object FetchErrorClassifier {
             looksLikeHtml(body) ->
                 "the subscription server returned a web page, not a config " +
                     "(likely rate-limited or an error page) — try again later. [E-11]"
+            looksLikeAgeArmor(body) ->
+                "the subscription is age-encrypted and the decryption key is missing or wrong — " +
+                    "import the full link from your dashboard (it carries the key), or set the " +
+                    "profile's age secret key. [E-30]"
             else -> return original // valid-looking config body → keep the engine's precise error
         }
         return IllegalStateException(reason, original)
@@ -77,6 +81,14 @@ object FetchErrorClassifier {
         }
         return false
     }
+
+    /**
+     * The body downloaded fine but is an age armor the engine couldn't decrypt
+     * (no key set, or the wrong one) — the fetch pipeline decrypts in place on
+     * success, so an armor surviving to the error path means decryption failed.
+     */
+    internal fun looksLikeAgeArmor(body: String): Boolean =
+        body.trimStart().startsWith("-----BEGIN AGE ENCRYPTED FILE-----")
 
     internal fun looksLikeHtml(body: String): Boolean {
         val head = body.trimStart().take(512).lowercase()

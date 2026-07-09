@@ -2,6 +2,7 @@ package com.github.kr328.clash.service
 
 import android.content.Context
 import com.github.kr328.clash.common.log.Log
+import com.github.kr328.clash.common.util.AgeKeyUrl
 import com.github.kr328.clash.common.util.SubscriptionNameGuesser
 import com.github.kr328.clash.common.util.SubscriptionUsage
 import com.github.kr328.clash.core.Clash
@@ -202,19 +203,25 @@ class ProfileManager(private val context: Context) : IProfileManager,
 
     override suspend fun create(type: Profile.Type, name: String, source: String): UUID {
         val uuid = generateProfileUUID()
+        // Operator links may carry the age decryption key in the URL fragment
+        // (`…#AGE-SECRET-KEY-…`) — split it into the profile field so the user
+        // never types a key by hand. Every import surface (URL form, clipboard,
+        // QR, deep-link) funnels through here.
+        val split = AgeKeyUrl.split(source)
         profileOrderLock.withLock {
             val profileOrder = nextProfileOrder()
             val pending = Pending(
                 uuid = uuid,
                 name = name,
                 type = type,
-                source = source,
+                source = split.source,
                 interval = 0,
                 upload = 0,
                 total = 0,
                 download = 0,
                 expire = 0,
                 profileOrder = profileOrder,
+                ageSecretKey = split.ageSecretKey,
             )
 
             PendingDao().insert(pending)
@@ -263,6 +270,12 @@ class ProfileManager(private val context: Context) : IProfileManager,
     }
 
     override suspend fun patch(uuid: UUID, name: String, source: String, interval: Long, ageSecretKey: String?) {
+        // A key pasted as part of the URL (fragment) wins over the separate
+        // field — it is the more deliberate input, and leaving it inside
+        // `source` would leak it into every place that renders the URL.
+        val fragmentSplit = AgeKeyUrl.split(source)
+        @Suppress("NAME_SHADOWING") val source = fragmentSplit.source
+        @Suppress("NAME_SHADOWING") val ageSecretKey = fragmentSplit.ageSecretKey ?: ageSecretKey
         val locked = store.subscriptionShareLinksLockedFor(uuid)
         val resolvedSource =
             if (!locked) {
