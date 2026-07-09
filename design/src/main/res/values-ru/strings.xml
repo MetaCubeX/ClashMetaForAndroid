@@ -522,6 +522,8 @@
     <string name="keep_connections_on_old_proxy_summary">По умолчанию ClashFest закрывает активные соединения после ручной смены прокси, чтобы новый трафик сразу пошёл через выбранный сервер. Включите эту опцию, чтобы оставлять текущие соединения на старом прокси — полезно для долгих загрузок, видеостримов или игровых сессий, которые не хочется обрывать.</string>
     <string name="proxy_switch_selector_failed">Не удалось сменить прокси. Текущие соединения не тронуты.</string>
     <string name="proxy_switch_close_connections_failed">Прокси сменён, но активные соединения закрыть не удалось.</string>
+    <string name="network_switch_reaction">Реагировать на смену сети</string>
+    <string name="network_switch_reaction_summary">При смене сети (Wi-Fi ↔ мобильный интернет) сразу закрывать устаревшие соединения и перепроверять группы прокси — автоматические группы мгновенно выбирают рабочий сервер, не дожидаясь следующей плановой проверки.</string>
 
     <string name="bypass_private_network">Игнорировать частные сети</string>
     <string name="bypass_private_network_summary">Игнорировать адреса частных сетей</string>

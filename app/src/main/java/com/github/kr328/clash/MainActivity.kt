@@ -669,6 +669,13 @@ class MainActivity : BaseActivity<MainDesign>() {
                             }
                         }
 
+                        // Sent by NetworkObserveModule after a default-network switch: stale
+                        // connections were closed and group health checks forced — re-fetch so
+                        // the Home node row shows where the auto groups converged, without
+                        // waiting for the next ticker.
+                        Event.ConnectionsChanged ->
+                            scheduleDashboardRefresh(force = true)
+
                         else -> Unit
                     }
                 }
