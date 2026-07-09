@@ -176,7 +176,15 @@ class PropertiesDesign(context: Context) : Design<PropertiesDesign.Request>(cont
         }
         binding.editUrl.doAfterTextChanged { text ->
             if (suppressFieldSync) return@doAfterTextChanged
-            profile = profile.copy(source = text?.toString().orEmpty())
+            // Operator links carry the age key in the fragment — split it into
+            // the key field right as the URL is pasted, so the user sees both
+            // fields populate and the key never lingers inside the visible URL.
+            val split = com.github.kr328.clash.common.util.AgeKeyUrl.split(text?.toString().orEmpty())
+            profile = if (split.ageSecretKey != null) {
+                profile.copy(source = split.source, ageSecretKey = split.ageSecretKey)
+            } else {
+                profile.copy(source = split.source)
+            }
         }
         binding.editInterval.doAfterTextChanged { text ->
             if (suppressFieldSync) return@doAfterTextChanged

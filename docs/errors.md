@@ -286,6 +286,7 @@ available in the `fetchProviders` closure, so this is cheaply fixable.
 | `E-10` | Body downloaded but blank | "server returned an empty response — try again later" |
 | `E-11` | Body is an HTML error/rate-limit page | "server returned a web page, not a config" |
 | `E-20` | Nothing downloaded + network-reach failure (DNS/TLS/connect timeout, host blocked) | "couldn't reach the subscription server — check your connection / host may be blocked" |
+| `E-30` | Body is an age armor the engine couldn't decrypt (missing/wrong key) | "subscription is age-encrypted — import the full link from your dashboard, or set the profile's age secret key" |
 
 `E-52` (provider-init timeout at activation) is **not** implemented: with B deferred,
 those failures stay non-fatal log lines (`initial rule provider … error`), not surfaced
