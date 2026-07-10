@@ -7,12 +7,18 @@ import com.github.kr328.clash.common.log.LogRedaction
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
-import java.io.FileOutputStream
 import java.io.InputStream
-import java.net.HttpURLConnection
+import java.net.Inet4Address
+import java.net.Inet6Address
 import java.net.InetAddress
-import java.net.URL
 import java.security.MessageDigest
+import java.util.concurrent.TimeUnit
+import okhttp3.Dns
+import okhttp3.HttpUrl
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.Response
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 
 /**
  * Downloads an operator brand logo safely. Enforces every constraint listed
@@ -39,32 +45,25 @@ object BrandLogoFetcher {
         "image/jpeg",
         "image/jpg",
     )
+    private val client = OkHttpClient.Builder()
+        .dns(PublicOnlyDns)
+        .followRedirects(false)
+        .followSslRedirects(false)
+        .connectTimeout(15, TimeUnit.SECONDS)
+        .readTimeout(15, TimeUnit.SECONDS)
+        .build()
 
     suspend fun fetch(context: Context, urlString: String): String? = withContext(Dispatchers.IO) {
         // LOG-1: never log the full URL (may carry operator tokens / query
         // params) — log only host/scheme, or redact when there's no host.
-        val parsed = runCatching { URL(urlString) }.getOrNull()
+        val parsed = urlString.toHttpsUrlOrNull()
         if (parsed == null) {
-            Log.w("BrandLogoFetcher: malformed URL: ${LogRedaction.redactSuspicious(urlString)}")
-            return@withContext null
-        }
-        if (!parsed.protocol.equals("https", ignoreCase = true)) {
-            Log.w("BrandLogoFetcher: rejected non-https URL (scheme=${parsed.protocol}, host=${parsed.host})")
-            return@withContext null
-        }
-        if (!isPublicHost(parsed.host)) {
-            Log.w(
-                "BrandLogoFetcher: SSRF guard rejected host '${parsed.host}' — " +
-                    "resolves to a private/loopback/link-local IP (this can happen when the " +
-                    "VPN tunnel is active and DNS resolves through it)",
-            )
+            Log.w("BrandLogoFetcher: rejected invalid or non-https URL: ${LogRedaction.redactSuspicious(urlString)}")
             return@withContext null
         }
 
         try {
-            val bytes = openWithSafeRedirects(parsed, 0)?.use { input ->
-                input.readWithCap(MAX_BYTES + 1)
-            } ?: return@withContext null
+            val bytes = openWithSafeRedirects(parsed, 0) ?: return@withContext null
             if (bytes.size > MAX_BYTES) return@withContext null
 
             // Bounds-only decode to reject decompression bombs.
@@ -90,49 +89,43 @@ object BrandLogoFetcher {
         }
     }
 
-    private fun openWithSafeRedirects(url: URL, hop: Int): InputStream? {
+    private fun openWithSafeRedirects(url: HttpUrl, hop: Int): ByteArray? {
         if (hop > MAX_REDIRECTS) return null
-        if (!url.protocol.equals("https", ignoreCase = true)) return null
-        if (!isPublicHost(url.host)) return null
+        if (!url.isHttps) return null
 
-        val conn = (url.openConnection() as HttpURLConnection).apply {
-            requestMethod = "GET"
-            connectTimeout = 15_000
-            readTimeout = 15_000
-            instanceFollowRedirects = false
-        }
+        val request = Request.Builder()
+            .url(url)
+            .get()
+            .build()
         return try {
-            conn.connect()
-            when (val code = conn.responseCode) {
-                in 200..299 -> {
-                    val ct = conn.contentType?.substringBefore(';')?.trim()?.lowercase()
-                    if (ct == null || ct !in ALLOWED_CONTENT_TYPES) {
-                        conn.disconnect()
-                        return null
+            client.newCall(request).execute().use { response ->
+                when (response.code) {
+                    in 200..299 -> readLogoResponse(response)
+                    301, 302, 303, 307, 308 -> {
+                        val location = response.header("Location") ?: return null
+                        val resolved = url.resolve(location) ?: return null
+                        openWithSafeRedirects(resolved, hop + 1)
                     }
-                    val length = conn.contentLengthLong
-                    if (length in 1..Long.MAX_VALUE && length > MAX_BYTES) {
-                        conn.disconnect()
-                        return null
+                    else -> {
+                        Log.w("BrandLogoFetcher HTTP ${response.code}")
+                        null
                     }
-                    SafeCloseStream(conn.inputStream, conn)
-                }
-                301, 302, 303, 307, 308 -> {
-                    val next = conn.getHeaderField("Location") ?: return null.also { conn.disconnect() }
-                    conn.disconnect()
-                    val resolved = runCatching { URL(url, next) }.getOrNull() ?: return null
-                    openWithSafeRedirects(resolved, hop + 1)
-                }
-                else -> {
-                    conn.disconnect()
-                    Log.w("BrandLogoFetcher HTTP $code")
-                    null
                 }
             }
         } catch (e: Exception) {
-            conn.disconnect()
             Log.w("BrandLogoFetcher connect failed: $e")
             null
+        }
+    }
+
+    private fun readLogoResponse(response: Response): ByteArray? {
+        val body = response.body ?: return null
+        val ct = body.contentType()?.let { "${it.type}/${it.subtype}".lowercase() }
+        if (ct == null || ct !in ALLOWED_CONTENT_TYPES) return null
+        val length = body.contentLength()
+        if (length in 1..Long.MAX_VALUE && length > MAX_BYTES) return null
+        return body.byteStream().use { input ->
+            input.readWithCap(MAX_BYTES + 1)
         }
     }
 
@@ -154,26 +147,49 @@ object BrandLogoFetcher {
         return out.toByteArray()
     }
 
-    /** Rejects private, loopback, link-local, and reserved IP space. SSRF guard. */
-    private fun isPublicHost(host: String?): Boolean {
-        if (host.isNullOrBlank()) return false
-        return try {
-            val addr = InetAddress.getByName(host)
-            !(addr.isAnyLocalAddress ||
-                addr.isLoopbackAddress ||
-                addr.isLinkLocalAddress ||
-                addr.isSiteLocalAddress ||
-                addr.isMulticastAddress ||
-                isUniqueLocalIpv6(addr))
-        } catch (_: Exception) {
-            false
+    private fun String.toHttpsUrlOrNull(): HttpUrl? {
+        val parsed = toHttpUrlOrNull() ?: return null
+        return parsed.takeIf { it.isHttps }
+    }
+
+    private object PublicOnlyDns : Dns {
+        override fun lookup(hostname: String): List<InetAddress> {
+            val addresses = Dns.SYSTEM.lookup(hostname)
+            if (addresses.isEmpty() || addresses.any { !it.isPublicAddress() }) {
+                throw java.net.UnknownHostException("BrandLogoFetcher SSRF guard rejected host")
+            }
+            return addresses
         }
     }
 
-    private fun isUniqueLocalIpv6(addr: InetAddress): Boolean {
-        if (addr.address.size != 16) return false
-        // fc00::/7
-        return (addr.address[0].toInt() and 0xFE) == 0xFC
+    private fun InetAddress.isPublicAddress(): Boolean {
+        if (isAnyLocalAddress || isLoopbackAddress || isLinkLocalAddress ||
+            isSiteLocalAddress || isMulticastAddress) {
+            return false
+        }
+
+        val bytes = address
+        if (this is Inet4Address) {
+            val first = bytes[0].toInt() and 0xFF
+            val second = bytes[1].toInt() and 0xFF
+            return !(first == 0 ||
+                first == 10 ||
+                first == 100 && second in 64..127 ||
+                first == 127 ||
+                first == 169 && second == 254 ||
+                first == 172 && second in 16..31 ||
+                first == 192 && second == 168 ||
+                first >= 224)
+        }
+
+        if (this is Inet6Address) {
+            val first = bytes[0].toInt() and 0xFF
+            val second = bytes[1].toInt() and 0xFF
+            return !(first == 0xFC || first == 0xFD ||
+                first == 0xFE && (second and 0xC0) == 0x80)
+        }
+
+        return false
     }
 
     private fun sha256Hex(input: String): String {
@@ -188,19 +204,4 @@ object BrandLogoFetcher {
     }
 
     private val HEX = "0123456789abcdef".toCharArray()
-
-    private class SafeCloseStream(
-        private val delegate: InputStream,
-        private val conn: HttpURLConnection,
-    ) : InputStream() {
-        override fun read(): Int = delegate.read()
-        override fun read(b: ByteArray, off: Int, len: Int): Int = delegate.read(b, off, len)
-        override fun close() {
-            try {
-                delegate.close()
-            } finally {
-                conn.disconnect()
-            }
-        }
-    }
 }
