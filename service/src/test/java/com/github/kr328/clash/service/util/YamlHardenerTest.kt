@@ -38,6 +38,24 @@ class YamlHardenerTest {
     }
 
     @Test
+    fun strict_dropsQuotedListenersBlock() {
+        val input = """
+            "listeners":
+              - name: leaky
+                type: socks
+                listen: 0.0.0.0
+                port: 1080
+            'proxies': []
+        """.trimIndent()
+        val hardened = YamlHardener.hardenYaml(input, ProxyHardeningMode.Strict)
+        assertNotNull(hardened)
+        val root = parse(hardened!!)
+        assertNull("Strict must remove quoted listeners blocks", root["listeners"])
+        assertFalse("Strict must strip the quoted listeners source text", hardened.contains("listen: 0.0.0.0"))
+        assertTrue("following quoted top-level keys must survive", root.containsKey("proxies"))
+    }
+
+    @Test
     fun compat_rebindsListenersToLoopback() {
         val input = """
             listeners:
@@ -163,6 +181,22 @@ class YamlHardenerTest {
         }
         // unrelated keys survive
         assertTrue(root.containsKey("proxies"))
+    }
+
+    @Test
+    fun strict_stripsQuotedGlobalProxyPorts() {
+        val input = """
+            "mixed-port": 7890
+            'socks-port': 7891
+            proxies: []
+        """.trimIndent()
+        val hardened = YamlHardener.hardenYaml(input, ProxyHardeningMode.Strict)
+        assertNotNull(hardened)
+        val root = parse(hardened!!)
+        assertNull(root["mixed-port"])
+        assertNull(root["socks-port"])
+        assertFalse(hardened.contains("mixed-port"))
+        assertFalse(hardened.contains("socks-port"))
     }
 
     @Test
