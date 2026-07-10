@@ -64,6 +64,7 @@ import com.github.kr328.clash.service.store.ServiceStore
 import com.github.kr328.clash.service.util.importedDir
 import com.github.kr328.clash.util.RussianBypassDefaults
 import com.github.kr328.clash.util.GitHubReleaseUpdate
+import com.github.kr328.clash.util.UpdateApkVerifier
 import com.github.kr328.clash.util.AppUpdateChecker
 import com.github.kr328.clash.util.showProfileQuickEditSheet
 import com.github.kr328.clash.util.closeConnectionsAfterUserProxySwitchIfEnabled
@@ -1625,6 +1626,17 @@ class MainActivity : BaseActivity<MainDesign>() {
             Toast.makeText(this, R.string.about_download_failed, Toast.LENGTH_SHORT).show()
             return
         }
+
+        val query = DownloadManager.Query().setFilterById(downloadId)
+        dm.query(query)?.use { cursor ->
+            if (!cursor.moveToFirst()) return
+            val localUri = cursor.getString(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_LOCAL_URI))
+            if (!UpdateApkVerifier.isTrustedDownloadedApk(this, localUri)) {
+                clearPendingDownloadState()
+                Toast.makeText(this, R.string.about_download_failed, Toast.LENGTH_SHORT).show()
+                return
+            }
+        } ?: return
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !packageManager.canRequestPackageInstalls()) {
             startActivity(

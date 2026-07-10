@@ -47,7 +47,9 @@ object GitHubReleaseUpdate {
                     val item = assets.optJSONObject(i) ?: continue
                     val name = item.optString("name")
                     val url = item.optString("browser_download_url")
-                    if (name.endsWith(".apk", ignoreCase = true) && url.isNotBlank()) {
+                    if (name.endsWith(".apk", ignoreCase = true) &&
+                        UpdateApkVerifier.isTrustedDownloadUrl(url)
+                    ) {
                         candidates += item
                     }
                 }
@@ -93,6 +95,7 @@ object GitHubReleaseUpdate {
         apkUrl: String,
         apkName: String?,
     ): Long {
+        if (!UpdateApkVerifier.isTrustedDownloadUrl(apkUrl)) return -1L
         val dm = context.getSystemService(DownloadManager::class.java) ?: return -1L
         val fileName = (apkName ?: "clashfest-$tagName.apk")
             .replace(Regex("""[^A-Za-z0-9._-]"""), "_")
