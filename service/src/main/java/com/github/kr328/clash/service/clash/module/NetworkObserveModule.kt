@@ -3,6 +3,7 @@ package com.github.kr328.clash.service.clash.module
 import android.app.Service
 import android.net.*
 import android.os.Build
+import android.os.Handler
 import android.os.SystemClock
 import androidx.core.content.getSystemService
 import com.github.kr328.clash.common.log.Log
@@ -10,20 +11,22 @@ import com.github.kr328.clash.core.Clash
 import com.github.kr328.clash.service.store.ServiceStore
 import com.github.kr328.clash.service.util.asSocketAddressText
 import com.github.kr328.clash.service.util.sendConnectionsChanged
-import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.selects.select
-import kotlinx.coroutines.withContext
-import kotlinx.coroutines.withTimeoutOrNull
 import java.net.InetAddress
 import java.util.concurrent.ConcurrentHashMap
 
-class NetworkObserveModule(service: Service) : Module<Network>(service) {
+class NetworkObserveModule(service: Service) : Module<Network?>(service) {
     private val connectivity = service.getSystemService<ConnectivityManager>()!!
     private val store = ServiceStore(service)
     private val networks: Channel<Network> = Channel(Channel.CONFLATED)
+    private val preferredNetworks: Channel<Network?> = Channel(Channel.CONFLATED)
     private val shouldEmitParentNetwork =
         service is VpnService && Build.VERSION.SDK_INT in 22..28
+    private val usesPlatformPreferredNetwork =
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.S ||
+            (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && service !is VpnService)
     private val request = NetworkRequest.Builder().apply {
         addCapability(NetworkCapabilities.NET_CAPABILITY_NOT_VPN)
         addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
@@ -33,9 +36,23 @@ class NetworkObserveModule(service: Service) : Module<Network>(service) {
         addCapability(NetworkCapabilities.NET_CAPABILITY_NOT_RESTRICTED)
     }.build()
 
+    /**
+     * Separate request for [ConnectivityManager.registerBestMatchingNetworkCallback]: it goes
+     * through the requestNetwork plumbing, which rejects NET_CAPABILITY_FOREGROUND with
+     * "IllegalArgumentException: Cannot request network with FOREGROUND" (device-verified on
+     * Android 16) — registering with the observe [request] above silently downgrades every
+     * 12+ device to the legacy heuristic path.
+     */
+    private val bestMatchingRequest = NetworkRequest.Builder().apply {
+        addCapability(NetworkCapabilities.NET_CAPABILITY_NOT_VPN)
+        addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+        addCapability(NetworkCapabilities.NET_CAPABILITY_NOT_RESTRICTED)
+    }.build()
+
     private data class NetworkInfo(
         @Volatile var losingMs: Long = 0,
-        @Volatile var dnsList: List<InetAddress> = emptyList()
+        @Volatile var dnsList: List<InetAddress> = emptyList(),
+        @Volatile var capabilities: NetworkCapabilities? = null,
     ) {
         fun isAvailable(): Boolean = losingMs < System.currentTimeMillis()
     }
@@ -78,6 +95,7 @@ class NetworkObserveModule(service: Service) : Module<Network>(service) {
 
         override fun onCapabilitiesChanged(network: Network, networkCapabilities: NetworkCapabilities) {
             Log.i("NetworkObserve onCapabilitiesChanged")
+            networkInfos[network]?.capabilities = networkCapabilities
             networks.trySend(network)
         }
 
@@ -86,32 +104,84 @@ class NetworkObserveModule(service: Service) : Module<Network>(service) {
         }
     }
 
+    @Volatile
+    private var callbackPreferredNetwork: Network? = null
+
+    private val preferredNetworkCallback = object : ConnectivityManager.NetworkCallback() {
+        override fun onAvailable(network: Network) {
+            Log.i("NetworkObserve preferred onAvailable: $network")
+            callbackPreferredNetwork = network
+            preferredNetworks.trySend(network)
+        }
+
+        override fun onLost(network: Network) {
+            Log.i("NetworkObserve preferred onLost: $network")
+            if (callbackPreferredNetwork == network) {
+                callbackPreferredNetwork = null
+                preferredNetworks.trySend(null)
+            }
+        }
+    }
+
+    private var callbackRegistered = false
+    private var preferredCallbackRegistered = false
+    private var platformPreferredNetwork: Network? = null
+
     private fun register(): Boolean {
         Log.i("NetworkObserve start register")
-        return try {
+        callbackRegistered = try {
             connectivity.registerNetworkCallback(request, callback)
-
             true
         } catch (e: Exception) {
             Log.w("NetworkObserve register failed", e)
-
             false
         }
+
+        if (usesPlatformPreferredNetwork) {
+            preferredCallbackRegistered = try {
+                when {
+                    Build.VERSION.SDK_INT >= Build.VERSION_CODES.S ->
+                        connectivity.registerBestMatchingNetworkCallback(
+                            bestMatchingRequest,
+                            preferredNetworkCallback,
+                            Handler(service.mainLooper),
+                        )
+
+                    Build.VERSION.SDK_INT >= Build.VERSION_CODES.N ->
+                        connectivity.registerDefaultNetworkCallback(preferredNetworkCallback)
+                }
+                true
+            } catch (e: Exception) {
+                Log.w("NetworkObserve preferred network register failed", e)
+                false
+            }
+        }
+
+        return callbackRegistered || preferredCallbackRegistered
     }
 
     private fun unregister(): Boolean {
         Log.i("NetworkObserve start unregister")
-        try {
-            connectivity.unregisterNetworkCallback(callback)
-        } catch (e: Exception) {
-            Log.w("NetworkObserve unregister failed", e)
+        if (callbackRegistered) {
+            try {
+                connectivity.unregisterNetworkCallback(callback)
+            } catch (e: Exception) {
+                Log.w("NetworkObserve unregister failed", e)
+            }
+        }
+        if (preferredCallbackRegistered) {
+            try {
+                connectivity.unregisterNetworkCallback(preferredNetworkCallback)
+            } catch (e: Exception) {
+                Log.w("NetworkObserve preferred network unregister failed", e)
+            }
         }
 
         return false
     }
 
     private fun networkToInt(entry: Map.Entry<Network, NetworkInfo>): Int {
-        val capabilities = connectivity.getNetworkCapabilities(entry.key)
+        val capabilities = entry.value.capabilities ?: connectivity.getNetworkCapabilities(entry.key)
         // calculate priority based on transport type, available state
         // lower value means higher priority
         // wifi > ethernet > usb tethering > bluetooth tethering > cellular > satellite > other
@@ -129,9 +199,20 @@ class NetworkObserveModule(service: Service) : Module<Network>(service) {
         } + (if (entry.value.isAvailable()) 0 else 10)
     }
 
-    private fun notifyDnsChange() {
-        val dnsList = (networkInfos.asSequence().minByOrNull { networkToInt(it) }?.value?.dnsList
-            ?: emptyList()).map { x -> x.asSocketAddressText(53) }
+    private fun selectLegacyPreferredNetwork(): Network? {
+        val available = networkInfos.entries.filter { it.value.isAvailable() }
+        val validated = available.filter {
+            it.value.capabilities?.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED) == true
+        }
+        return (validated.ifEmpty { available }).minByOrNull { networkToInt(it) }?.key
+    }
+
+    private fun notifyDnsChange(network: Network? = currentPreferredNetwork()) {
+        val dnsServers = network?.let {
+            networkInfos[it]?.dnsList?.takeIf(List<InetAddress>::isNotEmpty)
+                ?: connectivity.getLinkProperties(it)?.dnsServers
+        } ?: emptyList()
+        val dnsList = dnsServers.map { it.asSocketAddressText(53) }
         val prevDnsList = curDnsList
         if (prevDnsList != dnsList) {
             Log.i("notifyDnsChange updated: ${prevDnsList.size} -> ${dnsList.size}")
@@ -140,91 +221,130 @@ class NetworkObserveModule(service: Service) : Module<Network>(service) {
         }
     }
 
-    /** Highest-priority (= default route) network we last observed, per [networkToInt]. */
-    @Volatile
-    private var defaultNetwork: Network? = null
-    private var defaultNetworkInitialized = false
-    private var lastSwitchReactionAt = 0L
     private val moduleStartedAt = SystemClock.elapsedRealtime()
+    private val switchGate = NetworkSwitchReactionGate<Network>(moduleStartedAt)
+    private var pendingSwitchRetry: Job? = null
+    private var lastParentNetwork: Network? = null
+    private var parentNetworkInitialized = false
 
-    /**
-     * The missing half of network handling (the callback above only refreshes DNS): when the
-     * DEFAULT network actually changes — Wi-Fi <-> cellular, Wi-Fi roaming, airplane-mode
-     * recovery — the engine's existing sockets ran over the dead network and its
-     * fallback/url-test groups won't re-evaluate the world until their test `interval` expires
-     * (minutes of "VPN on, nothing loads", e.g. leaving home Wi-Fi onto whitelisted LTE).
-     *
-     * So on a real switch we (1) close stale connections — re-dials go out over the new network
-     * and re-match the current group state, and (2) force-run group health checks so
-     * fallback/url-test converge in one probe round-trip instead of an interval. Capability
-     * chirps on the SAME network don't qualify — only a change of the winning [Network] handle.
-     */
-    private fun reactToDefaultNetworkSwitch() {
-        val winner = networkInfos.entries.minByOrNull { networkToInt(it) }?.key
-        if (!defaultNetworkInitialized) {
-            // First observation after module start: just record it. VPN startup delivers the
-            // initial batch of onAvailable events — reacting there would kill newborn
-            // connections for no reason.
-            defaultNetworkInitialized = true
-            defaultNetwork = winner
-            return
-        }
-        if (winner == defaultNetwork) return
-        // Everything vanished (airplane mode): nothing to probe; the recovery event reacts.
-        if (winner == null) {
-            defaultNetwork = null
-            return
-        }
-        if (!store.networkSwitchReaction) {
-            defaultNetwork = winner
-            return
+    private fun currentPreferredNetwork(): Network? =
+        if (usesPlatformPreferredNetwork && preferredCallbackRegistered) {
+            platformPreferredNetwork
+        } else {
+            selectLegacyPreferredNetwork()
         }
 
-        val now = SystemClock.elapsedRealtime()
-        if (now - moduleStartedAt < 5_000) {
-            // Startup grace: the initial event burst can elect Wi-Fi after briefly seeing
-            // cellular — commit without reacting.
-            defaultNetwork = winner
-            return
-        }
-        // Flap guard: a bouncing network must not storm the engine with close/probe cycles.
-        // Deliberately do NOT commit defaultNetwork here — the periodic capability chirps of
-        // the surviving network retry the reaction once the guard window has passed, so a
-        // switch that lands inside the window is deferred, not lost.
-        if (now - lastSwitchReactionAt < 3_000) return
-        lastSwitchReactionAt = now
-        defaultNetwork = winner
-
-        val closed = Clash.closeAllConnections()
-        Clash.healthCheckAll()
-        Log.i("NetworkObserve default network switched -> $winner: closed $closed stale connections, forced group health checks")
-        // Nudge the UI (Event.ConnectionsChanged) so the dashboard re-fetches where the auto
-        // groups converged instead of waiting for the next ticker.
-        service.sendConnectionsChanged()
+    private fun CoroutineScope.observePreferredNetwork(network: Network?) {
+        applySwitchDecision(
+            switchGate.observe(
+                candidate = network,
+                now = SystemClock.elapsedRealtime(),
+                enabled = store.networkSwitchReaction,
+            )
+        )
     }
 
-    override suspend fun run() {
+    private fun CoroutineScope.applySwitchDecision(
+        decision: NetworkSwitchReactionDecision<Network>,
+    ) {
+        if (decision.cancelPendingRetry) {
+            pendingSwitchRetry?.cancel()
+            pendingSwitchRetry = null
+        }
+
+        val retryAfterMs = decision.retryAfterMs
+        if (retryAfterMs != null) {
+            pendingSwitchRetry = launch {
+                delay(retryAfterMs)
+                pendingSwitchRetry = null
+                applySwitchDecision(
+                    switchGate.retry(
+                        candidate = currentPreferredNetwork(),
+                        now = SystemClock.elapsedRealtime(),
+                        enabled = store.networkSwitchReaction,
+                    )
+                )
+            }
+            return
+        }
+
+        decision.reaction?.let { reactToPreferredNetworkSwitch(it) }
+    }
+
+    private fun CoroutineScope.reactToPreferredNetworkSwitch(network: Network) {
+        val closed = Clash.closeAllConnections()
+        service.sendConnectionsChanged()
+        Log.i("NetworkObserve preferred network switched -> $network: closed $closed stale connections")
+
+        launch {
+            try {
+                val groups = Clash.queryAllGroupNamesIncludingHidden()
+                val checks = groups.map { it to Clash.healthCheck(it) }
+                var failures = 0
+                checks.forEach { (name, check) ->
+                    try {
+                        check.await()
+                    } catch (e: CancellationException) {
+                        throw e
+                    } catch (e: Exception) {
+                        failures++
+                        Log.w("NetworkObserve health check failed for group $name", e)
+                    }
+                }
+
+                Log.i("NetworkObserve health checks completed: ${groups.size - failures}/${groups.size}")
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Log.w("NetworkObserve could not start group health checks", e)
+            }
+            service.sendConnectionsChanged()
+        }
+    }
+
+    private suspend fun emitParentNetworkIfChanged(network: Network?) {
+        if (!shouldEmitParentNetwork) return
+        if (parentNetworkInitialized && network == lastParentNetwork) return
+
+        parentNetworkInitialized = true
+        lastParentNetwork = network
+        enqueueEvent(network)
+    }
+
+    override suspend fun run() = coroutineScope {
         register()
 
         try {
             while (true) {
                 val quit = select {
                     networks.onReceive {
-                        val network = coalesceNetworkEvents(it)
-                        notifyDnsChange()
-                        reactToDefaultNetworkSwitch()
-                        if (shouldEmitParentNetwork) {
-                            enqueueEvent(network)
+                        coalesceNetworkEvents(it)
+                        if (!usesPlatformPreferredNetwork || !preferredCallbackRegistered) {
+                            val preferred = selectLegacyPreferredNetwork()
+                            notifyDnsChange(preferred)
+                            observePreferredNetwork(preferred)
+                            emitParentNetworkIfChanged(preferred)
+                        } else {
+                            notifyDnsChange()
                         }
 
                         false
                     }
+                    if (usesPlatformPreferredNetwork && preferredCallbackRegistered) {
+                        preferredNetworks.onReceive { network ->
+                            platformPreferredNetwork = network
+                            notifyDnsChange(network)
+                            observePreferredNetwork(network)
+                            false
+                        }
+                    }
                 }
                 if (quit) {
-                    return
+                    return@coroutineScope
                 }
             }
         } finally {
+            pendingSwitchRetry?.cancel()
             withContext(NonCancellable) {
                 unregister()
 
