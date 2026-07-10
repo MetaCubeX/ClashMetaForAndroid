@@ -36,6 +36,19 @@ class NetworkObserveModule(service: Service) : Module<Network?>(service) {
         addCapability(NetworkCapabilities.NET_CAPABILITY_NOT_RESTRICTED)
     }.build()
 
+    /**
+     * Separate request for [ConnectivityManager.registerBestMatchingNetworkCallback]: it goes
+     * through the requestNetwork plumbing, which rejects NET_CAPABILITY_FOREGROUND with
+     * "IllegalArgumentException: Cannot request network with FOREGROUND" (device-verified on
+     * Android 16) — registering with the observe [request] above silently downgrades every
+     * 12+ device to the legacy heuristic path.
+     */
+    private val bestMatchingRequest = NetworkRequest.Builder().apply {
+        addCapability(NetworkCapabilities.NET_CAPABILITY_NOT_VPN)
+        addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+        addCapability(NetworkCapabilities.NET_CAPABILITY_NOT_RESTRICTED)
+    }.build()
+
     private data class NetworkInfo(
         @Volatile var losingMs: Long = 0,
         @Volatile var dnsList: List<InetAddress> = emptyList(),
@@ -129,7 +142,7 @@ class NetworkObserveModule(service: Service) : Module<Network?>(service) {
                 when {
                     Build.VERSION.SDK_INT >= Build.VERSION_CODES.S ->
                         connectivity.registerBestMatchingNetworkCallback(
-                            request,
+                            bestMatchingRequest,
                             preferredNetworkCallback,
                             Handler(service.mainLooper),
                         )
