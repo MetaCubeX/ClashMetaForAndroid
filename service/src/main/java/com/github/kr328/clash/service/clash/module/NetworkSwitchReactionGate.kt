@@ -13,12 +13,14 @@ internal class NetworkSwitchReactionGate<T : Any>(
 ) {
     private var initialized = false
     private var observed: T? = null
+    private var settled: T? = null
     private var lastReactionAt: Long? = null
 
     fun observe(candidate: T?, now: Long, enabled: Boolean): NetworkSwitchReactionDecision<T> {
         if (!initialized) {
             initialized = true
             observed = candidate
+            settled = candidate
             return NetworkSwitchReactionDecision(cancelPendingRetry = true)
         }
         if (candidate == observed) return NetworkSwitchReactionDecision()
@@ -38,7 +40,15 @@ internal class NetworkSwitchReactionGate<T : Any>(
         now: Long,
         enabled: Boolean,
     ): NetworkSwitchReactionDecision<T> {
-        if (candidate == null || !enabled || now - startedAt < startupGraceMs) {
+        if (candidate == null) {
+            settled = null
+            return NetworkSwitchReactionDecision(cancelPendingRetry = true)
+        }
+        if (!enabled || now - startedAt < startupGraceMs) {
+            settled = candidate
+            return NetworkSwitchReactionDecision(cancelPendingRetry = true)
+        }
+        if (candidate == settled) {
             return NetworkSwitchReactionDecision(cancelPendingRetry = true)
         }
 
@@ -54,6 +64,7 @@ internal class NetworkSwitchReactionGate<T : Any>(
         }
 
         lastReactionAt = now
+        settled = candidate
         return NetworkSwitchReactionDecision(
             reaction = candidate,
             cancelPendingRetry = true,

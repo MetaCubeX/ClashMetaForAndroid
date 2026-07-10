@@ -59,6 +59,22 @@ class NetworkSwitchReactionGateTest {
     }
 
     @Test
+    fun returningToSettledNetworkCancelsDeferredReaction() {
+        val gate = NetworkSwitchReactionGate<String>(startedAt = 0L)
+        gate.observe("wifi", now = 0L, enabled = true)
+        gate.observe("cellular", now = 5_000L, enabled = true)
+
+        val deferred = gate.observe("wifi", now = 7_000L, enabled = true)
+        assertEquals(1_000L, deferred.retryAfterMs)
+
+        val recovered = gate.observe("cellular", now = 7_500L, enabled = true)
+
+        assertNull(recovered.reaction)
+        assertNull(recovered.retryAfterMs)
+        assertTrue(recovered.cancelPendingRetry)
+    }
+
+    @Test
     fun airplaneModeCancelsRetryAndRecoveryReacts() {
         val gate = NetworkSwitchReactionGate<String>(startedAt = 0L)
         gate.observe("wifi", now = 0L, enabled = true)
