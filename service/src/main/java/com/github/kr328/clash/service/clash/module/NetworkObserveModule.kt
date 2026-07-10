@@ -22,6 +22,7 @@ class NetworkObserveModule(service: Service) : Module<Network?>(service) {
     private val store = ServiceStore(service)
     private val networks: Channel<Network> = Channel(Channel.CONFLATED)
     private val preferredNetworks: Channel<Network?> = Channel(Channel.CONFLATED)
+    private val switchRetries: Channel<Long> = Channel(Channel.UNLIMITED)
     private val shouldEmitParentNetwork =
         service is VpnService && Build.VERSION.SDK_INT in 22..28
     private val usesPlatformPreferredNetwork =
@@ -125,7 +126,6 @@ class NetworkObserveModule(service: Service) : Module<Network?>(service) {
 
     private var callbackRegistered = false
     private var preferredCallbackRegistered = false
-    private var platformPreferredNetwork: Network? = null
 
     private fun register(): Boolean {
         Log.i("NetworkObserve start register")
@@ -224,12 +224,13 @@ class NetworkObserveModule(service: Service) : Module<Network?>(service) {
     private val moduleStartedAt = SystemClock.elapsedRealtime()
     private val switchGate = NetworkSwitchReactionGate<Network>(moduleStartedAt)
     private var pendingSwitchRetry: Job? = null
+    private var switchRetryGeneration = 0L
     private var lastParentNetwork: Network? = null
     private var parentNetworkInitialized = false
 
     private fun currentPreferredNetwork(): Network? =
         if (usesPlatformPreferredNetwork && preferredCallbackRegistered) {
-            platformPreferredNetwork
+            callbackPreferredNetwork
         } else {
             selectLegacyPreferredNetwork()
         }
@@ -250,20 +251,15 @@ class NetworkObserveModule(service: Service) : Module<Network?>(service) {
         if (decision.cancelPendingRetry) {
             pendingSwitchRetry?.cancel()
             pendingSwitchRetry = null
+            switchRetryGeneration++
         }
 
         val retryAfterMs = decision.retryAfterMs
         if (retryAfterMs != null) {
+            val generation = switchRetryGeneration
             pendingSwitchRetry = launch {
                 delay(retryAfterMs)
-                pendingSwitchRetry = null
-                applySwitchDecision(
-                    switchGate.retry(
-                        candidate = currentPreferredNetwork(),
-                        now = SystemClock.elapsedRealtime(),
-                        enabled = store.networkSwitchReaction,
-                    )
-                )
+                switchRetries.trySend(generation)
             }
             return
         }
@@ -332,11 +328,23 @@ class NetworkObserveModule(service: Service) : Module<Network?>(service) {
                     }
                     if (usesPlatformPreferredNetwork && preferredCallbackRegistered) {
                         preferredNetworks.onReceive { network ->
-                            platformPreferredNetwork = network
                             notifyDnsChange(network)
                             observePreferredNetwork(network)
                             false
                         }
+                    }
+                    switchRetries.onReceive { generation ->
+                        if (generation == switchRetryGeneration) {
+                            pendingSwitchRetry = null
+                            applySwitchDecision(
+                                switchGate.retry(
+                                    candidate = currentPreferredNetwork(),
+                                    now = SystemClock.elapsedRealtime(),
+                                    enabled = store.networkSwitchReaction,
+                                )
+                            )
+                        }
+                        false
                     }
                 }
                 if (quit) {
