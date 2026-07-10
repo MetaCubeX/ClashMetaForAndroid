@@ -27,6 +27,7 @@
         android:allowBackup="true"
         android:banner="@mipmap/ic_banner"
         android:fullBackupContent="@xml/full_backup_content"
+        android:dataExtractionRules="@xml/data_extraction_rules"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/application_name"
         android:localeConfig="@xml/locales_config"
