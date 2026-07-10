@@ -115,13 +115,7 @@ class ConfigurationModule(service: Service) : Module<ConfigurationModule.LoadExc
                 // fetch) still needs the engine-side key at load.
                 Clash.setAgeSecretKey(active.ageSecretKey?.takeIf { it.isNotBlank() })
 
-                suspend fun applyPostLoad() {
-                    val staleProviderKeySelections = SelectionDao().querySelections(active.uuid)
-                        .filter { it.selected.matches(Regex("^sub\\d+$", RegexOption.IGNORE_CASE)) }
-                    for (s in staleProviderKeySelections) {
-                        SelectionDao().removeSelected(s.uuid, s.proxy)
-                    }
-
+                fun applySessionOverrideBeforeLoad() {
                     val sessionOverride = Clash.queryOverride(Clash.OverrideSlot.Session)
                     val hardened = ProxyHardener.applyTo(
                         configuration = sessionOverride,
@@ -130,6 +124,14 @@ class ConfigurationModule(service: Service) : Module<ConfigurationModule.LoadExc
                     )
                     if (hardened) {
                         Clash.patchOverride(Clash.OverrideSlot.Session, sessionOverride)
+                    }
+                }
+
+                suspend fun applyPostLoad() {
+                    val staleProviderKeySelections = SelectionDao().querySelections(active.uuid)
+                        .filter { it.selected.matches(Regex("^sub\\d+$", RegexOption.IGNORE_CASE)) }
+                    for (s in staleProviderKeySelections) {
+                        SelectionDao().removeSelected(s.uuid, s.proxy)
                     }
 
                     val remove = SelectionDao().querySelections(active.uuid)
@@ -169,6 +171,7 @@ class ConfigurationModule(service: Service) : Module<ConfigurationModule.LoadExc
                     try {
                         GeoUrlSanitizer.sanitizeProfile(profileDir)
                         service.ensureBundledGeoAssets()
+                        applySessionOverrideBeforeLoad()
                         Clash.load(profileDir).await()
                         applyPostLoad()
                         break
