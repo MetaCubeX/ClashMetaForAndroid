@@ -113,7 +113,7 @@ class MihomoConfigDocument private constructor(
 }
 
 private object TopLevelYamlBlockPatcher {
-    private val topLevelKeyPattern = Regex("^[A-Za-z0-9_.-]+\\s*:.*$")
+    private val topLevelKeyPattern = Regex("""^(?:[A-Za-z0-9_.-]+|"(?:[^"\\]|\\.)+"|'(?:[^']|'')+')\s*:.*$""")
 
     fun replace(text: String, key: String, value: Any?): String {
         val replacement = YamlFormatting.blockYaml()
@@ -184,7 +184,8 @@ private object TopLevelYamlBlockPatcher {
 
     private fun isTopLevelKey(line: String, key: String): Boolean {
         if (line.startsWith(' ') || line.startsWith('\t')) return false
-        return line == "$key:" || line.startsWith("$key:")
+        val escapedKey = Regex.escape(key)
+        return Regex("^(?:$escapedKey|\"$escapedKey\"|'$escapedKey')\\s*:.*$").matches(line)
     }
 
     private fun isAnyTopLevelKey(line: String): Boolean {
