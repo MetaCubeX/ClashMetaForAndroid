@@ -18,6 +18,7 @@ dependencies {
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
     implementation(libs.kaidl.runtime)
+    implementation(libs.okhttp)
     implementation(libs.rikkax.multiprocess)
     implementation("org.yaml:snakeyaml:2.2")
 
