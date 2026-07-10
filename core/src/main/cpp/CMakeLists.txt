@@ -83,8 +83,8 @@ else ()
 endif ()
 message(STATUS "version info = ${GIT_VERSION}")
 
-# 去除空格
-string(REGEX REPLACE "[ ]+" "" GIT_VERSION "${GIT_VERSION}")
+# Keep Git metadata as inert preprocessor tokens before version.h stringifies it.
+string(REGEX REPLACE "[^A-Za-z0-9._-]+" "_" GIT_VERSION "${GIT_VERSION}")
 
 # 保存变量到文件
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/version.h.in ${CMAKE_CURRENT_SOURCE_DIR}/version.h @ONLY)
