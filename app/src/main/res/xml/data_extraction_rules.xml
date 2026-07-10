@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<data-extraction-rules>
+    <cloud-backup>
+        <include
+            domain="sharedpref"
+            path="." />
+        <include
+            domain="database"
+            path="." />
+        <exclude
+            domain="database"
+            path="profiles" />
+        <exclude
+            domain="database"
+            path="profiles-shm" />
+        <exclude
+            domain="database"
+            path="profiles-wal" />
+        <include
+            domain="file"
+            path="imported" />
+        <exclude
+            domain="file"
+            path="imported" />
+        <include
+            domain="file"
+            path="pending" />
+        <exclude
+            domain="file"
+            path="pending" />
+        <include
+            domain="file"
+            path="clash/override.json" />
+    </cloud-backup>
+    <device-transfer>
+        <include
+            domain="sharedpref"
+            path="." />
+        <include
+            domain="database"
+            path="." />
+        <exclude
+            domain="database"
+            path="profiles" />
+        <exclude
+            domain="database"
+            path="profiles-shm" />
+        <exclude
+            domain="database"
+            path="profiles-wal" />
+        <include
+            domain="file"
+            path="imported" />
+        <exclude
+            domain="file"
+            path="imported" />
+        <include
+            domain="file"
+            path="pending" />
+        <exclude
+            domain="file"
+            path="pending" />
+        <include
+            domain="file"
+            path="clash/override.json" />
+    </device-transfer>
+</data-extraction-rules>

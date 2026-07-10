@@ -6,10 +6,25 @@
     <include
         domain="database"
         path="." />
+    <exclude
+        domain="database"
+        path="profiles" />
+    <exclude
+        domain="database"
+        path="profiles-shm" />
+    <exclude
+        domain="database"
+        path="profiles-wal" />
     <include
         domain="file"
         path="imported" />
+    <exclude
+        domain="file"
+        path="imported" />
     <include
+        domain="file"
+        path="pending" />
+    <exclude
         domain="file"
         path="pending" />
     <include
