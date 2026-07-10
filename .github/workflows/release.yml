@@ -11,6 +11,7 @@ permissions:
 jobs:
   release:
     runs-on: ubuntu-latest
+    environment: production-release
 
     steps:
       - name: Checkout
@@ -82,6 +83,10 @@ jobs:
             cp "$apk" "release-artifacts/$out"
           done
           ls -la release-artifacts
+
+      - name: Remove signing files before publishing
+        if: always()
+        run: rm -f release.keystore signing.properties
 
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
