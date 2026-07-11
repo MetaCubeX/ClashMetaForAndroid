@@ -211,18 +211,16 @@ object AppUpdateChecker {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
 
-        // Route Download & install through MainActivity instead of a BroadcastReceiver:
-        // Android 8+ blocks manifest-declared receivers for DownloadManager.ACTION_DOWNLOAD_COMPLETE
-        // (implicit broadcast restriction), so a background receiver can't auto-fire the installer.
-        // Opening MainActivity lets it register a runtime receiver and own the download id end-to-end.
+        // Security-sensitive update extras go only to the non-exported receiver. It enqueues the
+        // verified GitHub asset and then opens MainActivity normally so its runtime completion
+        // receiver can own the download end-to-end.
         val downloadAndInstallPendingIntent = if (!release.apkUrl.isNullOrBlank()) {
-            val installIntent = Intent(context, MainActivity::class.java)
-                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
-                .setAction(MainActivity.ACTION_DOWNLOAD_AND_INSTALL_UPDATE)
-                .putExtra(MainActivity.EXTRA_UPDATE_TAG, release.tagName)
-                .putExtra(MainActivity.EXTRA_UPDATE_APK_URL, release.apkUrl)
-                .putExtra(MainActivity.EXTRA_UPDATE_APK_NAME, release.apkName)
-            PendingIntent.getActivity(
+            val installIntent = Intent(context, UpdateActionReceiver::class.java)
+                .setAction(UpdateActionReceiver.ACTION_DOWNLOAD_AND_INSTALL)
+                .putExtra(UpdateActionReceiver.EXTRA_TAG, release.tagName)
+                .putExtra(UpdateActionReceiver.EXTRA_APK_URL, release.apkUrl)
+                .putExtra(UpdateActionReceiver.EXTRA_APK_NAME, release.apkName)
+            PendingIntent.getBroadcast(
                 context,
                 ACTION_DOWNLOAD_REQUEST_CODE,
                 installIntent,

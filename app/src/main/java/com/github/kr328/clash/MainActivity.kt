@@ -1701,41 +1701,6 @@ class MainActivity : BaseActivity<MainDesign>() {
             AppUpdateChecker.resetIfUpdated(this, current)
         }
 
-        handleUpdateIntent(intent)
-    }
-
-    override fun onNewIntent(intent: Intent) {
-        super.onNewIntent(intent)
-        handleUpdateIntent(intent)
-    }
-
-    /** Triggered when user taps "Download & install" on the update notification.
-     *  Enqueue the APK from inside the Activity so our runtime receiver owns the download id
-     *  end-to-end — manifest receivers for DOWNLOAD_COMPLETE are blocked on Android 8+. */
-    private fun handleUpdateIntent(intent: Intent?) {
-        if (intent?.action != ACTION_DOWNLOAD_AND_INSTALL_UPDATE) return
-        val tag = intent.getStringExtra(EXTRA_UPDATE_TAG).orEmpty()
-        val url = intent.getStringExtra(EXTRA_UPDATE_APK_URL).orEmpty()
-        val name = intent.getStringExtra(EXTRA_UPDATE_APK_NAME)
-        // Consume so a configuration change doesn't re-enqueue.
-        intent.action = null
-        if (url.isBlank()) return
-        AppUpdateChecker.dismissUpdateNotification(this)
-        runCatching {
-            val id = GitHubReleaseUpdate.enqueueApkDownload(
-                context = this,
-                tagName = tag.ifBlank { "update" },
-                apkUrl = url,
-                apkName = name,
-            )
-            if (id > 0L) {
-                pendingApkDownloadId = id
-                updatePrefs.edit().putLong("pending_download_id", id).apply()
-                Toast.makeText(this, R.string.about_download_started, Toast.LENGTH_SHORT).show()
-            }
-        }.onFailure {
-            Toast.makeText(this, R.string.about_download_failed, Toast.LENGTH_SHORT).show()
-        }
     }
 
     override fun onResume() {
@@ -1764,7 +1729,7 @@ class MainActivity : BaseActivity<MainDesign>() {
     /**
      * In-app counterpart of the system update notification. Reads the cached release from
      * SharedPreferences so it opens instantly; the Download & install button feeds into the
-     * same [ACTION_DOWNLOAD_AND_INSTALL_UPDATE] flow the notification action uses.
+     * same verified download helper the notification action uses.
      */
     private fun showUpdateAvailableDialog() {
         val info = AppUpdateChecker.peekCachedRelease(this) ?: return
@@ -2229,11 +2194,4 @@ class MainActivity : BaseActivity<MainDesign>() {
         startActivity(hubIntent)
     }
 
-    companion object {
-        const val ACTION_DOWNLOAD_AND_INSTALL_UPDATE =
-            "com.github.kr328.clash.action.MAIN_DOWNLOAD_INSTALL_UPDATE"
-        const val EXTRA_UPDATE_TAG = "extra_update_tag"
-        const val EXTRA_UPDATE_APK_URL = "extra_update_apk_url"
-        const val EXTRA_UPDATE_APK_NAME = "extra_update_apk_name"
-    }
 }

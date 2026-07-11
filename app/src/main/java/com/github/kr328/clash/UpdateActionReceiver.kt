@@ -8,6 +8,7 @@ import android.net.Uri
 import android.os.Build
 import android.provider.Settings
 import com.github.kr328.clash.common.log.Log
+import com.github.kr328.clash.util.AppUpdateChecker
 import com.github.kr328.clash.util.GitHubReleaseUpdate
 import com.github.kr328.clash.util.UpdateApkVerifier
 
@@ -21,12 +22,19 @@ class UpdateActionReceiver : BroadcastReceiver() {
                 val name = intent.getStringExtra(EXTRA_APK_NAME)
                 if (url.isBlank()) return
                 runCatching {
-                    GitHubReleaseUpdate.enqueueApkDownload(
+                    val id = GitHubReleaseUpdate.enqueueApkDownload(
                         context = app,
                         tagName = tag.ifBlank { "update" },
                         apkUrl = url,
                         apkName = name,
                     )
+                    if (id > 0L) {
+                        AppUpdateChecker.dismissUpdateNotification(app)
+                        app.startActivity(
+                            Intent(app, MainActivity::class.java)
+                                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP),
+                        )
+                    }
                 }.onFailure {
                     Log.w("Update action enqueue failed: ${it.message}")
                 }
@@ -34,7 +42,7 @@ class UpdateActionReceiver : BroadcastReceiver() {
 
             ACTION_OPEN_RELEASE_PAGE -> {
                 val url = intent.getStringExtra(EXTRA_RELEASE_URL).orEmpty()
-                if (url.isBlank()) return
+                if (!UpdateApkVerifier.isTrustedReleasePageUrl(url)) return
                 runCatching {
                     app.startActivity(
                         Intent(Intent.ACTION_VIEW, Uri.parse(url))

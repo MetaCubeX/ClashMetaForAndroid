@@ -16,20 +16,37 @@ object UpdateApkVerifier {
     private const val TRUSTED_REPO = "ClashFest"
 
     fun isTrustedDownloadUrl(url: String?): Boolean {
-        if (url.isNullOrBlank()) return false
-        val uri = runCatching { URI(url) }.getOrNull() ?: return false
-        if (!uri.scheme.equals(TRUSTED_SCHEME, ignoreCase = true)) return false
-        if (!uri.host.equals(TRUSTED_HOST, ignoreCase = true)) return false
+        val uri = trustedGitHubUri(url) ?: return false
 
         val segments = uri.path.orEmpty()
             .split('/')
             .filter { it.isNotBlank() }
-        if (segments.size < 5) return false
+        if (segments.size != 6) return false
         return segments[0].equals(TRUSTED_OWNER, ignoreCase = true) &&
             segments[1].equals(TRUSTED_REPO, ignoreCase = true) &&
             segments[2].equals("releases", ignoreCase = true) &&
             segments[3].equals("download", ignoreCase = true) &&
             segments.last().lowercase(Locale.ROOT).endsWith(".apk")
+    }
+
+    fun isTrustedReleasePageUrl(url: String?): Boolean {
+        val uri = trustedGitHubUri(url) ?: return false
+        val segments = uri.path.orEmpty().split('/').filter { it.isNotBlank() }
+        return segments.size == 5 &&
+            segments[0].equals(TRUSTED_OWNER, ignoreCase = true) &&
+            segments[1].equals(TRUSTED_REPO, ignoreCase = true) &&
+            segments[2].equals("releases", ignoreCase = true) &&
+            segments[3].equals("tag", ignoreCase = true) &&
+            segments[4].isNotBlank()
+    }
+
+    private fun trustedGitHubUri(url: String?): URI? {
+        if (url.isNullOrBlank()) return null
+        val uri = runCatching { URI(url) }.getOrNull() ?: return null
+        if (!uri.scheme.equals(TRUSTED_SCHEME, ignoreCase = true)) return null
+        if (!uri.host.equals(TRUSTED_HOST, ignoreCase = true)) return null
+        if (uri.rawUserInfo != null || uri.port != -1 || uri.rawQuery != null || uri.rawFragment != null) return null
+        return uri
     }
 
     fun isTrustedDownloadedApk(context: Context, localUri: String?): Boolean {

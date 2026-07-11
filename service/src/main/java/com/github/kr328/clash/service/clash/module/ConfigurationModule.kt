@@ -11,7 +11,6 @@ import com.github.kr328.clash.service.store.ServiceStore
 import com.github.kr328.clash.service.util.GeoUrlSanitizer
 import com.github.kr328.clash.service.util.ProfileOverlay
 import com.github.kr328.clash.service.util.ProxyDialerYamlEdit
-import com.github.kr328.clash.service.util.ProxyGroupsYamlEdit
 import com.github.kr328.clash.service.util.ProxyHardener
 import com.github.kr328.clash.service.util.ensureBundledGeoAssets
 import com.github.kr328.clash.service.util.importedDir
@@ -38,21 +37,6 @@ class ConfigurationModule(service: Service) : Module<ConfigurationModule.LoadExc
         val msg = fullThrowableMessage(e).lowercase()
         if (!msg.contains("dialer-proxy")) return false
         return msg.contains("not found") || msg.contains("circular")
-    }
-
-    /**
-     * [outboundgroup.getProxies]/getProviders — stale member names in composed `proxy-groups`
-     * after a subscription update (overlay composition).
-     */
-    private fun extractQuotedNotFoundName(e: Throwable): String? {
-        val re = Regex("'([^']*)'\\s+not\\s+found", RegexOption.IGNORE_CASE)
-        return re.find(fullThrowableMessage(e))?.groupValues?.getOrNull(1)?.trim()?.takeIf { it.isNotEmpty() }
-    }
-
-    private fun isProxyGroupStaleReferenceFailure(e: Throwable): Boolean {
-        val msg = fullThrowableMessage(e).lowercase()
-        if (!msg.contains("proxy group[")) return false
-        return extractQuotedNotFoundName(e) != null
     }
 
     private val store = ServiceStore(service)
@@ -194,22 +178,6 @@ class ConfigurationModule(service: Service) : Module<ConfigurationModule.LoadExc
                                 Log.w(
                                     "Invalid dialer-proxy in YAML (e.g. renamed nodes); stripped all dialer-proxy and retrying load",
                                 )
-                            }
-                            isProxyGroupStaleReferenceFailure(e) -> {
-                                val stale = extractQuotedNotFoundName(e)
-                                if (stale != null &&
-                                    ProxyGroupsYamlEdit.removeStaleNameFromAllProxyGroups(profileDir, stale)
-                                ) {
-                                    Log.w(
-                                        "Stale proxy-group reference removed from config.yaml; retrying load (name omitted)",
-                                    )
-                                } else {
-                                    Log.e("Failed to load active profile, keeping runtime alive", e)
-                                    if (loaded == null) {
-                                        return enqueueEvent(LoadException(e.message ?: "Unknown"))
-                                    }
-                                    break
-                                }
                             }
                             else -> {
                                 Log.e("Failed to load active profile, keeping runtime alive", e)

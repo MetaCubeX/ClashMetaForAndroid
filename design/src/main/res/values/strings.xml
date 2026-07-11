@@ -317,7 +317,7 @@ Presets only change <b>where</b> files are downloaded from (CDN / host). It is s
     <string name="dns_hosts_save">Save</string>
     <string name="dns_hosts_saved">Saved.</string>
     <string name="dns_hosts_disabled">DNS &amp; Hosts reverted for this profile.</string>
-    <string name="dns_hosts_err_listen">DNS listen must be loopback (127.0.0.1:port), the default form (:port), or empty.</string>
+    <string name="dns_hosts_err_listen">DNS listen must be an explicit loopback host and valid port, or empty. The :port shorthand is saved as 127.0.0.1:port.</string>
     <string name="dns_hosts_err_invalid">The engine rejected this configuration.</string>
 
     <!-- Tunnels -->

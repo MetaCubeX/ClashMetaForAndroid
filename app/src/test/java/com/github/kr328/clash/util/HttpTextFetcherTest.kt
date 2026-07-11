@@ -85,4 +85,12 @@ class HttpTextFetcherTest {
             )
         }
     }
+
+    @Test
+    fun rejectsBodyLargerThanConfiguredLimit() {
+        server.enqueue(MockResponse().setBody("a".repeat(33)))
+        assertThrows(IllegalArgumentException::class.java) {
+            HttpTextFetcher.fetchUtf8(server.url("/large").toString(), maxBytes = 32)
+        }
+    }
 }

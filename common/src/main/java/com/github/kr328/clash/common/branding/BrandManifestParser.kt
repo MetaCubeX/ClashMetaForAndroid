@@ -92,6 +92,15 @@ object BrandManifestParser {
     fun parse(headerLookup: (String) -> String?): BrandManifest {
         fun raw(key: String): String? = headerLookup(key)?.trim()?.trim('"', '\'')
 
+        val enabled = BrandValidation.parseBoolean(raw(BrandHeaders.BRANDING_ENABLED))
+        val hideGlobalMode = BrandValidation.parseBoolean(raw(BrandHeaders.HIDE_GLOBAL_MODE))
+        if (enabled != true) {
+            return BrandManifest(
+                hideGlobalMode = hideGlobalMode,
+                enabled = enabled,
+            )
+        }
+
         // X-Brand-* namespace ONLY. Legacy `support-url` / `Profile-Support-URL`
         // are handled by SubscriptionMetadataFetcher in the common namespace
         // and surface through the existing announcement-card "Support" action —
@@ -122,9 +131,9 @@ object BrandManifestParser {
                 BrandValidation.GREETING_MAX_LENGTH,
             ),
             hideRouting = BrandValidation.parseBoolean(raw(BrandHeaders.HIDE_ROUTING)),
-            hideGlobalMode = BrandValidation.parseBoolean(raw(BrandHeaders.HIDE_GLOBAL_MODE)),
+            hideGlobalMode = hideGlobalMode,
             showOperatorTab = BrandValidation.parseBoolean(raw(BrandHeaders.SHOW_OPERATOR_TAB)),
-            enabled = BrandValidation.parseBoolean(raw(BrandHeaders.BRANDING_ENABLED)),
+            enabled = enabled,
         )
     }
 }

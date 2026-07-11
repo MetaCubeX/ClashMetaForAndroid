@@ -57,7 +57,7 @@ class ServiceStore(context: Context) {
 
     var systemProxy by store.boolean(
         key = "system_proxy",
-        defaultValue = true
+        defaultValue = false
     )
 
     /** When true, [android.net.VpnService.Builder.allowBypass] is used (apps may exit the VPN). Default off; UI hidden — prefer profile rules. */

@@ -86,7 +86,7 @@
     <string name="exit_without_save">Thoát mà không lưu</string>
     <string name="exit_without_save_warning">Tất cả thay đổi sẽ *MẤT*</string>
     <string name="export">Xuất</string>
-    <string name="export_to_clipboard">Nhập từ khay nhớ tạm</string>
+    <string name="export_to_clipboard">Xuất vào khay nhớ tạm</string>
     <string name="external">Bên ngoài</string>
     <string name="fakeip">Fake-IP thành ánh xạ miền</string>
     <string name="fakeip_filter">Bộ lọc Fake-IP</string>

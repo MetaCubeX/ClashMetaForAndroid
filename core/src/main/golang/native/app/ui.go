@@ -1,12 +1,14 @@
 package app
 
 import (
-	"github.com/dlclark/regexp2"
+	"regexp"
+
+	"cfa/native/common"
 
 	"github.com/metacubex/mihomo/log"
 )
 
-var uiSubtitlePattern *regexp2.Regexp
+var uiSubtitlePattern *regexp.Regexp
 
 func ApplySubtitlePattern(pattern string) {
 	if pattern == "" {
@@ -19,7 +21,7 @@ func ApplySubtitlePattern(pattern string) {
 		return
 	}
 
-	reg, err := regexp2.Compile(pattern, regexp2.IgnoreCase|regexp2.Compiled)
+	reg, err := common.CompileSubtitlePattern(pattern)
 	if err == nil {
 		uiSubtitlePattern = reg
 	} else {
@@ -29,6 +31,6 @@ func ApplySubtitlePattern(pattern string) {
 	}
 }
 
-func SubtitlePattern() *regexp2.Regexp {
+func SubtitlePattern() *regexp.Regexp {
 	return uiSubtitlePattern
 }

@@ -37,7 +37,7 @@ data class DnsHostsConfig(
         enable?.let { m["enable"] = it }
         ipv6?.let { m["ipv6"] = it }
         enhancedMode?.takeIf { it.isNotBlank() }?.let { m["enhanced-mode"] = it }
-        listen?.takeIf { it.isNotBlank() }?.let { m["listen"] = it }
+        DnsHostsValidator.normalizeListen(listen)?.let { m["listen"] = it }
         cacheAlgorithm?.takeIf { it.isNotBlank() }?.let { m["cache-algorithm"] = it }
         nameserver.cleaned().ifNotEmpty { m["nameserver"] = it }
         directNameserver.cleaned().ifNotEmpty { m["direct-nameserver"] = it }
@@ -75,7 +75,7 @@ data class DnsHostsConfig(
         set("enable", enable)
         set("ipv6", ipv6)
         set("enhanced-mode", enhancedMode?.takeIf { it.isNotBlank() })
-        set("listen", listen?.takeIf { it.isNotBlank() })
+        set("listen", DnsHostsValidator.normalizeListen(listen))
         set("cache-algorithm", cacheAlgorithm?.takeIf { it.isNotBlank() })
         set("nameserver", nameserver.cleaned().takeIf { it.isNotEmpty() })
         set("direct-nameserver", directNameserver.cleaned().takeIf { it.isNotEmpty() })
@@ -133,18 +133,37 @@ object DnsHostsValidator {
         RESPECT_RULES_NEEDS_PROXY_NAMESERVER,
     }
 
-    private val loopbackHosts = setOf("127.0.0.1", "::1", "[::1]", "localhost")
+    private val loopbackHosts = setOf("127.0.0.1", "::1", "localhost")
+
+    private data class ListenAddress(val host: String, val port: String)
 
     /**
-     * `dns.listen` must be empty, loopback, or the idiomatic empty-host `:port`
-     * form (mihomo's default listen notation, e.g. `:1053`). An explicit
-     * non-loopback IP (e.g. `192.168.1.5:53`) is rejected as a likely mistake.
+     * `dns.listen` must be empty or an explicit loopback host with a valid port.
+     * The common `:port` shorthand is normalized to `127.0.0.1:port` before it
+     * is persisted so it cannot become a wildcard bind.
      */
     fun listenError(listen: String?): Error? {
         val v = listen?.trim().orEmpty()
         if (v.isEmpty()) return null
-        val host = hostOf(v)
-        return if (host.isEmpty() || host in loopbackHosts) null else Error.LISTEN_NOT_LOOPBACK
+        return if (normalizeListen(v) != null) null else Error.LISTEN_NOT_LOOPBACK
+    }
+
+    fun normalizeListen(listen: String?): String? {
+        val raw = listen?.trim().orEmpty()
+        if (raw.isEmpty()) return null
+        val address = parseListenAddress(raw) ?: return null
+        return when {
+            address.host.isEmpty() -> "127.0.0.1:${address.port}"
+            normalizeHost(address.host) in loopbackHosts -> raw
+            else -> null
+        }
+    }
+
+    internal fun hardenListen(listen: String?): String? {
+        val raw = listen?.trim().orEmpty()
+        if (raw.isEmpty()) return null
+        val address = parseListenAddress(raw) ?: return null
+        return if (normalizeHost(address.host) in loopbackHosts) raw else "127.0.0.1:${address.port}"
     }
 
     /** Engine: `respect-rules: true` requires a non-empty `proxy-server-nameserver`. */
@@ -154,14 +173,25 @@ object DnsHostsValidator {
         return if (any) null else Error.RESPECT_RULES_NEEDS_PROXY_NAMESERVER
     }
 
-    /** Host portion of `host:port` / `[ipv6]:port` / bare host. */
-    private fun hostOf(addr: String): String {
-        val s = addr.trim()
-        if (s.startsWith("[")) {
-            val end = s.indexOf(']')
-            if (end > 0) return s.substring(0, end + 1)
+    private fun parseListenAddress(raw: String): ListenAddress? {
+        val host: String
+        val port: String
+        if (raw.startsWith("[")) {
+            val end = raw.indexOf(']')
+            if (end <= 0 || end + 1 >= raw.length || raw[end + 1] != ':') return null
+            host = raw.substring(0, end + 1)
+            port = raw.substring(end + 2)
+        } else {
+            val colon = raw.lastIndexOf(':')
+            if (colon < 0) return null
+            host = raw.substring(0, colon)
+            if (host.contains(':')) return null
+            port = raw.substring(colon + 1)
         }
-        val colon = s.lastIndexOf(':')
-        return if (colon >= 0) s.substring(0, colon) else s
+        val number = port.toIntOrNull() ?: return null
+        if (number !in 0..65535) return null
+        return ListenAddress(host, port)
     }
+
+    private fun normalizeHost(host: String): String = host.trim().trim('[', ']').lowercase()
 }

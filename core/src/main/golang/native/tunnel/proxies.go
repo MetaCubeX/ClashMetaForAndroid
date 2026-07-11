@@ -1,10 +1,9 @@
 package tunnel
 
 import (
+	"regexp"
 	"sort"
 	"strings"
-
-	"github.com/dlclark/regexp2"
 
 	"github.com/metacubex/mihomo/adapter/outboundgroup"
 	C "github.com/metacubex/mihomo/constant"
@@ -106,7 +105,7 @@ func queryProxyGroupNames(excludeNotSelectable bool, includeHidden bool) []strin
 	return result
 }
 
-func QueryProxyGroup(name string, sortMode SortMode, uiSubtitlePattern *regexp2.Regexp) *ProxyGroup {
+func QueryProxyGroup(name string, sortMode SortMode, uiSubtitlePattern *regexp.Regexp) *ProxyGroup {
 	p := tunnel.Proxies()[name]
 
 	if p == nil {
@@ -225,7 +224,7 @@ func PatchSelector(selector, name string) bool {
 	return true
 }
 
-func convertProxies(proxies []C.Proxy, uiSubtitlePattern *regexp2.Regexp) []*Proxy {
+func convertProxies(proxies []C.Proxy, uiSubtitlePattern *regexp.Regexp) []*Proxy {
 	result := make([]*Proxy, 0, 128)
 
 	for _, p := range proxies {
@@ -235,11 +234,9 @@ func convertProxies(proxies []C.Proxy, uiSubtitlePattern *regexp2.Regexp) []*Pro
 
 		if uiSubtitlePattern != nil {
 			if _, ok := p.Adapter().(outboundgroup.ProxyGroup); !ok {
-				runes := []rune(name)
-				match, err := uiSubtitlePattern.FindRunesMatch(runes)
-				if err == nil && match != nil {
-					title = string(runes[:match.Index]) + string(runes[match.Index+match.Length:])
-					subtitle = string(runes[match.Index : match.Index+match.Length])
+				if match := uiSubtitlePattern.FindStringIndex(name); match != nil {
+					title = name[:match[0]] + name[match[1]:]
+					subtitle = name[match[0]:match[1]]
 				}
 			}
 		}
@@ -262,7 +259,7 @@ func convertProxies(proxies []C.Proxy, uiSubtitlePattern *regexp2.Regexp) []*Pro
 	return result
 }
 
-func collectProviders(providers []provider.ProxyProvider, uiSubtitlePattern *regexp2.Regexp) []*Proxy {
+func collectProviders(providers []provider.ProxyProvider, uiSubtitlePattern *regexp.Regexp) []*Proxy {
 	result := make([]*Proxy, 0, 128)
 
 	for _, p := range providers {
@@ -273,11 +270,9 @@ func collectProviders(providers []provider.ProxyProvider, uiSubtitlePattern *reg
 
 			if uiSubtitlePattern != nil {
 				if _, ok := px.Adapter().(outboundgroup.ProxyGroup); !ok {
-					runes := []rune(name)
-					match, err := uiSubtitlePattern.FindRunesMatch(runes)
-					if err == nil && match != nil {
-						title = string(runes[:match.Index]) + string(runes[match.Index+match.Length:])
-						subtitle = string(runes[match.Index : match.Index+match.Length])
+					if match := uiSubtitlePattern.FindStringIndex(name); match != nil {
+						title = name[:match[0]] + name[match[1]:]
+						subtitle = name[match[0]:match[1]]
 					}
 				}
 			}

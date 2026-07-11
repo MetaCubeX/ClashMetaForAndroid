@@ -91,7 +91,7 @@ class GatewayServer(
     )
 
     private fun power(session: IHTTPSession): Response {
-        val body = parseBody(session) ?: return badRequest("malformed body")
+        val body = parseBody(session, MAX_JSON_BODY_BYTES) ?: return badRequest("malformed body")
         val action = body["action"]?.jsonPrimitive?.content
         if (action !in setOf("on", "off", "toggle")) return badRequest("invalid action")
         return try {
@@ -103,7 +103,7 @@ class GatewayServer(
     }
 
     private fun subscription(session: IHTTPSession): Response {
-        val body = parseBody(session) ?: return badRequest("malformed body")
+        val body = parseBody(session, MAX_SUBSCRIPTION_BODY_BYTES) ?: return badRequest("malformed body")
         val url = body["url"]?.jsonPrimitive?.content?.takeIf { it.isNotEmpty() }
         val payload = body["payload"]?.jsonPrimitive?.content?.takeIf { it.isNotEmpty() }
         val name = body["name"]?.jsonPrimitive?.content?.takeIf { it.isNotEmpty() }
@@ -119,7 +119,7 @@ class GatewayServer(
     }
 
     private fun rename(session: IHTTPSession): Response {
-        val body = parseBody(session) ?: return badRequest("malformed body")
+        val body = parseBody(session, MAX_JSON_BODY_BYTES) ?: return badRequest("malformed body")
         val name = body["name"]?.jsonPrimitive?.content?.takeIf { it.isNotBlank() }
             ?: return badRequest("empty name")
         hooks.rename(name)
@@ -132,7 +132,7 @@ class GatewayServer(
      * `pin_invalid` (403), too many attempts → `pin_rate_limited` (429).
      */
     private fun pair(session: IHTTPSession): Response {
-        val body = parseBody(session) ?: return badRequest("malformed body")
+        val body = parseBody(session, MAX_PAIR_BODY_BYTES) ?: return badRequest("malformed body")
         val pin = body["pin"]?.jsonPrimitive?.content ?: return badRequest("pin required")
         val device = body["device"]?.jsonObject
         val controllerId = device?.get("id")?.jsonPrimitive?.content
@@ -153,13 +153,17 @@ class GatewayServer(
 
     // --- helpers ------------------------------------------------------------------------------
 
-    private fun parseBody(session: IHTTPSession): JsonObject? = try {
-        val files = HashMap<String, String>()
-        session.parseBody(files)
-        val data = files["postData"] ?: session.queryParameterString ?: return null
-        Json.parseToJsonElement(data).jsonObject
-    } catch (_: Exception) {
-        null
+    private fun parseBody(session: IHTTPSession, maxBytes: Long): JsonObject? {
+        if (!isAcceptedContentLength(session.headers["content-length"], maxBytes)) return null
+        return try {
+            val files = HashMap<String, String>()
+            session.parseBody(files)
+            val data = files["postData"] ?: return null
+            if (!isAcceptedBodyText(data, maxBytes)) return null
+            Json.parseToJsonElement(data).jsonObject
+        } catch (_: Exception) {
+            null
+        }
     }
 
     private fun ok(obj: JsonObject): Response =
@@ -190,10 +194,21 @@ class GatewayServer(
             },
         )
 
-    private companion object {
-        const val BEARER = "Bearer "
-        const val MIME_JSON = "application/json"
-        const val PROTOCOL_VERSION = 1
-        const val DEFAULT_PROFILE_NAME = "Shared"
+    companion object {
+        private const val BEARER = "Bearer "
+        private const val MIME_JSON = "application/json"
+        private const val PROTOCOL_VERSION = 1
+        private const val DEFAULT_PROFILE_NAME = "Shared"
+        private const val MAX_PAIR_BODY_BYTES = 16L * 1024L
+        private const val MAX_JSON_BODY_BYTES = 64L * 1024L
+        private const val MAX_SUBSCRIPTION_BODY_BYTES = 1024L * 1024L
+
+        internal fun isAcceptedContentLength(raw: String?, maxBytes: Long): Boolean {
+            val length = raw?.trim()?.toLongOrNull() ?: return false
+            return length in 0..maxBytes
+        }
+
+        internal fun isAcceptedBodyText(value: String, maxBytes: Long): Boolean =
+            value.toByteArray(Charsets.UTF_8).size.toLong() <= maxBytes
     }
 }

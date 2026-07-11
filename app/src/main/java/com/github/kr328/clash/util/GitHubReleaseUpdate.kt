@@ -68,7 +68,9 @@ object GitHubReleaseUpdate {
             Info(
                 tagName = json.optString("tag_name"),
                 body = json.optString("body"),
-                htmlUrl = json.optString("html_url"),
+                htmlUrl = json.optString("html_url")
+                    .takeIf(UpdateApkVerifier::isTrustedReleasePageUrl)
+                    .orEmpty(),
                 apkUrl = apkUrl,
                 apkName = apkName,
             )

@@ -150,6 +150,48 @@ class YamlHardenerTest {
     }
 
     @Test
+    fun strict_rebindsDnsListenToLoopback() {
+        for (unsafe in listOf("0.0.0.0:53", "[::]:53", ":1053", "192.168.1.10:53")) {
+            val input = "dns:\n  enable: true\n  listen: '$unsafe'\nproxies: []\n"
+            val hardened = YamlHardener.hardenYaml(input, ProxyHardeningMode.Strict)
+            assertNotNull("$unsafe must be hardened", hardened)
+            val dns = parse(hardened!!)["dns"] as Map<*, *>
+            val expectedPort = if (unsafe.endsWith("1053")) 1053 else 53
+            assertEquals("127.0.0.1:$expectedPort", dns["listen"])
+        }
+    }
+
+    @Test
+    fun strict_keepsLoopbackDnsListenUntouched() {
+        val input = "dns:\n  enable: true\n  listen: '127.0.0.1:1053'\nproxies: []\n"
+        assertEquals(input, YamlHardener.hardenYaml(input, ProxyHardeningMode.Strict))
+    }
+
+    @Test
+    fun strict_removesMalformedDnsListen() {
+        val input = "dns:\n  enable: true\n  listen: '127.0.0.1'\nproxies: []\n"
+        val hardened = YamlHardener.hardenYaml(input, ProxyHardeningMode.Strict)
+        assertNotNull(hardened)
+        val dns = parse(hardened!!)["dns"] as Map<*, *>
+        assertFalse(dns.containsKey("listen"))
+        assertEquals(true, dns["enable"])
+    }
+
+    @Test
+    fun off_keepsUnsafeDnsListen() {
+        val input = "dns:\n  enable: true\n  listen: '0.0.0.0:53'\nproxies: []\n"
+        assertEquals(input, YamlHardener.hardenYaml(input, ProxyHardeningMode.Off))
+    }
+
+    @Test
+    fun dnsListenHardeningIsIdempotent() {
+        val input = "dns:\n  enable: true\n  listen: '[::]:53'\nproxies: []\n"
+        val first = YamlHardener.hardenYaml(input, ProxyHardeningMode.Strict)
+        assertNotNull(first)
+        assertEquals(first, YamlHardener.hardenYaml(first!!, ProxyHardeningMode.Strict))
+    }
+
+    @Test
     fun strict_rewritesBindAddressToLoopback() {
         val input = """
             bind-address: '*'

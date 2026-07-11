@@ -3,10 +3,7 @@ package config
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"strings"
-
-	"github.com/dlclark/regexp2"
 
 	"cfa/native/common"
 
@@ -44,6 +41,10 @@ func patchOverride(cfg *config.RawConfig, _ string) error {
 func patchExternalController(cfg *config.RawConfig, _ string) error {
 	cfg.ExternalController = ""
 	cfg.ExternalControllerTLS = ""
+	cfg.ExternalControllerUnix = ""
+	cfg.ExternalControllerPipe = ""
+	cfg.ExternalControllerCors = config.RawCors{}
+	cfg.Secret = ""
 
 	return nil
 }
@@ -127,11 +128,17 @@ func validConfig(cfg *config.RawConfig, _ string) error {
 		return errors.New("profile does not contain `proxies` or `proxy-providers`")
 	}
 
-	if _, err := regexp2.Compile(cfg.ClashForAndroid.UiSubtitlePattern, 0); err != nil {
-		return fmt.Errorf("compile ui-subtitle-pattern: %s", err.Error())
-	}
+	cfg.ClashForAndroid.UiSubtitlePattern = sanitizeUiSubtitlePattern(cfg.ClashForAndroid.UiSubtitlePattern)
 
 	return nil
+}
+
+func sanitizeUiSubtitlePattern(pattern string) string {
+	if _, err := common.CompileSubtitlePattern(pattern); err != nil {
+		log.Warnln("Ignore unsupported ui-subtitle-pattern: %s", err.Error())
+		return ""
+	}
+	return pattern
 }
 
 func process(cfg *config.RawConfig, profileDir string) error {
