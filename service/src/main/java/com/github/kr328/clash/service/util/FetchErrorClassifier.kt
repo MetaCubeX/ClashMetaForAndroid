@@ -22,6 +22,9 @@ import java.net.UnknownHostException
  * Layer 3. Codes are stable so support/wiki can key troubleshooting to them.
  */
 object FetchErrorClassifier {
+    internal const val MAX_CLASSIFICATION_BYTES = 64 * 1024
+    private data class BodySample(val text: String, val complete: Boolean)
+
     fun clarify(processingDir: File, original: Throwable): Throwable {
         val file = File(processingDir, "config.yaml")
         // No body downloaded → network reachability failure (or an unrelated error we
@@ -36,10 +39,11 @@ object FetchErrorClassifier {
             }
             return original
         }
-        val body = runCatching { file.readText() }.getOrNull() ?: return original
+        val sample = readBoundedText(file) ?: return original
+        val body = sample.text
 
         val reason = when {
-            body.isBlank() ->
+            sample.complete && body.isBlank() ->
                 "the subscription server returned an empty response — try again later. [E-10]"
             looksLikeHtml(body) ->
                 "the subscription server returned a web page, not a config " +
@@ -51,6 +55,30 @@ object FetchErrorClassifier {
             else -> return original // valid-looking config body → keep the engine's precise error
         }
         return IllegalStateException(reason, original)
+    }
+
+    private fun readBoundedText(file: File): BodySample? {
+        return runCatching {
+            file.inputStream().buffered().use { input ->
+                val bytes = ByteArray(MAX_CLASSIFICATION_BYTES + 1)
+                var total = 0
+                while (total < bytes.size) {
+                    val read = input.read(bytes, total, bytes.size - total)
+                    if (read < 0) break
+                    if (read == 0) {
+                        val one = input.read()
+                        if (one < 0) break
+                        bytes[total++] = one.toByte()
+                    } else {
+                        total += read
+                    }
+                }
+                BodySample(
+                    text = bytes.copyOf(minOf(total, MAX_CLASSIFICATION_BYTES)).toString(Charsets.UTF_8),
+                    complete = total <= MAX_CLASSIFICATION_BYTES,
+                )
+            }
+        }.getOrNull()
     }
 
     /**

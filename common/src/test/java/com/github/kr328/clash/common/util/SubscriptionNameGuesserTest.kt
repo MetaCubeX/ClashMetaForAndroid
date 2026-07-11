@@ -1,10 +1,31 @@
 package com.github.kr328.clash.common.util
 
+import java.io.ByteArrayInputStream
+import java.io.InputStream
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertNull
 
 class SubscriptionNameGuesserTest {
+    private class CountingInputStream(private val size: Int) : InputStream() {
+        var bytesRead = 0
+
+        override fun read(): Int {
+            if (bytesRead >= size) return -1
+            bytesRead++
+            return 'x'.code
+        }
+
+        override fun read(buffer: ByteArray, offset: Int, length: Int): Int {
+            if (bytesRead >= size) return -1
+            val count = minOf(length, size - bytesRead)
+            buffer.fill('x'.code.toByte(), offset, offset + count)
+            bytesRead += count
+            return count
+        }
+    }
+
     @Test
     fun opaque_token_path_falls_back_to_host_brand() {
         // Regression: the subscription token was used as the profile name.
@@ -115,5 +136,46 @@ class SubscriptionNameGuesserTest {
         assertFalse(SubscriptionNameGuesser.looksLikeOpaqueToken("Premium Plan")) // no digit
         assertFalse(SubscriptionNameGuesser.looksLikeOpaqueToken("PREMIUM123"))   // no lowercase
         assertFalse(SubscriptionNameGuesser.looksLikeOpaqueToken("short1A"))      // core < 8
+    }
+
+    @Test
+    fun body_read_stops_after_limit_plus_one_byte() {
+        val input = CountingInputStream(SubscriptionNameGuesser.MAX_BODY_BYTES * 2)
+
+        assertNull(SubscriptionNameGuesser.readBoundedBody(input, null))
+        assertEquals(SubscriptionNameGuesser.MAX_BODY_BYTES + 1, input.bytesRead)
+    }
+
+    @Test
+    fun oversized_content_length_is_rejected_before_stream_read() {
+        val input = CountingInputStream(SubscriptionNameGuesser.MAX_BODY_BYTES * 2)
+
+        assertNull(
+            SubscriptionNameGuesser.readBoundedBody(
+                input,
+                SubscriptionNameGuesser.MAX_BODY_BYTES.toLong() + 1,
+            ),
+        )
+        assertEquals(0, input.bytesRead)
+    }
+
+    @Test
+    fun lying_content_length_cannot_bypass_stream_limit() {
+        val input = CountingInputStream(SubscriptionNameGuesser.MAX_BODY_BYTES * 2)
+
+        assertNull(SubscriptionNameGuesser.readBoundedBody(input, 1))
+        assertEquals(SubscriptionNameGuesser.MAX_BODY_BYTES + 1, input.bytesRead)
+    }
+
+    @Test
+    fun body_at_limit_is_accepted() {
+        val expected = ByteArray(SubscriptionNameGuesser.MAX_BODY_BYTES) { 'x'.code.toByte() }
+
+        val actual = SubscriptionNameGuesser.readBoundedBody(
+            ByteArrayInputStream(expected),
+            expected.size.toLong(),
+        )
+
+        assertEquals(expected.size, actual?.size)
     }
 }

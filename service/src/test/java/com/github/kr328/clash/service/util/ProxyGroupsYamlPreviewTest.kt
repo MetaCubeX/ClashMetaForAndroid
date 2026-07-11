@@ -171,6 +171,41 @@ class ProxyGroupsYamlPreviewTest {
     }
 
     @Test
+    fun untrustedFilterRejectsBacktrackingAndExtendedRegexShapes() {
+        assertFalse(ProxyGroupsYamlPreview.isSafeFilterPattern("(a+)+$"))
+        assertFalse(ProxyGroupsYamlPreview.isSafeFilterPattern("(?:a|aa)+$"))
+        assertFalse(ProxyGroupsYamlPreview.isSafeFilterPattern("(?=attacker)"))
+        assertFalse(ProxyGroupsYamlPreview.isSafeFilterPattern("(.)\\1"))
+        assertFalse(ProxyGroupsYamlPreview.isSafeFilterPattern("a".repeat(257)))
+        assertTrue(ProxyGroupsYamlPreview.isSafeFilterPattern("^(US|DE)-[0-9]$"))
+
+        val snapshot = ProfileSnapshot(
+            proxies = listOf(proxy("a".repeat(400) + "!")),
+            proxyGroups = listOf(group("Unsafe", includeAllProxies = true, filter = "(a+)+$")),
+        )
+        val unsafe = ProxyGroupsYamlPreview.parseProxyGroupsPreview(snapshot)["Unsafe"]
+        assertNotNull("unsafe filter must preserve the group as preview-unavailable", unsafe)
+        assertTrue(unsafe!!.members.isEmpty())
+    }
+
+    @Test
+    fun unsupportedCommonFilterPreservesDynamicGroupWithoutRunningJvmRegex() {
+        val snapshot = ProfileSnapshot(
+            proxies = listOf(proxy("US-1"), proxy("DE-1")),
+            proxyGroups = listOf(
+                group("InlineFlag", includeAllProxies = true, filter = "(?i)^us-"),
+                group("QuantifiedGroup", includeAllProxies = true, filter = "(US|DE)+"),
+                group("UnsafeExclude", includeAllProxies = true, excludeFilter = "(a+)+$"),
+            ),
+        )
+
+        val rows = ProxyGroupsYamlPreview.parseProxyGroupsPreview(snapshot)
+
+        assertEquals(setOf("InlineFlag", "QuantifiedGroup", "UnsafeExclude"), rows.keys)
+        assertTrue(rows.values.all { it.members.isEmpty() })
+    }
+
+    @Test
     fun parseProxyGroupsPreview_includeAllProxiesWithExcludeFilterDropsMatches() {
         // Repro of the user report: exclude-filter must drop members in the offline preview too,
         // mirroring the engine. Include path was already honored; exclusion was ignored.
@@ -211,5 +246,28 @@ class ProxyGroupsYamlPreviewTest {
         val rows = ProxyGroupsYamlPreview.parseProxyGroupsPreview(snapshot)
         assertFalse(rows.containsKey("Empty"))
         assertTrue(rows.containsKey("HasMembers"))
+    }
+
+    @Test
+    fun parseProxyGroupsPreview_boundsNamesGroupsAndMembersForIpc() {
+        val longName = "x".repeat(PreviewResourceLimits.MAX_NAME_CHARS + 1)
+        val members = (0 until PreviewResourceLimits.MAX_MEMBERS_PER_GROUP + 50).map { "node-$it" }
+        val groups = buildList {
+            add(group(longName, proxies = listOf("ignored")))
+            add(group("bounded", proxies = members))
+            repeat(PreviewResourceLimits.MAX_GROUPS + 10) { add(group("group-$it", proxies = listOf("node"))) }
+        }
+
+        val rows = ProxyGroupsYamlPreview.parseProxyGroupsPreview(ProfileSnapshot(proxyGroups = groups))
+
+        assertFalse(rows.containsKey(longName))
+        assertTrue(rows.size <= PreviewResourceLimits.MAX_GROUPS)
+        assertEquals(PreviewResourceLimits.MAX_MEMBERS_PER_GROUP, rows["bounded"]?.members?.size)
+        assertTrue(rows.values.sumOf { it.members.size } <= PreviewResourceLimits.MAX_TOTAL_MEMBERS)
+        assertTrue(
+            rows.entries.sumOf { (name, row) ->
+                name.length + row.members.sumOf(String::length) + row.staticProxies.sumOf(String::length)
+            } <= PreviewResourceLimits.MAX_OUTPUT_CHARS,
+        )
     }
 }

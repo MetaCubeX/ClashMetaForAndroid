@@ -345,7 +345,7 @@ object ProfileProcessor {
                     Clash.fetchProvidersAndValid(
                         context.processingDir,
                         false,
-                        SubscriptionRequestHeaders.toNativeFetchJson(context, effectiveUserAgentOverride),
+                        "{}",
                     ) {
                         try {
                             cb?.updateStatus(it)

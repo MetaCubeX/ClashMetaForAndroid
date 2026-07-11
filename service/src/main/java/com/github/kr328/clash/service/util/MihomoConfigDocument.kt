@@ -166,20 +166,22 @@ private object TopLevelYamlBlockPatcher {
         val start = lines.indexOfFirst { isTopLevelKey(it, key) }
         if (start < 0) return null
         var end = start + 1
+        var preambleStart = -1
         while (end < lines.size) {
-            if (isAnyTopLevelKey(lines[end])) break
-            if (startsNextTopLevelBlockPreamble(lines, end)) break
+            val line = lines[end]
+            if (isAnyTopLevelKey(line)) {
+                return BlockRange(start, if (preambleStart >= 0) preambleStart else end)
+            }
+            if (line.isBlank() || line.startsWith('#')) {
+                if (preambleStart < 0) preambleStart = end
+            } else {
+                // An indented/content line means preceding comments belong to
+                // the current block, not to a future top-level key.
+                preambleStart = -1
+            }
             end++
         }
         return BlockRange(start, end)
-    }
-
-    private fun startsNextTopLevelBlockPreamble(lines: List<String>, index: Int): Boolean {
-        val line = lines[index]
-        if (line.isNotBlank() && !line.startsWith('#')) return false
-        val next = lines.drop(index + 1).firstOrNull { it.isNotBlank() && !it.startsWith('#') }
-            ?: return false
-        return isAnyTopLevelKey(next)
     }
 
     private fun isTopLevelKey(line: String, key: String): Boolean {

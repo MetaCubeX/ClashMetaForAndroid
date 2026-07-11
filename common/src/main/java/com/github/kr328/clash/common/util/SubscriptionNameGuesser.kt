@@ -5,6 +5,7 @@ import android.util.Base64
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
+import java.io.InputStream
 import java.net.HttpURLConnection
 import java.net.URL
 import java.net.URLDecoder
@@ -15,6 +16,8 @@ import kotlin.text.Charsets
  * Uses response headers (incl. subscription-userinfo) and structured fields in the body.
  */
 object SubscriptionNameGuesser {
+    internal const val MAX_BODY_BYTES = 256 * 1024
+
     fun guessFast(urlString: String): String {
         val trimmed = urlString.trim()
         if (isMierusLinkForSubscriptionTitle(trimmed)) {
@@ -77,9 +80,14 @@ object SubscriptionNameGuesser {
                     conn.getHeaderField("Subscription-Userinfo")?.let(::parseSubscriptionUserinfo)
                         ?.let(::sanitizeName)?.takeIf { it.isNotBlank() }?.let { return@withContext it }
 
-                    val raw = conn.inputStream.use { it.readBytes() }
-                    val max = 256 * 1024
-                    val body = if (raw.size <= max) raw else raw.copyOfRange(0, max)
+                    val contentLength = conn.getHeaderField("Content-Length")
+                        ?.trim()
+                        ?.toLongOrNull()
+                    if (contentLength != null && contentLength > MAX_BODY_BYTES) {
+                        return@withContext fallbackName(requestUrl)
+                    }
+                    val body = conn.inputStream.use { readBoundedBody(it, contentLength) }
+                        ?: return@withContext fallbackName(requestUrl)
                     val text = decodeResponseText(body)
                     parseNameFromSubscriptionBody(text)?.let(::sanitizeName)?.takeIf { it.isNotBlank() }
                         ?.let { return@withContext it }
@@ -91,6 +99,25 @@ object SubscriptionNameGuesser {
             }
             fallbackName(requestUrl)
         }
+
+    internal fun readBoundedBody(input: InputStream, contentLength: Long?): ByteArray? {
+        if (contentLength != null && contentLength > MAX_BODY_BYTES) return null
+
+        val bytes = ByteArray(MAX_BODY_BYTES + 1)
+        var total = 0
+        while (total < bytes.size) {
+            val read = input.read(bytes, total, bytes.size - total)
+            if (read < 0) break
+            if (read == 0) {
+                val one = input.read()
+                if (one < 0) break
+                bytes[total++] = one.toByte()
+            } else {
+                total += read
+            }
+        }
+        return if (total > MAX_BODY_BYTES) null else bytes.copyOf(total)
+    }
 
     /**
      * Resolve a subscription display title from ALREADY-FETCHED response headers, using the SAME
