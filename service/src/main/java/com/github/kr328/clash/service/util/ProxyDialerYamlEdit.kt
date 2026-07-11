@@ -17,6 +17,7 @@ object ProxyDialerYamlEdit {
         val relativePath: String,
         val currentYaml: String,
         val proposedYaml: String,
+        val providerFile: Boolean = false,
     )
 
     /** One row from `proxies:` on disk that has `dialer-proxy` set. */
@@ -43,7 +44,7 @@ object ProxyDialerYamlEdit {
         for ((_, v) in pp) {
             val prov = v as? Map<*, *> ?: continue
             val pathStr = prov["path"] as? String ?: continue
-            val f = resolveProviderPath(profileDir, pathStr)
+            val f = resolveProviderPath(profileDir, pathStr) ?: continue
             if (!f.isFile) continue
             val pRoot = YamlFormatting.parseRootMap(f.readText()) ?: continue
             val rel = pathStr.trim().removePrefix("./")
@@ -59,7 +60,7 @@ object ProxyDialerYamlEdit {
     fun clearAllDialerProxies(profileDir: File): Boolean {
         val patches = previewClearAllDialerProxies(profileDir)
         for (patch in patches) {
-            resolveProviderPath(profileDir, patch.relativePath).writeText(patch.proposedYaml)
+            resolvePatchPath(profileDir, patch)?.writeText(patch.proposedYaml)
         }
         return patches.isNotEmpty()
     }
@@ -78,13 +79,13 @@ object ProxyDialerYamlEdit {
         for ((_, v) in pp) {
             val prov = v as? Map<*, *> ?: continue
             val pathStr = prov["path"] as? String ?: continue
-            val f = resolveProviderPath(profileDir, pathStr)
+            val f = resolveProviderPath(profileDir, pathStr) ?: continue
             if (!f.isFile) continue
             val rel = pathStr.trim().removePrefix("./")
             val pText = f.readText()
             val pRoot = YamlFormatting.parseRootMap(pText) ?: continue
             if (stripDialerFromProxiesInRoot(pRoot)) {
-                patches.add(FilePatch(rel, pText, dumpYaml.dump(pRoot)))
+                patches.add(FilePatch(rel, pText, dumpYaml.dump(pRoot), providerFile = true))
             }
         }
         return patches
@@ -158,7 +159,8 @@ object ProxyDialerYamlEdit {
      */
     fun applyDialerProxy(profileDir: File, targetProxyName: String, dialerProxyName: String?): Boolean {
         val patch = previewDialerProxy(profileDir, targetProxyName, dialerProxyName) ?: return false
-        resolveProviderPath(profileDir, patch.relativePath).writeText(patch.proposedYaml)
+        val target = resolvePatchPath(profileDir, patch) ?: return false
+        target.writeText(patch.proposedYaml)
         return true
     }
 
@@ -182,7 +184,7 @@ object ProxyDialerYamlEdit {
         for ((_, v) in pp) {
             val prov = v as? Map<*, *> ?: continue
             val pathStr = prov["path"] as? String ?: continue
-            val f = resolveProviderPath(profileDir, pathStr)
+            val f = resolveProviderPath(profileDir, pathStr) ?: continue
             if (!f.isFile) continue
             val pText = try {
                 f.readText()
@@ -191,17 +193,40 @@ object ProxyDialerYamlEdit {
             }
             val pRoot = YamlFormatting.parseRootMap(pText) ?: continue
             if (patchProxiesList(pRoot, trimmedTarget, dialerProxyName)) {
-                return FilePatch(pathStr.trim().removePrefix("./"), pText, dumpYaml.dump(pRoot))
+                return FilePatch(
+                    pathStr.trim().removePrefix("./"),
+                    pText,
+                    dumpYaml.dump(pRoot),
+                    providerFile = true,
+                )
             }
         }
         return null
     }
 
-    /** [proxy-providers] entry `path` relative to [profileDir]. */
-    internal fun resolveProviderPath(profileDir: File, path: String): File {
-        val n = path.trim().removePrefix("./")
-        return File(profileDir, n)
+    /** Resolve a provider path exactly inside this profile's native `providers/` sandbox. */
+    internal fun resolveProviderPath(profileDir: File, path: String): File? {
+        val raw = path.trim()
+        if (raw.isEmpty()) return null
+        return runCatching {
+            val profileRoot = profileDir.canonicalFile
+            val providerRoot = File(profileRoot, "providers").canonicalFile
+            if (providerRoot.parentFile != profileRoot) return@runCatching null
+            val supplied = File(raw)
+            val candidate = if (supplied.isAbsolute) supplied else File(providerRoot, raw.removePrefix("./"))
+            val resolved = candidate.canonicalFile
+            if (resolved.toPath().startsWith(providerRoot.toPath())) resolved else null
+        }.getOrNull()
     }
+
+    private fun resolvePatchPath(profileDir: File, patch: FilePatch): File? =
+        if (patch.providerFile) resolveProviderPath(profileDir, patch.relativePath)
+        else resolveConfigPath(profileDir)
+
+    private fun resolveConfigPath(profileDir: File): File? = runCatching {
+        val profileRoot = profileDir.canonicalFile
+        File(profileRoot, "config.yaml").canonicalFile.takeIf { it.parentFile == profileRoot }
+    }.getOrNull()
 
     private fun proxyNameMatches(yamlName: String, uiName: String): Boolean {
         if (yamlName == uiName) return true

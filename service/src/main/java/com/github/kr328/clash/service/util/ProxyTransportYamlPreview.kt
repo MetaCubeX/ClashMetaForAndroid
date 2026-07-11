@@ -19,11 +19,17 @@ object ProxyTransportYamlPreview {
     /** name -> transport info. */
     fun parse(snapshot: ProfileSnapshot, profileDir: File? = null): Map<String, ProxyTransportInfo> {
         val out = linkedMapOf<String, ProxyTransportInfo>()
-        for (entry in snapshot.proxies) {
-            val name = entry.stringField("name")?.takeIf { it.isNotEmpty() } ?: continue
-            out[name] = extractTransportInfo(entry)
+        val outputBudget = PreviewOutputBudget()
+        for (entry in snapshot.proxies.take(PreviewResourceLimits.MAX_PROXY_ENTRIES_SCANNED)) {
+            if (out.size >= PreviewResourceLimits.MAX_TRANSPORTS) break
+            val name = entry.stringField("name")?.trim()
+                ?.takeIf { it.isNotEmpty() && it.length <= PreviewResourceLimits.MAX_NAME_CHARS }
+                ?: continue
+            val info = extractTransportInfo(entry)
+            if (!outputBudget.acceptAll(name, info.network, info.type)) break
+            out[name] = info
         }
-        collectProviderProxies(snapshot, profileDir, out)
+        collectProviderProxies(snapshot, profileDir, out, outputBudget)
         return out
     }
 
@@ -36,33 +42,48 @@ object ProxyTransportYamlPreview {
         snapshot: ProfileSnapshot,
         profileDir: File?,
         out: MutableMap<String, ProxyTransportInfo>,
+        outputBudget: PreviewOutputBudget,
     ) {
         val dir = profileDir?.takeIf { it.isDirectory } ?: return
-        for ((_, prov) in snapshot.proxyProviders) {
+        val readBudget = ProviderFileReadBudget()
+        var remainingEntries = PreviewResourceLimits.MAX_PROXY_ENTRIES_SCANNED
+        for ((_, prov) in snapshot.proxyProviders.entries.take(PreviewResourceLimits.MAX_PROVIDER_FILES)) {
+            if (out.size >= PreviewResourceLimits.MAX_TRANSPORTS || remainingEntries <= 0) break
             val pathStr = prov.stringField("path")
             val providerUrl = prov.stringField("url")
             val providerFile = if (!pathStr.isNullOrBlank()) {
                 ProxyDialerYamlEdit.resolveProviderPath(dir, pathStr)
             } else {
                 resolveDefaultProviderFile(dir, providerUrl) ?: continue
-            }
+            } ?: continue
             if (!providerFile.isFile) continue
-            val pRoot = runCatching { YamlFormatting.parseRootMap(providerFile.readText()) }
+            val providerText = readBudget.readUtf8(providerFile) ?: continue
+            val pRoot = runCatching { YamlFormatting.parseRootMap(providerText) }
                 .getOrNull() ?: continue
-            collectFromRawMap(pRoot, out)
+            remainingEntries -= collectFromRawMap(pRoot, out, outputBudget, remainingEntries)
         }
     }
 
     private fun collectFromRawMap(
         root: Map<String, Any?>,
         out: MutableMap<String, ProxyTransportInfo>,
-    ) {
-        val proxies = root["proxies"] as? List<*> ?: return
-        for (raw in proxies) {
+        outputBudget: PreviewOutputBudget,
+        maxEntries: Int,
+    ): Int {
+        val proxies = root["proxies"] as? List<*> ?: return 0
+        var scanned = 0
+        for (raw in proxies.take(maxEntries)) {
+            scanned++
+            if (out.size >= PreviewResourceLimits.MAX_TRANSPORTS) break
             val p = raw as? Map<*, *> ?: continue
-            val name = p["name"]?.toString()?.trim()?.takeIf { it.isNotEmpty() } ?: continue
-            out[name] = extractTransportInfoFromRaw(p)
+            val name = p["name"]?.toString()?.trim()
+                ?.takeIf { it.isNotEmpty() && it.length <= PreviewResourceLimits.MAX_NAME_CHARS }
+                ?: continue
+            val info = extractTransportInfoFromRaw(p)
+            if (!outputBudget.acceptAll(name, info.network, info.type)) break
+            out[name] = info
         }
+        return scanned
     }
 
     /**
@@ -89,13 +110,13 @@ object ProxyTransportYamlPreview {
     private val HEX_CHARS = "0123456789abcdef".toCharArray()
 
     private fun extractTransportInfo(p: JsonObject): ProxyTransportInfo {
-        val network = p.stringField("network")?.trim()?.lowercase().orEmpty()
+        val network = boundedMetadata(p.stringField("network"))
         val tls = p.booleanField("tls")
         // Reality is signalled by a non-empty reality-opts map, with or without
         // explicit tls: true. Mihomo accepts both forms.
         val realityOpts = p["reality-opts"] as? JsonObject
         val reality = realityOpts != null && realityOpts.isNotEmpty()
-        val type = p.stringField("type")?.trim()?.lowercase().orEmpty()
+        val type = boundedMetadata(p.stringField("type"))
         return ProxyTransportInfo(
             network = network,
             tls = tls,
@@ -105,11 +126,11 @@ object ProxyTransportYamlPreview {
     }
 
     private fun extractTransportInfoFromRaw(p: Map<*, *>): ProxyTransportInfo {
-        val network = (p["network"] as? String)?.trim()?.lowercase().orEmpty()
+        val network = boundedMetadata(p["network"] as? String)
         val tls = truthy(p["tls"])
         val realityOpts = p["reality-opts"] as? Map<*, *>
         val reality = realityOpts != null && realityOpts.isNotEmpty()
-        val type = (p["type"] as? String)?.trim()?.lowercase().orEmpty()
+        val type = boundedMetadata(p["type"] as? String)
         return ProxyTransportInfo(
             network = network,
             tls = tls,
@@ -121,6 +142,9 @@ object ProxyTransportYamlPreview {
     private fun JsonObject.stringField(key: String): String? = runCatching {
         this[key]?.jsonPrimitive?.content
     }.getOrNull()
+
+    private fun boundedMetadata(value: String?): String =
+        value?.trim()?.lowercase()?.take(MAX_METADATA_CHARS).orEmpty()
 
     private fun JsonObject.booleanField(key: String): Boolean {
         val element = this[key] ?: return false
@@ -148,4 +172,6 @@ object ProxyTransportYamlPreview {
         }
         else -> false
     }
+
+    private const val MAX_METADATA_CHARS = 64
 }

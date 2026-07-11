@@ -34,6 +34,7 @@ import com.github.kr328.clash.service.util.generateProfileUUID
 import com.github.kr328.clash.service.util.ProfileComposer
 import com.github.kr328.clash.service.util.ProfileMigration
 import com.github.kr328.clash.service.util.ProfileOverlay
+import com.github.kr328.clash.service.util.PreviewResourceLimits
 import com.github.kr328.clash.service.util.UserLayerStore
 import com.github.kr328.clash.service.util.importedDir
 import com.github.kr328.clash.service.util.sendProfileUpdateCompleted
@@ -137,6 +138,7 @@ class ProfileManager(private val context: Context) : IProfileManager,
         val relativePath: String,
         val sourceHash: String,
         val proposedYaml: String,
+        val providerFile: Boolean = false,
     )
 
     private data class CachedPreview(
@@ -594,7 +596,7 @@ class ProfileManager(private val context: Context) : IProfileManager,
                 return@withContext emptyMap()
             }
             val file = File(context.importedDir, "$uuid/config.yaml")
-            if (!file.isFile) {
+            if (!file.isFile || file.length() > PreviewResourceLimits.MAX_CONFIG_BYTES) {
                 return@withContext emptyMap()
             }
             try {
@@ -623,7 +625,7 @@ class ProfileManager(private val context: Context) : IProfileManager,
                 return@withContext emptyMap()
             }
             val file = File(context.importedDir, "$uuid/config.yaml")
-            if (!file.isFile) {
+            if (!file.isFile || file.length() > PreviewResourceLimits.MAX_CONFIG_BYTES) {
                 return@withContext emptyMap()
             }
             try {
@@ -897,7 +899,15 @@ class ProfileManager(private val context: Context) : IProfileManager,
                 createPreview(
                     uuid = uuid,
                     title = "Proxy chain",
-                    files = listOf(filePreview(dir, patch.relativePath, patch.currentYaml, patch.proposedYaml)),
+                    files = listOf(
+                        filePreview(
+                            dir,
+                            patch.relativePath,
+                            patch.currentYaml,
+                            patch.proposedYaml,
+                            patch.providerFile,
+                        ),
+                    ),
                     // E-01/E-05: the proxy-chain UI applies via preview->commit, so the chain intent
                     // must be recorded on the layer here (same {target: dialer} map compose expects),
                     // otherwise it's lost on recompose now that config.yaml extraction is gone.
@@ -961,7 +971,9 @@ class ProfileManager(private val context: Context) : IProfileManager,
                 createPreview(
                     uuid = uuid,
                     title = "Proxy chains",
-                    files = patches.map { filePreview(dir, it.relativePath, it.currentYaml, it.proposedYaml) },
+                    files = patches.map {
+                        filePreview(dir, it.relativePath, it.currentYaml, it.proposedYaml, it.providerFile)
+                    },
                     // E-01/E-05: clearing all chains must clear the layer intent too, else compose
                     // re-applies them from the store on recompose.
                     layerMutation = { it.copy(proxyChain = emptyMap()) },
@@ -1107,18 +1119,20 @@ class ProfileManager(private val context: Context) : IProfileManager,
             // single-file write is atomic on the local FS even if the process is killed
             // mid-flight.
             val originals = LinkedHashMap<File, String>()
+            val targets = LinkedHashMap<CachedFile, File>()
             for (file in cached.files) {
-                val target = File(dir, file.relativePath)
+                val target = resolveCachedFile(dir, file) ?: return@withContext false
                 if (!target.isFile) return@withContext false
                 val current = target.readText()
                 if (YamlPreviewSupport.sha256(current) != file.sourceHash) return@withContext false
                 originals[target] = current
+                targets[file] = target
             }
 
             val written = ArrayList<File>(cached.files.size)
             try {
                 for (file in cached.files) {
-                    val target = File(dir, file.relativePath)
+                    val target = targets.getValue(file)
                     atomicWriteText(target, file.proposedYaml)
                     written += target
                 }
@@ -1272,13 +1286,31 @@ class ProfileManager(private val context: Context) : IProfileManager,
         }
     }
 
-    private fun filePreview(dir: File, relativePath: String, current: String, proposed: String): CachedFile {
+    private fun filePreview(
+        dir: File,
+        relativePath: String,
+        current: String,
+        proposed: String,
+        providerFile: Boolean = false,
+    ): CachedFile {
         YamlPreviewSupport.validateConfigYaml(proposed)
-        return CachedFile(
+        val cached = CachedFile(
             relativePath = relativePath,
             sourceHash = YamlPreviewSupport.sha256(current),
             proposedYaml = proposed,
+            providerFile = providerFile,
         )
+        require(resolveCachedFile(dir, cached) != null) { "Unsafe preview file path" }
+        return cached
+    }
+
+    private fun resolveCachedFile(dir: File, file: CachedFile): File? {
+        if (file.providerFile) return ProxyDialerYamlEdit.resolveProviderPath(dir, file.relativePath)
+        if (file.relativePath != "config.yaml") return null
+        return runCatching {
+            val profileRoot = dir.canonicalFile
+            File(profileRoot, "config.yaml").canonicalFile.takeIf { it.parentFile == profileRoot }
+        }.getOrNull()
     }
 
     private fun createPreview(
@@ -1309,8 +1341,8 @@ class ProfileManager(private val context: Context) : IProfileManager,
             YamlPreview(
                 id = id,
                 title = title,
-                currentYaml = currentYaml,
-                proposedYaml = proposedYaml,
+                currentYaml = YamlPreviewSupport.boundedPreviewText(currentYaml),
+                proposedYaml = YamlPreviewSupport.boundedPreviewText(proposedYaml),
                 diff = YamlPreviewSupport.unifiedDiff(currentYaml, proposedYaml),
                 valid = true,
             )
@@ -1322,8 +1354,8 @@ class ProfileManager(private val context: Context) : IProfileManager,
             YamlPreview(
                 id = "",
                 title = title,
-                currentYaml = current,
-                proposedYaml = proposed,
+                currentYaml = YamlPreviewSupport.boundedPreviewText(current),
+                proposedYaml = YamlPreviewSupport.boundedPreviewText(proposed),
                 diff = YamlPreviewSupport.unifiedDiff(current, proposed),
                 valid = false,
                 error = error.message ?: error.toString(),
@@ -1336,7 +1368,7 @@ class ProfileManager(private val context: Context) : IProfileManager,
             val body = if (useProposed) {
                 file.proposedYaml
             } else {
-                File(dir, file.relativePath).readText()
+                requireNotNull(resolveCachedFile(dir, file)) { "Unsafe preview file path" }.readText()
             }
             "# ${file.relativePath}\n$body"
         }

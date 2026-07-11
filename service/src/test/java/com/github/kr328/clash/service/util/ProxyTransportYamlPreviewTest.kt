@@ -83,4 +83,52 @@ class ProxyTransportYamlPreviewTest {
         val out = ProxyTransportYamlPreview.parse(snapshot)
         assertEquals(setOf("named"), out.keys)
     }
+
+    @Test
+    fun parse_boundsRowsNamesAndMetadataForIpc() {
+        val proxies = buildList {
+            add(jsonObj("name" to JsonPrimitive("x".repeat(PreviewResourceLimits.MAX_NAME_CHARS + 1))))
+            repeat(PreviewResourceLimits.MAX_TRANSPORTS + 50) {
+                add(
+                    jsonObj(
+                        "name" to JsonPrimitive("node-$it"),
+                        "type" to JsonPrimitive("t".repeat(500)),
+                        "network" to JsonPrimitive("n".repeat(500)),
+                    ),
+                )
+            }
+        }
+
+        val out = ProxyTransportYamlPreview.parse(ProfileSnapshot(proxies = proxies))
+
+        assertTrue(out.size <= PreviewResourceLimits.MAX_TRANSPORTS)
+        assertFalse(out.containsKey("x".repeat(PreviewResourceLimits.MAX_NAME_CHARS + 1)))
+        assertTrue(out.values.all { it.type.length <= 64 && it.network.length <= 64 })
+        assertTrue(
+            out.entries.sumOf { (name, info) -> name.length + info.type.length + info.network.length } <=
+                PreviewResourceLimits.MAX_OUTPUT_CHARS,
+        )
+    }
+
+    @Test
+    fun parse_skipsOversizedProviderFile() {
+        val dir = java.nio.file.Files.createTempDirectory("transport-provider-budget").toFile()
+        try {
+            val provider = dir.resolve("providers/proxies/huge.yaml")
+            requireNotNull(provider.parentFile).mkdirs()
+            provider.writeText(
+                "proxies:\n  - name: hidden\n    type: ss\n#" +
+                    "x".repeat(PreviewResourceLimits.MAX_PROVIDER_FILE_BYTES),
+            )
+            val snapshot = ProfileSnapshot(
+                proxyProviders = mapOf(
+                    "huge" to jsonObj("path" to JsonPrimitive("./proxies/huge.yaml")),
+                ),
+            )
+
+            assertTrue(ProxyTransportYamlPreview.parse(snapshot, dir).isEmpty())
+        } finally {
+            dir.deleteRecursively()
+        }
+    }
 }

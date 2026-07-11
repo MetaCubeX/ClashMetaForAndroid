@@ -22,6 +22,8 @@ import java.net.UnknownHostException
  * Layer 3. Codes are stable so support/wiki can key troubleshooting to them.
  */
 object FetchErrorClassifier {
+    internal const val MAX_CLASSIFICATION_BYTES = 64 * 1024
+
     fun clarify(processingDir: File, original: Throwable): Throwable {
         val file = File(processingDir, "config.yaml")
         // No body downloaded → network reachability failure (or an unrelated error we
@@ -36,7 +38,7 @@ object FetchErrorClassifier {
             }
             return original
         }
-        val body = runCatching { file.readText() }.getOrNull() ?: return original
+        val body = readBoundedText(file) ?: return original
 
         val reason = when {
             body.isBlank() ->
@@ -51,6 +53,29 @@ object FetchErrorClassifier {
             else -> return original // valid-looking config body → keep the engine's precise error
         }
         return IllegalStateException(reason, original)
+    }
+
+    private fun readBoundedText(file: File): String? {
+        if (file.length() > MAX_CLASSIFICATION_BYTES) return null
+        return runCatching {
+            file.inputStream().buffered().use { input ->
+                val bytes = ByteArray(MAX_CLASSIFICATION_BYTES + 1)
+                var total = 0
+                while (total < bytes.size) {
+                    val read = input.read(bytes, total, bytes.size - total)
+                    if (read < 0) break
+                    if (read == 0) {
+                        val one = input.read()
+                        if (one < 0) break
+                        bytes[total++] = one.toByte()
+                    } else {
+                        total += read
+                    }
+                }
+                if (total > MAX_CLASSIFICATION_BYTES) null
+                else bytes.copyOf(total).toString(Charsets.UTF_8)
+            }
+        }.getOrNull()
     }
 
     /**

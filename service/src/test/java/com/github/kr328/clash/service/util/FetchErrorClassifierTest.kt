@@ -45,6 +45,17 @@ class FetchErrorClassifierTest {
         assertSame(original, FetchErrorClassifier.clarify(dirWith("proxies: []\nrules:\n  - MATCH,DIRECT\n"), original))
     }
 
+    @Test fun oversized_body_is_not_classified_or_fully_reread() {
+        val oversized = "<!DOCTYPE html>" + " ".repeat(FetchErrorClassifier.MAX_CLASSIFICATION_BYTES)
+        assertSame(original, FetchErrorClassifier.clarify(dirWith(oversized), original))
+    }
+
+    @Test fun body_at_inspection_limit_is_still_classified() {
+        val body = "<!DOCTYPE html>".padEnd(FetchErrorClassifier.MAX_CLASSIFICATION_BYTES, ' ')
+        val out = FetchErrorClassifier.clarify(dirWith(body), original)
+        assertTrue(out.message!!.contains("[E-11]"), out.message)
+    }
+
     @Test fun absent_file_non_network_keeps_original() {
         // No body + a non-network error (e.g. a parse/programmer error) → keep original.
         assertSame(original, FetchErrorClassifier.clarify(dirWith(null), original))

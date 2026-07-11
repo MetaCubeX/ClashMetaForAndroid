@@ -19,6 +19,8 @@ import java.io.File
  * full mihomo configs, so the engine snapshot does not load them.
  */
 object ProxyGroupsYamlPreview {
+    private const val MAX_FILTER_PATTERN_CHARS = 256
+
     private fun truthyHidden(value: Any?): Boolean = when (value) {
         is Boolean -> value
         is Number -> value.toInt() != 0
@@ -48,7 +50,11 @@ object ProxyGroupsYamlPreview {
 
     private fun JsonObject.stringList(key: String): List<String> {
         val arr = this[key] as? JsonArray ?: return emptyList()
-        return arr.mapNotNull { runCatching { it.jsonPrimitive.content.trim() }.getOrNull()?.takeIf { it.isNotEmpty() } }
+        return arr.asSequence()
+            .mapNotNull { runCatching { it.jsonPrimitive.content.trim() }.getOrNull() }
+            .filter { it.isNotEmpty() && it.length <= PreviewResourceLimits.MAX_NAME_CHARS }
+            .take(PreviewResourceLimits.MAX_MEMBERS_PER_GROUP)
+            .toList()
     }
 
     /** Mihomo expands membership at runtime (`include-all-proxies`, etc.). */
@@ -68,23 +74,33 @@ object ProxyGroupsYamlPreview {
         profileDir: File?,
     ): LinkedHashSet<String> {
         val names = LinkedHashSet<String>()
-        for (entry in snapshot.proxies) {
-            entry.stringField("name")?.trim()?.takeIf { it.isNotEmpty() }?.let { names.add(it) }
+        for (entry in snapshot.proxies.take(PreviewResourceLimits.MAX_PROXY_ENTRIES_SCANNED)) {
+            if (names.size >= PreviewResourceLimits.MAX_TOTAL_MEMBERS) break
+            entry.stringField("name")?.trim()
+                ?.takeIf { it.isNotEmpty() && it.length <= PreviewResourceLimits.MAX_NAME_CHARS }
+                ?.let { names.add(it) }
         }
         val dir = profileDir?.takeIf { it.isDirectory } ?: return names
-        for ((_, prov) in snapshot.proxyProviders) {
+        val readBudget = ProviderFileReadBudget()
+        var remainingEntries = PreviewResourceLimits.MAX_PROXY_ENTRIES_SCANNED
+        for ((_, prov) in snapshot.proxyProviders.entries.take(PreviewResourceLimits.MAX_PROVIDER_FILES)) {
+            if (names.size >= PreviewResourceLimits.MAX_TOTAL_MEMBERS || remainingEntries <= 0) break
             val pathStr = prov.stringField("path")
             val providerUrl = prov.stringField("url")
             val providerFile = if (!pathStr.isNullOrBlank()) {
                 ProxyDialerYamlEdit.resolveProviderPath(dir, pathStr)
             } else {
                 resolveDefaultProviderFile(dir, providerUrl) ?: continue
-            }
+            } ?: continue
             if (!providerFile.isFile) continue
-            val pRoot = runCatching { YamlFormatting.parseRootMap(providerFile.readText()) }
+            val providerText = readBudget.readUtf8(providerFile) ?: continue
+            val pRoot = runCatching { YamlFormatting.parseRootMap(providerText) }
                 .getOrNull() ?: continue
-            (pRoot["proxies"] as? List<*>)?.forEach { pr ->
-                val n = (pr as? Map<*, *>)?.get("name")?.toString()?.trim()?.takeIf { it.isNotEmpty() }
+            for (pr in (pRoot["proxies"] as? List<*>).orEmpty().take(remainingEntries)) {
+                remainingEntries--
+                if (names.size >= PreviewResourceLimits.MAX_TOTAL_MEMBERS) break
+                val n = (pr as? Map<*, *>)?.get("name")?.toString()?.trim()
+                    ?.takeIf { it.isNotEmpty() && it.length <= PreviewResourceLimits.MAX_NAME_CHARS }
                 if (n != null) names.add(n)
             }
         }
@@ -119,24 +135,80 @@ object ProxyGroupsYamlPreview {
     /**
      * Mihomo splits [filter] on `` ` `` and ORs patterns ([outboundgroup.ParseProxyGroup]).
      */
-    private fun compileFilterPatterns(filterRaw: String): List<Regex> {
+    /** null means the filter cannot be evaluated safely in the offline JVM preview. */
+    private fun compileFilterPatterns(filterRaw: String): List<Regex>? {
         val parts = filterRaw.split('`').map { it.trim() }.filter { it.isNotEmpty() }
-        return parts.mapNotNull { runCatching { Regex(it) }.getOrNull() }
+        if (parts.isEmpty()) return null
+        val compiled = ArrayList<Regex>(parts.size)
+        for (pattern in parts) {
+            if (!isSafeFilterPattern(pattern)) return null
+            compiled += runCatching { Regex(pattern) }.getOrNull() ?: return null
+        }
+        return compiled
+    }
+
+    /**
+     * JVM Regex is a backtracking engine. Keep the accepted provider-filter
+     * dialect deliberately small: bounded patterns, no backreferences,
+     * lookarounds or repetition operators. Literal alternation, anchors and
+     * character classes remain supported, and matching time is bounded by
+     * pattern length times the already-capped proxy-name length.
+     */
+    internal fun isSafeFilterPattern(pattern: String): Boolean {
+        if (pattern.isEmpty() || pattern.length > MAX_FILTER_PATTERN_CHARS) return false
+        var escaped = false
+        var inClass = false
+        var groupDepth = 0
+        var i = 0
+        while (i < pattern.length) {
+            val c = pattern[i]
+            if (escaped) {
+                if (c in '1'..'9') return false
+                escaped = false
+                i++
+                continue
+            }
+            if (c == '\\') {
+                escaped = true
+                i++
+                continue
+            }
+            if (inClass) {
+                if (c == ']') inClass = false
+                i++
+                continue
+            }
+            when (c) {
+                '[' -> inClass = true
+                '*', '+', '?', '{' -> return false
+                '(' -> {
+                    if (i + 1 < pattern.length && pattern[i + 1] == '?') {
+                        if (!pattern.startsWith("(?:", i)) return false
+                    }
+                    groupDepth++
+                }
+                ')' -> {
+                    if (groupDepth == 0) return false
+                    groupDepth--
+                }
+            }
+            i++
+        }
+        return !escaped && !inClass && groupDepth == 0
     }
 
     private fun membersForIncludeAllProxiesPreview(
         snapshot: ProfileSnapshot,
         g: JsonObject,
         profileDir: File?,
-    ): List<String> {
+    ): List<String>? {
         if (!hasDynamicMembership(g)) return emptyList()
         val universe = collectAllLeafProxyNames(snapshot, profileDir).sorted()
         val filterRaw = g.stringField("filter")?.trim().orEmpty()
         val included = if (filterRaw.isEmpty()) {
             universe
         } else {
-            val patterns = compileFilterPatterns(filterRaw)
-            if (patterns.isEmpty()) return emptyList()
+            val patterns = compileFilterPatterns(filterRaw) ?: return null
             universe.filter { name -> patterns.any { it.containsMatchIn(name) } }
         }
         // Mirror the engine ([outboundgroup.GroupBase.getProxies]): `exclude-filter` drops any member
@@ -146,8 +218,7 @@ object ProxyGroupsYamlPreview {
         // exclusions diverged.
         val excludeRaw = g.stringField("exclude-filter")?.trim().orEmpty()
         if (excludeRaw.isEmpty()) return included
-        val excludePatterns = compileFilterPatterns(excludeRaw)
-        if (excludePatterns.isEmpty()) return included
+        val excludePatterns = compileFilterPatterns(excludeRaw) ?: return null
         return included.filterNot { name -> excludePatterns.any { it.containsMatchIn(name) } }
     }
 
@@ -179,10 +250,14 @@ object ProxyGroupsYamlPreview {
         includeHidden: Boolean = false,
     ): Map<String, ProxyGroupPreviewRow> {
         val out = linkedMapOf<String, ProxyGroupPreviewRow>()
-        for (g in snapshot.proxyGroups) {
+        val outputBudget = PreviewOutputBudget()
+        var totalMembers = 0
+        for (g in snapshot.proxyGroups.take(PreviewResourceLimits.MAX_GROUPS)) {
             val hidden = g.booleanFlag("hidden")
             if (!includeHidden && hidden) continue
-            val name = g.stringField("name") ?: continue
+            val name = g.stringField("name")?.trim()
+                ?.takeIf { it.isNotEmpty() && it.length <= PreviewResourceLimits.MAX_NAME_CHARS }
+                ?: continue
             val type = yamlGroupType(g)
             val fromProxies = g.stringList("proxies")
             val useList = g.stringList("use")
@@ -194,17 +269,38 @@ object ProxyGroupsYamlPreview {
             } else {
                 emptyList()
             }
+            val dynamicPreviewUnavailable = dynamicMembers == null
             val combined = LinkedHashSet<String>().apply {
                 addAll(fromProxies)
-                addAll(dynamicMembers)
-            }.toList()
+                addAll(dynamicMembers.orEmpty())
+            }
+            val remainingMembers = PreviewResourceLimits.MAX_TOTAL_MEMBERS - totalMembers
+            val members = ArrayList<String>(minOf(combined.size, remainingMembers))
+            if (!outputBudget.accept(name)) break
+            for (member in combined) {
+                if (
+                    members.size >= PreviewResourceLimits.MAX_MEMBERS_PER_GROUP ||
+                    members.size >= remainingMembers ||
+                    !outputBudget.accept(member)
+                ) break
+                members.add(member)
+            }
+            val staticProxies = fromProxies.asSequence()
+                .take(PreviewResourceLimits.MAX_MEMBERS_PER_GROUP)
+                .filter { outputBudget.accept(it) }
+                .toList()
             when {
-                combined.isNotEmpty() ->
-                    out[name] = ProxyGroupPreviewRow(type, combined, hidden, fromProxies)
+                members.isNotEmpty() -> {
+                    out[name] = ProxyGroupPreviewRow(type, members, hidden, staticProxies)
+                    totalMembers += members.size
+                }
+                dynamicPreviewUnavailable ->
+                    out[name] = ProxyGroupPreviewRow(type, emptyList(), hidden, staticProxies)
                 useList.isNotEmpty() ->
-                    out[name] = ProxyGroupPreviewRow(type, emptyList(), hidden, fromProxies)
+                    out[name] = ProxyGroupPreviewRow(type, emptyList(), hidden, staticProxies)
                 else -> Unit
             }
+            if (totalMembers >= PreviewResourceLimits.MAX_TOTAL_MEMBERS) break
         }
         return out
     }

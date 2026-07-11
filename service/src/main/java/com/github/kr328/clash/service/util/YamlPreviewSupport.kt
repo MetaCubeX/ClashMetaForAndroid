@@ -3,6 +3,10 @@ package com.github.kr328.clash.service.util
 import java.security.MessageDigest
 
 object YamlPreviewSupport {
+    private const val MAX_DIFF_LINES_PER_SIDE = 160
+    private const val MAX_DIFF_CHARS = 32 * 1024
+    private const val MAX_PREVIEW_TEXT_CHARS = 64 * 1024
+
     fun sha256(text: String): String {
         val md = MessageDigest.getInstance("SHA-256")
         val bytes = md.digest(text.toByteArray(Charsets.UTF_8))
@@ -19,61 +23,59 @@ object YamlPreviewSupport {
         if (oldText == newText) return "No changes"
         val oldLines = oldText.lines()
         val newLines = newText.lines()
-        val lcs = Array(oldLines.size + 1) { IntArray(newLines.size + 1) }
-        for (i in oldLines.indices.reversed()) {
-            for (j in newLines.indices.reversed()) {
-                lcs[i][j] = if (oldLines[i] == newLines[j]) {
-                    lcs[i + 1][j + 1] + 1
-                } else {
-                    maxOf(lcs[i + 1][j], lcs[i][j + 1])
-                }
-            }
+        var commonPrefix = 0
+        val sharedSize = minOf(oldLines.size, newLines.size)
+        while (commonPrefix < sharedSize && oldLines[commonPrefix] == newLines[commonPrefix]) {
+            commonPrefix++
+        }
+        var commonSuffix = 0
+        while (
+            commonSuffix < sharedSize - commonPrefix &&
+            oldLines[oldLines.lastIndex - commonSuffix] == newLines[newLines.lastIndex - commonSuffix]
+        ) {
+            commonSuffix++
         }
 
-        data class Op(val prefix: Char, val line: String)
-        val ops = ArrayList<Op>()
-        var i = 0
-        var j = 0
-        while (i < oldLines.size && j < newLines.size) {
-            when {
-                oldLines[i] == newLines[j] -> {
-                    ops.add(Op(' ', oldLines[i]))
-                    i++
-                    j++
-                }
-                lcs[i + 1][j] >= lcs[i][j + 1] -> {
-                    ops.add(Op('-', oldLines[i]))
-                    i++
-                }
-                else -> {
-                    ops.add(Op('+', newLines[j]))
-                    j++
-                }
-            }
+        val out = StringBuilder(minOf(MAX_DIFF_CHARS, oldText.length + newText.length))
+        fun appendLine(prefix: Char, line: String): Boolean {
+            if (out.length >= MAX_DIFF_CHARS) return false
+            val remaining = MAX_DIFF_CHARS - out.length
+            if (remaining <= 2) return false
+            out.append(prefix)
+            val allowed = minOf(line.length, remaining - 2)
+            out.append(line, 0, allowed).append('\n')
+            return allowed == line.length
         }
-        while (i < oldLines.size) ops.add(Op('-', oldLines[i++]))
-        while (j < newLines.size) ops.add(Op('+', newLines[j++]))
-
-        val changed = ops.indices.filter { ops[it].prefix != ' ' }
-        if (changed.isEmpty()) return "No changes"
-        val include = BooleanArray(ops.size)
-        for (idx in changed) {
-            val start = (idx - context).coerceAtLeast(0)
-            val end = (idx + context).coerceAtMost(ops.lastIndex)
-            for (k in start..end) include[k] = true
+        fun appendRange(prefix: Char, lines: List<String>, start: Int, end: Int) {
+            val count = end - start
+            if (count <= 0 || out.length >= MAX_DIFF_CHARS) return
+            val shown = minOf(count, MAX_DIFF_LINES_PER_SIDE)
+            for (idx in start until start + shown) {
+                if (!appendLine(prefix, lines[idx])) return
+            }
+            if (shown < count) appendLine(' ', "... ${count - shown} lines omitted ...")
         }
 
-        return buildString {
-            appendLine("--- current")
-            appendLine("+++ proposed")
-            var last = -2
-            for (idx in ops.indices) {
-                if (!include[idx]) continue
-                if (last != idx - 1) appendLine("@@")
-                append(ops[idx].prefix)
-                appendLine(ops[idx].line)
-                last = idx
-            }
-        }.trimEnd()
+        out.append("--- current\n+++ proposed\n@@\n")
+        val prefixStart = (commonPrefix - context.coerceAtLeast(0)).coerceAtLeast(0)
+        appendRange(' ', oldLines, prefixStart, commonPrefix)
+        appendRange('-', oldLines, commonPrefix, oldLines.size - commonSuffix)
+        appendRange('+', newLines, commonPrefix, newLines.size - commonSuffix)
+        appendRange(' ', oldLines, oldLines.size - commonSuffix, minOf(oldLines.size, oldLines.size - commonSuffix + context.coerceAtLeast(0)))
+        if (out.length >= MAX_DIFF_CHARS) {
+            out.setLength((MAX_DIFF_CHARS - 24).coerceAtLeast(0))
+            out.append("\n ... diff truncated ...")
+        }
+        return out.toString().trimEnd()
+    }
+
+    /** Bound JSON/Binder preview payloads; the full proposal remains in the server-side cache. */
+    fun boundedPreviewText(text: String): String {
+        if (text.length <= MAX_PREVIEW_TEXT_CHARS) return text
+        val marker = "\n... ${text.length - MAX_PREVIEW_TEXT_CHARS} characters omitted ...\n"
+        val available = MAX_PREVIEW_TEXT_CHARS - marker.length
+        val head = available / 2
+        val tail = available - head
+        return text.take(head) + marker + text.takeLast(tail)
     }
 }

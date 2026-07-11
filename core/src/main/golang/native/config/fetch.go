@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"cfa/native/app"
+	"cfa/native/config/fetchheaders"
 
 	clashHttp "github.com/metacubex/mihomo/component/http"
 	"github.com/metacubex/mihomo/config"
@@ -34,9 +35,12 @@ type providerFetchTask struct {
 	path string
 }
 
-func openUrl(ctx context.Context, url string) (io.ReadCloser, map[string][]string, error) {
+func openUrl(ctx context.Context, url string, includeSubscriptionHeaders bool) (io.ReadCloser, map[string][]string, error) {
 	base := http.Header{"User-Agent": {"ClashMetaForAndroid/" + app.VersionName()}}
-	hdr := app.MergeSubscriptionFetchHeaders(base)
+	hdr := base
+	if includeSubscriptionHeaders {
+		hdr = app.MergeSubscriptionFetchHeaders(base)
+	}
 	response, err := clashHttp.HttpRequest(ctx, url, http.MethodGet, hdr, nil)
 
 	if err != nil {
@@ -72,7 +76,7 @@ const (
 // and on error) — the subscription fetch persists them via [writeFetchHeaders]
 // so the Kotlin side can read subscription-userinfo / X-Brand-* / naming
 // headers without issuing a second GET of its own.
-func fetch(url *U.URL, file string, timeout time.Duration) (map[string][]string, error) {
+func fetch(url *U.URL, file string, timeout time.Duration, includeSubscriptionHeaders bool) (map[string][]string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
@@ -82,7 +86,7 @@ func fetch(url *U.URL, file string, timeout time.Duration) (map[string][]string,
 
 	switch url.Scheme {
 	case "http", "https":
-		reader, header, err = openUrl(ctx, url.String())
+		reader, header, err = openUrl(ctx, url.String(), includeSubscriptionHeaders)
 	case "content":
 		reader, err = openContent(url.String())
 	default:
@@ -133,13 +137,7 @@ func writeFetchHeaders(profilePath string, header map[string][]string) {
 		return
 	}
 
-	flat := make(map[string]string, len(header))
-	for key, values := range header {
-		if len(values) == 0 {
-			continue
-		}
-		flat[strings.ToLower(key)] = strings.Join(values, ", ")
-	}
+	flat := fetchheaders.Filter(header)
 
 	bytes, err := json.Marshal(flat)
 	if err != nil {
@@ -189,7 +187,7 @@ func FetchAndValid(
 
 		reportStatus(string(bytes))
 
-		header, err := fetch(parsed, configPath, subscriptionFetchTimeout)
+		header, err := fetch(parsed, configPath, subscriptionFetchTimeout, true)
 		if err != nil {
 			return err
 		}
@@ -364,7 +362,9 @@ func fetchProviders(rawCfg *config.RawConfig, force bool, reportStatus func(stri
 			// provider re-fetches on the next FetchProvidersAndValid pass.
 			// Provider response headers are irrelevant (only the subscription
 			// fetch persists them, see writeFetchHeaders).
-			_, _ = fetch(t.url, t.path, providerFetchTimeout)
+			// Device-identifying subscription headers are scoped to the subscription
+			// origin. Providers may be controlled by unrelated third parties.
+			_, _ = fetch(t.url, t.path, providerFetchTimeout, false)
 
 			current := atomic.AddInt32(&done, 1)
 			bytes, _ := json.Marshal(&Status{
