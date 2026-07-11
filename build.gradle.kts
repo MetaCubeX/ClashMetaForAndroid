@@ -12,12 +12,11 @@ buildscript {
         mavenCentral()
         google()
         // Vendored copy of the few kr328 artifacts (golang gradle-plugin, kaidl)
-        // that only exist in MetaCubeX/maven-backup — that repo is served from
-        // raw.githubusercontent.com, which rate-limits CI runners (HTTP 429
-        // killed two pipelines in a row). ~130 KB, byte-identical to the
-        // published files; the remote stays as a fallback for anything new.
+        // that only exist in MetaCubeX/maven-backup. Do not add the mutable
+        // raw.githubusercontent.com branch mirror here: buildscript artifacts
+        // execute during Gradle configuration, so they must come from this
+        // repository-controlled copy instead of an unpinned branch.
         maven(rootProject.projectDir.resolve("maven").toURI())
-        maven("https://raw.githubusercontent.com/MetaCubeX/maven-backup/main/releases")
     }
     dependencies {
         classpath(libs.build.android)
@@ -32,10 +31,10 @@ subprojects {
     repositories {
         mavenCentral()
         google()
-        // Same order as the buildscript block above: vendored maven/ first,
-        // rate-limited raw.githubusercontent as fallback.
+        // Same trust boundary as the buildscript block above: kr328 artifacts
+        // are resolved from the repository-controlled vendored Maven copy, not
+        // from the mutable raw.githubusercontent.com branch mirror.
         maven(rootProject.projectDir.resolve("maven").toURI())
-        maven("https://raw.githubusercontent.com/MetaCubeX/maven-backup/main/releases")
     }
 
     val isApp = name == "app"
