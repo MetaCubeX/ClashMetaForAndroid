@@ -62,6 +62,10 @@ jobs:
       - name: Build Alpha Release APK
         run: ./gradlew assembleAlphaRelease
 
+      - name: Remove Android signing files
+        if: always()
+        run: rm -f signing.properties release.keystore
+
       - name: Collect APKs
         run: |
           mkdir -p release-artifacts
@@ -89,7 +93,11 @@ jobs:
         run: rm -f release.keystore signing.properties
 
       - name: Publish GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: release-artifacts/*.apk
-          generate_release_notes: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if gh release view "${GITHUB_REF_NAME}" >/dev/null 2>&1; then
+            gh release upload "${GITHUB_REF_NAME}" release-artifacts/*.apk --clobber
+          else
+            gh release create "${GITHUB_REF_NAME}" release-artifacts/*.apk --generate-notes
+          fi
