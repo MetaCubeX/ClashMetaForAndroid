@@ -66,6 +66,10 @@ jobs:
       - name: Build Alpha Release APK
         run: ./gradlew assembleAlphaRelease
 
+      - name: Remove Android signing files
+        if: always()
+        run: rm -f signing.properties release.keystore
+
       - name: Collect APKs
         run: |
           mkdir -p release-artifacts
@@ -144,13 +148,23 @@ jobs:
           done
 
       - name: Publish/Update Dev Pre-Release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: dev-latest
-          name: ClashFest Dev Build
-          prerelease: true
-          make_latest: false
-          target_commitish: dev
-          body_path: RELEASE_BODY.md
-          overwrite_files: true
-          files: release-artifacts/*.apk
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if gh release view dev-latest >/dev/null 2>&1; then
+            gh release edit dev-latest \
+              --title "ClashFest Dev Build" \
+              --notes-file RELEASE_BODY.md \
+              --prerelease \
+              --target dev \
+              --latest=false
+          else
+            gh release create dev-latest \
+              --title "ClashFest Dev Build" \
+              --notes-file RELEASE_BODY.md \
+              --prerelease \
+              --target dev \
+              --latest=false
+          fi
+
+          gh release upload dev-latest release-artifacts/*.apk --clobber
