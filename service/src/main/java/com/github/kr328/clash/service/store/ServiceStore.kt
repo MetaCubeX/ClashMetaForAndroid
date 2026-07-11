@@ -84,16 +84,14 @@ class ServiceStore(context: Context) {
 
     /**
      * When true, externally-originated control intents (START/STOP/TOGGLE_CLASH
-     * via the exported ExternalControlActivity) are honored. Default true so
-     * existing automation (Tasker, launcher shortcuts) keeps working; when the
-     * user turns it off, external apps cannot drive the VPN at all. An external
-     * stop is always surfaced via a notification regardless of this flag (see
-     * SEC-3 / external-control-policy).
+     * via the exported ExternalControlActivity) are honored. Default false so
+     * external apps cannot drive the VPN unless the user explicitly opts in.
+     * An external stop is always surfaced via a notification regardless of this
+     * flag (see SEC-3 / external-control-policy).
      */
     var allowExternalControl by store.boolean(
         key = "allow_external_control",
         // Secure-by-default (H-01): external apps can't drive the VPN unless the user opts in.
-        // Existing installs are preserved to ON by runMigrations so automation keeps working.
         defaultValue = false
     )
 
@@ -274,17 +272,13 @@ class ServiceStore(context: Context) {
                     .apply()
             }
 
-            // H-01: external control now defaults OFF (secure-by-default). Preserve it ON for installs
-            // that already have an active profile, so existing automation keeps working; fresh installs
-            // stay off. Users can toggle it in App settings either way.
+            // H-01: external control defaults OFF (secure-by-default). Do not silently
+            // enable it during migration: users must explicitly opt in before other apps
+            // can start, stop, or toggle the VPN.
             if (!prefs.getBoolean(MIGRATION_EXTERNAL_CONTROL_DEFAULT_V1, false)) {
-                val existingInstall = prefs.getString(KEY_ACTIVE_PROFILE, null) != null
-                prefs.edit().apply {
-                    if (existingInstall && !prefs.contains(KEY_ALLOW_EXTERNAL_CONTROL)) {
-                        putBoolean(KEY_ALLOW_EXTERNAL_CONTROL, true)
-                    }
-                    putBoolean(MIGRATION_EXTERNAL_CONTROL_DEFAULT_V1, true)
-                }.apply()
+                prefs.edit()
+                    .putBoolean(MIGRATION_EXTERNAL_CONTROL_DEFAULT_V1, true)
+                    .apply()
             }
         }
     }
