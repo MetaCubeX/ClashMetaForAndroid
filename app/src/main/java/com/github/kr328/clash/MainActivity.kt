@@ -1703,14 +1703,26 @@ class MainActivity : BaseActivity<MainDesign>() {
 
     }
 
-    override fun onResume() {
-        super.onResume()
-        events.trySend(Event.ActivityStart)
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        if (intent.action == UpdateDownloadActivity.ACTION_SYNC_PENDING_DOWNLOAD) {
+            syncPendingApkDownload()
+        }
+    }
+
+    private fun syncPendingApkDownload() {
         val pending = updatePrefs.getLong("pending_download_id", -1L)
         if (pending > 0L) {
             pendingApkDownloadId = pending
             checkDownloadedApkAndInstall(pending)
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        events.trySend(Event.ActivityStart)
+        syncPendingApkDownload()
     }
 
     /**

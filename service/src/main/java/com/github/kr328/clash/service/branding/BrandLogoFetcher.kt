@@ -167,8 +167,9 @@ object BrandLogoFetcher {
 
     internal fun isAllowedLiteralHost(host: String): Boolean {
         val looksLikeIpv6 = ':' in host
-        val looksLikeIpv4 = host.matches(Regex("""\d{1,3}(?:\.\d{1,3}){3}"""))
-        if (!looksLikeIpv6 && !looksLikeIpv4) return true
+        val looksNumeric = host.isNotEmpty() && host.all { it.isDigit() || it == '.' }
+        if (!looksLikeIpv6 && !looksNumeric) return true
+        if (looksNumeric && host.split('.').any { it.length > 1 && it.startsWith('0') }) return false
         val address = runCatching { InetAddress.getByName(host) }.getOrNull() ?: return false
         return address.isPublicAddress()
     }
