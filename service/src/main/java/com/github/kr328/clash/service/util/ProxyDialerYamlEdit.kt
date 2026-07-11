@@ -212,11 +212,23 @@ object ProxyDialerYamlEdit {
             val profileRoot = profileDir.canonicalFile
             val providerRoot = File(profileRoot, "providers").canonicalFile
             if (providerRoot.parentFile != profileRoot) return@runCatching null
-            val supplied = File(raw)
-            val candidate = if (supplied.isAbsolute) supplied else File(providerRoot, raw.removePrefix("./"))
+            val candidate = File(providerRoot, resolveAsRoot(raw))
             val resolved = candidate.canonicalFile
             if (resolved.toPath().startsWith(providerRoot.toPath())) resolved else null
         }.getOrNull()
+    }
+
+    /** Mirrors native common.ResolveAsRoot before mihomo prefixes `<profile>/providers/`. */
+    internal fun resolveAsRoot(path: String): String {
+        val result = ArrayDeque<String>()
+        for (directory in path.split('/')) {
+            when (directory) {
+                "", "." -> Unit
+                ".." -> if (result.isNotEmpty()) result.removeLast()
+                else -> result.addLast(directory)
+            }
+        }
+        return result.joinToString("/")
     }
 
     private fun resolvePatchPath(profileDir: File, patch: FilePatch): File? =

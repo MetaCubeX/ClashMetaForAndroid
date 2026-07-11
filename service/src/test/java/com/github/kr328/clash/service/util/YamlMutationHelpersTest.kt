@@ -150,16 +150,25 @@ class YamlMutationHelpersTest {
             )
             assertEquals(
                 valid.canonicalFile,
-                ProxyDialerYamlEdit.resolveProviderPath(dir, valid.absolutePath),
+                ProxyDialerYamlEdit.resolveProviderPath(dir, "/proxies/sub1.yaml"),
             )
-            assertNull(ProxyDialerYamlEdit.resolveProviderPath(dir, "../config.yaml"))
-            assertNull(ProxyDialerYamlEdit.resolveProviderPath(dir, dir.resolve("config.yaml").absolutePath))
-            assertNull(
-                ProxyDialerYamlEdit.resolveProviderPath(
-                    dir,
-                    requireNotNull(dir.parentFile).resolve("sibling.yaml").absolutePath,
-                ),
+            assertEquals(
+                valid.canonicalFile,
+                ProxyDialerYamlEdit.resolveProviderPath(dir, "../../proxies/sub1.yaml"),
             )
+            assertEquals(
+                valid.canonicalFile,
+                ProxyDialerYamlEdit.resolveProviderPath(dir, "ignored/../proxies/sub1.yaml"),
+            )
+            assertEquals("proxies/sub1.yaml", ProxyDialerYamlEdit.resolveAsRoot("/proxies/./sub1.yaml"))
+            assertEquals("proxies/sub1.yaml", ProxyDialerYamlEdit.resolveAsRoot("../../proxies/sub1.yaml"))
+
+            val outside = requireNotNull(dir.parentFile).resolve("sibling.yaml")
+            assertEquals(
+                dir.resolve("providers/sibling.yaml").canonicalFile,
+                ProxyDialerYamlEdit.resolveProviderPath(dir, "../../sibling.yaml"),
+            )
+            assertFalse(ProxyDialerYamlEdit.resolveProviderPath(dir, "../../sibling.yaml") == outside.canonicalFile)
         } finally {
             dir.deleteRecursively()
         }
