@@ -4,13 +4,14 @@ import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.SystemClock
 import androidx.core.app.NotificationChannelCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.github.kr328.clash.MainActivity
-import com.github.kr328.clash.UpdateActionReceiver
 import com.github.kr328.clash.UpdateCheckReceiver
+import com.github.kr328.clash.UpdateDownloadActivity
 import com.github.kr328.clash.design.R as DesignR
 import com.github.kr328.clash.service.R as ServiceR
 
@@ -201,31 +202,24 @@ object AppUpdateChecker {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
 
-        val openReleasePendingIntent = PendingIntent.getBroadcast(
-            context,
-            ACTION_OPEN_RELEASE_REQUEST_CODE,
-            Intent(context, UpdateActionReceiver::class.java).apply {
-                action = UpdateActionReceiver.ACTION_OPEN_RELEASE_PAGE
-                putExtra(UpdateActionReceiver.EXTRA_RELEASE_URL, release.htmlUrl)
-            },
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
-        )
+        val openReleasePendingIntent = release.htmlUrl
+            .takeIf(UpdateApkVerifier::isTrustedReleasePageUrl)
+            ?.let { releaseUrl ->
+                PendingIntent.getActivity(
+                    context,
+                    ACTION_OPEN_RELEASE_REQUEST_CODE,
+                    Intent(Intent.ACTION_VIEW, Uri.parse(releaseUrl)),
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+                )
+            }
 
-        // Route Download & install through MainActivity instead of a BroadcastReceiver:
-        // Android 8+ blocks manifest-declared receivers for DownloadManager.ACTION_DOWNLOAD_COMPLETE
-        // (implicit broadcast restriction), so a background receiver can't auto-fire the installer.
-        // Opening MainActivity lets it register a runtime receiver and own the download id end-to-end.
+        // The notification launches a non-exported activity directly. This avoids Android 12+
+        // notification trampolines and keeps cached release data out of exported MainActivity.
         val downloadAndInstallPendingIntent = if (!release.apkUrl.isNullOrBlank()) {
-            val installIntent = Intent(context, MainActivity::class.java)
-                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
-                .setAction(MainActivity.ACTION_DOWNLOAD_AND_INSTALL_UPDATE)
-                .putExtra(MainActivity.EXTRA_UPDATE_TAG, release.tagName)
-                .putExtra(MainActivity.EXTRA_UPDATE_APK_URL, release.apkUrl)
-                .putExtra(MainActivity.EXTRA_UPDATE_APK_NAME, release.apkName)
             PendingIntent.getActivity(
                 context,
                 ACTION_DOWNLOAD_REQUEST_CODE,
-                installIntent,
+                Intent(context, UpdateDownloadActivity::class.java),
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
             )
         } else {
@@ -239,11 +233,14 @@ object AppUpdateChecker {
             .setAutoCancel(true)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setContentIntent(openPendingIntent)
-            .addAction(
+
+        if (openReleasePendingIntent != null) {
+            notificationBuilder.addAction(
                 0,
                 context.getString(DesignR.string.about_open_release),
                 openReleasePendingIntent,
             )
+        }
 
         if (downloadAndInstallPendingIntent != null) {
             notificationBuilder.addAction(

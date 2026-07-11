@@ -37,6 +37,21 @@ func TestRoundTripOracle_SnapshotEquality(t *testing.T) {
 	t.Logf("verified %d block re-dumps are snapshot-equal to the original", len(blocks))
 }
 
+// Security transforms intentionally change semantics. Their oracle is engine
+// acceptance rather than snapshot equality: the post-processed config must
+// still be a config mihomo itself accepts.
+func TestHardeningOracle_EngineAcceptsFixtures(t *testing.T) {
+	fixtures, err := P.Glob(P.Join("testdata", "hardening", "*.yaml"))
+	if err != nil || len(fixtures) == 0 {
+		t.Skip("hardening fixtures absent — run WritePipelineOracleFixtureTest (Kotlin) first")
+	}
+
+	for _, f := range fixtures {
+		snapshotJSON(t, f)
+	}
+	t.Logf("verified %d hardened fixtures are accepted by the engine", len(fixtures))
+}
+
 func snapshotJSON(t *testing.T, path string) string {
 	t.Helper()
 	data, err := os.ReadFile(path)

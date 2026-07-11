@@ -434,6 +434,7 @@
     <string name="profiles_update_all_failed">%1$d 个订阅更新失败。</string>
     <string name="profiles_update_engine_warning">订阅已更新，但你的本地修改不适配新配置，本次未应用。请检查。</string>
     <string name="profiles_orphaned_rules_dropped">已禁用 %1$d 条规则：其代理/策略组在新订阅中已不存在。</string>
+    <string name="profiles_proxy_groups_repaired">已修复 %1$d 处策略组引用：这些节点在新订阅中已消失。清空的策略组被拦截，而非直连。</string>
 
     <!-- DNS & Hosts -->
     <string name="dns_hosts_title">DNS 与 Hosts</string>
@@ -465,7 +466,7 @@
     <string name="dns_hosts_save">保存</string>
     <string name="dns_hosts_saved">已保存。</string>
     <string name="dns_hosts_disabled">已为此配置还原 DNS 与 Hosts。</string>
-    <string name="dns_hosts_err_listen">DNS 监听需为回环 (127.0.0.1:端口)、默认形式 (:端口) 或留空。</string>
+    <string name="dns_hosts_err_listen">DNS 监听必须使用显式回环地址和有效端口，或留空。:端口 简写会保存为 127.0.0.1:端口。</string>
     <string name="dns_hosts_err_invalid">引擎拒绝了此配置。</string>
     <string name="dns_hosts_block_ipv6">屏蔽 IPv6 (AAAA)</string>
     <string name="dns_hosts_block_ipv6_summary">不返回 IPv6 地址（丢弃 AAAA DNS 应答）。修复 IPv6 故障或高延迟导致的卡顿与加载缓慢。</string>

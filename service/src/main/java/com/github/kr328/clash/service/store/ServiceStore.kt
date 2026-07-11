@@ -57,7 +57,7 @@ class ServiceStore(context: Context) {
 
     var systemProxy by store.boolean(
         key = "system_proxy",
-        defaultValue = true
+        defaultValue = false
     )
 
     /** When true, [android.net.VpnService.Builder.allowBypass] is used (apps may exit the VPN). Default off; UI hidden — prefer profile rules. */
@@ -250,6 +250,26 @@ class ServiceStore(context: Context) {
         val s = rawPrefs.getString("orphaned_rules_$uuid", null) ?: return emptyList()
         rawPrefs.edit().remove("orphaned_rules_$uuid").apply()
         return s.split("\n").filter { it.isNotBlank() }
+    }
+
+    /**
+     * How many dangling proxy-group member references were pruned during the last load recovery
+     * (ConfigurationModule → ProxyGroupsYamlEdit.pruneDanglingProxyGroupReferences). Set on the
+     * load path, consumed by the UI to warn the user that the profile loaded but was repaired.
+     */
+    fun setProxyGroupsRepaired(uuid: UUID, removedRefs: Int) {
+        if (removedRefs <= 0) {
+            rawPrefs.edit().remove("proxy_groups_repaired_$uuid").apply()
+        } else {
+            rawPrefs.edit().putInt("proxy_groups_repaired_$uuid", removedRefs).apply()
+        }
+    }
+
+    /** Reads and clears the proxy-group repair marker (one-shot). Returns 0 when nothing pending. */
+    fun consumeProxyGroupsRepaired(uuid: UUID): Int {
+        val n = rawPrefs.getInt("proxy_groups_repaired_$uuid", 0)
+        if (n > 0) rawPrefs.edit().remove("proxy_groups_repaired_$uuid").apply()
+        return n
     }
 
     companion object {

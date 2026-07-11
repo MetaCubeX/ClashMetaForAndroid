@@ -2,7 +2,10 @@ package com.github.kr328.clash.service.util
 
 import java.io.File
 import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
+import com.github.kr328.clash.service.model.ProxyHardeningMode
 
 /**
  * Layer 2 (producer half) — emits round-tripped fixtures for the engine-oracle
@@ -65,5 +68,21 @@ class WritePipelineOracleFixtureTest {
             n++
         }
         assertTrue(n >= 5, "expected several blocks, emitted $n")
+    }
+
+    @Test
+    fun emit_hardened_dns_listener_fixture_for_go_oracle() {
+        val dir = listOf(
+            "../core/src/main/golang/native/snapshot/testdata/hardening",
+            "core/src/main/golang/native/snapshot/testdata/hardening",
+        ).map(::File).first { it.parentFile.parentFile.parentFile.exists() }
+        dir.mkdirs()
+
+        val unsafe = curated.replace("listen: \":1053\"", "listen: \"[::]:1053\"")
+        val hardened = YamlHardener.hardenYaml(unsafe, ProxyHardeningMode.Strict)
+        assertNotNull(hardened)
+        val dns = MihomoConfigDocument.parseOrThrow(hardened).root["dns"] as Map<*, *>
+        assertEquals("127.0.0.1:1053", dns["listen"])
+        File(dir, "dns_listener.yaml").writeText(hardened)
     }
 }

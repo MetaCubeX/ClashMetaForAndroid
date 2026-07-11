@@ -8,43 +8,12 @@ import android.net.Uri
 import android.os.Build
 import android.provider.Settings
 import com.github.kr328.clash.common.log.Log
-import com.github.kr328.clash.util.GitHubReleaseUpdate
 import com.github.kr328.clash.util.UpdateApkVerifier
 
 class UpdateActionReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent?) {
         val app = context.applicationContext
         when (intent?.action) {
-            ACTION_DOWNLOAD_AND_INSTALL -> {
-                val tag = intent.getStringExtra(EXTRA_TAG).orEmpty()
-                val url = intent.getStringExtra(EXTRA_APK_URL).orEmpty()
-                val name = intent.getStringExtra(EXTRA_APK_NAME)
-                if (url.isBlank()) return
-                runCatching {
-                    GitHubReleaseUpdate.enqueueApkDownload(
-                        context = app,
-                        tagName = tag.ifBlank { "update" },
-                        apkUrl = url,
-                        apkName = name,
-                    )
-                }.onFailure {
-                    Log.w("Update action enqueue failed: ${it.message}")
-                }
-            }
-
-            ACTION_OPEN_RELEASE_PAGE -> {
-                val url = intent.getStringExtra(EXTRA_RELEASE_URL).orEmpty()
-                if (url.isBlank()) return
-                runCatching {
-                    app.startActivity(
-                        Intent(Intent.ACTION_VIEW, Uri.parse(url))
-                            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP),
-                    )
-                }.onFailure {
-                    Log.w("Update action open release failed: ${it.message}")
-                }
-            }
-
             DownloadManager.ACTION_DOWNLOAD_COMPLETE -> {
                 val completedId = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1L)
                 if (completedId <= 0L) return
@@ -112,11 +81,5 @@ class UpdateActionReceiver : BroadcastReceiver() {
     companion object {
         private const val PREFS_NAME = "app_update"
         private const val KEY_PENDING_DOWNLOAD_ID = "pending_download_id"
-        const val ACTION_DOWNLOAD_AND_INSTALL = "com.github.kr328.clash.action.UPDATE_DOWNLOAD_AND_INSTALL"
-        const val ACTION_OPEN_RELEASE_PAGE = "com.github.kr328.clash.action.UPDATE_OPEN_RELEASE_PAGE"
-        const val EXTRA_TAG = "extra_tag"
-        const val EXTRA_APK_URL = "extra_apk_url"
-        const val EXTRA_APK_NAME = "extra_apk_name"
-        const val EXTRA_RELEASE_URL = "extra_release_url"
     }
 }

@@ -1,0 +1,27 @@
+proxies:
+  - name: "🇩🇪 Berlin"
+    type: socks5
+    server: 127.0.0.1
+    port: 1080
+    udp: off
+  - name: 香港 01
+    type: socks5
+    server: 127.0.0.2
+    port: 1081
+    udp: true
+proxy-groups:
+  - name: G
+    type: select
+    proxies:
+      - "🇩🇪 Berlin"
+      - 香港 01
+rules:
+  - MATCH,G
+dns:
+    enable: true
+    enhanced-mode: fake-ip
+    listen: 127.0.0.1:1053
+    nameserver:
+      - https://1.1.1.1/dns-query
+hosts:
+  example.com: 1.2.3.4

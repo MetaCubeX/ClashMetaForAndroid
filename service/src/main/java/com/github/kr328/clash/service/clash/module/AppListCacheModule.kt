@@ -15,7 +15,9 @@ class AppListCacheModule(service: Service) : Module<Unit>(service) {
     private fun reload() {
         val packages = service.packageManager.getInstalledPackages(0)
             .filter { it.applicationInfo != null }
-            .groupBy { it.uniqueUidName() }
+            // Group by the OS security principal, never by attacker-controlled
+            // strings from separate Android namespaces (package/sharedUserId).
+            .groupBy { it.applicationInfo!!.uid }
             .map { (_, v) ->
                 val info = v[0]
 

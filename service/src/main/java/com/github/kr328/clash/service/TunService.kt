@@ -249,7 +249,7 @@ class TunService : VpnService(), CoroutineScope by CoroutineScope(Dispatchers.De
                 stack = TunStackResolver.resolve(readActiveProfileConfigYaml(), store.tunStackMode),
                 gateway = "$TUN_GATEWAY/$TUN_SUBNET_PREFIX" + if (store.allowIpv6) ",$TUN_GATEWAY6/$TUN_SUBNET_PREFIX6" else "",
                 portal = TUN_PORTAL + if (store.allowIpv6) ",$TUN_PORTAL6" else "",
-                dns = if (store.dnsHijacking) NET_ANY else (TUN_DNS + if (store.allowIpv6) ",$TUN_DNS6" else ""),
+                dns = buildTunDnsEndpoints(store.dnsHijacking, store.allowIpv6),
             )
         }
 
@@ -276,6 +276,13 @@ class TunService : VpnService(), CoroutineScope by CoroutineScope(Dispatchers.De
         private const val TUN_DNS6 = TUN_PORTAL6
         private const val NET_ANY = "0.0.0.0"
         private const val NET_ANY6 = "::"
+
+        internal fun buildTunDnsEndpoints(dnsHijacking: Boolean, allowIpv6: Boolean): String =
+            if (dnsHijacking) {
+                NET_ANY + if (allowIpv6) ",$NET_ANY6" else ""
+            } else {
+                TUN_DNS + if (allowIpv6) ",$TUN_DNS6" else ""
+            }
 
         private val HTTP_PROXY_LOCAL_LIST: List<String> = listOf(
             "localhost",

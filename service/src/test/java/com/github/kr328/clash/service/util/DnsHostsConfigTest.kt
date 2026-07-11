@@ -85,14 +85,19 @@ class DnsHostsConfigTest {
     }
 
     @Test
-    fun listen_validator_allows_loopback_or_empty_only() {
+    fun listen_validator_normalizesShorthandAndRejectsUnsafeAddresses() {
         assertNull(DnsHostsValidator.listenError(null))
         assertNull(DnsHostsValidator.listenError(""))
         assertNull(DnsHostsValidator.listenError("127.0.0.1:0"))
         assertNull(DnsHostsValidator.listenError("[::1]:53"))
         assertNull(DnsHostsValidator.listenError("localhost:53"))
-        assertNull(DnsHostsValidator.listenError(":1053")) // empty-host default form
+        assertNull(DnsHostsValidator.listenError(":1053"))
         assertNull(DnsHostsValidator.listenError(":53"))
+        assertEquals("127.0.0.1:1053", DnsHostsValidator.normalizeListen(":1053"))
+        assertEquals(
+            "127.0.0.1:1053",
+            DnsHostsConfig(enable = true, listen = ":1053").toDnsBlock()!!["listen"],
+        )
         assertEquals(
             DnsHostsValidator.Error.LISTEN_NOT_LOOPBACK,
             DnsHostsValidator.listenError("0.0.0.0:53"),
@@ -101,6 +106,8 @@ class DnsHostsConfigTest {
             DnsHostsValidator.Error.LISTEN_NOT_LOOPBACK,
             DnsHostsValidator.listenError("192.168.1.5:53"),
         )
+        assertEquals(DnsHostsValidator.Error.LISTEN_NOT_LOOPBACK, DnsHostsValidator.listenError("127.0.0.1"))
+        assertEquals(DnsHostsValidator.Error.LISTEN_NOT_LOOPBACK, DnsHostsValidator.listenError("127.0.0.1:99999"))
     }
 
     @Test

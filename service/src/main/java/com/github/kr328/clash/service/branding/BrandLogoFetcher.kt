@@ -92,6 +92,9 @@ object BrandLogoFetcher {
     private fun openWithSafeRedirects(url: HttpUrl, hop: Int): ByteArray? {
         if (hop > MAX_REDIRECTS) return null
         if (!url.isHttps) return null
+        // OkHttp bypasses Dns.lookup for numeric hosts, so PublicOnlyDns alone
+        // cannot protect localhost/LAN literals or redirects to them.
+        if (!isAllowedLiteralHost(url.host)) return null
 
         val request = Request.Builder()
             .url(url)
@@ -160,6 +163,15 @@ object BrandLogoFetcher {
             }
             return addresses
         }
+    }
+
+    internal fun isAllowedLiteralHost(host: String): Boolean {
+        val looksLikeIpv6 = ':' in host
+        val looksNumeric = host.isNotEmpty() && host.all { it.isDigit() || it == '.' }
+        if (!looksLikeIpv6 && !looksNumeric) return true
+        if (looksNumeric && host.split('.').any { it.length > 1 && it.startsWith('0') }) return false
+        val address = runCatching { InetAddress.getByName(host) }.getOrNull() ?: return false
+        return address.isPublicAddress()
     }
 
     private fun InetAddress.isPublicAddress(): Boolean {

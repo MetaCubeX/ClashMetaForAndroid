@@ -263,7 +263,7 @@ fun formatRequestHistoryExport(entries: List<RequestHistoryEntry>): String {
                     entry.process,
                     entry.uid.takeIf { it > 0 }?.toString().orEmpty(),
                     entry.id,
-                ).joinToString(",") { csv(it) }
+                ).joinToString(",") { csvForExport(it) }
             )
         }
     }
@@ -298,12 +298,14 @@ private fun firstNotBlank(vararg values: String?): String {
     return values.firstOrNull { !it.isNullOrBlank() }.orEmpty()
 }
 
-private fun csv(value: String): String {
-    val needsQuote = value.any { it == ',' || it == '"' || it == '\n' || it == '\r' }
-    if (!needsQuote) return value
+internal fun csvForExport(value: String): String {
+    val firstMeaningful = value.firstOrNull { !it.isWhitespace() }
+    val safeValue = if (firstMeaningful in setOf('=', '+', '-', '@')) "'$value" else value
+    val needsQuote = safeValue.any { it == ',' || it == '"' || it == '\n' || it == '\r' }
+    if (!needsQuote) return safeValue
     return buildString {
         append('"')
-        value.forEach {
+        safeValue.forEach {
             if (it == '"') append("\"\"") else append(it)
         }
         append('"')

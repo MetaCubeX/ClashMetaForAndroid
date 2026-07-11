@@ -4,6 +4,9 @@
         <include
             domain="sharedpref"
             path="." />
+        <exclude
+            domain="sharedpref"
+            path="companion_controller.xml" />
         <include
             domain="database"
             path="." />
@@ -36,6 +39,9 @@
         <include
             domain="sharedpref"
             path="." />
+        <exclude
+            domain="sharedpref"
+            path="companion_controller.xml" />
         <include
             domain="database"
             path="." />

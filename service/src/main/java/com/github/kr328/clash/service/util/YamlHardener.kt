@@ -21,6 +21,8 @@ import java.io.File
  *  - `bind-address: <non-loopback>` — rewritten to `127.0.0.1`.
  *  - `external-controller: <non-loopback>:port` — host rewritten to
  *    `127.0.0.1`, port preserved.
+ *  - `dns.listen` — wildcard / non-loopback hosts are rebound to
+ *    `127.0.0.1`; malformed non-empty values are removed fail-closed.
  *
  * [ProxyHardeningMode.Compat] keeps `listeners:` but force-binds each
  * entry to `127.0.0.1` so it never advertises to the network even if the
@@ -133,6 +135,7 @@ object YamlHardener {
         changed = forceFalse(root, "allow-lan") || changed
         changed = forceLoopbackHost(root, "bind-address") || changed
         changed = forceLoopbackHostPort(root, "external-controller") || changed
+        changed = hardenDnsListen(root) || changed
 
         if (!changed) return text
 
@@ -141,6 +144,7 @@ object YamlHardener {
             "allow-lan",
             "bind-address",
             "external-controller",
+            "dns",
         )
         if (removeFromSource.isNotEmpty()) {
             // Re-render through the cleaner so this pass produces a document
@@ -221,6 +225,28 @@ object YamlHardener {
         val rewritten = rewriteListenToLoopback(raw)
         if (rewritten == raw) return false
         root[key] = rewritten
+        return true
+    }
+
+    private fun hardenDnsListen(root: MutableMap<String, Any?>): Boolean {
+        val dns = root["dns"] as? Map<*, *> ?: return false
+        if (!dns.containsKey("listen")) return false
+        val raw = dns["listen"]?.toString()?.trim().orEmpty()
+        if (raw.isEmpty()) return false
+
+        val hardened = DnsHostsValidator.hardenListen(raw)
+        if (hardened == raw) return false
+
+        val mutable = LinkedHashMap<String, Any?>(dns.size)
+        for ((key, value) in dns) mutable[key.toString()] = value
+        if (hardened == null) {
+            mutable.remove("listen")
+            Log.i("YamlHardener: removed malformed dns.listen")
+        } else {
+            mutable["listen"] = hardened
+            Log.i("YamlHardener: rebound dns.listen to loopback")
+        }
+        root["dns"] = mutable
         return true
     }
 

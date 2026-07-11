@@ -58,6 +58,7 @@
     <string name="profiles_update_all_failed">Не удалось обновить подписок: %1$d.</string>
     <string name="profiles_update_engine_warning">Подписка обновлена, но твои локальные правки не подошли к новому конфигу и в этот раз не применились. Проверь их.</string>
     <string name="profiles_orphaned_rules_dropped">Отключено правил: %1$d — их прокси/группы больше нет в новой подписке.</string>
+    <string name="profiles_proxy_groups_repaired">Исправлено ссылок в группах: %1$d — эти узлы пропали из новой подписки. Опустевшие группы заблокированы, а не пущены напрямую.</string>
 
     <!-- DNS & Hosts -->
     <string name="dns_hosts_title">DNS и Hosts</string>
@@ -89,7 +90,7 @@
     <string name="dns_hosts_save">Сохранить</string>
     <string name="dns_hosts_saved">Сохранено.</string>
     <string name="dns_hosts_disabled">DNS и Hosts откатаны для этого профиля.</string>
-    <string name="dns_hosts_err_listen">Адрес DNS listen: loopback (127.0.0.1:порт), форма по умолчанию (:порт) или пусто.</string>
+    <string name="dns_hosts_err_listen">Адрес DNS listen: явный loopback host и корректный порт либо пусто. Форма :порт сохраняется как 127.0.0.1:порт.</string>
     <string name="dns_hosts_err_invalid">Движок отклонил эту конфигурацию.</string>
     <string name="dns_hosts_block_ipv6">Блокировать IPv6 (AAAA)</string>
     <string name="dns_hosts_block_ipv6_summary">Не возвращать IPv6-адреса (отбрасывает AAAA-ответы DNS). Устраняет зависания и медленную загрузку при неработающем или высоколатентном IPv6.</string>

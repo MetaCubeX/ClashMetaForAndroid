@@ -40,21 +40,6 @@ class ConfigurationModule(service: Service) : Module<ConfigurationModule.LoadExc
         return msg.contains("not found") || msg.contains("circular")
     }
 
-    /**
-     * [outboundgroup.getProxies]/getProviders — stale member names in composed `proxy-groups`
-     * after a subscription update (overlay composition).
-     */
-    private fun extractQuotedNotFoundName(e: Throwable): String? {
-        val re = Regex("'([^']*)'\\s+not\\s+found", RegexOption.IGNORE_CASE)
-        return re.find(fullThrowableMessage(e))?.groupValues?.getOrNull(1)?.trim()?.takeIf { it.isNotEmpty() }
-    }
-
-    private fun isProxyGroupStaleReferenceFailure(e: Throwable): Boolean {
-        val msg = fullThrowableMessage(e).lowercase()
-        if (!msg.contains("proxy group[")) return false
-        return extractQuotedNotFoundName(e) != null
-    }
-
     private val store = ServiceStore(service)
     private val reload = Channel<Unit>(Channel.CONFLATED)
 
@@ -166,6 +151,7 @@ class ConfigurationModule(service: Service) : Module<ConfigurationModule.LoadExc
                 }.onFailure { Log.w("Overlay refresh failed for ${active.uuid}; loading existing config.yaml", it) }
 
                 var dialerRecoveryAttempted = false
+                var groupRepairAttempted = false
                 var loadFailures = 0
                 while (true) {
                     try {
@@ -195,13 +181,20 @@ class ConfigurationModule(service: Service) : Module<ConfigurationModule.LoadExc
                                     "Invalid dialer-proxy in YAML (e.g. renamed nodes); stripped all dialer-proxy and retrying load",
                                 )
                             }
-                            isProxyGroupStaleReferenceFailure(e) -> {
-                                val stale = extractQuotedNotFoundName(e)
-                                if (stale != null &&
-                                    ProxyGroupsYamlEdit.removeStaleNameFromAllProxyGroups(profileDir, stale)
-                                ) {
+                            // A subscription update can drop a node still named by a composed
+                            // proxy-group → mihomo rejects the whole config and the VPN won't load.
+                            // Structurally prune the dangling references ONCE (no error-string
+                            // parsing) so the profile loads; emptied groups become REJECT, never
+                            // DIRECT (see ProxyGroupsYamlEdit — DIRECT would leak the real IP). The
+                            // repair is surfaced to the user via a one-shot marker, not silent.
+                            !groupRepairAttempted -> {
+                                groupRepairAttempted = true
+                                val repair = ProxyGroupsYamlEdit.pruneDanglingProxyGroupReferences(profileDir)
+                                if (repair.removedRefs > 0) {
+                                    store.setProxyGroupsRepaired(active.uuid, repair.removedRefs)
                                     Log.w(
-                                        "Stale proxy-group reference removed from config.yaml; retrying load (name omitted)",
+                                        "Pruned ${repair.removedRefs} dangling proxy-group reference(s) " +
+                                            "(emptied→REJECT: ${repair.emptiedGroups}); retrying load",
                                     )
                                 } else {
                                     Log.e("Failed to load active profile, keeping runtime alive", e)
