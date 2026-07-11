@@ -23,6 +23,7 @@ import java.net.UnknownHostException
  */
 object FetchErrorClassifier {
     internal const val MAX_CLASSIFICATION_BYTES = 64 * 1024
+    private data class BodySample(val text: String, val complete: Boolean)
 
     fun clarify(processingDir: File, original: Throwable): Throwable {
         val file = File(processingDir, "config.yaml")
@@ -38,10 +39,11 @@ object FetchErrorClassifier {
             }
             return original
         }
-        val body = readBoundedText(file) ?: return original
+        val sample = readBoundedText(file) ?: return original
+        val body = sample.text
 
         val reason = when {
-            body.isBlank() ->
+            sample.complete && body.isBlank() ->
                 "the subscription server returned an empty response — try again later. [E-10]"
             looksLikeHtml(body) ->
                 "the subscription server returned a web page, not a config " +
@@ -55,8 +57,7 @@ object FetchErrorClassifier {
         return IllegalStateException(reason, original)
     }
 
-    private fun readBoundedText(file: File): String? {
-        if (file.length() > MAX_CLASSIFICATION_BYTES) return null
+    private fun readBoundedText(file: File): BodySample? {
         return runCatching {
             file.inputStream().buffered().use { input ->
                 val bytes = ByteArray(MAX_CLASSIFICATION_BYTES + 1)
@@ -72,8 +73,10 @@ object FetchErrorClassifier {
                         total += read
                     }
                 }
-                if (total > MAX_CLASSIFICATION_BYTES) null
-                else bytes.copyOf(total).toString(Charsets.UTF_8)
+                BodySample(
+                    text = bytes.copyOf(minOf(total, MAX_CLASSIFICATION_BYTES)).toString(Charsets.UTF_8),
+                    complete = total <= MAX_CLASSIFICATION_BYTES,
+                )
             }
         }.getOrNull()
     }

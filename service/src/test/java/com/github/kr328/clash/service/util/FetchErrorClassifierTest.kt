@@ -45,9 +45,25 @@ class FetchErrorClassifierTest {
         assertSame(original, FetchErrorClassifier.clarify(dirWith("proxies: []\nrules:\n  - MATCH,DIRECT\n"), original))
     }
 
-    @Test fun oversized_body_is_not_classified_or_fully_reread() {
+    @Test fun oversized_html_is_classified_from_bounded_prefix() {
         val oversized = "<!DOCTYPE html>" + " ".repeat(FetchErrorClassifier.MAX_CLASSIFICATION_BYTES)
-        assertSame(original, FetchErrorClassifier.clarify(dirWith(oversized), original))
+        val out = FetchErrorClassifier.clarify(dirWith(oversized), original)
+        assertTrue(out.message!!.contains("[E-11]"), out.message)
+    }
+
+    @Test fun oversized_age_armor_is_classified_from_bounded_prefix() {
+        val oversized = "-----BEGIN AGE ENCRYPTED FILE-----\n" +
+            "A".repeat(FetchErrorClassifier.MAX_CLASSIFICATION_BYTES)
+        val out = FetchErrorClassifier.clarify(dirWith(oversized), original)
+        assertTrue(out.message!!.contains("[E-30]"), out.message)
+    }
+
+    @Test fun oversized_blank_or_yaml_prefix_keeps_original() {
+        val blank = " ".repeat(FetchErrorClassifier.MAX_CLASSIFICATION_BYTES + 1)
+        assertSame(original, FetchErrorClassifier.clarify(dirWith(blank), original))
+
+        val yaml = "proxies: []\n" + "#".repeat(FetchErrorClassifier.MAX_CLASSIFICATION_BYTES)
+        assertSame(original, FetchErrorClassifier.clarify(dirWith(yaml), original))
     }
 
     @Test fun body_at_inspection_limit_is_still_classified() {
