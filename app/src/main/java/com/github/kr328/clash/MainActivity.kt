@@ -2081,8 +2081,11 @@ class MainActivity : BaseActivity<MainDesign>() {
         val headersFresh = java.io.File(profileDir, com.github.kr328.clash.service.util.FetchHeadersFile.FILE_NAME)
             .takeIf { it.isFile }
             ?.let { System.currentTimeMillis() - it.lastModified() < cooldown * 1000L } == true
+        val allowCachedHeaders =
+            !url.substringBefore('#').startsWith("http://", ignoreCase = true) ||
+                uiStore.subscriptionMetadataAllowInsecureHttp
 
-        val (meta, brandManifest) = if (headersFile != null && headersFresh) {
+        val (meta, brandManifest) = if (headersFile != null && headersFresh && allowCachedHeaders) {
             com.github.kr328.clash.common.util.SubscriptionMetadataFetcher
                 .parseHeaders { key -> headersFile.get(key) } to
                 com.github.kr328.clash.common.branding.BrandManifestParser
