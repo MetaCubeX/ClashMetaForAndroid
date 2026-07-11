@@ -252,6 +252,26 @@ class ServiceStore(context: Context) {
         return s.split("\n").filter { it.isNotBlank() }
     }
 
+    /**
+     * How many dangling proxy-group member references were pruned during the last load recovery
+     * (ConfigurationModule → ProxyGroupsYamlEdit.pruneDanglingProxyGroupReferences). Set on the
+     * load path, consumed by the UI to warn the user that the profile loaded but was repaired.
+     */
+    fun setProxyGroupsRepaired(uuid: UUID, removedRefs: Int) {
+        if (removedRefs <= 0) {
+            rawPrefs.edit().remove("proxy_groups_repaired_$uuid").apply()
+        } else {
+            rawPrefs.edit().putInt("proxy_groups_repaired_$uuid", removedRefs).apply()
+        }
+    }
+
+    /** Reads and clears the proxy-group repair marker (one-shot). Returns 0 when nothing pending. */
+    fun consumeProxyGroupsRepaired(uuid: UUID): Int {
+        val n = rawPrefs.getInt("proxy_groups_repaired_$uuid", 0)
+        if (n > 0) rawPrefs.edit().remove("proxy_groups_repaired_$uuid").apply()
+        return n
+    }
+
     companion object {
         private const val KEY_ALLOW_BYPASS = "allow_bypass"
         private const val KEY_ALLOW_EXTERNAL_CONTROL = "allow_external_control"

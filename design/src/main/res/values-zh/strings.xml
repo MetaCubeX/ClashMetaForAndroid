@@ -434,6 +434,7 @@
     <string name="profiles_update_all_failed">%1$d 个订阅更新失败。</string>
     <string name="profiles_update_engine_warning">订阅已更新，但你的本地修改不适配新配置，本次未应用。请检查。</string>
     <string name="profiles_orphaned_rules_dropped">已禁用 %1$d 条规则：其代理/策略组在新订阅中已不存在。</string>
+    <string name="profiles_proxy_groups_repaired">已修复 %1$d 处策略组引用：这些节点在新订阅中已消失。清空的策略组被拦截，而非直连。</string>
 
     <!-- DNS & Hosts -->
     <string name="dns_hosts_title">DNS 与 Hosts</string>

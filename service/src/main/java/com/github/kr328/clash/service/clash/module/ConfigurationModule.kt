@@ -11,6 +11,7 @@ import com.github.kr328.clash.service.store.ServiceStore
 import com.github.kr328.clash.service.util.GeoUrlSanitizer
 import com.github.kr328.clash.service.util.ProfileOverlay
 import com.github.kr328.clash.service.util.ProxyDialerYamlEdit
+import com.github.kr328.clash.service.util.ProxyGroupsYamlEdit
 import com.github.kr328.clash.service.util.ProxyHardener
 import com.github.kr328.clash.service.util.ensureBundledGeoAssets
 import com.github.kr328.clash.service.util.importedDir
@@ -150,6 +151,7 @@ class ConfigurationModule(service: Service) : Module<ConfigurationModule.LoadExc
                 }.onFailure { Log.w("Overlay refresh failed for ${active.uuid}; loading existing config.yaml", it) }
 
                 var dialerRecoveryAttempted = false
+                var groupRepairAttempted = false
                 var loadFailures = 0
                 while (true) {
                     try {
@@ -178,6 +180,29 @@ class ConfigurationModule(service: Service) : Module<ConfigurationModule.LoadExc
                                 Log.w(
                                     "Invalid dialer-proxy in YAML (e.g. renamed nodes); stripped all dialer-proxy and retrying load",
                                 )
+                            }
+                            // A subscription update can drop a node still named by a composed
+                            // proxy-group → mihomo rejects the whole config and the VPN won't load.
+                            // Structurally prune the dangling references ONCE (no error-string
+                            // parsing) so the profile loads; emptied groups become REJECT, never
+                            // DIRECT (see ProxyGroupsYamlEdit — DIRECT would leak the real IP). The
+                            // repair is surfaced to the user via a one-shot marker, not silent.
+                            !groupRepairAttempted -> {
+                                groupRepairAttempted = true
+                                val repair = ProxyGroupsYamlEdit.pruneDanglingProxyGroupReferences(profileDir)
+                                if (repair.removedRefs > 0) {
+                                    store.setProxyGroupsRepaired(active.uuid, repair.removedRefs)
+                                    Log.w(
+                                        "Pruned ${repair.removedRefs} dangling proxy-group reference(s) " +
+                                            "(emptied→REJECT: ${repair.emptiedGroups}); retrying load",
+                                    )
+                                } else {
+                                    Log.e("Failed to load active profile, keeping runtime alive", e)
+                                    if (loaded == null) {
+                                        return enqueueEvent(LoadException(e.message ?: "Unknown"))
+                                    }
+                                    break
+                                }
                             }
                             else -> {
                                 Log.e("Failed to load active profile, keeping runtime alive", e)

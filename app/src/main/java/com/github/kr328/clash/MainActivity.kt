@@ -2004,6 +2004,15 @@ class MainActivity : BaseActivity<MainDesign>() {
                     ToastDuration.Long,
                 )
             }
+            // Proxy-group members that vanished from the new subscription were pruned so the
+            // profile could load (emptied groups were blocked, not sent DIRECT). Tell the user.
+            val repairedGroups = ServiceStore(this@MainActivity).consumeProxyGroupsRepaired(uuid)
+            if (repairedGroups > 0) {
+                design?.showToast(
+                    getString(R.string.profiles_proxy_groups_repaired, repairedGroups),
+                    ToastDuration.Long,
+                )
+            }
         }
     }
 
