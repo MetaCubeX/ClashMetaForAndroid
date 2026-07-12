@@ -2,6 +2,7 @@ package tunnel
 
 import (
 	"context"
+	"io"
 	"reflect"
 	"sync"
 	"time"
@@ -119,6 +120,24 @@ func HealthCheckAll() {
 		go func(group string) {
 			HealthCheck(group)
 		}(g)
+	}
+}
+
+// CancelHealthChecks cancels the health-check context of every live proxy provider (subscription
+// providers and the synthetic per-group compatible providers alike). A plain config swap only
+// replaces the provider maps (tunnel.UpdateProxies) and never closes the outgoing ones, so their
+// url-test goroutines keep dialing until each hits its full per-proxy timeout. On VPN teardown that
+// stalls shutdown: the tunnel is logically down in ~90ms, but an in-flight batch against dead nodes
+// keeps the Android VpnService — and the system VPN key — alive for the 10-30s it takes the last
+// dial to give up. Cancelling the providers' health-check context aborts those dials at once.
+//
+// Called from reset() before LoadDefault swaps the config out; the providers are being discarded
+// anyway, and closing only fires ctxCancel (+ stops a subscription fetcher) — nothing blocking.
+func CancelHealthChecks() {
+	for _, p := range tunnel.Providers() {
+		if closer, ok := p.(io.Closer); ok {
+			_ = closer.Close()
+		}
 	}
 }
 
