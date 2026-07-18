@@ -370,4 +370,21 @@
     <string name="shortcut_start_long">Start Clash service</string>
     <string name="shortcut_stop_short">Stop Clash</string>
     <string name="shortcut_stop_long">Stop Clash service</string>
+
+    <!-- WebDAV cloud sync -->
+    <string name="webdav_sync">WebDAV Sync</string>
+    <string name="webdav_server">WebDAV Server</string>
+    <string name="webdav_actions">Sync</string>
+    <string name="webdav_server_url">Server URL</string>
+    <string name="webdav_username">Username</string>
+    <string name="webdav_password">Password</string>
+    <string name="webdav_not_configured">Not set</string>
+    <string name="webdav_pull_sync">Pull and sync now</string>
+    <string name="webdav_pull_sync_summary">Download the latest Clash Verge backup and import its subscriptions</string>
+    <string name="webdav_tips">Syncs subscriptions from a Clash Verge WebDAV backup. Use the same server URL, username and password as Clash Verge. Only subscription profiles are imported; local and enhancement profiles are skipped.</string>
+    <string name="webdav_missing_credentials">Please fill in the server URL, username and password first</string>
+    <string name="webdav_syncing">Syncing from WebDAV…</string>
+    <string name="webdav_no_backup_found">No backup found on the WebDAV server</string>
+    <string name="webdav_sync_failed">Sync failed: %1$s</string>
+    <string name="webdav_sync_result">Sync done · added %1$d, existing %2$d, failed %3$d, skipped %4$d local</string>
 </resources>
