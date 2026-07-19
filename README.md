@@ -66,7 +66,7 @@ APP package name is `com.github.metacubex.clash.meta`
 - Stop Clash.Meta service
   - Send intent to activity `com.github.kr328.clash.ExternalControlActivity` with action `com.github.metacubex.clash.meta.action.STOP_CLASH`
 - Import a profile
-  - URL Scheme `clash://install-config?url=<encoded URI>` or `clashmeta://install-config?url=<encoded URI>`
+  - URL Scheme `clash://install-config?url=<encoded URI>`, `clashmeta://install-config?url=<encoded URI>` or `cmfa://install-config?url=<encoded URI>`
 
 ### Contribution and Project Maintenance
 
