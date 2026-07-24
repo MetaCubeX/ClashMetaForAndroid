@@ -50,7 +50,7 @@ require (
 	github.com/metacubex/age v0.0.0-20260603010618-28d156b4ea78 // indirect
 	github.com/metacubex/amneziawg-go v0.0.0-20260612143004-19b4f1cdd5ec // indirect
 	github.com/metacubex/ascon v0.1.0 // indirect
-	github.com/metacubex/bart v0.26.0 // indirect
+	github.com/metacubex/bart v0.29.0 // indirect
 	github.com/metacubex/bbolt v0.0.0-20260706163408-d4ec34ad7c48 // indirect
 	github.com/metacubex/blake3 v0.1.0 // indirect
 	github.com/metacubex/chacha v0.1.5 // indirect
@@ -64,8 +64,8 @@ require (
 	github.com/metacubex/hkdf v0.1.0 // indirect
 	github.com/metacubex/hpke v0.1.0 // indirect
 	github.com/metacubex/http v0.1.6 // indirect
-	github.com/metacubex/jls-quic-go v0.0.0-20260717074316-85a8decdd355 // indirect
-	github.com/metacubex/jls-tls v0.0.0-20260716145614-4bf88db633e2 // indirect
+	github.com/metacubex/jls-quic-go v0.0.0-20260723162623-1cc413101174 // indirect
+	github.com/metacubex/jls-tls v0.0.0-20260723084315-67adc0e2f796 // indirect
 	github.com/metacubex/jsonv2 v0.0.0-20260518173308-f4597c22f1df // indirect
 	github.com/metacubex/kcp-go v0.0.0-20260105040817-550693377604 // indirect
 	github.com/metacubex/mhurl v0.1.0 // indirect
@@ -75,11 +75,11 @@ require (
 	github.com/metacubex/qpack v0.6.0 // indirect
 	github.com/metacubex/quic-go v0.59.1-0.20260606115121-0662b57ad5bf // indirect
 	github.com/metacubex/randv2 v0.2.0 // indirect
-	github.com/metacubex/restls-client-go v0.1.8 // indirect
+	github.com/metacubex/restls-client-go v0.1.9 // indirect
 	github.com/metacubex/sevenzip v1.6.4 // indirect
 	github.com/metacubex/sing v0.5.7 // indirect
 	github.com/metacubex/sing-mux v0.3.10 // indirect
-	github.com/metacubex/sing-quic v0.0.0-20260527143057-68e10a6afdc3 // indirect
+	github.com/metacubex/sing-quic v0.0.0-20260720020849-6c62e17225e8 // indirect
 	github.com/metacubex/sing-shadowsocks v0.2.12 // indirect
 	github.com/metacubex/sing-shadowsocks2 v0.2.7 // indirect
 	github.com/metacubex/sing-tun v0.4.21 // indirect
