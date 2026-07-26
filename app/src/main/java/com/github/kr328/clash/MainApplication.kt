@@ -41,7 +41,7 @@ class MainApplication : Application() {
             var autoDestroyJob: Job? = null
 
             ApplicationObserver.onVisibleChanged { visible ->
-                if (!visible && uiStore.autoDestroyUI) {
+                if (!visible && uiStore.autoDestroyUI && !LogcatService.running) {
                     autoDestroyJob?.cancel()
                     autoDestroyJob = Global.launch {
                         delay(3000)
