@@ -90,7 +90,7 @@ class AppSettingsDesign(
 
             switch(
                 value = uiStore::autoDestroyUI,
-                icon = R.drawable.ic_baseline_hide,
+                icon = R.drawable.ic_baseline_close,
                 title = R.string.auto_destroy_ui_title,
                 summary = R.string.auto_destroy_ui_desc,
             )
