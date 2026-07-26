@@ -41,6 +41,11 @@ class UiStore(context: Context) {
         defaultValue = false,
     )
 
+    var autoDestroyUI: Boolean by store.boolean(
+        key = "auto_destroy_ui",
+        defaultValue = false,
+    )
+
     var proxyExcludeNotSelectable by store.boolean(
         key = "proxy_exclude_not_selectable",
         defaultValue = false,

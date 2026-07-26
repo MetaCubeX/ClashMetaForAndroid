@@ -41,6 +41,8 @@
     <string name="hide_app_icon_desc">可以在拨号盘输入 *#*#252746382#*#* 打开应用</string>
     <string name="hide_from_recents_title">从最近任务隐藏</string>
     <string name="hide_from_recents_desc">在最近任务中隐藏应用</string>
+    <string name="auto_destroy_ui_title">自动销毁界面</string>
+    <string name="auto_destroy_ui_desc">应用进入后台3秒后自动销毁界面以节省内存</string>
     <string name="history">历史</string>
     <string name="import_from_file">从文件导入</string>
     <string name="import_from_url">从 URL 导入</string>

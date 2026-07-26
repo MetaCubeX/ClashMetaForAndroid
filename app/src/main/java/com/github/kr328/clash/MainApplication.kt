@@ -2,12 +2,18 @@ package com.github.kr328.clash
 
 import android.app.Application
 import android.content.Context
+import android.os.Process
 import com.github.kr328.clash.common.Global
 import com.github.kr328.clash.common.compat.currentProcessName
 import com.github.kr328.clash.common.log.Log
+import com.github.kr328.clash.design.store.UiStore
 import com.github.kr328.clash.remote.Remote
 import com.github.kr328.clash.service.util.sendServiceRecreated
+import com.github.kr328.clash.util.ApplicationObserver
 import com.github.kr328.clash.util.clashDir
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
 
@@ -29,6 +35,26 @@ class MainApplication : Application() {
         Log.d("Process $processName started")
 
         if (processName == packageName) {
+            ApplicationObserver.attach(this)
+
+            // Setup auto destroy UI observer
+            val uiStore = UiStore(this)
+            var autoDestroyJob: Job? = null
+
+            ApplicationObserver.onVisibleChanged { visible ->
+                if (!visible && uiStore.autoDestroyUI) {
+                    autoDestroyJob?.cancel()
+                    autoDestroyJob = Global.launch {
+                        delay(3000)
+                        Log.d("AutoDestroyUI: Killing UI process to free memory")
+                        Process.killProcess(Process.myPid())
+                    }
+                } else if (visible) {
+                    autoDestroyJob?.cancel()
+                    autoDestroyJob = null
+                }
+            }
+
             Remote.launch()
         } else {
             sendServiceRecreated()

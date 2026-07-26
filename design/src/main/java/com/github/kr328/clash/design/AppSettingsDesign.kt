@@ -88,6 +88,13 @@ class AppSettingsDesign(
                 }
             }
 
+            switch(
+                value = uiStore::autoDestroyUI,
+                icon = R.drawable.ic_baseline_hide,
+                title = R.string.auto_destroy_ui_title,
+                summary = R.string.auto_destroy_ui_desc,
+            )
+
             category(R.string.service)
 
             switch(
