@@ -28,9 +28,6 @@ object ApplicationObserver {
     val createdActivities: Set<Activity>
         get() = _createdActivities
 
-    val isAppVisible: Boolean
-        get() = appVisible
-
     private val activityObserver = object : Application.ActivityLifecycleCallbacks {
         @Synchronized
         override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {

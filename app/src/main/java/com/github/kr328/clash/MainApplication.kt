@@ -35,9 +35,8 @@ class MainApplication : Application() {
         Log.d("Process $processName started")
 
         if (processName == packageName) {
-            ApplicationObserver.attach(this)
-
-            // Setup auto destroy UI observer
+            // Setup auto destroy UI observer (must register before Remote.launch
+            // so our callback is in the listener list before any visibility event)
             val uiStore = UiStore(this)
             var autoDestroyJob: Job? = null
 
