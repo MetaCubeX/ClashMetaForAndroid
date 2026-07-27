@@ -328,4 +328,6 @@
     <string name="override_destination">Override Destination</string>
     <string name="import_from_qr_no_permission">Доступ к камере ограничен. Разрешите его в настройках.</string>
     <string name="import_from_qr_exception">Произошла не обрабатываемая системная ошибка.</string>
+    <string name="auto_destroy_ui_title">Автоуничтожение UI</string>
+    <string name="auto_destroy_ui_desc">Автоматически уничтожать UI через 3 секунды после перехода приложения в фон для экономии памяти</string>
 </resources>

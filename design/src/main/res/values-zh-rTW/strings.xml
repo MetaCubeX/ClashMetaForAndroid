@@ -261,4 +261,6 @@
     <string name="override_destination">Override Destination</string>
     <string name="import_from_qr_no_permission">相機權限受限，請前往設定開啟。</string>
     <string name="import_from_qr_exception">發生系統未知異常，操作失敗。</string>
+    <string name="auto_destroy_ui_title">自動銷毀介面</string>
+    <string name="auto_destroy_ui_desc">應用程式進入背景3秒後自動銷毀介面以節省記憶體</string>
 </resources>

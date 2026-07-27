@@ -250,4 +250,6 @@
     <string name="import_from_qr">Nhập từ Mã QR</string>
     <string name="import_from_qr_no_permission">Quyền truy cập camera bị hạn chế. Vui lòng bật trong Cài đặt.</string>
     <string name="import_from_qr_exception">Đã xảy ra ngoại lệ hệ thống không xử lý được.</string>
+    <string name="auto_destroy_ui_title">Tự động hủy UI</string>
+    <string name="auto_destroy_ui_desc">Tự động hủy UI sau 3 giây khi ứng dụng chuyển sang nền để tiết kiệm bộ nhớ</string>
 </resources>

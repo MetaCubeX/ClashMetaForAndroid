@@ -40,17 +40,44 @@ class MainApplication : Application() {
             val uiStore = UiStore(this)
             var autoDestroyJob: Job? = null
 
+            // 含未保存编辑或正在等待外部结果（文件选择器、VPN 授权等）的 Activity，
+            // 存活时不允许杀 UI 进程
+            val protectedActivities: Set<Class<*>> = setOf(
+                NewProfileActivity::class.java,
+                FilesActivity::class.java,
+                LogcatActivity::class.java,
+                MetaFeatureSettingsActivity::class.java,
+                AccessControlActivity::class.java,
+                OverrideSettingsActivity::class.java,
+                PropertiesActivity::class.java,
+            )
+
             ApplicationObserver.onVisibleChanged { visible ->
-                if (!visible && uiStore.autoDestroyUI && !LogcatService.running) {
-                    autoDestroyJob?.cancel()
+                autoDestroyJob?.cancel()
+                autoDestroyJob = null
+                if (!visible && uiStore.autoDestroyUI) {
                     autoDestroyJob = Global.launch {
-                        delay(3000)
+                        // 持续监测：有等待回调/编辑中则等待，无保护条件持续 3 秒才杀
+                        var idleMs = 0
+                        while (idleMs < 3000) {
+                            delay(500)
+                            val protectedNow = LogcatService.running ||
+                                ApplicationObserver.createdActivities.any { it.javaClass in protectedActivities } ||
+                                MainActivity.pendingExternalRequest
+                            if (protectedNow) {
+                                idleMs = 0
+                            } else {
+                                idleMs += 500
+                            }
+                        }
                         Log.d("AutoDestroyUI: Killing UI process to free memory")
+                        try {
+                            File(clashDir, "auto_destroy.log").appendText(
+                                "${java.util.Date()} AutoDestroyUI: Killing UI process\n"
+                            )
+                        } catch (e: Exception) { }
                         Process.killProcess(Process.myPid())
                     }
-                } else if (visible) {
-                    autoDestroyJob?.cancel()
-                    autoDestroyJob = null
                 }
             }
 
