@@ -71,7 +71,7 @@ class LargeActionCard @JvmOverloads constructor(
         super.onFocusChanged(gainFocus, direction, previouslyFocusedRect)
         if (!television) return
 
-        val scale = if (gainFocus) 1.045f else 1f
+        val scale = if (gainFocus) 1.012f else 1f
         strokeColor = context.resolveThemedColor(com.google.android.material.R.attr.colorPrimary)
         strokeWidth = if (gainFocus) context.getPixels(R.dimen.tv_focus_stroke) else 0
         animate()

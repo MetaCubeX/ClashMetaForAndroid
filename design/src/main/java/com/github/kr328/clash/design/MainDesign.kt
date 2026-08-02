@@ -14,6 +14,7 @@ import com.github.kr328.clash.design.databinding.DesignMainBinding
 import com.github.kr328.clash.design.util.layoutInflater
 import com.github.kr328.clash.design.util.resolveThemedColor
 import com.github.kr328.clash.design.util.root
+import com.github.kr328.clash.design.view.TvNavigationBar
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -45,6 +46,7 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
     suspend fun setClashRunning(running: Boolean) {
         withContext(Dispatchers.Main) {
             binding.clashRunning = running
+            binding.root.findViewById<TvNavigationBar>(R.id.tv_navigation_bar)?.proxyEnabled = running
         }
     }
 
@@ -123,7 +125,30 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         if (context.resources.configuration.uiMode and Configuration.UI_MODE_TYPE_MASK ==
             Configuration.UI_MODE_TYPE_TELEVISION
         ) {
-            binding.root.findViewById<View>(R.id.tv_nav_home)?.isSelected = true
+            binding.root.findViewById<TvNavigationBar>(R.id.tv_navigation_bar)?.apply {
+                setActiveTab(TvNavigationBar.Tab.Home)
+                proxyEnabled = binding.clashRunning
+                setNextFocusDown(TvNavigationBar.Tab.Home, R.id.tv_status)
+                setNextFocusDown(TvNavigationBar.Tab.Proxy, R.id.tv_proxies)
+                setNextFocusDown(TvNavigationBar.Tab.Profiles, R.id.tv_profiles)
+                setNextFocusDown(TvNavigationBar.Tab.Logs, R.id.tv_mode_card)
+                setNextFocusDown(TvNavigationBar.Tab.Settings, R.id.tv_mode_card)
+                setNextFocusDown(TvNavigationBar.Tab.Help, R.id.tv_mode_card)
+                setNextFocusDown(TvNavigationBar.Tab.About, R.id.tv_mode_card)
+                onTabSelected = { tab ->
+                    request(
+                        when (tab) {
+                            TvNavigationBar.Tab.Home -> Request.OpenHome
+                            TvNavigationBar.Tab.Proxy -> Request.OpenProxy
+                            TvNavigationBar.Tab.Profiles -> Request.OpenProfiles
+                            TvNavigationBar.Tab.Logs -> Request.OpenLogs
+                            TvNavigationBar.Tab.Settings -> Request.OpenSettings
+                            TvNavigationBar.Tab.Help -> Request.OpenHelp
+                            TvNavigationBar.Tab.About -> Request.OpenAbout
+                        },
+                    )
+                }
+            }
             binding.root.post {
                 binding.root.findViewById<View>(R.id.tv_status)?.requestFocus()
             }

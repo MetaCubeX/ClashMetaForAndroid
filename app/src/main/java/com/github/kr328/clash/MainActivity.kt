@@ -64,22 +64,22 @@ class MainActivity : BaseActivity<MainDesign>() {
                                 design.startClash()
                         }
                         MainDesign.Request.OpenProxy ->
-                            startActivity(ProxyActivity::class.intent)
+                            openTvTab(ProxyActivity::class.intent)
                         MainDesign.Request.OpenProfiles ->
-                            startActivity(ProfilesActivity::class.intent)
+                            openTvTab(ProfilesActivity::class.intent)
                         MainDesign.Request.OpenProviders ->
-                            startActivity(ProvidersActivity::class.intent)
+                            openTvTab(ProvidersActivity::class.intent)
                         MainDesign.Request.OpenLogs -> {
                             if (LogcatService.running) {
-                                startActivity(LogcatActivity::class.intent)
+                                openTvTab(LogcatActivity::class.intent)
                             } else {
-                                startActivity(LogsActivity::class.intent)
+                                openTvTab(LogsActivity::class.intent)
                             }
                         }
                         MainDesign.Request.OpenSettings ->
-                            startActivity(SettingsActivity::class.intent)
+                            openTvTab(SettingsActivity::class.intent)
                         MainDesign.Request.OpenHelp ->
-                            startActivity(HelpActivity::class.intent)
+                            openTvTab(HelpActivity::class.intent)
                         MainDesign.Request.OpenAbout ->
                             design.showAbout(queryAppVersionName())
                     }
@@ -163,7 +163,7 @@ class MainActivity : BaseActivity<MainDesign>() {
         if (active == null || !active.imported) {
             showToast(DesignR.string.no_profile_selected, ToastDuration.Long) {
                 setAction(DesignR.string.profiles) {
-                    startActivity(ProfilesActivity::class.intent)
+                    openTvTab(ProfilesActivity::class.intent)
                 }
             }
 

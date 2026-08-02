@@ -81,7 +81,7 @@ class LargeActionLabel @JvmOverloads constructor(
         super.onFocusChanged(gainFocus, direction, previouslyFocusedRect)
         if (!television) return
 
-        val scale = if (gainFocus) 1.035f else 1f
+        val scale = if (gainFocus) 1.01f else 1f
         alpha = if (gainFocus) 1f else 0.88f
         animate()
             .scaleX(scale)

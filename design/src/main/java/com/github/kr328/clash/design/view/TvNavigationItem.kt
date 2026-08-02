@@ -69,8 +69,8 @@ class TvNavigationItem @JvmOverloads constructor(
     override fun onFocusChanged(gainFocus: Boolean, direction: Int, previouslyFocusedRect: Rect?) {
         super.onFocusChanged(gainFocus, direction, previouslyFocusedRect)
         animate()
-            .scaleX(if (gainFocus) 1.025f else 1f)
-            .scaleY(if (gainFocus) 1.025f else 1f)
+            .scaleX(if (gainFocus) 1.012f else 1f)
+            .scaleY(if (gainFocus) 1.012f else 1f)
             .translationZ(if (gainFocus) resources.getDimension(R.dimen.tv_focus_elevation) else 0f)
             .setDuration(120L)
             .start()

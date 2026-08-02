@@ -5,12 +5,12 @@
             <objectAnimator
                 android:duration="120"
                 android:propertyName="scaleX"
-                android:valueTo="1.025"
+                android:valueTo="1.012"
                 android:valueType="floatType" />
             <objectAnimator
                 android:duration="120"
                 android:propertyName="scaleY"
-                android:valueTo="1.025"
+                android:valueTo="1.012"
                 android:valueType="floatType" />
         </set>
     </item>
