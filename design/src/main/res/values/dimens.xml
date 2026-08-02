@@ -51,6 +51,8 @@
     <dimen name="tv_focus_stroke">0dp</dimen>
     <dimen name="tv_focus_elevation">0dp</dimen>
     <dimen name="tv_item_gap">0dp</dimen>
+    <dimen name="tv_dashboard_radius">8dp</dimen>
+    <dimen name="tv_dashboard_stroke">0dp</dimen>
 
     <!-- Tips -->
     <dimen name="tips_icon_size">25dp</dimen>

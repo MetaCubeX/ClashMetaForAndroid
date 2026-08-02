@@ -10,4 +10,18 @@
     <color name="color_light_control_disabled">#FFD3D3D3</color>
     <color name="color_dark_control_disabled">#FF808080</color>
     <color name="color_error">#FFB00020</color>
+    <color name="tv_dashboard_background">#171923</color>
+    <color name="tv_sidebar_background">#20222E</color>
+    <color name="tv_card_background">#262936</color>
+    <color name="tv_card_background_focused">#303D5C</color>
+    <color name="tv_card_stroke">#3F8CFF</color>
+    <color name="tv_accent">#3B82F6</color>
+    <color name="tv_accent_surface">#243B64</color>
+    <color name="tv_accent_ripple">#333B82F6</color>
+    <color name="tv_success">#34D399</color>
+    <color name="tv_success_surface">#173F3A</color>
+    <color name="tv_text_primary">#F7F8FC</color>
+    <color name="tv_text_secondary">#AEB4C5</color>
+    <color name="tv_divider">#363947</color>
+    <color name="tv_transparent">#00000000</color>
 </resources>

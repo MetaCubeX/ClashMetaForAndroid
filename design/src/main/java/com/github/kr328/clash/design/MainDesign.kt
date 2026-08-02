@@ -67,6 +67,20 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         }
     }
 
+    suspend fun setProviderCount(count: Int) {
+        withContext(Dispatchers.Main) {
+            binding.providerSummary = context.getString(R.string.tv_provider_summary, count)
+        }
+    }
+
+    suspend fun setCurrentProxy(group: String?, node: String?) {
+        withContext(Dispatchers.Main) {
+            binding.currentGroup = group ?: context.getString(R.string.tv_group_fallback)
+            binding.currentNode = node?.takeIf { it.isNotBlank() }
+                ?: context.getString(R.string.tv_node_fallback)
+        }
+    }
+
     suspend fun showAbout(versionName: String) {
         withContext(Dispatchers.Main) {
             val binding = DesignAboutBinding.inflate(context.layoutInflater).apply {

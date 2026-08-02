@@ -4,6 +4,21 @@
     <string name="application_name_meta">Clash Meta for Android</string>
     <string name="application_name_alpha">Clash Meta for Android Alpha</string>
     <string name="tv_remote_optimized">Android TV · Remote optimized</string>
+    <string name="tv_home">Home</string>
+    <string name="tv_dashboard_subtitle">Your network at a glance</string>
+    <string name="tv_current_profile">Current subscription</string>
+    <string name="tv_current_node">Current node</string>
+    <string name="tv_network_control">Network control</string>
+    <string name="tv_proxy_mode">Proxy mode</string>
+    <string name="tv_traffic_overview">Traffic overview</string>
+    <string name="tv_active_profile">Active profile</string>
+    <string name="tv_group_fallback">No proxy group</string>
+    <string name="tv_node_fallback">Start the tunnel to load nodes</string>
+    <string name="tv_provider_summary">%1$d providers</string>
+    <string name="tv_status_action_running">Select to stop the VPN tunnel</string>
+    <string name="tv_status_action_stopped">Select to start the VPN tunnel</string>
+    <string name="tv_mode_description">Traffic is routed using the current Mihomo mode</string>
+    <string name="tv_remote_hint">Use the D-pad to move · OK to select</string>
 
     <string name="stopped">Stopped</string>
     <string name="tap_to_start">Tap to start</string>

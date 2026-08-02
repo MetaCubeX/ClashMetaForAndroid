@@ -15,6 +15,7 @@ import androidx.core.graphics.drawable.IconCompat
 import com.github.kr328.clash.common.constants.Intents
 import com.github.kr328.clash.common.util.intent
 import com.github.kr328.clash.common.util.ticker
+import com.github.kr328.clash.core.model.ProxySort
 import com.github.kr328.clash.design.MainDesign
 import com.github.kr328.clash.design.ui.ToastDuration
 import com.github.kr328.clash.util.startClashService
@@ -97,9 +98,21 @@ class MainActivity : BaseActivity<MainDesign>() {
         val providers = withClash {
             queryProviders()
         }
+        val currentProxy = if (clashRunning) {
+            withClash {
+                queryProxyGroupNames(true).firstOrNull()?.let { group ->
+                    group to queryProxyGroup(group, ProxySort.Default).now
+                }
+            }
+        } else {
+            null
+        }
 
         setMode(state.mode)
         setHasProviders(providers.isNotEmpty())
+        setProviderCount(providers.size)
+        setCurrentProxy(currentProxy?.first, currentProxy?.second)
+        setForwarded(if (clashRunning) withClash { queryTrafficTotal() } else 0L)
 
         withProfile {
             setProfileName(queryActive()?.name)

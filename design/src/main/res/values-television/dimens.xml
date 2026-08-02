@@ -14,4 +14,6 @@
     <dimen name="tv_focus_stroke">3dp</dimen>
     <dimen name="tv_focus_elevation">10dp</dimen>
     <dimen name="tv_item_gap">12dp</dimen>
+    <dimen name="tv_dashboard_radius">10dp</dimen>
+    <dimen name="tv_dashboard_stroke">2dp</dimen>
 </resources>

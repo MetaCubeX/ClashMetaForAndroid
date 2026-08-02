@@ -19,6 +19,15 @@
             name="profileName"
             type="String" />
         <variable
+            name="currentGroup"
+            type="String" />
+        <variable
+            name="currentNode"
+            type="String" />
+        <variable
+            name="providerSummary"
+            type="String" />
+        <variable
             name="colorClashStarted"
             type="int" />
         <variable
@@ -28,181 +37,643 @@
             name="hasProviders"
             type="boolean" />
 
-        <import type="android.view.View" />
         <import type="com.github.kr328.clash.design.MainDesign.Request" />
     </data>
 
-    <ScrollView
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:clipToPadding="false"
-        android:fillViewport="true"
-        android:focusable="false"
-        android:scrollbars="none">
+        android:background="@color/tv_dashboard_background"
+        android:clipChildren="false"
+        android:orientation="horizontal">
 
         <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:animateLayoutChanges="true"
+            android:layout_width="252dp"
+            android:layout_height="match_parent"
+            android:background="@drawable/tv_sidebar_background"
             android:clipChildren="false"
-            android:clipToPadding="false"
             android:orientation="vertical"
-            android:paddingStart="@dimen/main_padding_horizontal"
-            android:paddingTop="24dp"
-            android:paddingEnd="@dimen/main_padding_horizontal"
-            android:paddingBottom="40dp">
+            android:paddingStart="16dp"
+            android:paddingTop="16dp"
+            android:paddingEnd="16dp"
+            android:paddingBottom="14dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="@dimen/main_top_banner_height"
+                android:layout_height="52dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingHorizontal="8dp">
+
+                <ImageView
+                    android:layout_width="38dp"
+                    android:layout_height="38dp"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_clash" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:ellipsize="end"
+                        android:maxLines="1"
+                        android:text="@string/application_name"
+                        android:textColor="@color/tv_text_primary"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Android TV"
+                        android:textColor="@color/tv_text_secondary"
+                        android:textSize="12sp" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="12dp"
+                android:focusable="false"
+                app:cardBackgroundColor="@color/tv_accent_surface"
+                app:cardCornerRadius="8dp"
+                app:cardElevation="0dp"
+                app:strokeColor="@color/tv_accent"
+                app:strokeWidth="1dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="16dp">
+
+                    <ImageView
+                        android:layout_width="22dp"
+                        android:layout_height="22dp"
+                        android:contentDescription="@null"
+                        android:src="@drawable/ic_outline_check_circle"
+                        app:tint="@color/tv_accent" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="16dp"
+                        android:text="@string/tv_home"
+                        android:textColor="@color/tv_text_primary"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.github.kr328.clash.design.view.TvNavigationItem
+                android:id="@+id/tv_nav_proxy"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:enabled="@{clashRunning}"
+                android:nextFocusRight="@id/tv_proxies"
+                android:onClick="@{() -> self.request(Request.OpenProxy)}"
+                app:icon="@drawable/ic_baseline_apps"
+                app:text="@string/proxy" />
+
+            <com.github.kr328.clash.design.view.TvNavigationItem
+                android:id="@+id/tv_nav_profiles"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:nextFocusRight="@id/tv_profiles"
+                android:onClick="@{() -> self.request(Request.OpenProfiles)}"
+                app:icon="@drawable/ic_baseline_view_list"
+                app:text="@string/profiles" />
+
+            <com.github.kr328.clash.design.view.TvNavigationItem
+                android:id="@+id/tv_nav_providers"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:enabled="@{clashRunning &amp;&amp; hasProviders}"
+                android:nextFocusRight="@id/tv_mode_card"
+                android:onClick="@{() -> self.request(Request.OpenProviders)}"
+                app:icon="@drawable/ic_baseline_swap_vertical_circle"
+                app:text="@string/providers" />
+
+            <com.github.kr328.clash.design.view.TvNavigationItem
+                android:id="@+id/tv_nav_logs"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:nextFocusRight="@id/tv_status"
+                android:onClick="@{() -> self.request(Request.OpenLogs)}"
+                app:icon="@drawable/ic_baseline_assignment"
+                app:text="@string/logs" />
+
+            <com.github.kr328.clash.design.view.TvNavigationItem
+                android:id="@+id/tv_nav_settings"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:nextFocusRight="@id/tv_status"
+                android:onClick="@{() -> self.request(Request.OpenSettings)}"
+                app:icon="@drawable/ic_baseline_settings"
+                app:text="@string/settings" />
+
+            <com.github.kr328.clash.design.view.TvNavigationItem
+                android:id="@+id/tv_nav_help"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:nextFocusRight="@id/tv_mode_card"
+                android:onClick="@{() -> self.request(Request.OpenHelp)}"
+                app:icon="@drawable/ic_baseline_help_center"
+                app:text="@string/help" />
+
+            <com.github.kr328.clash.design.view.TvNavigationItem
+                android:id="@+id/tv_nav_about"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:nextFocusRight="@id/tv_mode_card"
+                android:onClick="@{() -> self.request(Request.OpenAbout)}"
+                app:icon="@drawable/ic_baseline_info"
+                app:text="@string/about" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:clipChildren="false"
+            android:orientation="vertical"
+            android:paddingStart="20dp"
+            android:paddingTop="16dp"
+            android:paddingEnd="20dp"
+            android:paddingBottom="16dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
                 android:gravity="center_vertical"
                 android:orientation="horizontal">
 
-                <View
-                    android:layout_width="@dimen/main_logo_size"
-                    android:layout_height="@dimen/main_logo_size"
-                    android:background="@drawable/ic_clash" />
-
                 <LinearLayout
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="24dp"
+                    android:layout_weight="1"
                     android:orientation="vertical">
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/application_name"
-                        android:textAppearance="@style/TextAppearance.MaterialComponents.Headline4"
+                        android:text="@string/tv_home"
+                        android:textColor="@color/tv_text_primary"
+                        android:textSize="24sp"
                         android:textStyle="bold" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:text="@string/tv_remote_optimized"
-                        android:textAppearance="@style/TextAppearance.MaterialComponents.Body1" />
+                        android:text="@string/tv_dashboard_subtitle"
+                        android:textColor="@color/tv_text_secondary"
+                        android:textSize="13sp" />
                 </LinearLayout>
-            </LinearLayout>
 
-            <com.github.kr328.clash.design.view.LargeActionCard
-                android:id="@+id/tv_status"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginVertical="@dimen/main_card_margin_vertical"
-                android:focusedByDefault="true"
-                android:onClick="@{() -> self.request(Request.ToggleStatus)}"
-                android:theme="@style/AppThemeDark"
-                app:cardBackgroundColor="@{clashRunning ? colorClashStarted : colorClashStopped}"
-                app:icon="@{clashRunning ? @drawable/ic_outline_check_circle : @drawable/ic_outline_not_interested}"
-                app:subtext="@{clashRunning ? @string/format_traffic_forwarded(forwarded) : @string/tap_to_start}"
-                app:text="@{clashRunning ? @string/running : @string/stopped}" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@{clashRunning ? @drawable/tv_status_pill_running : @drawable/tv_status_pill_stopped}"
+                    android:text="@{clashRunning ? @string/running : @string/stopped}"
+                    android:textColor="@color/tv_text_primary"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="0dp"
+                android:layout_marginTop="12dp"
+                android:layout_weight="1"
                 android:baselineAligned="false"
                 android:clipChildren="false"
                 android:orientation="horizontal">
 
-                <com.github.kr328.clash.design.view.LargeActionCard
+                <com.google.android.material.card.MaterialCardView
                     android:id="@+id/tv_profiles"
                     android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/tv_item_gap"
-                    android:layout_marginEnd="@dimen/tv_item_gap"
-                    android:layout_weight="1"
+                    android:layout_height="match_parent"
+                    android:layout_marginEnd="6dp"
+                    android:layout_weight="1.12"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground"
+                    android:nextFocusLeft="@id/tv_nav_profiles"
+                    android:nextFocusRight="@id/tv_proxies"
                     android:onClick="@{() -> self.request(Request.OpenProfiles)}"
-                    app:icon="@drawable/ic_baseline_view_list"
-                    app:subtext="@{profileName != null ? @string/format_profile_activated(profileName) : @string/not_selected}"
-                    app:text="@string/profile" />
+                    android:stateListAnimator="@animator/tv_dashboard_focus"
+                    app:cardBackgroundColor="@color/tv_dashboard_card_background"
+                    app:cardCornerRadius="10dp"
+                    app:cardElevation="0dp"
+                    app:strokeColor="@color/tv_dashboard_card_stroke"
+                    app:strokeWidth="2dp">
 
-                <com.github.kr328.clash.design.view.LargeActionCard
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="vertical"
+                        android:padding="18dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="36dp"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <ImageView
+                                android:layout_width="34dp"
+                                android:layout_height="34dp"
+                                android:background="@drawable/tv_icon_tile_background"
+                                android:contentDescription="@null"
+                                android:padding="7dp"
+                                android:src="@drawable/ic_baseline_cloud_download"
+                                app:tint="@color/tv_accent" />
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="12dp"
+                                android:layout_weight="1"
+                                android:text="@string/tv_current_profile"
+                                android:textColor="@color/tv_text_primary"
+                                android:textSize="17sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="›"
+                                android:textColor="@color/tv_accent"
+                                android:textSize="26sp" />
+                        </LinearLayout>
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="0dp"
+                            android:layout_marginTop="12dp"
+                            android:layout_weight="1"
+                            android:ellipsize="end"
+                            android:gravity="center_vertical"
+                            android:maxLines="2"
+                            android:text="@{profileName != null ? profileName : @string/not_selected}"
+                            android:textColor="@color/tv_text_primary"
+                            android:textSize="23sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/tv_active_profile"
+                            android:textColor="@color/tv_text_secondary"
+                            android:textSize="13sp" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <com.google.android.material.card.MaterialCardView
                     android:id="@+id/tv_proxies"
                     android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="@dimen/tv_item_gap"
-                    android:layout_marginTop="@dimen/tv_item_gap"
-                    android:layout_weight="1"
+                    android:layout_height="match_parent"
+                    android:layout_marginStart="6dp"
+                    android:layout_weight="0.88"
+                    android:alpha="@{clashRunning ? 1.0f : 0.48f}"
+                    android:clickable="true"
                     android:enabled="@{clashRunning}"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground"
+                    android:nextFocusLeft="@id/tv_profiles"
                     android:onClick="@{() -> self.request(Request.OpenProxy)}"
-                    app:icon="@drawable/ic_baseline_apps"
-                    app:subtext="@{mode}"
-                    app:text="@string/proxy" />
+                    android:stateListAnimator="@animator/tv_dashboard_focus"
+                    app:cardBackgroundColor="@color/tv_dashboard_card_background"
+                    app:cardCornerRadius="10dp"
+                    app:cardElevation="0dp"
+                    app:strokeColor="@color/tv_dashboard_card_stroke"
+                    app:strokeWidth="2dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="vertical"
+                        android:padding="18dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="36dp"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <ImageView
+                                android:layout_width="34dp"
+                                android:layout_height="34dp"
+                                android:background="@drawable/tv_icon_tile_background"
+                                android:contentDescription="@null"
+                                android:padding="7dp"
+                                android:src="@drawable/ic_baseline_apps"
+                                app:tint="@color/tv_accent" />
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="12dp"
+                                android:layout_weight="1"
+                                android:text="@string/tv_current_node"
+                                android:textColor="@color/tv_text_primary"
+                                android:textSize="17sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="›"
+                                android:textColor="@color/tv_accent"
+                                android:textSize="26sp" />
+                        </LinearLayout>
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="0dp"
+                            android:layout_marginTop="12dp"
+                            android:layout_weight="1"
+                            android:ellipsize="end"
+                            android:gravity="center_vertical"
+                            android:maxLines="2"
+                            android:text="@{currentNode}"
+                            android:textColor="@color/tv_text_primary"
+                            android:textSize="23sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@{currentGroup}"
+                            android:textColor="@color/tv_text_secondary"
+                            android:textSize="13sp" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
             </LinearLayout>
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="0dp"
+                android:layout_marginTop="12dp"
+                android:layout_weight="1.08"
                 android:baselineAligned="false"
                 android:clipChildren="false"
                 android:orientation="horizontal">
 
-                <com.github.kr328.clash.design.view.LargeActionLabel
-                    android:id="@+id/tv_providers"
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/tv_status"
                     android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/tv_item_gap"
-                    android:layout_marginEnd="@dimen/tv_item_gap"
-                    android:layout_weight="1"
-                    android:enabled="@{clashRunning &amp;&amp; hasProviders}"
-                    android:onClick="@{() -> self.request(Request.OpenProviders)}"
-                    app:icon="@drawable/ic_baseline_swap_vertical_circle"
-                    app:text="@string/providers" />
+                    android:layout_height="match_parent"
+                    android:layout_marginEnd="6dp"
+                    android:layout_weight="1.12"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:focusedByDefault="true"
+                    android:foreground="?attr/selectableItemBackground"
+                    android:nextFocusLeft="@id/tv_nav_settings"
+                    android:nextFocusRight="@id/tv_mode_card"
+                    android:onClick="@{() -> self.request(Request.ToggleStatus)}"
+                    android:stateListAnimator="@animator/tv_dashboard_focus"
+                    app:cardBackgroundColor="@color/tv_dashboard_card_background"
+                    app:cardCornerRadius="10dp"
+                    app:cardElevation="0dp"
+                    app:strokeColor="@color/tv_dashboard_card_stroke"
+                    app:strokeWidth="2dp">
 
-                <com.github.kr328.clash.design.view.LargeActionLabel
-                    android:id="@+id/tv_logs"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="@dimen/tv_item_gap"
-                    android:layout_marginTop="@dimen/tv_item_gap"
-                    android:layout_marginEnd="@dimen/tv_item_gap"
-                    android:layout_weight="1"
-                    android:onClick="@{() -> self.request(Request.OpenLogs)}"
-                    app:icon="@drawable/ic_baseline_assignment"
-                    app:text="@string/logs" />
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="vertical"
+                        android:padding="18dp">
 
-                <com.github.kr328.clash.design.view.LargeActionLabel
-                    android:id="@+id/tv_settings"
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="36dp"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <ImageView
+                                android:layout_width="34dp"
+                                android:layout_height="34dp"
+                                android:background="@drawable/tv_icon_tile_background"
+                                android:contentDescription="@null"
+                                android:padding="7dp"
+                                android:src="@drawable/ic_baseline_vpn_lock"
+                                app:tint="@color/tv_accent" />
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="12dp"
+                                android:layout_weight="1"
+                                android:text="@string/tv_network_control"
+                                android:textColor="@color/tv_text_primary"
+                                android:textSize="17sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:background="@{clashRunning ? @drawable/tv_status_pill_running : @drawable/tv_status_pill_stopped}"
+                                android:text="@{clashRunning ? @string/running : @string/stopped}"
+                                android:textColor="@color/tv_text_primary"
+                                android:textSize="12sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="0dp"
+                            android:layout_marginTop="10dp"
+                            android:layout_weight="1"
+                            android:gravity="center_vertical"
+                            android:text="@{clashRunning ? @string/format_traffic_forwarded(forwarded) : @string/tv_status_action_stopped}"
+                            android:textColor="@color/tv_text_primary"
+                            android:textSize="21sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@{clashRunning ? @string/tv_status_action_running : @string/tv_remote_hint}"
+                            android:textColor="@color/tv_text_secondary"
+                            android:textSize="13sp" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/tv_mode_card"
                     android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="@dimen/tv_item_gap"
-                    android:layout_marginTop="@dimen/tv_item_gap"
-                    android:layout_weight="1"
-                    android:onClick="@{() -> self.request(Request.OpenSettings)}"
-                    app:icon="@drawable/ic_baseline_settings"
-                    app:text="@string/settings" />
+                    android:layout_height="match_parent"
+                    android:layout_marginStart="6dp"
+                    android:layout_weight="0.88"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground"
+                    android:nextFocusLeft="@id/tv_status"
+                    android:onClick="@{() -> self.request(Request.OpenProxy)}"
+                    android:stateListAnimator="@animator/tv_dashboard_focus"
+                    app:cardBackgroundColor="@color/tv_dashboard_card_background"
+                    app:cardCornerRadius="10dp"
+                    app:cardElevation="0dp"
+                    app:strokeColor="@color/tv_dashboard_card_stroke"
+                    app:strokeWidth="2dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="vertical"
+                        android:padding="18dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="36dp"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <ImageView
+                                android:layout_width="34dp"
+                                android:layout_height="34dp"
+                                android:background="@drawable/tv_icon_tile_background"
+                                android:contentDescription="@null"
+                                android:padding="7dp"
+                                android:src="@drawable/ic_baseline_dns"
+                                app:tint="@color/tv_accent" />
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="12dp"
+                                android:layout_weight="1"
+                                android:text="@string/tv_proxy_mode"
+                                android:textColor="@color/tv_text_primary"
+                                android:textSize="17sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="16dp"
+                            android:background="@drawable/tv_mode_chip_background"
+                            android:text="@{mode}"
+                            android:textColor="@color/tv_text_primary"
+                            android:textSize="16sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="0dp"
+                            android:layout_marginTop="12dp"
+                            android:layout_weight="1"
+                            android:gravity="bottom"
+                            android:text="@string/tv_mode_description"
+                            android:textColor="@color/tv_text_secondary"
+                            android:textSize="13sp" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
             </LinearLayout>
 
-            <LinearLayout
+            <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:baselineAligned="false"
-                android:clipChildren="false"
-                android:orientation="horizontal">
+                android:layout_height="68dp"
+                android:layout_marginTop="12dp"
+                app:cardBackgroundColor="@color/tv_card_background"
+                app:cardCornerRadius="10dp"
+                app:cardElevation="0dp"
+                app:strokeColor="@color/tv_divider"
+                app:strokeWidth="1dp">
 
-                <com.github.kr328.clash.design.view.LargeActionLabel
-                    android:id="@+id/tv_help"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/tv_item_gap"
-                    android:layout_marginEnd="@dimen/tv_item_gap"
-                    android:layout_weight="1"
-                    android:onClick="@{() -> self.request(Request.OpenHelp)}"
-                    app:icon="@drawable/ic_baseline_help_center"
-                    app:text="@string/help" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="20dp">
 
-                <com.github.kr328.clash.design.view.LargeActionLabel
-                    android:id="@+id/tv_about"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="@dimen/tv_item_gap"
-                    android:layout_marginTop="@dimen/tv_item_gap"
-                    android:layout_weight="1"
-                    android:onClick="@{() -> self.request(Request.OpenAbout)}"
-                    app:icon="@drawable/ic_baseline_info"
-                    app:text="@string/about" />
-            </LinearLayout>
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/tv_traffic_overview"
+                            android:textColor="@color/tv_text_secondary"
+                            android:textSize="12sp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:text="@{forwarded}"
+                            android:textColor="@color/tv_text_primary"
+                            android:textSize="18sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="1dp"
+                        android:layout_height="32dp"
+                        android:background="@color/tv_divider" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="20dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/providers"
+                            android:textColor="@color/tv_text_secondary"
+                            android:textSize="12sp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:text="@{providerSummary}"
+                            android:textColor="@color/tv_text_primary"
+                            android:textSize="18sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="1dp"
+                        android:layout_height="32dp"
+                        android:background="@color/tv_divider" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="20dp"
+                        android:layout_weight="1.25"
+                        android:gravity="end"
+                        android:text="@string/tv_remote_hint"
+                        android:textColor="@color/tv_text_secondary"
+                        android:textSize="13sp" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
         </LinearLayout>
-    </ScrollView>
+    </LinearLayout>
 </layout>
