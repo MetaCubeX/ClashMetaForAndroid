@@ -125,7 +125,7 @@
                     android:layout_marginTop="@dimen/tv_item_gap"
                     android:layout_weight="1"
                     android:onClick="@{() -> self.request(Request.OpenProxy)}"
-                    android:visibility="@{clashRunning ? View.VISIBLE : View.INVISIBLE}"
+                    android:visibility="@{clashRunning ? View.VISIBLE : View.GONE}"
                     app:icon="@drawable/ic_baseline_apps"
                     app:subtext="@{mode}"
                     app:text="@string/proxy" />
@@ -145,10 +145,9 @@
                     android:layout_marginTop="@dimen/tv_item_gap"
                     android:layout_marginEnd="@dimen/tv_item_gap"
                     android:layout_weight="1"
-                    android:onClick="@{() -> self.request(Request.OpenProviders)}"
-                    android:visibility="@{clashRunning &amp;&amp; hasProviders ? View.VISIBLE : View.INVISIBLE}"
-                    app:icon="@drawable/ic_baseline_swap_vertical_circle"
-                    app:text="@string/providers" />
+                    android:onClick="@{() -> self.request(clashRunning &amp;&amp; hasProviders ? Request.OpenProviders : Request.OpenSettings)}"
+                    app:icon="@{clashRunning &amp;&amp; hasProviders ? @drawable/ic_baseline_swap_vertical_circle : @drawable/ic_baseline_settings}"
+                    app:text="@{clashRunning &amp;&amp; hasProviders ? @string/providers : @string/settings}" />
 
                 <com.github.kr328.clash.design.view.LargeActionLabel
                     android:id="@+id/tv_logs"
@@ -176,9 +175,9 @@
                     android:layout_marginTop="@dimen/tv_item_gap"
                     android:layout_marginEnd="@dimen/tv_item_gap"
                     android:layout_weight="1"
-                    android:onClick="@{() -> self.request(Request.OpenSettings)}"
-                    app:icon="@drawable/ic_baseline_settings"
-                    app:text="@string/settings" />
+                    android:onClick="@{() -> self.request(clashRunning &amp;&amp; hasProviders ? Request.OpenSettings : Request.OpenAbout)}"
+                    app:icon="@{clashRunning &amp;&amp; hasProviders ? @drawable/ic_baseline_settings : @drawable/ic_baseline_info}"
+                    app:text="@{clashRunning &amp;&amp; hasProviders ? @string/settings : @string/about}" />
 
                 <com.github.kr328.clash.design.view.LargeActionLabel
                     android:id="@+id/tv_help"
@@ -198,6 +197,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/tv_item_gap"
                 android:onClick="@{() -> self.request(Request.OpenAbout)}"
+                android:visibility="@{clashRunning &amp;&amp; hasProviders ? View.VISIBLE : View.GONE}"
                 app:icon="@drawable/ic_baseline_info"
                 app:text="@string/about" />
         </LinearLayout>
