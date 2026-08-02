@@ -20,8 +20,11 @@
     <color name="tv_accent_ripple">#333B82F6</color>
     <color name="tv_success">#34D399</color>
     <color name="tv_success_surface">#173F3A</color>
+    <color name="tv_upload">#F59E0B</color>
+    <color name="tv_memory">#F87171</color>
     <color name="tv_text_primary">#F7F8FC</color>
     <color name="tv_text_secondary">#AEB4C5</color>
+    <color name="tv_logo">#D8DBE3</color>
     <color name="tv_divider">#363947</color>
     <color name="tv_transparent">#00000000</color>
 </resources>

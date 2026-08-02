@@ -60,7 +60,7 @@ class TvNavigationItem @JvmOverloads constructor(
     override fun drawableStateChanged() {
         super.drawableStateChanged()
         setCardBackgroundColor(
-            if (isFocused) ContextCompat.getColor(context, R.color.tv_accent_surface)
+            if (isFocused || isSelected) ContextCompat.getColor(context, R.color.tv_accent_surface)
             else ContextCompat.getColor(context, R.color.tv_transparent),
         )
         alpha = if (isEnabled) 1f else 0.42f

@@ -2,10 +2,13 @@ package com.github.kr328.clash.design
 
 import android.content.Context
 import android.content.res.Configuration
+import android.text.format.Formatter
 import android.view.View
 import androidx.appcompat.app.AlertDialog
 import com.github.kr328.clash.core.model.TunnelState
 import com.github.kr328.clash.core.util.trafficTotal
+import com.github.kr328.clash.core.util.trafficDownload
+import com.github.kr328.clash.core.util.trafficUpload
 import com.github.kr328.clash.design.databinding.DesignAboutBinding
 import com.github.kr328.clash.design.databinding.DesignMainBinding
 import com.github.kr328.clash.design.util.layoutInflater
@@ -16,6 +19,7 @@ import kotlinx.coroutines.withContext
 
 class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
     enum class Request {
+        OpenHome,
         ToggleStatus,
         OpenProxy,
         OpenProfiles,
@@ -50,6 +54,17 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         }
     }
 
+    suspend fun setTrafficStats(now: Long, total: Long, connections: Int, memory: Long) {
+        withContext(Dispatchers.Main) {
+            binding.uploadSpeed = "${now.trafficUpload()}/s"
+            binding.downloadSpeed = "${now.trafficDownload()}/s"
+            binding.uploaded = total.trafficUpload()
+            binding.downloaded = total.trafficDownload()
+            binding.activeConnections = connections.toString()
+            binding.memoryUsage = Formatter.formatShortFileSize(context, memory)
+        }
+    }
+
     suspend fun setMode(mode: TunnelState.Mode) {
         withContext(Dispatchers.Main) {
             binding.mode = when (mode) {
@@ -81,6 +96,12 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         }
     }
 
+    suspend fun focusPrimaryAction() {
+        withContext(Dispatchers.Main) {
+            binding.root.findViewById<View>(R.id.tv_status)?.requestFocus()
+        }
+    }
+
     suspend fun showAbout(versionName: String) {
         withContext(Dispatchers.Main) {
             val binding = DesignAboutBinding.inflate(context.layoutInflater).apply {
@@ -102,6 +123,7 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         if (context.resources.configuration.uiMode and Configuration.UI_MODE_TYPE_MASK ==
             Configuration.UI_MODE_TYPE_TELEVISION
         ) {
+            binding.root.findViewById<View>(R.id.tv_nav_home)?.isSelected = true
             binding.root.post {
                 binding.root.findViewById<View>(R.id.tv_status)?.requestFocus()
             }

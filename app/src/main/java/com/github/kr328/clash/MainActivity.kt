@@ -53,6 +53,10 @@ class MainActivity : BaseActivity<MainDesign>() {
                 }
                 design.requests.onReceive {
                     when (it) {
+                        MainDesign.Request.OpenHome -> {
+                            design.fetch()
+                            design.focusPrimaryAction()
+                        }
                         MainDesign.Request.ToggleStatus -> {
                             if (clashRunning)
                                 stopClashService()
@@ -100,8 +104,23 @@ class MainActivity : BaseActivity<MainDesign>() {
         }
         val currentProxy = if (clashRunning) {
             withClash {
-                queryProxyGroupNames(true).firstOrNull()?.let { group ->
-                    group to queryProxyGroup(group, ProxySort.Default).now
+                val rootGroup = queryProxyGroupNames(true).firstOrNull()
+                val groupNames = queryProxyGroupNames(false).toHashSet()
+
+                rootGroup?.let { group ->
+                    val visited = mutableSetOf(group)
+                    var node = queryProxyGroup(group, ProxySort.Default).now
+                    val route = mutableListOf<String>()
+
+                    while (node.isNotBlank()) {
+                        route += node
+                        if (node !in groupNames || !visited.add(node)) break
+                        val next = queryProxyGroup(node, ProxySort.Default).now
+                        if (next.isBlank() || next == node) break
+                        node = next
+                    }
+
+                    group to route.distinct().joinToString(" → ")
                 }
             }
         } else {
@@ -112,7 +131,9 @@ class MainActivity : BaseActivity<MainDesign>() {
         setHasProviders(providers.isNotEmpty())
         setProviderCount(providers.size)
         setCurrentProxy(currentProxy?.first, currentProxy?.second)
-        setForwarded(if (clashRunning) withClash { queryTrafficTotal() } else 0L)
+        val traffic = if (clashRunning) queryTrafficStats() else TrafficSnapshot()
+        setForwarded(traffic.total)
+        setTrafficStats(traffic.now, traffic.total, traffic.connections, traffic.memory)
 
         withProfile {
             setProfileName(queryActive()?.name)
@@ -120,8 +141,19 @@ class MainActivity : BaseActivity<MainDesign>() {
     }
 
     private suspend fun MainDesign.fetchTraffic() {
-        withClash {
-            setForwarded(queryTrafficTotal())
+        val traffic = queryTrafficStats()
+        setForwarded(traffic.total)
+        setTrafficStats(traffic.now, traffic.total, traffic.connections, traffic.memory)
+    }
+
+    private suspend fun queryTrafficStats(): TrafficSnapshot {
+        return withClash {
+            TrafficSnapshot(
+                now = queryTrafficNow(),
+                total = queryTrafficTotal(),
+                connections = queryActiveConnections(),
+                memory = queryMemory(),
+            )
         }
     }
 
@@ -177,6 +209,13 @@ class MainActivity : BaseActivity<MainDesign>() {
         }
         setupShortcuts()
     }
+
+    private data class TrafficSnapshot(
+        val now: Long = 0L,
+        val total: Long = 0L,
+        val connections: Int = 0,
+        val memory: Long = 0L,
+    )
 
     private fun setupShortcuts() {
         // Skip dynamic shortcut setup when the app icon is hidden.
