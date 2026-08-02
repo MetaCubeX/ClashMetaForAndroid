@@ -3,6 +3,7 @@
     <string name="launch_name_alpha">Clash Meta Alpha</string>
     <string name="application_name_meta">Clash Meta for Android</string>
     <string name="application_name_alpha">Clash Meta for Android Alpha</string>
+    <string name="tv_remote_optimized">Android TV · Remote optimized</string>
 
     <string name="stopped">Stopped</string>
     <string name="tap_to_start">Tap to start</string>

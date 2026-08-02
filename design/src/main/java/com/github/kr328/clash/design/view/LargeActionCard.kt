@@ -1,6 +1,8 @@
 package com.github.kr328.clash.design.view
 
 import android.content.Context
+import android.content.res.Configuration
+import android.graphics.Rect
 import android.graphics.drawable.Drawable
 import android.util.AttributeSet
 import androidx.annotation.AttrRes
@@ -14,6 +16,8 @@ class LargeActionCard @JvmOverloads constructor(
     attributeSet: AttributeSet? = null,
     @AttrRes defStyleAttr: Int = 0
 ) : MaterialCardView(context, attributeSet, defStyleAttr) {
+    private val television = resources.configuration.uiMode and Configuration.UI_MODE_TYPE_MASK ==
+        Configuration.UI_MODE_TYPE_TELEVISION
     private val binding = ComponentLargeActionLabelBinding
         .inflate(context.layoutInflater, this, true)
 
@@ -61,5 +65,20 @@ class LargeActionCard @JvmOverloads constructor(
         radius = context.getPixels(R.dimen.large_action_card_radius).toFloat()
         elevation = context.getPixels(R.dimen.large_action_card_elevation).toFloat()
         setCardBackgroundColor(context.resolveThemedColor(com.google.android.material.R.attr.colorSurface))
+    }
+
+    override fun onFocusChanged(gainFocus: Boolean, direction: Int, previouslyFocusedRect: Rect?) {
+        super.onFocusChanged(gainFocus, direction, previouslyFocusedRect)
+        if (!television) return
+
+        val scale = if (gainFocus) 1.045f else 1f
+        strokeColor = context.resolveThemedColor(com.google.android.material.R.attr.colorPrimary)
+        strokeWidth = if (gainFocus) context.getPixels(R.dimen.tv_focus_stroke) else 0
+        animate()
+            .scaleX(scale)
+            .scaleY(scale)
+            .translationZ(if (gainFocus) context.getPixels(R.dimen.tv_focus_elevation).toFloat() else 0f)
+            .setDuration(120L)
+            .start()
     }
 }

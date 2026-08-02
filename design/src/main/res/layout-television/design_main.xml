@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <data>
+        <variable
+            name="self"
+            type="com.github.kr328.clash.design.MainDesign" />
+        <variable
+            name="clashRunning"
+            type="boolean" />
+        <variable
+            name="forwarded"
+            type="String" />
+        <variable
+            name="mode"
+            type="String" />
+        <variable
+            name="profileName"
+            type="String" />
+        <variable
+            name="colorClashStarted"
+            type="int" />
+        <variable
+            name="colorClashStopped"
+            type="int" />
+        <variable
+            name="hasProviders"
+            type="boolean" />
+
+        <import type="android.view.View" />
+        <import type="com.github.kr328.clash.design.MainDesign.Request" />
+    </data>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clipToPadding="false"
+        android:fillViewport="true"
+        android:focusable="false"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:animateLayoutChanges="true"
+            android:clipChildren="false"
+            android:clipToPadding="false"
+            android:orientation="vertical"
+            android:paddingStart="@dimen/main_padding_horizontal"
+            android:paddingTop="24dp"
+            android:paddingEnd="@dimen/main_padding_horizontal"
+            android:paddingBottom="40dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/main_top_banner_height"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <View
+                    android:layout_width="@dimen/main_logo_size"
+                    android:layout_height="@dimen/main_logo_size"
+                    android:background="@drawable/ic_clash" />
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="24dp"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/application_name"
+                        android:textAppearance="@style/TextAppearance.MaterialComponents.Headline4"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="@string/tv_remote_optimized"
+                        android:textAppearance="@style/TextAppearance.MaterialComponents.Body1" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <com.github.kr328.clash.design.view.LargeActionCard
+                android:id="@+id/tv_status"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginVertical="@dimen/main_card_margin_vertical"
+                android:focusedByDefault="true"
+                android:onClick="@{() -> self.request(Request.ToggleStatus)}"
+                android:theme="@style/AppThemeDark"
+                app:cardBackgroundColor="@{clashRunning ? colorClashStarted : colorClashStopped}"
+                app:icon="@{clashRunning ? @drawable/ic_outline_check_circle : @drawable/ic_outline_not_interested}"
+                app:subtext="@{clashRunning ? @string/format_traffic_forwarded(forwarded) : @string/tap_to_start}"
+                app:text="@{clashRunning ? @string/running : @string/stopped}" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:baselineAligned="false"
+                android:clipChildren="false"
+                android:orientation="horizontal">
+
+                <com.github.kr328.clash.design.view.LargeActionCard
+                    android:id="@+id/tv_profiles"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/tv_item_gap"
+                    android:layout_marginEnd="@dimen/tv_item_gap"
+                    android:layout_weight="1"
+                    android:onClick="@{() -> self.request(Request.OpenProfiles)}"
+                    app:icon="@drawable/ic_baseline_view_list"
+                    app:subtext="@{profileName != null ? @string/format_profile_activated(profileName) : @string/not_selected}"
+                    app:text="@string/profile" />
+
+                <com.github.kr328.clash.design.view.LargeActionCard
+                    android:id="@+id/tv_proxies"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/tv_item_gap"
+                    android:layout_marginTop="@dimen/tv_item_gap"
+                    android:layout_weight="1"
+                    android:onClick="@{() -> self.request(Request.OpenProxy)}"
+                    android:visibility="@{clashRunning ? View.VISIBLE : View.INVISIBLE}"
+                    app:icon="@drawable/ic_baseline_apps"
+                    app:subtext="@{mode}"
+                    app:text="@string/proxy" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:baselineAligned="false"
+                android:clipChildren="false"
+                android:orientation="horizontal">
+
+                <com.github.kr328.clash.design.view.LargeActionLabel
+                    android:id="@+id/tv_providers"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/tv_item_gap"
+                    android:layout_marginEnd="@dimen/tv_item_gap"
+                    android:layout_weight="1"
+                    android:onClick="@{() -> self.request(Request.OpenProviders)}"
+                    android:visibility="@{clashRunning &amp;&amp; hasProviders ? View.VISIBLE : View.INVISIBLE}"
+                    app:icon="@drawable/ic_baseline_swap_vertical_circle"
+                    app:text="@string/providers" />
+
+                <com.github.kr328.clash.design.view.LargeActionLabel
+                    android:id="@+id/tv_logs"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/tv_item_gap"
+                    android:layout_marginTop="@dimen/tv_item_gap"
+                    android:layout_weight="1"
+                    android:onClick="@{() -> self.request(Request.OpenLogs)}"
+                    app:icon="@drawable/ic_baseline_assignment"
+                    app:text="@string/logs" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:baselineAligned="false"
+                android:clipChildren="false"
+                android:orientation="horizontal">
+
+                <com.github.kr328.clash.design.view.LargeActionLabel
+                    android:id="@+id/tv_settings"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/tv_item_gap"
+                    android:layout_marginEnd="@dimen/tv_item_gap"
+                    android:layout_weight="1"
+                    android:onClick="@{() -> self.request(Request.OpenSettings)}"
+                    app:icon="@drawable/ic_baseline_settings"
+                    app:text="@string/settings" />
+
+                <com.github.kr328.clash.design.view.LargeActionLabel
+                    android:id="@+id/tv_help"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/tv_item_gap"
+                    android:layout_marginTop="@dimen/tv_item_gap"
+                    android:layout_weight="1"
+                    android:onClick="@{() -> self.request(Request.OpenHelp)}"
+                    app:icon="@drawable/ic_baseline_help_center"
+                    app:text="@string/help" />
+            </LinearLayout>
+
+            <com.github.kr328.clash.design.view.LargeActionLabel
+                android:id="@+id/tv_about"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/tv_item_gap"
+                android:onClick="@{() -> self.request(Request.OpenAbout)}"
+                app:icon="@drawable/ic_baseline_info"
+                app:text="@string/about" />
+        </LinearLayout>
+    </ScrollView>
+</layout>
