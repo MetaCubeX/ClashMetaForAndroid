@@ -1,0 +1,64 @@
+name: Build Agent APK
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "app/**"
+      - "common/**"
+      - "core/**"
+      - "design/**"
+      - "service/**"
+      - "agent/**"
+      - "agent-ui/**"
+      - "*.gradle.kts"
+      - "gradle/**"
+
+jobs:
+  build-agent-arm64:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v5
+
+      - name: Set up Go
+        uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c
+        with:
+          go-download-base-url: https://github.com/MetaCubeX/go/releases/download/build
+          go-version: "1.26"
+
+      - name: Apply Go patches
+        shell: bash
+        run: |
+          cd "$(go env GOROOT)"
+          for patch_file in "$GITHUB_WORKSPACE"/.github/patch/*.patch; do
+            patch --verbose -p 1 < "$patch_file"
+          done
+
+      - name: Update CA bundle
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ca-certificates
+          sudo update-ca-certificates
+          cp -f /etc/ssl/certs/ca-certificates.crt core/src/foss/golang/clash/component/ca/ca-certificates.crt
+
+      - name: Build arm64 APK
+        run: ./gradlew --no-daemon -PagentArm64Only=true app:assembleAgentDebug
+
+      - name: Upload arm64 APK
+        uses: actions/upload-artifact@v7
+        with:
+          name: clash-meta-ai-arm64-v8a
+          path: app/build/outputs/apk/agent/debug/*-arm64-v8a-*.apk
