@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="agent_title">AI 助手</string>
+    <string name="agent_subtitle_ready">可以创建配置、修改规则或操作代理</string>
+    <string name="agent_not_configured">尚未配置模型，点击设置</string>
+    <string name="agent_input_hint">告诉 AI 你想做什么…</string>
+    <string name="agent_send">发送</string>
+    <string name="agent_stop">停止</string>
+    <string name="agent_settings">模型与授权设置</string>
+    <string name="agent_clear">清空对话</string>
+    <string name="agent_quick_create">从零创建配置</string>
+    <string name="agent_quick_apps">按已安装应用配置分流</string>
+    <string name="agent_quick_diagnose">检查当前代理状态</string>
+    <string name="agent_base_url">接口地址</string>
+    <string name="agent_api_key">API Key（本地接口可留空）</string>
+    <string name="agent_model">模型名称</string>
+    <string name="agent_authorization">操作授权</string>
+    <string name="agent_auth_cautious">谨慎：所有修改都询问</string>
+    <string name="agent_auth_balanced">均衡：常规修改自动执行，高风险询问</string>
+    <string name="agent_auth_full">完全自动：所有可用操作自动放行</string>
+    <string name="agent_save">保存</string>
+    <string name="agent_cancel">取消</string>
+    <string name="agent_approve_title">允许 AI 执行操作？</string>
+    <string name="agent_allow_once">允许本次</string>
+    <string name="agent_deny">拒绝</string>
+    <string name="agent_clear_confirm">确定清空全部对话记录吗？</string>
+</resources>

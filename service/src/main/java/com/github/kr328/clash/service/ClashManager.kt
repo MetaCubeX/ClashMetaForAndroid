@@ -26,6 +26,12 @@ class ClashManager(private val context: Context) : IClashManager,
         return Clash.queryTrafficTotal()
     }
 
+    override fun queryConnections(): String = Clash.queryConnections()
+
+    override fun closeConnection(id: String): Boolean = Clash.closeConnection(id)
+
+    override fun closeAllConnections() = Clash.closeAllConnections()
+
     override fun queryProxyGroupNames(excludeNotSelectable: Boolean): List<String> {
         return Clash.queryGroupNames(excludeNotSelectable)
     }

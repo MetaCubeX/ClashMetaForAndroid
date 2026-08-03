@@ -1,6 +1,7 @@
 package com.github.kr328.clash.service
 
 import android.content.Context
+import android.os.ParcelFileDescriptor
 import com.github.kr328.clash.service.data.Database
 import com.github.kr328.clash.service.data.ImportedDao
 import com.github.kr328.clash.service.data.Pending
@@ -17,13 +18,17 @@ import com.github.kr328.clash.service.util.sendProfileChanged
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import java.io.FileNotFoundException
+import java.security.MessageDigest
 import java.util.*
 
 class ProfileManager(private val context: Context) : IProfileManager,
     CoroutineScope by CoroutineScope(Dispatchers.IO) {
     private val store = ServiceStore(context)
+    private val configurationLock = Mutex()
 
     init {
         launch {
@@ -173,6 +178,89 @@ class ProfileManager(private val context: Context) : IProfileManager,
 
     override suspend fun setActive(profile: Profile) {
         ProfileProcessor.active(context, profile.uuid)
+    }
+
+    override suspend fun readConfiguration(uuid: UUID): String = withContext(Dispatchers.IO) {
+        val directory = configurationDirectory(uuid)
+
+        directory.resolve("config.yaml").readText()
+    }
+
+    override suspend fun copyConfiguration(uuid: UUID, destination: ParcelFileDescriptor) =
+        withContext(Dispatchers.IO) {
+            ParcelFileDescriptor.AutoCloseOutputStream(destination).use { output ->
+                val configuration = configurationDirectory(uuid).resolve("config.yaml")
+                configuration.inputStream().use { input -> input.copyTo(output) }
+            }
+            Unit
+        }
+
+    override suspend fun replaceConfiguration(uuid: UUID, source: ParcelFileDescriptor, expectedSha256: String?) =
+        withContext(Dispatchers.IO) {
+            ParcelFileDescriptor.AutoCloseInputStream(source).use { input -> configurationLock.withLock {
+                ensurePending(uuid)
+                val configuration = context.pendingDir.resolve(uuid.toString()).resolve("config.yaml")
+                if (expectedSha256 != null) {
+                    val actual = MessageDigest.getInstance("SHA-256").digest(configuration.readBytes())
+                        .joinToString("") { "%02x".format(it) }
+                    require(actual.equals(expectedSha256, ignoreCase = true)) {
+                        "configuration changed concurrently (expected $expectedSha256, actual $actual)"
+                    }
+                }
+                val temporary = configuration.resolveSibling("config.yaml.agent.tmp")
+                try {
+                    temporary.outputStream().use { output -> input.copyTo(output) }
+                    if (!temporary.renameTo(configuration)) {
+                        temporary.copyTo(configuration, overwrite = true)
+                        temporary.delete()
+                    }
+                } finally {
+                    temporary.delete()
+                }
+            } }
+            Unit
+        }
+
+    override suspend fun writeConfiguration(uuid: UUID, content: String) = withContext(Dispatchers.IO) {
+        configurationLock.withLock {
+            ensurePending(uuid)
+
+            val configuration = context.pendingDir.resolve(uuid.toString()).resolve("config.yaml")
+            val temporary = configuration.resolveSibling("config.yaml.agent.tmp")
+
+            temporary.writeText(content)
+            if (!temporary.renameTo(configuration)) {
+                temporary.copyTo(configuration, overwrite = true)
+                temporary.delete()
+            }
+        }
+    }
+
+    private suspend fun configurationDirectory(uuid: UUID) = when {
+        PendingDao().queryByUUID(uuid) != null -> context.pendingDir.resolve(uuid.toString())
+        ImportedDao().queryByUUID(uuid) != null -> context.importedDir.resolve(uuid.toString())
+        else -> throw FileNotFoundException("profile $uuid not found")
+    }
+
+    private suspend fun ensurePending(uuid: UUID) {
+        if (PendingDao().queryByUUID(uuid) != null) return
+        val imported = ImportedDao().queryByUUID(uuid)
+            ?: throw FileNotFoundException("profile $uuid not found")
+        cloneImportedFiles(uuid)
+        PendingDao().insert(
+            Pending(
+                uuid = imported.uuid,
+                name = imported.name,
+                type = imported.type,
+                source = imported.source,
+                interval = imported.interval,
+                upload = imported.upload,
+                total = imported.total,
+                download = imported.download,
+                expire = imported.expire,
+                ageSecretKey = imported.ageSecretKey,
+            )
+        )
     }
 
     private suspend fun resolveProfile(uuid: UUID): Profile? {

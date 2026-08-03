@@ -100,6 +100,12 @@ object Clash {
         Bridge.nativeStopHttp()
     }
 
+    fun queryConnections(): String = Bridge.nativeQueryConnections()
+
+    fun closeConnection(id: String): Boolean = Bridge.nativeCloseConnection(id)
+
+    fun closeAllConnections() = Bridge.nativeCloseAllConnections()
+
     fun queryGroupNames(excludeNotSelectable: Boolean): List<String> {
         val names = Json.Default.decodeFromString(
             JsonArray.serializer(),

@@ -23,6 +23,9 @@ object Bridge {
     external fun nativeStopTun()
     external fun nativeStartHttp(listenAt: String): String?
     external fun nativeStopHttp()
+    external fun nativeQueryConnections(): String
+    external fun nativeCloseConnection(id: String): Boolean
+    external fun nativeCloseAllConnections()
     external fun nativeQueryGroupNames(excludeNotSelectable: Boolean): String
     external fun nativeQueryGroup(name: String, sort: String): String?
     external fun nativeHealthCheck(completable: CompletableDeferred<Unit>, name: String)

@@ -26,6 +26,9 @@
         <variable
             name="hasProviders"
             type="boolean" />
+        <variable
+            name="agentEnabled"
+            type="boolean" />
 
         <import type="android.view.View" />
         <import type="com.github.kr328.clash.design.MainDesign.Request" />
@@ -106,6 +109,16 @@
                     app:icon="@drawable/ic_baseline_view_list"
                     app:subtext="@{profileName != null ? @string/format_profile_activated(profileName) : @string/not_selected}"
                     app:text="@string/profile" />
+
+                <com.github.kr328.clash.design.view.LargeActionCard
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginVertical="@dimen/main_card_margin_vertical"
+                    android:onClick="@{() -> self.request(Request.OpenAgent)}"
+                    android:visibility="@{agentEnabled ? View.VISIBLE : View.GONE}"
+                    app:icon="@drawable/ic_baseline_auto_awesome"
+                    app:subtext="@string/ai_assistant_summary"
+                    app:text="@string/ai_assistant" />
 
                 <com.github.kr328.clash.design.view.LargeActionLabel
                     android:layout_width="match_parent"

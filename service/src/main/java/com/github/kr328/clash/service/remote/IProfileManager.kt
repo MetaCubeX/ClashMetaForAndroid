@@ -1,5 +1,6 @@
 package com.github.kr328.clash.service.remote
 
+import android.os.ParcelFileDescriptor
 import com.github.kr328.clash.service.model.Profile
 import com.github.kr328.kaidl.BinderInterface
 import java.util.*
@@ -17,4 +18,8 @@ interface IProfileManager {
     suspend fun queryAll(): List<Profile>
     suspend fun queryActive(): Profile?
     suspend fun setActive(profile: Profile)
+    suspend fun copyConfiguration(uuid: UUID, destination: ParcelFileDescriptor)
+    suspend fun replaceConfiguration(uuid: UUID, source: ParcelFileDescriptor, expectedSha256: String? = null)
+    suspend fun readConfiguration(uuid: UUID): String
+    suspend fun writeConfiguration(uuid: UUID, content: String)
 }
