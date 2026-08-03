@@ -28,6 +28,11 @@ subprojects {
     }
 
     val isApp = name == "app"
+    val targetAbis = if (providers.gradleProperty("agentArm64Only").orNull.toBoolean()) {
+        listOf("arm64-v8a")
+    } else {
+        listOf("arm64-v8a", "armeabi-v7a", "x86", "x86_64")
+    }
 
     apply(plugin = if (isApp) "com.android.application" else "com.android.library")
 
@@ -65,12 +70,12 @@ subprojects {
             resValue("integer", "release_code", "$versionCode")
 
             ndk {
-                abiFilters += listOf("arm64-v8a", "armeabi-v7a", "x86", "x86_64")
+                abiFilters += targetAbis
             }
 
             externalNativeBuild {
                 cmake {
-                    abiFilters("arm64-v8a", "armeabi-v7a", "x86", "x86_64")
+                    abiFilters(*targetAbis.toTypedArray())
                 }
             }
 
@@ -132,6 +137,19 @@ subprojects {
                     applicationIdSuffix = ".meta"
                 }
             }
+
+            create("agent") {
+                dimension = flavorDimensionList[0]
+
+                buildConfigField("boolean", "PREMIUM", "Boolean.parseBoolean(\"false\")")
+
+                resValue("string", "launch_name", "@string/launch_name_agent")
+                resValue("string", "application_name", "@string/application_name_agent")
+
+                if (isApp) {
+                    applicationId = "io.github.viewer12.cmfa.agent"
+                }
+            }
         }
 
         sourceSets {
@@ -139,6 +157,9 @@ subprojects {
                 java.srcDirs("src/foss/java")
             }
             getByName("alpha") {
+                java.srcDirs("src/foss/java")
+            }
+            getByName("agent") {
                 java.srcDirs("src/foss/java")
             }
         }
@@ -188,7 +209,7 @@ subprojects {
                     isEnable = true
                     isUniversalApk = true
                     reset()
-                    include("arm64-v8a", "armeabi-v7a", "x86", "x86_64")
+                    include(*targetAbis.toTypedArray())
                 }
             }
         }

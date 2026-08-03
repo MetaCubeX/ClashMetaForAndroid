@@ -15,6 +15,7 @@ dependencies {
     implementation(project(":service"))
     implementation(project(":design"))
     implementation(project(":common"))
+    implementation(project(":agent"))
 
     implementation(libs.kotlin.coroutine)
     implementation(libs.androidx.core)
