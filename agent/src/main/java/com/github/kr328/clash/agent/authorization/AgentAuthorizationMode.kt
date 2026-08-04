@@ -1,5 +1,7 @@
 package com.github.kr328.clash.agent.authorization
 
+import kotlinx.serialization.Serializable
+
 /**
  * Controls when an agent operation must stop and ask the user for approval.
  *
@@ -7,6 +9,7 @@ package com.github.kr328.clash.agent.authorization
  * invariants such as secret redaction and the absence of arbitrary shell access
  * are enforced outside this policy and cannot be disabled by a model.
  */
+@Serializable
 enum class AgentAuthorizationMode {
     /** Every operation that changes state requires explicit approval. */
     CAUTIOUS,

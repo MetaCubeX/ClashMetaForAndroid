@@ -36,6 +36,7 @@ class MainActivity : BaseActivity<MainDesign>() {
         setContentDesign(design)
 
         design.fetch()
+        design.setAgentEnabled(BuildConfig.FLAVOR == "agent")
 
         val ticker = ticker(TimeUnit.SECONDS.toMillis(1))
 
@@ -62,6 +63,8 @@ class MainActivity : BaseActivity<MainDesign>() {
                             startActivity(ProxyActivity::class.intent)
                         MainDesign.Request.OpenProfiles ->
                             startActivity(ProfilesActivity::class.intent)
+                        MainDesign.Request.OpenAgent ->
+                            startActivity(Intent().setClassName(this@MainActivity, "com.github.kr328.clash.AgentActivity"))
                         MainDesign.Request.OpenProviders ->
                             startActivity(ProvidersActivity::class.intent)
                         MainDesign.Request.OpenLogs -> {

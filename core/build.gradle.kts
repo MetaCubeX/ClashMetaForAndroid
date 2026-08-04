@@ -10,6 +10,9 @@ plugins {
 }
 
 val golangSource = file("src/main/golang/native")
+val agentOnlyBuild = providers.gradleProperty("agentArm64Only")
+    .map(String::toBoolean)
+    .orElse(false)
 
 golang {
     sourceSets {
@@ -69,6 +72,9 @@ afterEvaluate {
 val abis = listOf("arm64-v8a" to "Arm64V8a", "armeabi-v7a" to "ArmeabiV7a", "x86" to "X86", "x86_64" to "X8664")
 
 androidComponents.onVariants { variant ->
+    if (agentOnlyBuild.get() && variant.productFlavors.none { it.second == "agent" }) {
+        return@onVariants
+    }
     val cmakeName = if (variant.buildType == "debug") "Debug" else "RelWithDebInfo"
 
     abis.forEach { (abi, goAbi) ->

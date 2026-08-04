@@ -3,6 +3,12 @@
     <include
         domain="sharedpref"
         path="." />
+    <exclude
+        domain="sharedpref"
+        path="agent_settings.xml" />
+    <exclude
+        domain="sharedpref"
+        path="agent_conversation.xml" />
     <include
         domain="database"
         path="." />

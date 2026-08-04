@@ -18,6 +18,7 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         ToggleStatus,
         OpenProxy,
         OpenProfiles,
+        OpenAgent,
         OpenProviders,
         OpenLogs,
         OpenSettings,
@@ -63,6 +64,12 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
     suspend fun setHasProviders(has: Boolean) {
         withContext(Dispatchers.Main) {
             binding.hasProviders = has
+        }
+    }
+
+    suspend fun setAgentEnabled(enabled: Boolean) {
+        withContext(Dispatchers.Main) {
+            binding.agentEnabled = enabled
         }
     }
 
