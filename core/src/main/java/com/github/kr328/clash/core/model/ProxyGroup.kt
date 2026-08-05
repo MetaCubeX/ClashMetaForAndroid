@@ -8,7 +8,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class ProxyGroup(
-    val type: Proxy.Type,
+    val type: String,
     val proxies: List<Proxy>,
     val now: String,
 ) : Parcelable {
@@ -35,13 +35,13 @@ data class ProxyGroup(
     }
 
     constructor(parcel: Parcel) : this(
-        Proxy.Type.values()[parcel.readInt()],
+        parcel.readString()!!,
         SliceProxyList(parcel),
         parcel.readString()!!,
     )
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
-        parcel.writeInt(type.ordinal)
+        parcel.writeString(type)
         SliceProxyList(proxies).writeToParcel(parcel, 0)
         parcel.writeString(now)
     }
