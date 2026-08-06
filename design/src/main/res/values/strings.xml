@@ -374,4 +374,29 @@
     <string name="shortcut_start_long">Start Clash service</string>
     <string name="shortcut_stop_short">Stop Clash</string>
     <string name="shortcut_stop_long">Stop Clash service</string>
+
+    <string name="diagnostics">Diagnostics</string>
+    <string name="diagnostics_tips">One-tap debug logging and diagnostics bundle for issue reporting.</string>
+    <string name="diagnostics_status">Status</string>
+    <string name="diagnostics_actions">Actions</string>
+    <string name="diagnostics_clash_status">Clash status</string>
+    <string name="diagnostics_running">Running</string>
+    <string name="diagnostics_stopped">Stopped</string>
+    <string name="diagnostics_app_version">App version</string>
+    <string name="diagnostics_core_version">Core version</string>
+    <string name="diagnostics_mode">Mode</string>
+    <string name="diagnostics_tun_stack">TUN stack</string>
+    <string name="diagnostics_log_level">Log level</string>
+    <string name="diagnostics_dns_mode">DNS enhanced mode</string>
+    <string name="diagnostics_ipv6">IPv6</string>
+    <string name="diagnostics_connections">Active connections</string>
+    <string name="diagnostics_enable_debug">Enable debug logging</string>
+    <string name="diagnostics_enable_debug_summary">Set clash log level to debug and record logs to file</string>
+    <string name="diagnostics_disable_debug">Disable debug logging</string>
+    <string name="diagnostics_disable_debug_summary">Restore configured log level and stop recording</string>
+    <string name="diagnostics_export">Export diagnostics bundle</string>
+    <string name="diagnostics_export_summary">Zip app info, logs and connections for sharing</string>
+    <string name="diagnostics_debug_enabled">Debug logging enabled. Reconnect the VPN to take effect.</string>
+    <string name="diagnostics_debug_disabled">Debug logging disabled.</string>
+    <string name="diagnostics_export_failed">Failed to generate diagnostics bundle</string>
 </resources>

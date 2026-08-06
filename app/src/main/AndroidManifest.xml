@@ -183,10 +183,25 @@
             android:exported="false"
             android:label="@string/help" />
         <activity
+            android:name=".DiagnosticsActivity"
+            android:configChanges="uiMode"
+            android:exported="false"
+            android:label="@string/diagnostics" />
+        <activity
             android:name=".FilesActivity"
             android:configChanges="uiMode"
             android:exported="false"
             android:label="@string/files" />
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
 
         <service
             android:name=".LogcatService"
