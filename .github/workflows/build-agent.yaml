@@ -30,27 +30,12 @@ jobs:
           distribution: temurin
           java-version: 21
 
-      - name: Restore stable Agent debug signing key
-        uses: actions/cache@v5
-        with:
-          path: ~/.android/debug.keystore
-          key: clash-meta-agent-debug-keystore-v1
-
-      - name: Ensure stable Agent debug signing key
+      - name: Restore stable Agent debug signing key from secret
         shell: bash
         run: |
           mkdir -p "$HOME/.android"
-          if [ ! -f "$HOME/.android/debug.keystore" ]; then
-            keytool -genkeypair -v \
-              -keystore "$HOME/.android/debug.keystore" \
-              -storepass android \
-              -alias androiddebugkey \
-              -keypass android \
-              -keyalg RSA \
-              -keysize 2048 \
-              -validity 10000 \
-              -dname "CN=Clash Meta AI Debug,O=Clash Meta AI,C=CN"
-          fi
+          echo "${{ secrets.AGENT_DEBUG_KEYSTORE }}" | base64 -d > "$HOME/.android/debug.keystore"
+          test -s "$HOME/.android/debug.keystore"
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v5
