@@ -2,14 +2,13 @@ package com.github.kr328.clash
 
 import android.app.Activity
 import android.content.DialogInterface
-import android.os.SystemClock
 import android.net.Uri
-import android.view.KeyEvent
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import android.widget.RadioGroup
 import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.getSystemService
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -17,11 +16,13 @@ import androidx.recyclerview.widget.RecyclerView
 import com.github.kr328.clash.agent.AgentChatAdapter
 import com.github.kr328.clash.agent.AgentScreenDesign
 import com.github.kr328.clash.agent.AndroidAgentToolExecutor
+import com.github.kr328.clash.agent.SmoothMarkdownStream
 import com.github.kr328.clash.agent.authorization.AgentAuthorizationMode
 import com.github.kr328.clash.agent.model.AgentConversationMessage
 import com.github.kr328.clash.agent.model.AgentMessageRole
 import com.github.kr328.clash.agent.model.AgentProviderSettings
 import com.github.kr328.clash.agent.model.AgentRunEvent
+import com.github.kr328.clash.agent.protocol.OpenAICompatibleClient
 import com.github.kr328.clash.agent.runtime.AgentApprovalHandler
 import com.github.kr328.clash.agent.runtime.AgentEngine
 import com.github.kr328.clash.agent.settings.AgentConversationStore
@@ -54,6 +55,10 @@ class AgentActivity : BaseActivity<AgentScreenDesign>() {
     private lateinit var modelStatus: TextView
     private lateinit var progressRow: View
     private lateinit var progressText: TextView
+    private lateinit var suggestions: View
+    private var streamingMessageId: String? = null
+    private var followOutput = true
+    private var scrollScheduled = false
 
     override suspend fun main() {
         val screen = AgentScreenDesign(this)
@@ -70,9 +75,23 @@ class AgentActivity : BaseActivity<AgentScreenDesign>() {
         modelStatus = root.findViewById(R.id.agent_model_status)
         progressRow = root.findViewById(R.id.agent_progress_row)
         progressText = root.findViewById(R.id.agent_progress_text)
-        adapter = AgentChatAdapter(this, conversationStore.load().toMutableList())
+        suggestions = root.findViewById(R.id.agent_suggestions_container)
+        adapter = AgentChatAdapter(this, conversationStore.load().toMutableList()) { messageId ->
+            if (followOutput && messageId == streamingMessageId) scheduleScrollToEnd()
+        }
         recycler.layoutManager = LinearLayoutManager(this).apply { stackFromEnd = true }
+        recycler.itemAnimator = null
+        recycler.setHasFixedSize(true)
         recycler.adapter = adapter
+        recycler.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+                when (newState) {
+                    RecyclerView.SCROLL_STATE_DRAGGING -> followOutput = false
+                    RecyclerView.SCROLL_STATE_IDLE -> followOutput = isNearBottom()
+                }
+            }
+        })
+        updateSuggestionsVisibility()
         scrollToEnd()
 
         root.findViewById<View>(R.id.agent_back).setOnClickListener { finish() }
@@ -80,12 +99,6 @@ class AgentActivity : BaseActivity<AgentScreenDesign>() {
         root.findViewById<View>(R.id.agent_clear).setOnClickListener { confirmClear() }
         root.findViewById<View>(R.id.agent_send).setOnClickListener { sendCurrentMessage() }
         root.findViewById<View>(R.id.agent_stop).setOnClickListener { generation?.cancel() }
-        input.setOnEditorActionListener { _, actionId, event ->
-            val isSend = actionId == android.view.inputmethod.EditorInfo.IME_ACTION_SEND ||
-                (event?.keyCode == KeyEvent.KEYCODE_ENTER && event.action == KeyEvent.ACTION_DOWN && !event.isShiftPressed)
-            if (isSend) sendCurrentMessage()
-            isSend
-        }
 
         root.findViewById<View>(R.id.agent_suggest_create).setOnClickListener {
             submitPrompt("请从零开始帮我创建一份可用配置。先了解我的节点来源、使用地区和分流需求；如果没有节点，先创建安全的 DIRECT/REJECT 基础配置。")
@@ -120,12 +133,22 @@ class AgentActivity : BaseActivity<AgentScreenDesign>() {
         val history = adapter.messages.toList()
         val userMessage = message(AgentMessageRole.USER, prompt)
         adapter.append(userMessage)
-        val assistantPosition = adapter.append(message(AgentMessageRole.ASSISTANT, "正在思考…"))
+        val assistantMessage = message(AgentMessageRole.ASSISTANT, "")
+        val assistantPosition = adapter.append(assistantMessage)
+        streamingMessageId = assistantMessage.id
+        followOutput = true
+        updateSuggestionsVisibility()
         scrollToEnd()
         setRunning(true, "正在连接 ${settings.model}…")
 
         generation = launch {
-            var lastRendered = 0L
+            val smoothStream = SmoothMarkdownStream { visibleText ->
+                adapter.replace(
+                    assistantPosition,
+                    assistantMessage.copy(content = visibleText),
+                    streaming = true,
+                )
+            }
             try {
                 val executor = AndroidAgentToolExecutor(
                     context = this@AgentActivity,
@@ -140,14 +163,10 @@ class AgentActivity : BaseActivity<AgentScreenDesign>() {
                     approvalHandler = AgentApprovalHandler { tool, _, summary -> approve(tool, summary) },
                 ) { event -> withContext(Dispatchers.Main.immediate) {
                     when (event) {
-                        is AgentRunEvent.Thinking -> progressText.text = "正在规划第 ${event.round} 步…"
+                        is AgentRunEvent.Thinking -> progressText.text = "正在思考 · 规划第 ${event.round} 步…"
                         is AgentRunEvent.Streaming -> {
-                            val now = SystemClock.elapsedRealtime()
-                            if (now - lastRendered >= 40L || event.text.length < 80) {
-                                adapter.replace(assistantPosition, message(AgentMessageRole.ASSISTANT, event.text))
-                                scrollToEnd()
-                                lastRendered = now
-                            }
+                            progressText.text = "正在生成回复…"
+                            smoothStream.submit(event.text)
                         }
                         is AgentRunEvent.ToolStarted -> progressText.text = event.summary
                         is AgentRunEvent.ToolFinished -> progressText.text =
@@ -156,16 +175,22 @@ class AgentActivity : BaseActivity<AgentScreenDesign>() {
                         is AgentRunEvent.Completed -> Unit
                     }
                 } }
-                adapter.replace(assistantPosition, message(AgentMessageRole.ASSISTANT, finalText))
+                smoothStream.finish(finalText)
+                adapter.replace(assistantPosition, assistantMessage.copy(content = finalText))
             } catch (_: CancellationException) {
-                adapter.replace(assistantPosition, message(AgentMessageRole.ASSISTANT, "已停止本次操作。"))
+                adapter.replace(assistantPosition, assistantMessage.copy(content = "已停止本次操作。"))
             } catch (error: Throwable) {
                 val detail = error.message?.take(1200) ?: error.javaClass.simpleName
-                adapter.replace(assistantPosition, message(AgentMessageRole.ASSISTANT, "操作未完成：$detail", isError = true))
+                adapter.replace(
+                    assistantPosition,
+                    assistantMessage.copy(content = "操作未完成：$detail", isError = true),
+                )
             } finally {
+                smoothStream.cancel()
                 conversationStore.save(adapter.messages)
                 setRunning(false, "")
-                scrollToEnd()
+                if (followOutput) scrollToEnd()
+                streamingMessageId = null
             }
         }
     }
@@ -211,39 +236,42 @@ class AgentActivity : BaseActivity<AgentScreenDesign>() {
             AgentAuthorizationMode.FULL_AUTO -> R.id.agent_auth_full
         })
 
+        val horizontalMargin = (24 * resources.displayMetrics.density).toInt()
         val dialog = MaterialAlertDialogBuilder(this)
             .setTitle(R.string.agent_settings)
-            .setView(view)
+            .setView(view, horizontalMargin, 0, horizontalMargin, 0)
             .setNegativeButton(R.string.agent_cancel, null)
+            .setNeutralButton(R.string.agent_test_connection, null)
             .setPositiveButton(R.string.agent_save, null)
             .create()
+        var testJob: Job? = null
         dialog.setOnShowListener {
+            val testButton = dialog.getButton(DialogInterface.BUTTON_NEUTRAL)
+            testButton.setOnClickListener {
+                val candidate = readProviderSettings(baseUrl, apiKey, model, authorization, current)
+                    ?: return@setOnClickListener
+                testButton.isEnabled = false
+                testButton.setText(R.string.agent_testing_connection)
+                testJob = launch {
+                    runCatching { OpenAICompatibleClient().testConnection(candidate) }
+                        .onSuccess {
+                            Toast.makeText(this@AgentActivity, R.string.agent_test_success, Toast.LENGTH_SHORT).show()
+                        }
+                        .onFailure { error ->
+                            MaterialAlertDialogBuilder(this@AgentActivity)
+                                .setTitle("连接失败")
+                                .setMessage(error.message?.take(500) ?: error.javaClass.simpleName)
+                                .setPositiveButton(android.R.string.ok, null)
+                                .show()
+                        }
+                    testButton.isEnabled = true
+                    testButton.setText(R.string.agent_test_connection)
+                }
+            }
             dialog.getButton(DialogInterface.BUTTON_POSITIVE).setOnClickListener {
-                val normalizedUrl = baseUrl.text.toString().trim()
-                val key = apiKey.text.toString().trim()
-                val modelName = model.text.toString().trim()
-                if (!normalizedUrl.startsWith("https://") && !normalizedUrl.startsWith("http://")) {
-                    baseUrl.error = "请输入 http:// 或 https:// 地址"
-                    return@setOnClickListener
-                }
-                val host = runCatching { Uri.parse(normalizedUrl).host.orEmpty() }.getOrDefault("")
-                if (normalizedUrl.startsWith("http://") && key.isNotEmpty() &&
-                    host !in setOf("localhost", "127.0.0.1", "::1")) {
-                    apiKey.error = "为防止密钥泄露，非本机地址请使用 HTTPS"
-                    return@setOnClickListener
-                }
-                if (modelName.isEmpty()) {
-                    model.error = "请输入模型名称"
-                    return@setOnClickListener
-                }
-                val mode = when (authorization.checkedRadioButtonId) {
-                    R.id.agent_auth_cautious -> AgentAuthorizationMode.CAUTIOUS
-                    R.id.agent_auth_full -> AgentAuthorizationMode.FULL_AUTO
-                    else -> AgentAuthorizationMode.BALANCED
-                }
-                runCatching {
-                    settingsStore.save(AgentProviderSettings(normalizedUrl, modelName, key, mode, current.maxToolRounds))
-                }.onFailure {
+                val candidate = readProviderSettings(baseUrl, apiKey, model, authorization, current)
+                    ?: return@setOnClickListener
+                runCatching { settingsStore.save(candidate) }.onFailure {
                     apiKey.error = it.message ?: "API Key 保存失败"
                     return@setOnClickListener
                 }
@@ -252,7 +280,40 @@ class AgentActivity : BaseActivity<AgentScreenDesign>() {
                 if (input.text?.isNotBlank() == true) input.requestFocus()
             }
         }
+        dialog.setOnDismissListener { testJob?.cancel() }
         dialog.show()
+    }
+
+    private fun readProviderSettings(
+        baseUrl: EditText,
+        apiKey: EditText,
+        model: EditText,
+        authorization: RadioGroup,
+        current: AgentProviderSettings,
+    ): AgentProviderSettings? {
+        val normalizedUrl = baseUrl.text.toString().trim()
+        val key = apiKey.text.toString().trim()
+        val modelName = model.text.toString().trim()
+        if (!normalizedUrl.startsWith("https://") && !normalizedUrl.startsWith("http://")) {
+            baseUrl.error = "请输入 http:// 或 https:// 地址"
+            return null
+        }
+        val host = runCatching { Uri.parse(normalizedUrl).host.orEmpty() }.getOrDefault("")
+        if (normalizedUrl.startsWith("http://") && key.isNotEmpty() &&
+            host !in setOf("localhost", "127.0.0.1", "::1")) {
+            apiKey.error = "为防止密钥泄露，非本机地址请使用 HTTPS"
+            return null
+        }
+        if (modelName.isEmpty()) {
+            model.error = "请输入模型名称"
+            return null
+        }
+        val mode = when (authorization.checkedRadioButtonId) {
+            R.id.agent_auth_cautious -> AgentAuthorizationMode.CAUTIOUS
+            R.id.agent_auth_full -> AgentAuthorizationMode.FULL_AUTO
+            else -> AgentAuthorizationMode.BALANCED
+        }
+        return AgentProviderSettings(normalizedUrl, modelName, key, mode, current.maxToolRounds)
     }
 
     private fun confirmClear() {
@@ -263,6 +324,7 @@ class AgentActivity : BaseActivity<AgentScreenDesign>() {
             .setPositiveButton(R.string.agent_clear) { _, _ ->
                 adapter.clear()
                 conversationStore.clear()
+                updateSuggestionsVisibility()
             }
             .show()
     }
@@ -309,6 +371,35 @@ class AgentActivity : BaseActivity<AgentScreenDesign>() {
         }
     }
 
+    private fun scheduleScrollToEnd() {
+        if (scrollScheduled || !::recycler.isInitialized) return
+        scrollScheduled = true
+        recycler.postOnAnimation {
+            scrollScheduled = false
+            if (followOutput && adapter.itemCount > 0) {
+                recycler.scrollToPosition(adapter.itemCount - 1)
+            }
+        }
+    }
+
+    private fun isNearBottom(): Boolean {
+        if (!::recycler.isInitialized || adapter.itemCount == 0) return true
+        val manager = recycler.layoutManager as? LinearLayoutManager ?: return true
+        return manager.findLastVisibleItemPosition() >= adapter.itemCount - 2
+    }
+
+    private fun updateSuggestionsVisibility() {
+        if (::suggestions.isInitialized) {
+            suggestions.visibility = if (adapter.messages.isEmpty()) View.VISIBLE else View.GONE
+        }
+    }
+
+    override fun onDestroy() {
+        if (::adapter.isInitialized) adapter.close()
+        super.onDestroy()
+    }
+
     private fun message(role: AgentMessageRole, content: String, isError: Boolean = false) =
         AgentConversationMessage(UUID.randomUUID().toString(), role, content, isError = isError)
+
 }

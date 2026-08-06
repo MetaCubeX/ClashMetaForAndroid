@@ -20,7 +20,6 @@
             android:id="@+id/agent_message_text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:autoLink="web"
             android:lineSpacingExtra="2dp"
             android:minWidth="48dp"
             android:paddingHorizontal="14dp"

@@ -13,7 +13,10 @@ import com.github.kr328.clash.design.util.root
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
+class MainDesign(
+    context: Context,
+    agentEnabled: Boolean = false,
+) : Design<MainDesign.Request>(context) {
     enum class Request {
         ToggleStatus,
         OpenProxy,
@@ -67,12 +70,6 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         }
     }
 
-    suspend fun setAgentEnabled(enabled: Boolean) {
-        withContext(Dispatchers.Main) {
-            binding.agentEnabled = enabled
-        }
-    }
-
     suspend fun showAbout(versionName: String) {
         withContext(Dispatchers.Main) {
             val binding = DesignAboutBinding.inflate(context.layoutInflater).apply {
@@ -87,6 +84,9 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
 
     init {
         binding.self = this
+        // Set flavor-only visibility before the root view is attached. Updating it after
+        // the initial status/profile IPC calls caused the Agent card to pop in late.
+        binding.agentEnabled = agentEnabled
 
         binding.colorClashStarted = context.resolveThemedColor(com.google.android.material.R.attr.colorPrimary)
         binding.colorClashStopped = context.resolveThemedColor(R.attr.colorClashStopped)

@@ -11,6 +11,7 @@ on:
       - "service/**"
       - "agent/**"
       - "agent-ui/**"
+      - ".github/workflows/build-agent.yaml"
       - "*.gradle.kts"
       - "gradle/**"
 
@@ -28,6 +29,28 @@ jobs:
         with:
           distribution: temurin
           java-version: 21
+
+      - name: Restore stable Agent debug signing key
+        uses: actions/cache@v5
+        with:
+          path: ~/.android/debug.keystore
+          key: clash-meta-agent-debug-keystore-v1
+
+      - name: Ensure stable Agent debug signing key
+        shell: bash
+        run: |
+          mkdir -p "$HOME/.android"
+          if [ ! -f "$HOME/.android/debug.keystore" ]; then
+            keytool -genkeypair -v \
+              -keystore "$HOME/.android/debug.keystore" \
+              -storepass android \
+              -alias androiddebugkey \
+              -keypass android \
+              -keyalg RSA \
+              -keysize 2048 \
+              -validity 10000 \
+              -dname "CN=Clash Meta AI Debug,O=Clash Meta AI,C=CN"
+          fi
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v5
@@ -54,8 +77,30 @@ jobs:
           sudo update-ca-certificates
           cp -f /etc/ssl/certs/ca-certificates.crt core/src/foss/golang/clash/component/ca/ca-certificates.crt
 
+      - name: Stress-test incremental streaming patches
+        run: ./gradlew --no-daemon app:testAgentDebugUnitTest
+
       - name: Build arm64 APK
         run: ./gradlew --no-daemon -PagentArm64Only=true app:assembleAgentDebug
+
+      - name: Verify stable signing identity
+        shell: bash
+        run: |
+          apk="$(find app/build/outputs/apk/agent/debug -name '*-arm64-v8a-*.apk' -print -quit)"
+          apksigner="$(find "$ANDROID_HOME/build-tools" -name apksigner -type f | sort -V | tail -n 1)"
+          keytool -exportcert \
+            -keystore "$HOME/.android/debug.keystore" \
+            -storepass android \
+            -alias androiddebugkey \
+            -file "$RUNNER_TEMP/agent-debug-cert.der"
+          key_fingerprint="$(sha256sum "$RUNNER_TEMP/agent-debug-cert.der" | cut -d' ' -f1)"
+          apk_fingerprint="$("$apksigner" verify --print-certs "$apk" | sed -n 's/.*certificate SHA-256 digest: //p' | head -n 1)"
+          test -n "$key_fingerprint"
+          test -n "$apk_fingerprint"
+          echo "Cached key certificate: ${key_fingerprint,,}"
+          echo "Built APK certificate:  ${apk_fingerprint,,}"
+          test "${key_fingerprint,,}" = "${apk_fingerprint,,}"
+          echo "Verified stable APK signing certificate: ${apk_fingerprint}"
 
       - name: Upload arm64 APK
         uses: actions/upload-artifact@v7

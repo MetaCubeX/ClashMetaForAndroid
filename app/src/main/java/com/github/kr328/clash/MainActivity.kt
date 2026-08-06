@@ -31,12 +31,11 @@ import com.github.kr328.clash.design.R as DesignR
 
 class MainActivity : BaseActivity<MainDesign>() {
     override suspend fun main() {
-        val design = MainDesign(this)
+        val design = MainDesign(this, agentEnabled = BuildConfig.FLAVOR == "agent")
 
         setContentDesign(design)
 
         design.fetch()
-        design.setAgentEnabled(BuildConfig.FLAVOR == "agent")
 
         val ticker = ticker(TimeUnit.SECONDS.toMillis(1))
 

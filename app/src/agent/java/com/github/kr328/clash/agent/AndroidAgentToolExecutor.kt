@@ -22,6 +22,7 @@ import com.github.kr328.clash.design.store.UiStore
 import com.github.kr328.clash.service.model.Profile
 import com.github.kr328.clash.service.model.AccessControlMode
 import com.github.kr328.clash.service.store.ServiceStore
+import com.github.kr328.clash.service.util.ProcessExitDiagnostics
 import com.github.kr328.clash.remote.Remote
 import com.github.kr328.clash.util.withClash
 import com.github.kr328.clash.util.withProfile
@@ -66,6 +67,7 @@ class AndroidAgentToolExecutor(
         "vpn_settings_update" -> vpnSettingsUpdate(arguments)
         "network_info" -> networkInfo()
         "logs_recent" -> logsRecent()
+        "app_exit_history" -> appExitHistory()
         "runtime_status" -> runtimeStatus()
         "runtime_set_mode" -> runtimeSetMode(arguments)
         "runtime_start" -> runtimeStart()
@@ -414,6 +416,11 @@ class AndroidAgentToolExecutor(
             put("lines", buildJsonArray { lines.forEach { add(kotlinx.serialization.json.JsonPrimitive(it.take(2000))) } })
         }
         return ok(body.toString().take(120_000), "已读取最近 ${lines.size} 行已保存日志")
+    }
+
+    private fun appExitHistory(): AgentToolExecutionResult {
+        val body = ProcessExitDiagnostics.read(context)
+        return ok(body, "已读取 Android 记录的 VPN 进程退出历史")
     }
 
     private suspend fun runtimeStatus(): AgentToolExecutionResult {

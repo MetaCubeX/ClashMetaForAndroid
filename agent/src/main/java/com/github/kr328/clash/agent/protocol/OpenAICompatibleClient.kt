@@ -63,19 +63,21 @@ class OpenAICompatibleClient(
             put("model", settings.model)
             put("messages", messages)
             put("stream", true)
-            put("tools", buildJsonArray {
-                tools.forEach { tool ->
-                    add(buildJsonObject {
-                        put("type", "function")
-                        put("function", buildJsonObject {
-                            put("name", tool.name)
-                            put("description", tool.description)
-                            put("parameters", tool.parameters)
+            if (tools.isNotEmpty()) {
+                put("tools", buildJsonArray {
+                    tools.forEach { tool ->
+                        add(buildJsonObject {
+                            put("type", "function")
+                            put("function", buildJsonObject {
+                                put("name", tool.name)
+                                put("description", tool.description)
+                                put("parameters", tool.parameters)
+                            })
                         })
-                    })
-                }
-            })
-            put("tool_choice", "auto")
+                    }
+                })
+                put("tool_choice", "auto")
+            }
         }
 
         try {
@@ -95,6 +97,17 @@ class OpenAICompatibleClient(
         } finally {
             connection.disconnect()
         }
+    }
+
+    /** Performs a minimal real chat completion so URL, credentials and model are all verified. */
+    suspend fun testConnection(settings: AgentProviderSettings): String {
+        val messages = buildJsonArray {
+            add(buildJsonObject {
+                put("role", "user")
+                put("content", "Connection test. Reply with OK only.")
+            })
+        }
+        return complete(settings, messages, emptyList()) {}.content
     }
 
     private suspend fun parseResponse(
@@ -225,6 +238,7 @@ class OpenAICompatibleClient(
     companion object {
         private const val CONNECT_TIMEOUT_MS = 20_000
         private const val READ_TIMEOUT_MS = 180_000
-        private const val STREAM_FRAME_MS = 45L
+        // Keep the source buffer fresh; visual pacing is handled independently on Android's VSync.
+        private const val STREAM_FRAME_MS = 24L
     }
 }

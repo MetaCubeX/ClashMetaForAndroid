@@ -53,6 +53,7 @@ object AgentExecutableTools {
             boolean("restart_if_running", "Restart the VPN immediately so network-affecting changes take effect. Defaults to true.", required = false)),
         tool("network_info", "Read active Android network, transports, DNS servers, routes, metering, and validation state.", READ_ONLY),
         tool("logs_recent", "Read the tail of the newest saved mihomo log capture for diagnosis. Returns unavailable when no capture has been recorded.", READ_ONLY),
+        tool("app_exit_history", "Read Android's system process-exit history for the VPN process, including low-memory kills, Java/native crashes, ANRs, user stops, and signals. Android 11 or newer.", READ_ONLY),
         tool("runtime_status", "Read VPN state, active profile, tunnel mode, traffic totals, proxy groups, and providers.", READ_ONLY),
         tool("runtime_set_mode", "Set the current session tunnel mode (rule, global, direct, or script).", MEDIUM,
             string("mode", "One of: rule, global, direct, script.")),

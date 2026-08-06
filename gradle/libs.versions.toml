@@ -18,6 +18,7 @@ room = "2.4.2"
 multiprocess = "1.0.0"
 quickie = "1.11.0"
 androidx-activity-ktx = "1.9.0"
+markwon = "4.6.2"
 
 [libraries]
 build-android = { module = "com.android.tools.build:gradle", version.ref = "agp" }
@@ -43,5 +44,6 @@ kaidl-runtime = { module = "com.github.kr328.kaidl:kaidl-runtime", version.ref =
 rikkax-multiprocess = { module = "dev.rikka.rikkax.preference:multiprocess", version.ref = "multiprocess" }
 quickie-bundled = { group = "io.github.g00fy2.quickie", name = "quickie-bundled", version.ref = "quickie" }
 androidx-activity-ktx = { group = "androidx.activity", name = "activity-ktx", version.ref = "androidx-activity-ktx" }
+markwon-core = { module = "io.noties.markwon:core", version.ref = "markwon" }
 
 [plugins]

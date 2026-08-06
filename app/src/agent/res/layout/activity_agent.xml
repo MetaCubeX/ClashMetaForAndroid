@@ -3,10 +3,10 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:fitsSystemWindows="true">
+    android:orientation="vertical">
 
     <LinearLayout
+        android:id="@+id/agent_header"
         android:layout_width="match_parent"
         android:layout_height="64dp"
         android:gravity="center_vertical"
@@ -64,34 +64,46 @@
             app:tint="?attr/colorOnSurface" />
     </LinearLayout>
 
-    <com.google.android.material.chip.ChipGroup
-        android:id="@+id/agent_suggestions"
+    <HorizontalScrollView
+        android:id="@+id/agent_suggestions_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:clipToPadding="false"
+        android:fillViewport="false"
+        android:overScrollMode="never"
         android:paddingHorizontal="16dp"
-        app:singleLine="false">
+        android:scrollbars="none">
 
-        <com.google.android.material.chip.Chip
-            android:id="@+id/agent_suggest_create"
-            style="@style/Widget.MaterialComponents.Chip.Action"
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/agent_suggestions"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/agent_quick_create" />
+            android:paddingVertical="2dp"
+            app:chipSpacingHorizontal="8dp"
+            app:singleLine="true">
 
-        <com.google.android.material.chip.Chip
-            android:id="@+id/agent_suggest_apps"
-            style="@style/Widget.MaterialComponents.Chip.Action"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/agent_quick_apps" />
+            <com.google.android.material.chip.Chip
+                android:id="@+id/agent_suggest_create"
+                style="@style/Widget.MaterialComponents.Chip.Action"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:text="@string/agent_quick_create" />
 
-        <com.google.android.material.chip.Chip
-            android:id="@+id/agent_suggest_diagnose"
-            style="@style/Widget.MaterialComponents.Chip.Action"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/agent_quick_diagnose" />
-    </com.google.android.material.chip.ChipGroup>
+            <com.google.android.material.chip.Chip
+                android:id="@+id/agent_suggest_apps"
+                style="@style/Widget.MaterialComponents.Chip.Action"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:text="@string/agent_quick_apps" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/agent_suggest_diagnose"
+                style="@style/Widget.MaterialComponents.Chip.Action"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:text="@string/agent_quick_diagnose" />
+        </com.google.android.material.chip.ChipGroup>
+    </HorizontalScrollView>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/agent_messages"
@@ -133,6 +145,7 @@
     </LinearLayout>
 
     <LinearLayout
+        android:id="@+id/agent_composer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="bottom"
@@ -152,17 +165,29 @@
                 android:id="@+id/agent_input"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:imeOptions="actionSend"
+                android:gravity="top|start"
+                android:imeOptions="flagNoEnterAction"
                 android:inputType="textCapSentences|textMultiLine"
                 android:maxLines="5"
-                android:minLines="1" />
+                android:minHeight="56dp"
+                android:minLines="1"
+                android:singleLine="false" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/agent_send"
-            android:layout_width="wrap_content"
+            style="@style/Widget.MaterialComponents.Button.Icon"
+            android:layout_width="56dp"
             android:layout_height="56dp"
             android:layout_marginStart="8dp"
-            android:text="@string/agent_send" />
+            android:contentDescription="@string/agent_send"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:minWidth="0dp"
+            android:padding="0dp"
+            app:icon="@drawable/ic_agent_send"
+            app:iconGravity="textStart"
+            app:iconPadding="0dp"
+            app:iconSize="24dp" />
     </LinearLayout>
 </LinearLayout>

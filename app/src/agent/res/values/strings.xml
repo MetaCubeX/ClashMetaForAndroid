@@ -7,6 +7,9 @@
     <string name="agent_send">发送</string>
     <string name="agent_stop">停止</string>
     <string name="agent_settings">模型与授权设置</string>
+    <string name="agent_test_connection">测试连接</string>
+    <string name="agent_testing_connection">正在测试…</string>
+    <string name="agent_test_success">连接成功，模型已响应</string>
     <string name="agent_clear">清空对话</string>
     <string name="agent_quick_create">从零创建配置</string>
     <string name="agent_quick_apps">按已安装应用配置分流</string>

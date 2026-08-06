@@ -116,7 +116,7 @@
                     android:layout_marginVertical="@dimen/main_card_margin_vertical"
                     android:onClick="@{() -> self.request(Request.OpenAgent)}"
                     android:visibility="@{agentEnabled ? View.VISIBLE : View.GONE}"
-                    app:icon="@drawable/ic_baseline_auto_awesome"
+                    app:icon="@drawable/ic_outline_agent_chat"
                     app:subtext="@string/ai_assistant_summary"
                     app:text="@string/ai_assistant" />
 

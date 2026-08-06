@@ -165,6 +165,15 @@ subprojects {
         }
 
         signingConfigs {
+            create("agentDebug") {
+                // CI restores this development-only key from the repository's private
+                // Actions cache. Use an explicit path so every module signs with it.
+                storeFile = file("${System.getProperty("user.home")}/.android/debug.keystore")
+                storePassword = "android"
+                keyAlias = "androiddebugkey"
+                keyPassword = "android"
+            }
+
             val keystore = rootProject.file("signing.properties")
             if (keystore.exists()) {
                 create("release") {
@@ -192,6 +201,7 @@ subprojects {
             }
             named("debug") {
                 versionNameSuffix = ".debug"
+                signingConfig = signingConfigs["agentDebug"]
             }
         }
 
