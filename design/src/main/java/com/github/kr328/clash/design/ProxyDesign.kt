@@ -18,6 +18,7 @@ import com.github.kr328.clash.design.util.applyFrom
 import com.github.kr328.clash.design.util.layoutInflater
 import com.github.kr328.clash.design.util.resolveThemedColor
 import com.github.kr328.clash.design.util.root
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.tabs.TabLayoutMediator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -35,6 +36,7 @@ class ProxyDesign(
         data class PatchMode(val mode: TunnelState.Mode?) : Request()
         data class Reload(val index: Int) : Request()
         data class Select(val index: Int, val name: String) : Request()
+        data class ShowChain(val index: Int, val proxy: Proxy) : Request()
         data class UrlTest(val index: Int) : Request()
     }
 
@@ -83,6 +85,37 @@ class ProxyDesign(
         }
     }
 
+    suspend fun showChainDialog(proxy: Proxy) {
+        val chain = proxy.chain
+
+        if (chain.size <= 1)
+            return
+
+        val builder = StringBuilder()
+
+        chain.forEachIndexed { index, name ->
+            val label = when (index) {
+                0 -> context.getString(R.string.chain_entry)
+                chain.size - 1 -> context.getString(R.string.chain_exit)
+                else -> context.getString(R.string.chain_middle)
+            }
+
+            builder.append(label).append(": ").append(name)
+
+            if (index != chain.size - 1) {
+                builder.append("\n    ↓\n")
+            }
+        }
+
+        withContext(Dispatchers.Main) {
+            MaterialAlertDialogBuilder(context)
+                .setTitle(R.string.chain_detail)
+                .setMessage(builder.toString())
+                .setPositiveButton(R.string.ok, null)
+                .show()
+        }
+    }
+
     suspend fun showModeSwitchTips() {
         withContext(Dispatchers.Main) {
             Toast.makeText(context, R.string.mode_switch_tips, Toast.LENGTH_LONG).show()
@@ -116,9 +149,15 @@ class ProxyDesign(
                     surface,
                     config,
                     List(groupNames.size) { index ->
-                        ProxyAdapter(config) { name ->
-                            requests.trySend(Request.Select(index, name))
-                        }
+                        ProxyAdapter(
+                            config,
+                            { name ->
+                                requests.trySend(Request.Select(index, name))
+                            },
+                            { proxy ->
+                                requests.trySend(Request.ShowChain(index, proxy))
+                            }
+                        )
                     }
                 ) {
                     if (it == currentItem)

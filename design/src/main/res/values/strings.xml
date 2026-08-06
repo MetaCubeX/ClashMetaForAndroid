@@ -374,4 +374,9 @@
     <string name="shortcut_start_long">Start Clash service</string>
     <string name="shortcut_stop_short">Stop Clash</string>
     <string name="shortcut_stop_long">Stop Clash service</string>
+
+    <string name="chain_detail">Chain Details</string>
+    <string name="chain_entry">Entry</string>
+    <string name="chain_middle">Hop</string>
+    <string name="chain_exit">Exit</string>
 </resources>

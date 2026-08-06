@@ -284,4 +284,9 @@
     <string name="shortcut_start_long">启动 Clash 服务</string>
     <string name="shortcut_stop_short">停止 Clash</string>
     <string name="shortcut_stop_long">停止 Clash 服务</string>
+
+    <string name="chain_detail">链路详情</string>
+    <string name="chain_entry">入口</string>
+    <string name="chain_middle">中转</string>
+    <string name="chain_exit">出口</string>
 </resources>

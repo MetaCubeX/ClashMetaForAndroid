@@ -22,12 +22,13 @@ const (
 )
 
 type Proxy struct {
-	Name     string `json:"name"`
-	Title    string `json:"title"`
-	Subtitle string `json:"subtitle"`
-	Type     string `json:"type"`
-	Delay    int    `json:"delay"`
-	IsGroup  bool   `json:"isGroup"`
+	Name     string   `json:"name"`
+	Title    string   `json:"title"`
+	Subtitle string   `json:"subtitle"`
+	Type     string   `json:"type"`
+	Delay    int      `json:"delay"`
+	IsGroup  bool     `json:"isGroup"`
+	Chain    []string `json:"chain,omitempty"`
 }
 
 type ProxyGroup struct {
@@ -199,9 +200,45 @@ func convertProxies(proxies []C.Proxy, uiSubtitlePattern *regexp2.Regexp) []*Pro
 			Type:     p.Type().String(),
 			Delay:    int(p.LastDelayForTestUrl(testURL)),
 			IsGroup:  isGroup,
+			Chain:    buildProxyChain(p),
 		})
 	}
 	return result
+}
+
+// buildProxyChain resolves the dialer-proxy chain of a proxy into physical
+// order: from the outermost entry node (dialed by the local device) to the
+// proxy itself which acts as the exit node towards the target server.
+func buildProxyChain(p C.Proxy) []string {
+	var reversed []string
+	seen := map[string]bool{}
+	cur := p
+
+	for cur != nil && !seen[cur.Name()] {
+		seen[cur.Name()] = true
+
+		dialerName := cur.Adapter().ProxyInfo().DialerProxy
+		if dialerName == "" {
+			break
+		}
+
+		next, ok := tunnel.Proxies()[dialerName]
+		if !ok {
+			reversed = append(reversed, dialerName)
+			break
+		}
+
+		reversed = append(reversed, dialerName)
+		cur = next
+	}
+
+	chain := make([]string, 0, len(reversed)+1)
+	for i := len(reversed) - 1; i >= 0; i-- {
+		chain = append(chain, reversed[i])
+	}
+	chain = append(chain, p.Name())
+
+	return chain
 }
 
 func collectProviders(providers []provider.ProxyProvider, uiSubtitlePattern *regexp2.Regexp) []*Proxy {
