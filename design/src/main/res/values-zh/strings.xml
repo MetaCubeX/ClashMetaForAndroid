@@ -284,29 +284,4 @@
     <string name="shortcut_start_long">启动 Clash 服务</string>
     <string name="shortcut_stop_short">停止 Clash</string>
     <string name="shortcut_stop_long">停止 Clash 服务</string>
-
-    <string name="diagnostics">诊断</string>
-    <string name="diagnostics_tips">一键开启调试日志并导出诊断包，用于问题反馈。</string>
-    <string name="diagnostics_status">状态</string>
-    <string name="diagnostics_actions">操作</string>
-    <string name="diagnostics_clash_status">Clash 状态</string>
-    <string name="diagnostics_running">运行中</string>
-    <string name="diagnostics_stopped">未运行</string>
-    <string name="diagnostics_app_version">应用版本</string>
-    <string name="diagnostics_core_version">核心版本</string>
-    <string name="diagnostics_mode">模式</string>
-    <string name="diagnostics_tun_stack">TUN 栈</string>
-    <string name="diagnostics_log_level">日志等级</string>
-    <string name="diagnostics_dns_mode">DNS 增强模式</string>
-    <string name="diagnostics_ipv6">IPv6</string>
-    <string name="diagnostics_connections">当前连接数</string>
-    <string name="diagnostics_enable_debug">开启调试日志</string>
-    <string name="diagnostics_enable_debug_summary">将 clash 日志等级设为 debug 并写入日志文件</string>
-    <string name="diagnostics_disable_debug">关闭调试日志</string>
-    <string name="diagnostics_disable_debug_summary">恢复配置的日志等级并停止记录</string>
-    <string name="diagnostics_export">导出诊断包</string>
-    <string name="diagnostics_export_summary">打包应用信息、日志与连接快照用于分享</string>
-    <string name="diagnostics_debug_enabled">调试日志已开启，请重新连接 VPN 生效。</string>
-    <string name="diagnostics_debug_disabled">调试日志已关闭。</string>
-    <string name="diagnostics_export_failed">生成诊断包失败</string>
 </resources>
