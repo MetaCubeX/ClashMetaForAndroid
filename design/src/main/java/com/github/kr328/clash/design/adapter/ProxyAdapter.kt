@@ -2,6 +2,7 @@ package com.github.kr328.clash.design.adapter
 
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import com.github.kr328.clash.core.model.Proxy
 import com.github.kr328.clash.design.component.ProxyView
 import com.github.kr328.clash.design.component.ProxyViewConfig
 import com.github.kr328.clash.design.component.ProxyViewState
