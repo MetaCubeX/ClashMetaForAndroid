@@ -8,6 +8,7 @@ import android.net.NetworkCapabilities
 import android.os.Build
 import android.os.ParcelFileDescriptor
 import androidx.core.content.getSystemService
+import com.github.kr328.clash.BuildConfig
 import com.github.kr328.clash.core.Clash
 import com.github.kr328.clash.agent.model.AgentToolExecutionResult
 import com.github.kr328.clash.agent.runtime.AgentToolExecutor
@@ -433,6 +434,8 @@ class AndroidAgentToolExecutor(
                 put("active_profile", active?.name ?: "")
                 put("active_profile_id", active?.uuid?.toString() ?: "")
                 put("mode", state.mode.name)
+                put("core_version", com.github.kr328.clash.core.bridge.Bridge.nativeCoreVersion())
+                put("app_version", BuildConfig.VERSION_NAME)
                 put("traffic_total", queryTrafficTotal())
                 put("selectable_groups", buildJsonArray { groups.forEach { add(kotlinx.serialization.json.JsonPrimitive(it)) } })
                 put("provider_count", queryProviders().size)

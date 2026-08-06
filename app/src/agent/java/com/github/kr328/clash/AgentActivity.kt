@@ -178,7 +178,13 @@ class AgentActivity : BaseActivity<AgentScreenDesign>() {
                 smoothStream.finish(finalText)
                 adapter.replace(assistantPosition, assistantMessage.copy(content = finalText))
             } catch (_: CancellationException) {
-                adapter.replace(assistantPosition, assistantMessage.copy(content = "已停止本次操作。"))
+                val preserved = smoothStream.currentText().trimEnd()
+                val content = if (preserved.isBlank()) {
+                    "已停止本次操作。"
+                } else {
+                    "$preserved\n\n> 已停止本次操作。"
+                }
+                adapter.replace(assistantPosition, assistantMessage.copy(content = content))
             } catch (error: Throwable) {
                 val detail = error.message?.take(1200) ?: error.javaClass.simpleName
                 adapter.replace(

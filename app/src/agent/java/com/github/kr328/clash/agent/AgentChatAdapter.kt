@@ -1,12 +1,17 @@
 package com.github.kr328.clash.agent
 
 import android.content.Context
+import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.Paint
+import android.text.Layout
 import android.text.NoCopySpan
 import android.text.Spannable
 import android.text.SpannableString
 import android.text.SpannableStringBuilder
 import android.text.Spanned
+import android.text.style.LeadingMarginSpan
+import android.text.style.LineBackgroundSpan
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.LayoutInflater
@@ -20,7 +25,11 @@ import com.github.kr328.clash.R
 import com.github.kr328.clash.agent.model.AgentConversationMessage
 import com.github.kr328.clash.agent.model.AgentMessageRole
 import com.google.android.material.card.MaterialCardView
+import io.noties.markwon.AbstractMarkwonPlugin
 import io.noties.markwon.Markwon
+import io.noties.markwon.MarkwonTheme
+import io.noties.markwon.SpansFactory
+import org.commonmark.node.CodeBlock
 import java.io.Closeable
 import java.util.UUID
 import java.util.concurrent.Executors
@@ -40,7 +49,7 @@ class AgentChatAdapter(
     val messages: MutableList<AgentConversationMessage>,
     private val onContentHeightChanged: (String) -> Unit = {},
 ) : RecyclerView.Adapter<AgentChatAdapter.Holder>(), Closeable {
-    private val markwon = Markwon.create(context)
+    private val markwon = createMarkwon(context)
     private val markdownExecutor = Executors.newSingleThreadExecutor()
     private val attachedHolders = mutableSetOf<Holder>()
 
@@ -249,6 +258,97 @@ class AgentChatAdapter(
     private fun resolve(attribute: Int, fallback: Int): Int {
         val value = TypedValue()
         return if (context.theme.resolveAttribute(attribute, value, true)) value.data else fallback
+    }
+
+    private fun createMarkwon(context: Context): Markwon {
+        val primary = resolve(com.google.android.material.R.attr.colorPrimary, Color.rgb(25, 118, 210))
+        val codeBackground = resolve(
+            com.google.android.material.R.attr.colorSurfaceVariant,
+            Color.rgb(0xE6, 0xE6, 0xE9)
+        )
+        val codeText = resolve(
+            com.google.android.material.R.attr.colorOnSurfaceVariant,
+            Color.rgb(0x44, 0x44, 0x44)
+        )
+        val quoteColor = resolve(
+            com.google.android.material.R.attr.colorPrimary,
+            Color.rgb(25, 118, 210)
+        )
+        val radius = 8 * context.resources.displayMetrics.density
+
+        return Markwon.builder(context)
+            .usePlugin(object : AbstractMarkwonPlugin() {
+                override fun configureTheme(builder: MarkwonTheme.Builder) {
+                    builder
+                        .setLinkColor(primary)
+                        .setCodeTextColor(codeText)
+                        .setCodeBackgroundColor(codeBackground)
+                        .setCodeBlockTextColor(codeText)
+                        .setCodeBlockBackgroundColor(codeBackground)
+                        .setBlockQuoteColor(quoteColor)
+                        .setBlockQuoteWidth((3 * context.resources.displayMetrics.density).toInt())
+                }
+
+                override fun configureSpansFactory(builder: SpansFactory.Builder) {
+                    builder.setFactory(CodeBlock::class.java) {
+                        arrayOf(RoundedCodeBlockSpan(codeBackground, radius))
+                    }
+                }
+            })
+            .build()
+    }
+
+    /**
+     * Rounded background behind code blocks, replacing Markwon's flat gray rectangle.
+     * A [LeadingMarginSpan] so indentation of wrapped lines stays aligned.
+     */
+    private class RoundedCodeBlockSpan(
+        private val backgroundColor: Int,
+        private val cornerRadius: Float,
+    ) : LeadingMarginSpan, LineBackgroundSpan {
+        private val paint = Paint().apply { isAntiAlias = true }
+
+        override fun getLeadingMargin(first: Boolean): Int = 0
+
+        override fun drawLeadingMargin(
+            c: Canvas,
+            p: Paint,
+            x: Int,
+            dir: Int,
+            top: Int,
+            baseline: Int,
+            bottom: Int,
+            text: CharSequence,
+            start: Int,
+            end: Int,
+            first: Boolean,
+            layout: Layout,
+        ) = Unit
+
+        override fun drawBackground(
+            c: Canvas,
+            p: Paint,
+            left: Int,
+            right: Int,
+            top: Int,
+            baseline: Int,
+            bottom: Int,
+            text: CharSequence,
+            start: Int,
+            end: Int,
+            lineNumber: Int,
+        ) {
+            paint.color = backgroundColor
+            c.drawRoundRect(
+                left.toFloat(),
+                top.toFloat(),
+                right.toFloat(),
+                bottom.toFloat(),
+                cornerRadius,
+                cornerRadius,
+                paint,
+            )
+        }
     }
 
     private fun String.toStableLong(): Long = runCatching {

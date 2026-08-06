@@ -67,6 +67,9 @@ class SmoothMarkdownStream(
         finishContinuation = null
     }
 
+    /** The text currently committed to the UI. Safe to call from any thread. */
+    fun currentText(): String = visible
+
     override fun doFrame(frameTimeNanos: Long) {
         scheduled = false
         if (cancelled) return
@@ -164,14 +167,14 @@ class SmoothMarkdownStream(
         const val NANOS_PER_SECOND = 1_000_000_000.0
         const val START_DELAY_NANOS = 24_000_000L
         const val MAX_DELTA_NANOS = 100_000_000L
-        const val MIN_COMMIT_INTERVAL_NANOS = 33_000_000L
-        const val MIN_CHARS_PER_SECOND = 60.0
-        const val MAX_CHARS_PER_SECOND = 1_600.0
+        const val MIN_COMMIT_INTERVAL_NANOS = 66_000_000L
+        const val MIN_CHARS_PER_SECOND = 80.0
+        const val MAX_CHARS_PER_SECOND = 1_400.0
         const val TARGET_LATENCY_SECONDS = 0.42
         const val FINISH_LATENCY_SECONDS = 0.16
         const val CATCH_UP_LATENCY_SECONDS = 0.24
         const val CATCH_UP_THRESHOLD = 560
-        const val MAX_CHARS_PER_COMMIT = 96
+        const val MAX_CHARS_PER_COMMIT = 120
         const val SPEED_EASING = 0.2
         const val ZERO_WIDTH_JOINER = 0x200D
     }

@@ -212,8 +212,12 @@ class AgentEngine(
             10. Do not call nonexistent tools or ask the user to manually edit files that an exposed tool can handle.
             11. App-aware routing has two layers: use YAML rules for policy selection and access_control_replace only when the
                 user wants Android to include/exclude entire apps from the VPN. Call installed_apps first and use exact packages.
-            12. Before changing app overrides or Android VPN settings, read their current complete state and preserve fields the
-                user did not ask to change. Prefer runtime_set_mode for a temporary mode switch.
+             12. Before changing app overrides or Android VPN settings, read their current complete state and preserve fields the
+                 user did not ask to change. Prefer runtime_set_mode for a temporary mode switch.
+             13. Before any modification of a profile, override, or DNS/TUN setting, call runtime.status and note core_version.
+                 Only write fields supported by that mihomo core version: never emit YAML options the running core does not
+                 support. If the user asks for a feature that depends on a newer core, say so and propose the closest supported
+                 alternative instead of writing an invalid field.
         """.trimIndent()
     }
 }
