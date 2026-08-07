@@ -29,7 +29,8 @@ import io.noties.markwon.AbstractMarkwonPlugin
 import io.noties.markwon.Markwon
 import io.noties.markwon.MarkwonSpansFactory
 import io.noties.markwon.core.MarkwonTheme
-import org.commonmark.node.CodeBlock
+import org.commonmark.node.FencedCodeBlock
+import org.commonmark.node.IndentedCodeBlock
 import java.io.Closeable
 import java.util.UUID
 import java.util.concurrent.Executors
@@ -290,9 +291,13 @@ class AgentChatAdapter(
                 }
 
                 override fun configureSpansFactory(builder: MarkwonSpansFactory.Builder) {
-                    builder.setFactory(CodeBlock::class.java) { _, _ ->
-                        arrayOf(RoundedCodeBlockSpan(codeBackground, radius))
-                    }
+                    builder
+                        .setFactory(FencedCodeBlock::class.java) { _, _ ->
+                            arrayOf(RoundedCodeBlockSpan(codeBackground, radius))
+                        }
+                        .setFactory(IndentedCodeBlock::class.java) { _, _ ->
+                            arrayOf(RoundedCodeBlockSpan(codeBackground, radius))
+                        }
                 }
             })
             .build()
