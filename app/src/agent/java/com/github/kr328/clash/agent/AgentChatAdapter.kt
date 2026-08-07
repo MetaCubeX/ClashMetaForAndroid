@@ -281,13 +281,13 @@ class AgentChatAdapter(
             .usePlugin(object : AbstractMarkwonPlugin() {
                 override fun configureTheme(builder: MarkwonTheme.Builder) {
                     builder
-                        .setLinkColor(primary)
-                        .setCodeTextColor(codeText)
-                        .setCodeBackgroundColor(codeBackground)
-                        .setCodeBlockTextColor(codeText)
-                        .setCodeBlockBackgroundColor(codeBackground)
-                        .setBlockQuoteColor(quoteColor)
-                        .setBlockQuoteWidth((3 * context.resources.displayMetrics.density).toInt())
+                        .linkColor(primary)
+                        .codeTextColor(codeText)
+                        .codeBackgroundColor(codeBackground)
+                        .codeBlockTextColor(codeText)
+                        .codeBlockBackgroundColor(codeBackground)
+                        .blockQuoteColor(quoteColor)
+                        .blockQuoteWidth((3 * context.resources.displayMetrics.density).toInt())
                 }
 
                 override fun configureSpansFactory(builder: MarkwonSpansFactory.Builder) {
