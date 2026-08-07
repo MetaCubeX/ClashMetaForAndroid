@@ -27,8 +27,8 @@ import com.github.kr328.clash.agent.model.AgentMessageRole
 import com.google.android.material.card.MaterialCardView
 import io.noties.markwon.AbstractMarkwonPlugin
 import io.noties.markwon.Markwon
-import io.noties.markwon.MarkwonTheme
-import io.noties.markwon.SpansFactory
+import io.noties.markwon.MarkwonSpansFactory
+import io.noties.markwon.core.MarkwonTheme
 import org.commonmark.node.CodeBlock
 import java.io.Closeable
 import java.util.UUID
@@ -289,8 +289,8 @@ class AgentChatAdapter(
                         .setBlockQuoteWidth((3 * context.resources.displayMetrics.density).toInt())
                 }
 
-                override fun configureSpansFactory(builder: SpansFactory.Builder) {
-                    builder.setFactory(CodeBlock::class.java) {
+                override fun configureSpansFactory(builder: MarkwonSpansFactory.Builder) {
+                    builder.setFactory(CodeBlock::class.java) { _, _ ->
                         arrayOf(RoundedCodeBlockSpan(codeBackground, radius))
                     }
                 }
