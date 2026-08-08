@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  A label/value pair. The label column is a dp dimension so it scales with
+  density; the value wraps into the remaining width and stays baseline aligned
+  with its label.
+-->
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:baselineAligned="true"
+        android:orientation="horizontal"
+        android:paddingVertical="@dimen/detail_row_padding_vertical">
+
+        <TextView
+            android:id="@+id/label_view"
+            android:layout_width="@dimen/detail_label_width"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="10dp"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:textSize="@dimen/detail_text_size" />
+
+        <TextView
+            android:id="@+id/value_view"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:fontFamily="monospace"
+            android:textColor="?attr/colorOnSurface"
+            android:textSize="@dimen/detail_text_size" />
+    </LinearLayout>
+</layout>

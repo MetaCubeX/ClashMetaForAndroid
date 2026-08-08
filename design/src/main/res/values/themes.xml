@@ -19,6 +19,14 @@
         <item name="colorClashStopped">@color/color_light_clash_stopped</item>
         <item name="colorControlDisabled">@color/color_light_control_disabled</item>
 
+        <item name="colorSurfaceVariant">@color/color_light_surface_variant</item>
+        <item name="colorOnSurfaceVariant">@color/color_light_on_surface_variant</item>
+        <item name="colorOutline">@color/color_light_outline</item>
+        <item name="colorSuccess">@color/color_light_success</item>
+        <item name="colorWarning">@color/color_light_warning</item>
+        <item name="colorBlockFill">@color/color_light_block_fill</item>
+        <item name="colorBlockStroke">@color/color_light_block_stroke</item>
+
         <item name="colorPrimaryDark">?attr/colorPrimary</item>
         <item name="colorSecondary">?attr/colorPrimary</item>
         <item name="colorOnSecondary">?attr/colorOnPrimary</item>
@@ -40,6 +48,14 @@
         <item name="colorOnPrimary">@android:color/white</item>
         <item name="colorSurface">@color/color_dark_surface</item>
         <item name="colorControlDisabled">@color/color_dark_control_disabled</item>
+
+        <item name="colorSurfaceVariant">@color/color_dark_surface_variant</item>
+        <item name="colorOnSurfaceVariant">@color/color_dark_on_surface_variant</item>
+        <item name="colorOutline">@color/color_dark_outline</item>
+        <item name="colorSuccess">@color/color_dark_success</item>
+        <item name="colorWarning">@color/color_dark_warning</item>
+        <item name="colorBlockFill">@color/color_dark_block_fill</item>
+        <item name="colorBlockStroke">@color/color_dark_block_stroke</item>
         <item name="android:windowBackground">@color/color_dark_background</item>
 
         <item name="colorPrimaryDark">?attr/colorPrimary</item>
@@ -72,6 +88,14 @@
         <item name="colorClashStopped">@color/color_light_clash_stopped</item>
         <item name="colorControlDisabled">@color/color_light_control_disabled</item>
 
+        <item name="colorSurfaceVariant">@color/color_light_surface_variant</item>
+        <item name="colorOnSurfaceVariant">@color/color_light_on_surface_variant</item>
+        <item name="colorOutline">@color/color_light_outline</item>
+        <item name="colorSuccess">@color/color_light_success</item>
+        <item name="colorWarning">@color/color_light_warning</item>
+        <item name="colorBlockFill">@color/color_light_block_fill</item>
+        <item name="colorBlockStroke">@color/color_light_block_stroke</item>
+
         <item name="colorPrimaryDark">?attr/colorPrimary</item>
         <item name="colorSecondary">?attr/colorPrimary</item>
         <item name="colorOnSecondary">?attr/colorOnPrimary</item>
@@ -91,6 +115,14 @@
         <item name="colorOnPrimary">@android:color/white</item>
         <item name="colorSurface">@color/color_dark_surface</item>
         <item name="colorControlDisabled">@color/color_dark_control_disabled</item>
+
+        <item name="colorSurfaceVariant">@color/color_dark_surface_variant</item>
+        <item name="colorOnSurfaceVariant">@color/color_dark_on_surface_variant</item>
+        <item name="colorOutline">@color/color_dark_outline</item>
+        <item name="colorSuccess">@color/color_dark_success</item>
+        <item name="colorWarning">@color/color_dark_warning</item>
+        <item name="colorBlockFill">@color/color_dark_block_fill</item>
+        <item name="colorBlockStroke">@color/color_dark_block_stroke</item>
 
         <item name="colorPrimaryDark">?attr/colorPrimary</item>
         <item name="colorSecondary">?attr/colorPrimary</item>
@@ -123,6 +155,14 @@
         <item name="colorClashStopped">@color/color_light_clash_stopped</item>
         <item name="colorControlDisabled">@color/color_light_control_disabled</item>
 
+        <item name="colorSurfaceVariant">@color/color_light_surface_variant</item>
+        <item name="colorOnSurfaceVariant">@color/color_light_on_surface_variant</item>
+        <item name="colorOutline">@color/color_light_outline</item>
+        <item name="colorSuccess">@color/color_light_success</item>
+        <item name="colorWarning">@color/color_light_warning</item>
+        <item name="colorBlockFill">@color/color_light_block_fill</item>
+        <item name="colorBlockStroke">@color/color_light_block_stroke</item>
+
         <item name="colorPrimaryDark">?attr/colorPrimary</item>
         <item name="colorSecondary">?attr/colorPrimary</item>
         <item name="colorOnSecondary">?attr/colorOnPrimary</item>
@@ -144,6 +184,14 @@
         <item name="colorSurface">@color/color_dark_surface</item>
         <item name="colorControlNormal">@android:color/white</item>
         <item name="colorControlDisabled">@color/color_dark_control_disabled</item>
+
+        <item name="colorSurfaceVariant">@color/color_dark_surface_variant</item>
+        <item name="colorOnSurfaceVariant">@color/color_dark_on_surface_variant</item>
+        <item name="colorOutline">@color/color_dark_outline</item>
+        <item name="colorSuccess">@color/color_dark_success</item>
+        <item name="colorWarning">@color/color_dark_warning</item>
+        <item name="colorBlockFill">@color/color_dark_block_fill</item>
+        <item name="colorBlockStroke">@color/color_dark_block_stroke</item>
 
         <item name="colorPrimaryDark">?attr/colorPrimary</item>
         <item name="colorSecondary">?attr/colorPrimary</item>

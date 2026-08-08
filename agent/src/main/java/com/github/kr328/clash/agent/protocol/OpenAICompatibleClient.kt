@@ -325,23 +325,31 @@ class OpenAICompatibleClient(
         put("model", settings.model)
         put("stream", true)
 
-        // System prompts move to the top-level instructions field.
-        val instructions = buildList {
-            messages.forEach { message ->
-                if (message.jsonObject["role"]?.jsonPrimitive?.contentOrNull == "system") {
-                    message.jsonObject["content"]?.jsonPrimitive?.contentOrNull?.let(::add)
-                }
-            }
-        }.joinToString("\n\n")
+        // Only the leading run of system messages is the standing instruction
+        // set. Later ones are per-turn notes that belong at their own position in
+        // the conversation; hoisting those too would pile them all at the top and
+        // detach them from the turns they describe.
+        val leadingSystemCount = messages.takeWhile {
+            it.jsonObject["role"]?.jsonPrimitive?.contentOrNull == "system"
+        }.size
+
+        val instructions = messages.take(leadingSystemCount)
+            .mapNotNull { it.jsonObject["content"]?.jsonPrimitive?.contentOrNull }
+            .joinToString("\n\n")
         if (instructions.isNotBlank()) put("instructions", instructions)
 
         // Convert the Chat-style message list into Responses API input items.
         put("input", buildJsonArray {
-            messages.forEach { message ->
+            messages.forEachIndexed { index, message ->
                 val role = message.jsonObject["role"]?.jsonPrimitive?.contentOrNull
                 val content = message.jsonObject["content"]?.jsonPrimitive?.contentOrNull
                 when (role) {
-                    "system" -> Unit
+                    "system" -> if (index >= leadingSystemCount) {
+                        add(buildJsonObject {
+                            put("role", "system")
+                            put("content", content ?: "")
+                        })
+                    }
                     "user" -> add(buildJsonObject {
                         put("role", "user")
                         put("content", content ?: "")

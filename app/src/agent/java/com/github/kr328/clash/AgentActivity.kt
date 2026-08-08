@@ -3,6 +3,7 @@ package com.github.kr328.clash
 import android.app.Activity
 import android.content.DialogInterface
 import android.net.Uri
+import android.text.method.PasswordTransformationMethod
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.ArrayAdapter
@@ -11,6 +12,7 @@ import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.StringRes
 import androidx.core.content.getSystemService
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -30,6 +32,7 @@ import com.github.kr328.clash.agent.settings.AgentSettingsStore
 import com.github.kr328.clash.agent.tools.AgentToolSpec
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textfield.TextInputEditText
+import com.google.android.material.textfield.TextInputLayout
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.flow.collectLatest
@@ -72,7 +75,7 @@ class AgentActivity : BaseActivity<AgentScreenDesign>() {
         recycler = root.findViewById(R.id.agent_messages)
         input = root.findViewById(R.id.agent_input)
         modelStatus = root.findViewById(R.id.agent_model_status)
-        suggestions = root.findViewById(R.id.agent_suggestions_container)
+        suggestions = root.findViewById(R.id.agent_empty)
         adapter = AgentChatAdapter(this, conversationStore.load().toMutableList()) { messageId ->
             if (followOutput && messageId == streamingMessageId) scheduleScrollToEnd()
         }
@@ -119,7 +122,7 @@ class AgentActivity : BaseActivity<AgentScreenDesign>() {
 
     private fun submitPrompt(prompt: String, scenario: AgentScenario = AgentScenario.GENERAL) {
         if (AgentRunController.isRunning) {
-            Toast.makeText(this, "AI 正在处理中，请先停止再发送新消息", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, R.string.agent_busy_send, Toast.LENGTH_SHORT).show()
             return
         }
         val settings = settingsStore.load()
@@ -183,7 +186,7 @@ class AgentActivity : BaseActivity<AgentScreenDesign>() {
 
         streamingMessageId = id
         val current = adapter.messages[index]
-        val content = if (state.error != null) "操作未完成：${state.error}" else state.streamed
+        val content = state.error?.let { getString(R.string.agent_run_failed, it) } ?: state.streamed
 
         // Always keep the trace panel in sync with the latest step, even while
         // text streaming owns the markdown updates.
@@ -232,15 +235,17 @@ class AgentActivity : BaseActivity<AgentScreenDesign>() {
 
     private suspend fun approve(tool: AgentToolSpec, summary: String): Boolean =
         suspendCancellableCoroutine { continuation ->
-            val risk = when (tool.risk.name) {
-                "CRITICAL" -> "严重：此操作可能不可逆"
-                "HIGH" -> "高风险：会改变配置或运行状态"
-                "MEDIUM" -> "中等风险：会更新本地或远程状态"
-                else -> "常规操作"
-            }
+            val risk = getString(
+                when (tool.risk.name) {
+                    "CRITICAL" -> R.string.agent_risk_critical
+                    "HIGH" -> R.string.agent_risk_high
+                    "MEDIUM" -> R.string.agent_risk_medium
+                    else -> R.string.agent_risk_normal
+                }
+            )
             val dialog = MaterialAlertDialogBuilder(this)
                 .setTitle(R.string.agent_approve_title)
-                .setMessage("$summary\n\n$risk\n\nAI 只会获得本次操作的授权。")
+                .setMessage("$summary\n\n$risk\n\n" + getString(R.string.agent_approve_scope))
                 .setNegativeButton(R.string.agent_deny) { _, _ ->
                     if (continuation.isActive) continuation.resume(false)
                 }
@@ -262,6 +267,28 @@ class AgentActivity : BaseActivity<AgentScreenDesign>() {
         val model = view.findViewById<EditText>(R.id.agent_setting_model)
         val apiFormat = view.findViewById<AutoCompleteTextView>(R.id.agent_setting_api_format)
         val authorization = view.findViewById<AutoCompleteTextView>(R.id.agent_setting_authorization)
+        val apiKeyLayout = view.findViewById<TextInputLayout>(R.id.agent_layout_api_key)
+
+        // The field uses textVisiblePassword to keep OEM "secure keyboards" away
+        // (see the layout), which means the framework applies no masking of its
+        // own. Apply it here, then re-initialise the end icon so the toggle
+        // starts in the matching state — it reads the transformation when the
+        // mode is set, and the mode was already applied during inflation.
+        apiKey.transformationMethod = PasswordTransformationMethod.getInstance()
+        apiKeyLayout.endIconMode = TextInputLayout.END_ICON_NONE
+        apiKeyLayout.endIconMode = TextInputLayout.END_ICON_PASSWORD_TOGGLE
+
+        // Helper text stays collapsed so the dialog reads as five clean fields,
+        // and expands under whichever field the user is actually editing.
+        view.findViewById<TextInputLayout>(R.id.agent_layout_base_url)
+            .helperTextOnFocus(R.string.agent_base_url_helper)
+        apiKeyLayout.helperTextOnFocus(R.string.agent_api_key_helper)
+        view.findViewById<TextInputLayout>(R.id.agent_layout_model)
+            .helperTextOnFocus(R.string.agent_model_helper)
+        view.findViewById<TextInputLayout>(R.id.agent_layout_api_format)
+            .helperTextOnFocus(R.string.agent_api_format_helper)
+        view.findViewById<TextInputLayout>(R.id.agent_layout_authorization)
+            .helperTextOnFocus(R.string.agent_authorization_helper)
         baseUrl.setText(current.baseUrl)
         apiKey.setText(current.apiKey)
         model.setText(current.model)
@@ -281,10 +308,12 @@ class AgentActivity : BaseActivity<AgentScreenDesign>() {
             },
             false,
         )
+        // The dropdown carries the consequence, not just the name, so the
+        // choice can be made without opening documentation.
         val authOptions = listOf(
-            getString(R.string.agent_auth_cautious),
-            getString(R.string.agent_auth_balanced),
-            getString(R.string.agent_auth_full),
+            getString(R.string.agent_auth_cautious_detail),
+            getString(R.string.agent_auth_balanced_detail),
+            getString(R.string.agent_auth_full_detail),
         )
         authorization.setAdapter(ArrayAdapter(
             this,
@@ -293,9 +322,9 @@ class AgentActivity : BaseActivity<AgentScreenDesign>() {
         ))
         authorization.setText(
             when (current.authorizationMode) {
-                AgentAuthorizationMode.CAUTIOUS -> getString(R.string.agent_auth_cautious)
-                AgentAuthorizationMode.BALANCED -> getString(R.string.agent_auth_balanced)
-                AgentAuthorizationMode.FULL_AUTO -> getString(R.string.agent_auth_full)
+                AgentAuthorizationMode.CAUTIOUS -> authOptions[0]
+                AgentAuthorizationMode.BALANCED -> authOptions[1]
+                AgentAuthorizationMode.FULL_AUTO -> authOptions[2]
             },
             false,
         )
@@ -323,7 +352,7 @@ class AgentActivity : BaseActivity<AgentScreenDesign>() {
                         }
                         .onFailure { error ->
                             MaterialAlertDialogBuilder(this@AgentActivity)
-                                .setTitle("连接失败")
+                                .setTitle(R.string.agent_connect_failed)
                                 .setMessage(error.message?.take(500) ?: error.javaClass.simpleName)
                                 .setPositiveButton(android.R.string.ok, null)
                                 .show()
@@ -336,13 +365,31 @@ class AgentActivity : BaseActivity<AgentScreenDesign>() {
                 val candidate = readProviderSettings(baseUrl, apiKey, model, apiFormat, authorization, current)
                     ?: return@setOnClickListener
                 runCatching { settingsStore.save(candidate) }.onFailure {
-                    Toast.makeText(this, "保存失败：${it.message}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, getString(R.string.agent_save_failed, it.message.orEmpty()), Toast.LENGTH_SHORT).show()
                 }
                 updateModelStatus()
                 dialog.dismiss()
             }
         }
         dialog.show()
+    }
+
+    /**
+     * Shows [helper] under this field only while it holds focus. Toggling
+     * helperTextEnabled (rather than just the text) also releases the row of
+     * space Material reserves for it, so the collapsed dialog stays compact.
+     */
+    private fun TextInputLayout.helperTextOnFocus(@StringRes helper: Int) {
+        val field = editText ?: return
+        isHelperTextEnabled = false
+        field.setOnFocusChangeListener { _, hasFocus ->
+            if (hasFocus) {
+                helperText = context.getString(helper)
+            } else {
+                helperText = null
+                isHelperTextEnabled = false
+            }
+        }
     }
 
     private fun readProviderSettings(
@@ -357,22 +404,22 @@ class AgentActivity : BaseActivity<AgentScreenDesign>() {
         val key = apiKey.text.toString().trim()
         val modelName = model.text.toString().trim()
         if (!normalizedUrl.startsWith("https://") && !normalizedUrl.startsWith("http://")) {
-            baseUrl.error = "请输入 http:// 或 https:// 地址"
+            baseUrl.error = getString(R.string.agent_error_url_scheme)
             return null
         }
         val host = runCatching { Uri.parse(normalizedUrl).host.orEmpty() }.getOrDefault("")
         if (normalizedUrl.startsWith("http://") && key.isNotEmpty() &&
             host !in setOf("localhost", "127.0.0.1", "::1")) {
-            apiKey.error = "为防止密钥泄露，非本机地址请使用 HTTPS"
+            apiKey.error = getString(R.string.agent_error_insecure_key)
             return null
         }
         if (modelName.isEmpty()) {
-            model.error = "请输入模型名称"
+            model.error = getString(R.string.agent_error_model_empty)
             return null
         }
         val mode = when (authorization.text?.toString()) {
-            getString(R.string.agent_auth_cautious) -> AgentAuthorizationMode.CAUTIOUS
-            getString(R.string.agent_auth_full) -> AgentAuthorizationMode.FULL_AUTO
+            getString(R.string.agent_auth_cautious_detail) -> AgentAuthorizationMode.CAUTIOUS
+            getString(R.string.agent_auth_full_detail) -> AgentAuthorizationMode.FULL_AUTO
             else -> AgentAuthorizationMode.BALANCED
         }
         val format = if (apiFormat.text?.toString() == getString(R.string.agent_format_responses)) {
@@ -388,7 +435,7 @@ class AgentActivity : BaseActivity<AgentScreenDesign>() {
     private fun confirmClear() {
         if (AgentRunController.isRunning || adapter.messages.isEmpty()) {
             if (AgentRunController.isRunning) {
-                Toast.makeText(this, "AI 正在处理中，请先停止再清空", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, R.string.agent_busy_clear, Toast.LENGTH_SHORT).show()
             }
             return
         }
@@ -408,11 +455,13 @@ class AgentActivity : BaseActivity<AgentScreenDesign>() {
         if (!::modelStatus.isInitialized) return
         val settings = settingsStore.load()
         modelStatus.text = if (settings.isConfigured) {
-            "${settings.model} · ${when (settings.authorizationMode) {
-                AgentAuthorizationMode.CAUTIOUS -> "谨慎授权"
-                AgentAuthorizationMode.BALANCED -> "均衡授权"
-                AgentAuthorizationMode.FULL_AUTO -> "全部自动放行"
-            }}"
+            "${settings.model} · " + getString(
+                when (settings.authorizationMode) {
+                    AgentAuthorizationMode.CAUTIOUS -> R.string.agent_status_auth_cautious
+                    AgentAuthorizationMode.BALANCED -> R.string.agent_status_auth_balanced
+                    AgentAuthorizationMode.FULL_AUTO -> R.string.agent_status_auth_full
+                }
+            )
         } else getString(R.string.agent_not_configured)
     }
 

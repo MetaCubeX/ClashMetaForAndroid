@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Chat -->
+    <dimen name="agent_message_spacing">7dp</dimen>
+    <dimen name="agent_list_padding_horizontal">16dp</dimen>
+    <dimen name="agent_bubble_radius">16dp</dimen>
+    <dimen name="agent_bubble_tail_radius">4dp</dimen>
+    <dimen name="agent_bubble_padding_horizontal">14dp</dimen>
+    <dimen name="agent_bubble_padding_vertical">10dp</dimen>
+
+    <!-- Run trace -->
+    <dimen name="agent_trace_radius">10dp</dimen>
+    <dimen name="agent_trace_header_height">40dp</dimen>
+    <dimen name="agent_trace_padding_horizontal">12dp</dimen>
+    <dimen name="agent_trace_text_size">12sp</dimen>
+    <dimen name="agent_trace_step_padding_vertical">5dp</dimen>
+    <dimen name="agent_trace_step_icon_slot">16dp</dimen>
+    <dimen name="agent_trace_step_icon">12dp</dimen>
+    <dimen name="agent_trace_indicator">16dp</dimen>
+    <dimen name="agent_trace_chevron">18dp</dimen>
+
+    <!-- Composer / header -->
+    <dimen name="agent_header_height">64dp</dimen>
+    <dimen name="agent_composer_button">52dp</dimen>
+</resources>

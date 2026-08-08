@@ -37,12 +37,18 @@ class AgentEngineTest {
                 }
             }
             val result = AgentEngine().run(
-                AgentProviderSettings(baseUrl, "test-model", "", AgentAuthorizationMode.FULL_AUTO),
-                emptyList(),
-                "切换到规则模式",
-                executor,
-                AgentApprovalHandler { _, _, _ -> approvalCalled = true; true },
-            ) { events += it }
+                settings = AgentProviderSettings(
+                    baseUrl = baseUrl,
+                    model = "test-model",
+                    apiKey = "",
+                    authorizationMode = AgentAuthorizationMode.FULL_AUTO,
+                ),
+                history = emptyList(),
+                prompt = "切换到规则模式",
+                executor = executor,
+                approvalHandler = AgentApprovalHandler { _, _, _ -> approvalCalled = true; true },
+                emit = { events += it },
+            )
 
             assertEquals("模式已经切换完成。", result)
             assertEquals("rule", executed?.get("mode")?.toString()?.trim('"'))

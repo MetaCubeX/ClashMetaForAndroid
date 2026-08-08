@@ -290,6 +290,7 @@
     <string name="chain_entry">入口</string>
     <string name="chain_middle">中转</string>
     <string name="chain_exit">出口</string>
-    <string name="chain_secret_masked">敏感信息已隐藏,点击显示</string>
-    <string name="chain_secret_revealed">点击再次隐藏</string>
+    <string name="proxy_detail">节点详情</string>
+    <string name="proxy_detail_copy_hint">点按任意行可复制该项内容。</string>
+    <string name="proxy_detail_masked_hint">UUID、密码等敏感字段已由内核脱敏，无法复制。</string>
 </resources>

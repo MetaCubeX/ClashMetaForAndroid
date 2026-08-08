@@ -22,6 +22,39 @@ class ProxyViewConfig(val context: Context, var proxyLine: Int) {
     val unselectedBackground: Int
         get() = if (proxyLine==1) Color.TRANSPARENT else colorSurface
 
+    /**
+     * Badge palette.
+     *
+     * The type badge shows on every card, so it stays neutral — an accent there
+     * would tile the whole grid in brand blue. The chain badge is rare, so it
+     * earns the accent. On a selected card the background is already
+     * colorPrimary, so both invert against it.
+     */
+    val badgeBackground = context.resolveThemedColor(com.google.android.material.R.attr.colorSurfaceVariant)
+    val badgeText = context.resolveThemedColor(com.google.android.material.R.attr.colorOnSurfaceVariant)
+    val badgeSelectedBackground = onPrimary.withAlpha(0x38)
+    val badgeSelectedText = onPrimary
+
+    val accentBadgeBackground = primary
+    val accentBadgeText = onPrimary
+    val accentBadgeSelectedBackground = onPrimary
+    val accentBadgeSelectedText = primary
+
+    /** Badge metrics scale off the card's text size so grid modes stay proportional. */
+    val badgeTextSize
+        get() = textSize * 0.75f
+    val badgeHeight
+        get() = textSize * 1.32f
+    val badgePaddingHorizontal
+        get() = textSize * 0.42f
+    val badgeGap
+        get() = textMargin * 0.6f
+    val badgeRadius
+        get() = badgeHeight * 0.28f
+
+    private fun Int.withAlpha(alpha: Int): Int =
+        Color.argb(alpha, Color.red(this), Color.green(this), Color.blue(this))
+
     val layoutPadding = context.getPixels(R.dimen.proxy_layout_padding).toFloat()
     val contentPadding
         get() = if (proxyLine==2) context.getPixels(R.dimen.proxy_content_padding).toFloat() else context.getPixels(R.dimen.proxy_content_padding_grid3).toFloat()

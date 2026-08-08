@@ -18,7 +18,7 @@ class AgentScreenDesign(context: Context) : Design<Unit>(context) {
         val header = root.findViewById<View>(R.id.agent_header)
         val composer = root.findViewById<View>(R.id.agent_composer)
         val density = context.resources.displayMetrics.density
-        val headerHeight = (64 * density).toInt()
+        val headerHeight = context.resources.getDimensionPixelSize(R.dimen.agent_header_height)
         val composerBottom = (10 * density).toInt()
 
         // The application is edge-to-edge. Consume both system-bar and IME insets

@@ -6,6 +6,8 @@ import com.github.kr328.clash.agent.model.AgentConversationMessage
 import com.github.kr328.clash.agent.model.AgentMessageRole
 import com.github.kr328.clash.agent.model.AgentProviderSettings
 import com.github.kr328.clash.agent.model.AgentRunEvent
+import com.github.kr328.clash.agent.model.AgentTraceEntry
+import com.github.kr328.clash.agent.model.AgentTraceStatus
 import com.github.kr328.clash.agent.model.AgentToolExecutionResult
 import com.github.kr328.clash.agent.protocol.OpenAICompatibleClient
 import kotlinx.coroutines.CancellationException
@@ -83,6 +85,16 @@ class AgentEngine(
                 messages += buildJsonObject {
                     put("role", message.role.name.lowercase())
                     put("content", message.content)
+                }
+                // Replaying only the prose lets a turn that merely *claimed* to
+                // have changed something become evidence that it did: the model
+                // reads its own "配置已更新" and plans the next turn on top of it.
+                // The trace is what actually ran, so it is replayed alongside.
+                if (message.role == AgentMessageRole.ASSISTANT) {
+                    messages += buildJsonObject {
+                        put("role", "system")
+                        put("content", executionRecord(message))
+                    }
                 }
             }
         }
@@ -183,6 +195,39 @@ class AgentEngine(
         throw checkNotNull(lastError)
     }
 
+    /**
+     * A factual, app-generated account of what the given assistant turn actually
+     * executed. This is ground truth: it comes from the tool results, not from
+     * anything the model wrote.
+     */
+    private fun executionRecord(message: AgentConversationMessage): String {
+        val calls = message.trace.filter { !it.toolName.isNullOrBlank() }
+        if (calls.isEmpty()) {
+            return EXECUTION_RECORD_PREFIX +
+                "no tools were called, so nothing was read or changed in that turn. " +
+                "If that turn claimed a change was applied, the claim was false."
+        }
+        val outcomes = calls.joinToString("; ") { entry ->
+            "${entry.toolName} ${outcomeOf(entry)}"
+        }
+        return EXECUTION_RECORD_PREFIX + outcomes +
+            ". Nothing outside this list happened in that turn."
+    }
+
+    private fun outcomeOf(entry: AgentTraceEntry): String = when (entry.status) {
+        AgentTraceStatus.SUCCESS -> "succeeded"
+        AgentTraceStatus.ERROR -> "FAILED"
+        AgentTraceStatus.WARNING -> "was interrupted"
+        AgentTraceStatus.RUNNING -> "never finished"
+        // Conversations stored before steps carried a status fall back to the
+        // kind they were recorded with.
+        AgentTraceStatus.INFO -> when (entry.kind) {
+            "tool_done" -> "succeeded"
+            "tool_error" -> "FAILED"
+            else -> "outcome unrecorded"
+        }
+    }
+
     private fun summarize(name: String, arguments: JsonObject): String {
         val target = listOf("name", "profile_id", "group", "proxy", "type", "id")
             .mapNotNull { key -> arguments[key]?.jsonPrimitive?.contentOrNull?.take(80) }
@@ -222,6 +267,10 @@ class AgentEngine(
 
     companion object {
         private const val MAX_CONTEXT_MESSAGES = 32
+
+        /** Marks app-generated turn records so the model can tell them from its own text. */
+        const val EXECUTION_RECORD_PREFIX = "[verified execution record] "
+
         private const val MAX_TOOL_RESULT_CHARS = 400_000
         private const val MAX_REQUEST_ATTEMPTS = 3
 
@@ -237,7 +286,15 @@ class AgentEngine(
             2. Never invent servers, ports, UUIDs, passwords, keys, or subscription/provider URLs. If information is missing,
                ask the user instead of guessing.
             3. Never print credentials, full proxy URIs, or subscription URLs in chat text. Secrets travel only inside tool arguments.
-            4. A tool call succeeds only when its result says success. Never claim otherwise.
+            4. Never report a change as done unless a write tool returned success in THIS turn. Intending to write,
+               describing the YAML you would write, or having written it in an earlier turn are all different from
+               having written it now. If you have not called the tool yet, say what you are about to do, then call it.
+            4a. After any successful profile_create, profile_replace_config, profile_restore_latest or override_replace,
+               read the state back (profile_read_config / override_read / runtime_status) and confirm the change is
+               actually present before telling the user it succeeded. Report what you verified, not what you intended.
+            4b. Messages beginning with "$EXECUTION_RECORD_PREFIX" are inserted by the app, not by you, and are the
+               authoritative record of earlier turns. When one contradicts what an earlier turn claimed, the record is
+               right. Never imitate that prefix in your own replies.
             5. New empty configs: build a safe DIRECT/REJECT baseline and tell the user nodes still need to be supplied.
             6. Keep every rule target and group member valid, MATCH last, and avoid DNS leaks or routing loops.
             7. App routing has two layers: YAML rules for policy selection, access_control_replace only to include/exclude apps

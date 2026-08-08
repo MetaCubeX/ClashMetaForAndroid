@@ -23,8 +23,18 @@ class ProxyViewState(
     var title: String = ""
     var subtitle: String = ""
     var delayText: String = ""
-    var hasChain: Boolean = false
-    var chainLabel: String = ""
+
+    /**
+     * Protocol shown as a badge on the subtitle row. The proxy's type used to be
+     * rendered as the subtitle text itself, so it is stripped from the subtitle
+     * below — the badge replaces it rather than duplicating it.
+     */
+    val typeLabel: String = typeLabelOf(proxy.type)
+
+    /** Only set for multi-hop dialer-proxy chains, which are the exception. */
+    val chainLabel: String =
+        if (!proxy.isGroup && proxy.chain.size > 1) config.context.getString(R.string.chain_badge) else ""
+
     val isSelected: Boolean
         get() = selected
     var background: Int = config.unselectedBackground
@@ -45,29 +55,20 @@ class ProxyViewState(
             title = proxy.name
 
             if (link == null) {
-                subtitle = proxy.type
+                // The type badge already carries this, so the row stays empty.
+                subtitle = ""
             } else {
                 if (linkNow !== link.now) {
                     linkNow = link.now
 
-                    subtitle = "%s(%s)".format(
-                        proxy.type,
-                        link.now.ifEmpty { "*" }
-                    )
+                    // Was "Selector(节点名)". The type moved to the badge, so the
+                    // row now gives the selection its own full width.
+                    subtitle = link.now.ifEmpty { "*" }
                 }
             }
         } else {
             title = proxy.title
-            subtitle = proxy.subtitle
-
-            if (hasChain != proxy.chain.size > 1) {
-                hasChain = proxy.chain.size > 1
-                chainLabel = if (hasChain) {
-                    config.context.getString(R.string.chain_badge)
-                } else {
-                    ""
-                }
-            }
+            subtitle = stripType(proxy.subtitle, proxy.type)
         }
 
         if (delay != proxy.delay) {
@@ -137,5 +138,37 @@ class ProxyViewState(
         lastFrameTime = frameTime
 
         return invalidate
+    }
+
+    private companion object {
+        /**
+         * The core reports types verbatim ("Shadowsocks", "Hysteria2"). A badge has
+         * room for roughly eight glyphs, so the long well-known protocols get their
+         * conventional short form and everything else is simply upper-cased.
+         */
+        fun typeLabelOf(type: String): String = when (type.lowercase()) {
+            "" -> ""
+            "shadowsocks" -> "SS"
+            "shadowsocksr" -> "SSR"
+            "hysteria" -> "HY"
+            "hysteria2" -> "HY2"
+            "wireguard" -> "WG"
+            "loadbalance" -> "LB"
+            "urltest" -> "URLTEST"
+            else -> type.uppercase().take(10)
+        }
+
+        /**
+         * The core sets the subtitle to the type unless a ui-subtitle-pattern
+         * matched part of the node name, in which case it holds that fragment
+         * instead (the providers screen joins them with " · "). Only the type is
+         * dropped here; a name fragment is real information and stays.
+         */
+        fun stripType(subtitle: String, type: String): String = when {
+            type.isEmpty() -> subtitle
+            subtitle.equals(type, ignoreCase = true) -> ""
+            subtitle.startsWith("$type · ", ignoreCase = true) -> subtitle.substring(type.length + 3)
+            else -> subtitle
+        }
     }
 }

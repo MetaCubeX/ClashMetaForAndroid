@@ -90,8 +90,8 @@ class ProxyActivity : BaseActivity<ProxyDesign>() {
 
                             design.requestRedrawVisible()
                         }
-                        is ProxyDesign.Request.ShowChain -> {
-                            design.showChainDialog(it.proxy)
+                        is ProxyDesign.Request.ShowDetail -> {
+                            design.showProxyDetailDialog(it.proxy)
                         }
                         is ProxyDesign.Request.UrlTest -> {
                             launch {

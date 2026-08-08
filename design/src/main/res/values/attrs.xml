@@ -6,6 +6,19 @@
     <attr name="colorControlDisabled" format="color" />
     <attr name="colorLogo" format="color" />
 
+    <!--
+      Result accents. colorSurfaceVariant / colorOnSurfaceVariant / colorOutline
+      are deliberately NOT declared here: they already exist in the Material
+      dependency, and themes.xml only assigns values to them. Redeclaring would
+      risk a duplicate-attribute merge.
+    -->
+    <attr name="colorSuccess" format="color" />
+    <attr name="colorWarning" format="color" />
+
+    <!-- Translucent fill/outline for grouped detail blocks; see colors.xml. -->
+    <attr name="colorBlockFill" format="color" />
+    <attr name="colorBlockStroke" format="color" />
+
     <attr name="enabled" format="boolean" />
     <attr name="text" format="string" />
     <attr name="subtext" format="string" />

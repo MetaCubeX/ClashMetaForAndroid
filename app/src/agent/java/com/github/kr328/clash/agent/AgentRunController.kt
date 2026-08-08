@@ -3,10 +3,12 @@ package com.github.kr328.clash.agent
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import com.github.kr328.clash.R
 import com.github.kr328.clash.agent.model.AgentConversationMessage
 import com.github.kr328.clash.agent.model.AgentProviderSettings
 import com.github.kr328.clash.agent.model.AgentRunEvent
 import com.github.kr328.clash.agent.model.AgentTraceEntry
+import com.github.kr328.clash.agent.model.AgentTraceStatus
 import com.github.kr328.clash.agent.runtime.AgentApprovalHandler
 import com.github.kr328.clash.agent.runtime.AgentEngine
 import com.github.kr328.clash.agent.runtime.AgentEngine.AgentScenario
@@ -89,7 +91,7 @@ object AgentRunController {
             prompt = prompt,
             scenario = scenario,
             messageId = assistantId,
-            status = "正在连接 ${settings.model}…",
+            status = string(R.string.agent_status_connecting, settings.model),
         )
 
         job = Global.launch {
@@ -114,44 +116,95 @@ object AgentRunController {
                         withContext(Dispatchers.Main.immediate) {
                             when (event) {
                                 is AgentRunEvent.Thinking -> {
-                                    trace += AgentTraceEntry("thinking", "正在思考 · 规划第 ${event.round} 步")
-                                    _state.update { it.copy(trace = trace.toList(), status = "正在思考") }
+                                    trace.settleRunning()
+                                    trace += AgentTraceEntry(
+                                        kind = KIND_THINKING,
+                                        summary = string(R.string.agent_step_thinking, event.round),
+                                        status = AgentTraceStatus.RUNNING,
+                                    )
+                                    publish(trace, string(R.string.agent_status_thinking))
                                 }
                                 is AgentRunEvent.Streaming -> {
-                                    _state.update { it.copy(streamed = event.text, status = "正在生成回复") }
+                                    _state.update {
+                                        it.copy(
+                                            streamed = event.text,
+                                            status = string(R.string.agent_status_replying),
+                                        )
+                                    }
                                 }
                                 is AgentRunEvent.ToolStarted -> {
-                                    trace += AgentTraceEntry("tool_start", event.summary, toolName = event.name)
-                                    _state.update { it.copy(trace = trace.toList(), status = event.summary) }
+                                    trace.settleRunning()
+                                    trace += AgentTraceEntry(
+                                        kind = KIND_TOOL,
+                                        summary = event.summary,
+                                        toolName = event.name,
+                                        status = AgentTraceStatus.RUNNING,
+                                    )
+                                    publish(trace, event.summary)
                                 }
                                 is AgentRunEvent.ToolFinished -> {
-                                    trace += AgentTraceEntry(
-                                        if (event.success) "tool_done" else "tool_error",
-                                        event.summary,
+                                    // Resolve the step this tool opened instead of
+                                    // appending a second line for the same call.
+                                    val index = trace.indexOfLast {
+                                        it.kind == KIND_TOOL &&
+                                            it.toolName == event.name &&
+                                            it.status == AgentTraceStatus.RUNNING
+                                    }
+                                    val resolved = AgentTraceEntry(
+                                        kind = KIND_TOOL,
+                                        summary = event.summary,
                                         toolName = event.name,
+                                        status = if (event.success) {
+                                            AgentTraceStatus.SUCCESS
+                                        } else {
+                                            AgentTraceStatus.ERROR
+                                        },
                                     )
-                                    _state.update { it.copy(trace = trace.toList(), status = event.summary) }
+                                    if (index >= 0) trace[index] = resolved else trace += resolved
+                                    publish(trace, event.summary)
                                 }
                                 is AgentRunEvent.Failed -> {
-                                    trace += AgentTraceEntry("retry", event.message)
-                                    _state.update { it.copy(trace = trace.toList(), status = event.message) }
+                                    trace += AgentTraceEntry(
+                                        kind = KIND_RETRY,
+                                        summary = event.message,
+                                        status = AgentTraceStatus.WARNING,
+                                    )
+                                    publish(trace, event.message)
                                 }
                                 is AgentRunEvent.Completed -> Unit
                             }
                         }
                     },
                 )
+                trace.settleRunning(AgentTraceStatus.SUCCESS)
                 _state.update {
-                    it.copy(running = false, streamed = finalText, status = "", error = null)
+                    it.copy(
+                        running = false,
+                        streamed = finalText,
+                        status = "",
+                        error = null,
+                        trace = trace.toList(),
+                    )
                 }
             } catch (_: CancellationException) {
-                _state.update { it.copy(running = false, status = "已停止", error = null) }
+                // The step the user interrupted did not fail, it just never finished.
+                trace.settleRunning(AgentTraceStatus.WARNING)
+                _state.update {
+                    it.copy(
+                        running = false,
+                        status = string(R.string.agent_status_stopped),
+                        error = null,
+                        trace = trace.toList(),
+                    )
+                }
             } catch (error: Throwable) {
+                trace.settleRunning(AgentTraceStatus.ERROR)
                 _state.update {
                     it.copy(
                         running = false,
                         status = "",
                         error = error.message?.take(1200) ?: error.javaClass.simpleName,
+                        trace = trace.toList(),
                     )
                 }
             }
@@ -162,8 +215,33 @@ object AgentRunController {
     fun cancel() {
         job?.cancel()
         job = null
-        _state.update { it.copy(running = false, status = "已停止", error = null) }
+        _state.update {
+            it.copy(
+                running = false,
+                status = string(R.string.agent_status_stopped),
+                error = null,
+                trace = it.trace.settledCopy(AgentTraceStatus.WARNING),
+            )
+        }
     }
+
+    private fun publish(trace: List<AgentTraceEntry>, status: String) {
+        _state.update { it.copy(trace = trace.toList(), status = status) }
+    }
+
+    /** Closes the step still marked RUNNING, if any. Steps resolve in order. */
+    private fun MutableList<AgentTraceEntry>.settleRunning(
+        status: AgentTraceStatus = AgentTraceStatus.SUCCESS,
+    ) {
+        val index = indexOfLast { it.status == AgentTraceStatus.RUNNING }
+        if (index >= 0) this[index] = this[index].copy(status = status)
+    }
+
+    private fun List<AgentTraceEntry>.settledCopy(status: AgentTraceStatus): List<AgentTraceEntry> =
+        map { if (it.status == AgentTraceStatus.RUNNING) it.copy(status = status) else it }
+
+    private fun string(id: Int, vararg args: Any): String =
+        Global.application.getString(id, *args)
 
     fun clearPending() {
         if (job?.isActive != true) {
@@ -178,7 +256,7 @@ object AgentRunController {
         if (index < 0) return
         val current = _state.value
         messages[index] = messages[index].copy(
-            content = current.error?.let { "操作未完成：$it" } ?: current.streamed,
+            content = current.error?.let { string(R.string.agent_run_failed, it) } ?: current.streamed,
             trace = current.trace,
             running = false,
             isError = current.error != null,
@@ -204,4 +282,8 @@ object AgentRunController {
         }
         return false
     }
+
+    const val KIND_THINKING = "thinking"
+    const val KIND_TOOL = "tool"
+    const val KIND_RETRY = "retry"
 }

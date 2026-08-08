@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:clipToPadding="false"
+        android:overScrollMode="never"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingHorizontal="@dimen/dialog_padding"
+            android:paddingTop="4dp"
+            android:paddingBottom="@dimen/dialog_padding">
+
+            <LinearLayout
+                android:id="@+id/detail_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+
+            <TextView
+                android:id="@+id/masked_hint_view"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:textSize="@dimen/detail_badge_text_size"
+                android:text="@string/proxy_detail_masked_hint"
+                android:visibility="gone" />
+        </LinearLayout>
+    </ScrollView>
+</layout>

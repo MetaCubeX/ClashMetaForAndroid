@@ -1,10 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  A chat row. The wrapper's width and gravity are set per role in the adapter:
+  a user message is a compact right-aligned bubble, while an assistant message
+  runs the full width with no card behind it so long markdown and code blocks
+  are not squeezed into a narrow column.
+-->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:paddingHorizontal="4dp"
-    android:paddingVertical="4dp">
+    android:paddingVertical="@dimen/agent_message_spacing">
 
     <LinearLayout
         android:id="@+id/agent_message_wrap"
@@ -15,69 +20,84 @@
 
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/agent_trace_card"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="4dp"
-            android:clickable="true"
-            android:focusable="true"
-            android:maxWidth="340dp"
+            android:layout_marginBottom="6dp"
             android:visibility="gone"
-            app:cardCornerRadius="12dp"
+            app:cardCornerRadius="@dimen/agent_trace_radius"
             app:cardElevation="0dp"
-            app:strokeWidth="1dp">
+            app:strokeWidth="@dimen/divider_size">
 
             <LinearLayout
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
 
                 <LinearLayout
                     android:id="@+id/agent_trace_header"
-                    android:layout_width="wrap_content"
-                    android:layout_height="44dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/agent_trace_header_height"
+                    android:baselineAligned="false"
+                    android:clickable="true"
+                    android:focusable="true"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
-                    android:paddingStart="12dp"
-                    android:paddingEnd="12dp">
+                    android:paddingHorizontal="@dimen/agent_trace_padding_horizontal">
 
-                    <ProgressBar
-                        android:id="@+id/agent_trace_progress"
-                        android:layout_width="16dp"
-                        android:layout_height="16dp"
-                        android:indeterminateTint="?attr/colorPrimary"
-                        android:visibility="gone" />
+                    <FrameLayout
+                        android:layout_width="@dimen/agent_trace_indicator"
+                        android:layout_height="@dimen/agent_trace_indicator"
+                        android:layout_marginEnd="8dp">
 
-                    <TextView
-                        android:id="@+id/agent_trace_chevron"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="6dp"
-                        android:text="▸"
-                        android:textSize="11sp" />
+                        <ProgressBar
+                            android:id="@+id/agent_trace_progress"
+                            style="?android:attr/progressBarStyleSmall"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:layout_gravity="center"
+                            android:indeterminateTint="?attr/colorPrimary"
+                            android:visibility="gone" />
+
+                        <ImageView
+                            android:id="@+id/agent_trace_icon"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:layout_gravity="center"
+                            android:contentDescription="@null" />
+                    </FrameLayout>
 
                     <TextView
                         android:id="@+id/agent_trace_title"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="6dp"
                         android:layout_weight="1"
                         android:ellipsize="end"
                         android:maxLines="1"
-                        android:textAppearance="@style/TextAppearance.MaterialComponents.Body2" />
+                        android:textSize="@dimen/agent_trace_text_size" />
 
+                    <TextView
+                        android:id="@+id/agent_trace_count"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:textSize="@dimen/agent_trace_text_size" />
+
+                    <ImageView
+                        android:id="@+id/agent_trace_chevron"
+                        android:layout_width="@dimen/agent_trace_chevron"
+                        android:layout_height="@dimen/agent_trace_chevron"
+                        android:layout_marginStart="4dp"
+                        android:contentDescription="@null"
+                        android:src="@drawable/ic_agent_chevron" />
                 </LinearLayout>
 
-                <TextView
-                    android:id="@+id/agent_trace_text"
-                    android:layout_width="wrap_content"
+                <LinearLayout
+                    android:id="@+id/agent_trace_steps"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:lineSpacingExtra="2dp"
-                    android:maxWidth="316dp"
-                    android:paddingStart="12dp"
-                    android:paddingEnd="12dp"
+                    android:orientation="vertical"
+                    android:paddingHorizontal="@dimen/agent_trace_padding_horizontal"
                     android:paddingBottom="10dp"
-                    android:textAppearance="@style/TextAppearance.MaterialComponents.Caption"
-                    android:textIsSelectable="true"
                     android:visibility="gone" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
@@ -86,20 +106,15 @@
             android:id="@+id/agent_message_card"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:maxWidth="340dp"
-            app:cardCornerRadius="16dp"
             app:cardElevation="0dp"
-            app:strokeWidth="1dp">
+            app:strokeWidth="0dp">
 
-            <TextView
+            <com.github.kr328.clash.agent.MarkdownTextView
                 android:id="@+id/agent_message_text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:includeFontPadding="false"
-                android:lineSpacingExtra="2dp"
-                android:minWidth="48dp"
-                android:paddingHorizontal="14dp"
-                android:paddingVertical="11dp"
+                android:lineSpacingExtra="0dp"
                 android:textAppearance="@style/TextAppearance.MaterialComponents.Body1"
                 android:textIsSelectable="true" />
         </com.google.android.material.card.MaterialCardView>

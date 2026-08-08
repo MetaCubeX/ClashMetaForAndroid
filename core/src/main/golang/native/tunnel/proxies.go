@@ -219,14 +219,14 @@ func convertProxies(proxies []C.Proxy, uiSubtitlePattern *regexp2.Regexp) []*Pro
 		chainDetail := buildProxyChainDetail(chain)
 
 		result = append(result, &Proxy{
-			Name:     name,
-			Title:    strings.TrimSpace(title),
-			Subtitle: strings.TrimSpace(subtitle),
-			Type:     p.Type().String(),
-			Delay:    int(p.LastDelayForTestUrl(testURL)),
-			IsGroup:  isGroup,
-			Chain:    chain,
-			Server:   serverOf(p),
+			Name:        name,
+			Title:       strings.TrimSpace(title),
+			Subtitle:    strings.TrimSpace(subtitle),
+			Type:        p.Type().String(),
+			Delay:       int(p.LastDelayForTestUrl(testURL)),
+			IsGroup:     isGroup,
+			Chain:       chain,
+			Server:      serverOf(p),
 			ChainDetail: chainDetail,
 		})
 	}
@@ -365,14 +365,21 @@ func proxyDetailsOf(p C.Proxy) []ProxyDetail {
 	}
 
 	opt := reflectOption(p)
+	if !opt.IsValid() {
+		// An empty detail list is indistinguishable from a node that genuinely
+		// has no options, so name the adapter the walk gave up on. Debug level:
+		// this runs for every node on every proxy-list refresh.
+		log.Debugln("proxy detail: no option struct for %s (%T)", p.Name(), p.Adapter())
+	}
 	if opt.IsValid() {
 		// Order matters: show identity/encryption fields first, then transport.
 		fields := []string{
 			"UUID", "Cipher", "Encryption", "AlterID", "alterId", "Flow",
 			"Password", "Token", "Up", "Down", "Obfs", "Network", "TLS", "SNI",
-			"ServerName", "Fingerprint", "ALPN", "UDP", "UDPOverTCP",
-			"Plugin", "Protocol", "ObfsParam", "ProtocolParam", "UserName",
-			"CongestionController", "UdpRelayMode", "ReduceRtt", "Version",
+			"ServerName", "Fingerprint", "ClientFingerprint", "ALPN", "UDP",
+			"UDPOverTCP", "Plugin", "Protocol", "ObfsParam",
+			"ProtocolParam", "UserName", "CongestionController", "UdpRelayMode",
+			"ReduceRtt", "Version",
 		}
 		for _, f := range fields {
 			fv := opt.FieldByName(f)
@@ -389,6 +396,8 @@ func proxyDetailsOf(p C.Proxy) []ProxyDetail {
 				label = "alterId"
 			case "ServerName":
 				label = "SNI"
+			case "ClientFingerprint":
+				label = "Fingerprint"
 			case "CongestionController":
 				label = "Congestion"
 			case "UdpRelayMode":
@@ -420,22 +429,57 @@ func proxyDetailsOf(p C.Proxy) []ProxyDetail {
 	return out
 }
 
-// reflectOption returns the private `option` struct field of an outbound
-// adapter via reflection (or an invalid value when absent).
+// maxAdapterUnwrapDepth bounds the wrapper walk in reflectOption. Two levels
+// are enough today (autoClose -> outbound); the rest is loop insurance.
+const maxAdapterUnwrapDepth = 4
+
+// reflectOption returns the private `option` struct field of the concrete
+// outbound behind a proxy, or an invalid value when there is none.
+//
+// Two layers sit between C.Proxy and that struct, and both have to be crossed:
+//
+//   - C.Proxy is an *adapter.Proxy, whose fields are just the embedded
+//     ProxyAdapter plus liveness bookkeeping. Adapter() steps past it.
+//   - What Adapter() returns is normally not the outbound either: the runtime
+//     wraps proxies in *outbound.autoCloseProxyAdapter, which embeds the real
+//     adapter as an interface field named ProxyAdapter.
+//
+// So the walk follows that embedded field until a struct carrying `option`
+// turns up. Values are threaded as reflect.Value rather than via Interface(),
+// which would panic once a read-only (unexported) field is involved.
 func reflectOption(p C.Proxy) reflect.Value {
-	v := reflect.ValueOf(p)
-	if v.Kind() != reflect.Ptr || v.IsNil() {
-		return reflect.Value{}
+	v := reflect.ValueOf(p.Adapter())
+
+	for depth := 0; depth < maxAdapterUnwrapDepth; depth++ {
+		if v.Kind() == reflect.Interface {
+			if v.IsNil() {
+				return reflect.Value{}
+			}
+			v = v.Elem()
+		}
+		if v.Kind() != reflect.Ptr || v.IsNil() {
+			return reflect.Value{}
+		}
+
+		s := v.Elem()
+		if s.Kind() != reflect.Struct {
+			return reflect.Value{}
+		}
+
+		if f := s.FieldByName("option"); f.IsValid() && f.Kind() == reflect.Ptr && !f.IsNil() {
+			// `option` is unexported, so the result is read-only. Only the
+			// kind-specific getters are used on it, which read-only permits.
+			return f.Elem()
+		}
+
+		inner := s.FieldByName("ProxyAdapter")
+		if !inner.IsValid() {
+			return reflect.Value{}
+		}
+		v = inner
 	}
-	v = v.Elem()
-	if v.Kind() != reflect.Struct {
-		return reflect.Value{}
-	}
-	f := v.FieldByName("option")
-	if !f.IsValid() || f.Kind() != reflect.Ptr || f.IsNil() {
-		return reflect.Value{}
-	}
-	return f.Elem()
+
+	return reflect.Value{}
 }
 
 func fieldValue(v reflect.Value) string {

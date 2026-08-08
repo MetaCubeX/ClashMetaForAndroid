@@ -380,6 +380,7 @@
     <string name="chain_entry">Entry</string>
     <string name="chain_middle">Hop</string>
     <string name="chain_exit">Exit</string>
-    <string name="chain_secret_masked">Secret masked, tap to show</string>
-    <string name="chain_secret_revealed">Tap again to hide</string>
+    <string name="proxy_detail">Node Details</string>
+    <string name="proxy_detail_copy_hint">Tap any row to copy its value.</string>
+    <string name="proxy_detail_masked_hint">Secrets such as UUID and password are masked by the core and cannot be copied.</string>
 </resources>

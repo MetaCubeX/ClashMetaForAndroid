@@ -1,9 +1,12 @@
 package com.github.kr328.clash.agent
 
 import android.content.Context
+import android.content.res.ColorStateList
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
+import android.graphics.Path
+import android.graphics.RectF
 import android.text.Layout
 import android.text.NoCopySpan
 import android.text.Spannable
@@ -18,19 +21,28 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
+import android.widget.ImageView
 import android.widget.LinearLayout
+import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.core.view.doOnNextLayout
 import androidx.recyclerview.widget.RecyclerView
 import com.github.kr328.clash.R
+import com.github.kr328.clash.design.R as DesignR
 import com.github.kr328.clash.agent.model.AgentConversationMessage
 import com.github.kr328.clash.agent.model.AgentMessageRole
 import com.github.kr328.clash.agent.model.AgentTraceEntry
+import com.github.kr328.clash.agent.model.AgentTraceStatus
+import com.github.kr328.clash.agent.authorization.AgentOperationRisk
+import com.github.kr328.clash.agent.tools.AgentExecutableTools
 import com.google.android.material.card.MaterialCardView
+import com.google.android.material.shape.ShapeAppearanceModel
 import io.noties.markwon.AbstractMarkwonPlugin
 import io.noties.markwon.Markwon
 import io.noties.markwon.MarkwonSpansFactory
+import io.noties.markwon.MarkwonVisitor
 import io.noties.markwon.core.MarkwonTheme
+import org.commonmark.node.Code
 import org.commonmark.node.FencedCodeBlock
 import org.commonmark.node.IndentedCodeBlock
 import java.io.Closeable
@@ -52,6 +64,45 @@ class AgentChatAdapter(
     val messages: MutableList<AgentConversationMessage>,
     private val onContentHeightChanged: (String) -> Unit = {},
 ) : RecyclerView.Adapter<AgentChatAdapter.Holder>(), Closeable {
+    // Resolved once: these attributes are theme-bound, and the adapter is
+    // recreated when the activity is.
+    private val colorSurfaceVariant =
+        resolve(com.google.android.material.R.attr.colorSurfaceVariant, Color.rgb(0xEE, 0xF1, 0xF6))
+    private val colorOnSurfaceVariant =
+        resolve(com.google.android.material.R.attr.colorOnSurfaceVariant, Color.rgb(0x51, 0x5B, 0x6B))
+    private val colorOutline =
+        resolve(com.google.android.material.R.attr.colorOutline, Color.rgb(0xD3, 0xDA, 0xE4))
+    private val colorSuccess = resolve(DesignR.attr.colorSuccess, Color.rgb(0x1B, 0x7F, 0x4B))
+    private val colorWarning = resolve(DesignR.attr.colorWarning, Color.rgb(0xB2, 0x6B, 0x00))
+    private val colorError =
+        resolve(com.google.android.material.R.attr.colorError, Color.rgb(0xB0, 0x00, 0x20))
+    private val colorPrimary =
+        resolve(com.google.android.material.R.attr.colorPrimary, Color.rgb(0x19, 0x76, 0xD2))
+
+    private val density = context.resources.displayMetrics.density
+    private val strokeWidth = context.resources.getDimensionPixelSize(DesignR.dimen.divider_size)
+    private val bubblePaddingHorizontal =
+        context.resources.getDimensionPixelSize(R.dimen.agent_bubble_padding_horizontal)
+    private val bubblePaddingVertical =
+        context.resources.getDimensionPixelSize(R.dimen.agent_bubble_padding_vertical)
+
+    /** A user bubble should never run edge to edge; long prompts stay readable. */
+    private val userBubbleMaxWidth =
+        (context.resources.displayMetrics.widthPixels * 0.78f).toInt()
+
+    private val bubbleRadius = context.resources.getDimension(R.dimen.agent_bubble_radius)
+    private val bubbleTailRadius = context.resources.getDimension(R.dimen.agent_bubble_tail_radius)
+
+    private val userBubbleShape = ShapeAppearanceModel.builder()
+        .setAllCornerSizes(bubbleRadius)
+        .setBottomRightCornerSize(bubbleTailRadius)
+        .build()
+    private val assistantBubbleShape = ShapeAppearanceModel.builder()
+        .setAllCornerSizes(bubbleRadius)
+        .setBottomLeftCornerSize(bubbleTailRadius)
+        .build()
+    private val flatShape = ShapeAppearanceModel.builder().setAllCornerSizes(0f).build()
+
     private val markwon = createMarkwon(context)
     private val markdownExecutor = Executors.newSingleThreadExecutor()
     private val attachedHolders = mutableSetOf<Holder>()
@@ -59,15 +110,19 @@ class AgentChatAdapter(
     class Holder(view: View) : RecyclerView.ViewHolder(view) {
         val wrap: LinearLayout = view.findViewById(R.id.agent_message_wrap)
         val card: MaterialCardView = view.findViewById(R.id.agent_message_card)
-        val text: TextView = view.findViewById(R.id.agent_message_text)
+        val text: MarkdownTextView = view.findViewById(R.id.agent_message_text)
         val traceCard: MaterialCardView = view.findViewById(R.id.agent_trace_card)
-        val traceProgress: android.widget.ProgressBar = view.findViewById(R.id.agent_trace_progress)
+        val traceProgress: ProgressBar = view.findViewById(R.id.agent_trace_progress)
+        val traceIcon: ImageView = view.findViewById(R.id.agent_trace_icon)
         val traceHeader: View = view.findViewById(R.id.agent_trace_header)
-        val traceChevron: TextView = view.findViewById(R.id.agent_trace_chevron)
+        val traceChevron: ImageView = view.findViewById(R.id.agent_trace_chevron)
         val traceTitle: TextView = view.findViewById(R.id.agent_trace_title)
-        val traceText: TextView = view.findViewById(R.id.agent_trace_text)
+        val traceCount: TextView = view.findViewById(R.id.agent_trace_count)
+        val traceSteps: LinearLayout = view.findViewById(R.id.agent_trace_steps)
         var traceExpanded = false
         var traceBoundMessageId: String? = null
+        var boundTrace: List<AgentTraceEntry> = emptyList()
+        var boundRole: AgentMessageRole? = null
         var boundMessageId: String? = null
         val bindToken = AtomicLong()
         val sequence = AtomicLong()
@@ -144,29 +199,91 @@ class AgentChatAdapter(
             holder.measuredHeight = 0
             holder.heightReportPending = false
         }
-        if (fullBind || identityChanged) {
-            val mine = message.role == AgentMessageRole.USER
-            val wrapParams = holder.wrap.layoutParams as FrameLayout.LayoutParams
-            wrapParams.gravity = if (mine) Gravity.END else Gravity.START
-            holder.wrap.layoutParams = wrapParams
-
-            val background = when {
-                message.isError -> resolve(com.google.android.material.R.attr.colorError, Color.RED)
-                mine -> resolve(com.google.android.material.R.attr.colorPrimary, Color.DKGRAY)
-                else -> resolve(com.google.android.material.R.attr.colorSurface, Color.WHITE)
-            }
-            val foreground = when {
-                message.isError -> resolve(com.google.android.material.R.attr.colorOnError, Color.WHITE)
-                mine -> resolve(com.google.android.material.R.attr.colorOnPrimary, Color.WHITE)
-                else -> resolve(com.google.android.material.R.attr.colorOnSurface, Color.BLACK)
-            }
-            holder.card.setCardBackgroundColor(background)
-            holder.card.strokeColor = if (mine || message.isError) background else foreground.withAlpha(32)
-            holder.text.setTextColor(foreground)
+        if (fullBind || identityChanged || holder.boundRole != message.role) {
+            holder.boundRole = message.role
+            applyBubbleStyle(holder, message)
         }
-        holder.card.visibility = if (message.content.isBlank()) View.INVISIBLE else View.VISIBLE
+        holder.card.visibility = if (message.content.isBlank()) View.GONE else View.VISIBLE
         bindTrace(holder, message)
-        enqueueMarkdown(holder, message, streaming = false)
+        renderMarkdownNow(holder, message)
+    }
+
+    /**
+     * Renders on the calling thread, for binds rather than streaming updates.
+     *
+     * Going through the background executor here meant a freshly bound row was
+     * briefly a bubble with no text in it: entering the screen showed the chat
+     * history as a column of empty primary-coloured blobs until the parse landed
+     * a frame or two later. Only visible rows are bound, so parsing inline costs
+     * a few milliseconds and removes the flash entirely.
+     */
+    private fun renderMarkdownNow(holder: Holder, message: AgentConversationMessage) {
+        holder.pendingRender.set(null)
+        // Claim the newest sequence so an in-flight background render for this
+        // holder can never overwrite what is applied here.
+        holder.appliedSequence.set(holder.sequence.incrementAndGet())
+
+        val rendered = runCatching { markwon.toMarkdown(message.content) }.getOrNull()
+            ?: SpannableString(message.content)
+        applyRenderedTail(holder, rendered)
+    }
+
+    /**
+     * A user message is a compact right-aligned bubble. An assistant message has
+     * no bubble at all: it runs the full width so headings, lists and fenced code
+     * are not crammed into a narrow column, which is the main reason long answers
+     * used to look cramped.
+     */
+    private fun applyBubbleStyle(holder: Holder, message: AgentConversationMessage) {
+        val mine = message.role == AgentMessageRole.USER
+        val error = message.isError
+
+        val wrapParams = holder.wrap.layoutParams as FrameLayout.LayoutParams
+        wrapParams.gravity = if (mine) Gravity.END else Gravity.START
+        wrapParams.width = if (mine) {
+            FrameLayout.LayoutParams.WRAP_CONTENT
+        } else {
+            FrameLayout.LayoutParams.MATCH_PARENT
+        }
+        holder.wrap.layoutParams = wrapParams
+
+        val onSurface = resolve(com.google.android.material.R.attr.colorOnSurface, Color.BLACK)
+
+        if (mine) {
+            val background = resolve(com.google.android.material.R.attr.colorPrimary, Color.DKGRAY)
+            holder.card.shapeAppearanceModel = userBubbleShape
+            holder.card.setCardBackgroundColor(background)
+            holder.card.strokeWidth = 0
+            holder.text.setTextColor(
+                resolve(com.google.android.material.R.attr.colorOnPrimary, Color.WHITE)
+            )
+            holder.text.setPadding(bubblePaddingHorizontal, bubblePaddingVertical, bubblePaddingHorizontal, bubblePaddingVertical)
+            holder.text.maxWidth = userBubbleMaxWidth
+            // The bubble is already primary; tint the chip with the text colour.
+            holder.text.inlineCodeColor = resolve(
+                com.google.android.material.R.attr.colorOnPrimary, Color.WHITE
+            ).withAlpha(0x33)
+        } else if (error) {
+            // Keep the failure legible rather than white-on-red: a tinted surface
+            // with an error outline reads better for a multi-line message.
+            val errorColor = resolve(com.google.android.material.R.attr.colorError, Color.RED)
+            holder.card.shapeAppearanceModel = assistantBubbleShape
+            holder.card.setCardBackgroundColor(errorColor.withAlpha(0x14))
+            holder.card.strokeWidth = strokeWidth
+            holder.card.strokeColor = errorColor.withAlpha(0x66)
+            holder.text.setTextColor(errorColor)
+            holder.text.inlineCodeColor = errorColor.withAlpha(0x1F)
+            holder.text.setPadding(bubblePaddingHorizontal, bubblePaddingVertical, bubblePaddingHorizontal, bubblePaddingVertical)
+            holder.text.maxWidth = Int.MAX_VALUE
+        } else {
+            holder.card.shapeAppearanceModel = flatShape
+            holder.card.setCardBackgroundColor(Color.TRANSPARENT)
+            holder.card.strokeWidth = 0
+            holder.text.setTextColor(onSurface)
+            holder.text.setPadding(0, 0, 0, 0)
+            holder.text.maxWidth = Int.MAX_VALUE
+            holder.text.inlineCodeColor = colorPrimary.withAlpha(0x1F)
+        }
     }
 
     private fun bindTrace(holder: Holder, message: AgentConversationMessage) {
@@ -193,73 +310,126 @@ class AgentChatAdapter(
             holder.traceExpanded = false
         }
 
-        holder.traceText.text = message.trace.joinToString("\n") { entry ->
-            when (entry.kind) {
-                "thinking" -> "• ${entry.summary}"
-                "tool_start" -> "▸ ${entry.summary}"
-                "tool_done" -> "  ✓ ${entry.summary}"
-                "tool_error" -> "  ⚠ ${entry.summary}"
-                "retry" -> "  ↻ ${entry.summary}"
-                else -> "• ${entry.summary}"
+        val failed = message.isError || message.trace.any { it.status == AgentTraceStatus.ERROR }
+
+        // While running the header tracks the step actually in flight, so it never
+        // sticks on a finished operation. Once done it states the outcome.
+        val active = message.trace.lastOrNull { it.status == AgentTraceStatus.RUNNING }
+            ?: message.trace.lastOrNull()
+        holder.traceTitle.text = when {
+            running -> active?.summary?.takeIf(String::isNotEmpty)
+                ?: context.getString(R.string.agent_trace_running)
+            failed -> context.getString(R.string.agent_trace_failed)
+            // Ground truth, derived from the tool results rather than from the
+            // answer text: a reply that claims to have changed something during
+            // a read-only run is contradicted right here.
+            else -> {
+                val writes = countSuccessfulWrites(message.trace)
+                if (writes > 0) {
+                    context.getString(R.string.agent_trace_done_writes, writes)
+                } else {
+                    context.getString(R.string.agent_trace_done_readonly)
+                }
             }
         }
 
-        // Header shows the newest operation on a single line; spinner indicates liveness.
-        // Progressive verbs ("正在思考/正在调用") only apply while running; once
-        // finished the summary must never stay stuck on an in-progress state.
-        val last = message.trace.lastOrNull()
-        val latestSummary = if (running) {
-            when (last?.kind) {
-                "thinking" -> last.summary
-                "tool_start" -> "正在调用 · ${last.summary}"
-                "tool_done" -> "✓ ${last.summary}"
-                "tool_error" -> "⚠ ${last.summary}"
-                "retry" -> "↻ ${last.summary}"
-                else -> last?.summary.orEmpty()
-            }
-        } else {
-            when (last?.kind) {
-                "tool_done" -> "✓ ${last.summary}"
-                "tool_error" -> "⚠ ${last.summary}"
-                "retry" -> "↻ ${last.summary}"
-                else -> "✓ 已完成"
-            }
-        }
-        holder.traceTitle.text = latestSummary.ifEmpty {
-            if (running) "正在连接模型…" else "✓ 已完成"
-        }
+        holder.traceCount.text =
+            context.getString(R.string.agent_trace_step_count, message.trace.size)
+
         holder.traceProgress.visibility = if (running) View.VISIBLE else View.GONE
+        holder.traceIcon.visibility = if (running) View.GONE else View.VISIBLE
+        if (!running) {
+            holder.traceIcon.setImageResource(
+                if (failed) R.drawable.ic_agent_step_error else R.drawable.ic_agent_step_done
+            )
+            holder.traceIcon.imageTintList = ColorStateList.valueOf(
+                if (failed) colorError else colorSuccess
+            )
+        }
 
-        val surfaceVariant = resolve(
-            com.google.android.material.R.attr.colorSurfaceVariant,
-            Color.rgb(0xE6, 0xE6, 0xE9)
-        )
-        val onSurfaceVariant = resolve(
-            com.google.android.material.R.attr.colorOnSurfaceVariant,
-            Color.rgb(0x44, 0x44, 0x44)
-        )
-        holder.traceCard.setCardBackgroundColor(surfaceVariant)
-        holder.traceCard.strokeColor = onSurfaceVariant.withAlpha(48)
-        holder.traceChevron.setTextColor(onSurfaceVariant)
-        holder.traceTitle.setTextColor(onSurfaceVariant)
-        holder.traceText.setTextColor(onSurfaceVariant)
+        holder.traceCard.setCardBackgroundColor(colorSurfaceVariant)
+        holder.traceCard.strokeColor = colorOutline
+        holder.traceTitle.setTextColor(colorOnSurfaceVariant)
+        holder.traceCount.setTextColor(colorOnSurfaceVariant.withAlpha(0x99))
+        holder.traceChevron.imageTintList = ColorStateList.valueOf(colorOnSurfaceVariant)
 
         if (holder.traceHeader.getTag(R.id.agent_trace_header) == null) {
             holder.traceHeader.setTag(R.id.agent_trace_header, true)
             holder.traceHeader.setOnClickListener {
                 holder.traceExpanded = !holder.traceExpanded
                 renderTraceExpansion(holder)
-                onContentHeightChanged(message.id)
+                holder.traceBoundMessageId?.let(onContentHeightChanged)
             }
         }
+        holder.traceHeader.contentDescription = context.getString(R.string.agent_trace_expand)
 
+        holder.boundTrace = message.trace
         renderTraceExpansion(holder)
     }
 
     private fun renderTraceExpansion(holder: Holder) {
         holder.traceCard.visibility = View.VISIBLE
-        holder.traceChevron.text = if (holder.traceExpanded) "▾" else "▸"
-        holder.traceText.visibility = if (holder.traceExpanded) View.VISIBLE else View.GONE
+        holder.traceChevron.rotation = if (holder.traceExpanded) 180f else 0f
+        holder.traceSteps.visibility = if (holder.traceExpanded) View.VISIBLE else View.GONE
+
+        if (!holder.traceExpanded) return
+
+        bindSteps(holder.traceSteps, holder.boundTrace)
+    }
+
+    /**
+     * Reuses the existing step rows and only adds or removes the difference, so a
+     * long-running trace does not re-inflate its whole list on every update.
+     */
+    private fun bindSteps(container: LinearLayout, trace: List<AgentTraceEntry>) {
+        while (container.childCount > trace.size) {
+            container.removeViewAt(container.childCount - 1)
+        }
+        while (container.childCount < trace.size) {
+            container.addView(
+                LayoutInflater.from(container.context)
+                    .inflate(R.layout.item_agent_trace_step, container, false)
+            )
+        }
+
+        trace.forEachIndexed { index, entry ->
+            val row = container.getChildAt(index)
+            val progress = row.findViewById<ProgressBar>(R.id.agent_step_progress)
+            val icon = row.findViewById<ImageView>(R.id.agent_step_icon)
+            val text = row.findViewById<TextView>(R.id.agent_step_text)
+
+            val running = entry.status == AgentTraceStatus.RUNNING
+            progress.visibility = if (running) View.VISIBLE else View.GONE
+            icon.visibility = if (running) View.GONE else View.VISIBLE
+
+            if (!running) {
+                icon.setImageResource(
+                    when (entry.status) {
+                        AgentTraceStatus.SUCCESS -> R.drawable.ic_agent_step_done
+                        AgentTraceStatus.ERROR -> R.drawable.ic_agent_step_error
+                        AgentTraceStatus.WARNING -> R.drawable.ic_agent_step_retry
+                        else -> R.drawable.ic_agent_step_thinking
+                    }
+                )
+                icon.imageTintList = ColorStateList.valueOf(
+                    when (entry.status) {
+                        AgentTraceStatus.SUCCESS -> colorSuccess
+                        AgentTraceStatus.ERROR -> colorError
+                        AgentTraceStatus.WARNING -> colorWarning
+                        else -> colorOnSurfaceVariant.withAlpha(0x8A)
+                    }
+                )
+            }
+
+            text.text = entry.summary
+            text.setTextColor(
+                when (entry.status) {
+                    AgentTraceStatus.ERROR -> colorError
+                    AgentTraceStatus.RUNNING -> colorOnSurfaceVariant
+                    else -> colorOnSurfaceVariant.withAlpha(0xCC)
+                }
+            )
+        }
     }
 
     private fun enqueueMarkdown(holder: Holder, message: AgentConversationMessage, streaming: Boolean) {
@@ -342,7 +512,10 @@ class AgentChatAdapter(
         if (holder != null) {
             bindTrace(holder, message)
             if (streaming) {
-                holder.card.visibility = if (message.content.isBlank()) View.INVISIBLE else View.VISIBLE
+                // GONE, not INVISIBLE: an empty assistant bubble is borderless, so
+                // reserving its line height would leave a gap under the trace card
+                // for as long as the model is still thinking.
+                holder.card.visibility = if (message.content.isBlank()) View.GONE else View.VISIBLE
                 enqueueMarkdown(holder, message, streaming = true)
             } else if (!message.isError) {
                 holder.card.visibility = View.VISIBLE
@@ -384,40 +557,54 @@ class AgentChatAdapter(
 
     private fun createMarkwon(context: Context): Markwon {
         val primary = resolve(com.google.android.material.R.attr.colorPrimary, Color.rgb(25, 118, 210))
-        val codeBackground = resolve(
-            com.google.android.material.R.attr.colorSurfaceVariant,
-            Color.rgb(0xE6, 0xE6, 0xE9)
-        )
-        val codeText = resolve(
-            com.google.android.material.R.attr.colorOnSurfaceVariant,
-            Color.rgb(0x44, 0x44, 0x44)
-        )
-        val quoteColor = resolve(
-            com.google.android.material.R.attr.colorPrimary,
-            Color.rgb(25, 118, 210)
-        )
-        val radius = 8 * context.resources.displayMetrics.density
+        val onSurface = resolve(com.google.android.material.R.attr.colorOnSurface, Color.BLACK)
+        val radius = 8 * density
 
         return Markwon.builder(context)
             .usePlugin(object : AbstractMarkwonPlugin() {
+                override fun configureVisitor(builder: MarkwonVisitor.Builder) {
+                    // Replaces Markwon's inline CodeSpan, whose flat background
+                    // span paints a full-line-height rectangle. The surrounding
+                    // no-break spaces give the highlight interior padding without
+                    // pushing the neighbouring words apart.
+                    builder.on(Code::class.java) { visitor, code ->
+                        val start = visitor.length()
+                        visitor.builder()
+                            .append(' ')
+                            .append(code.literal)
+                            .append(' ')
+                        visitor.setSpans(start, InlineCodeSpan(code.literal.isAsciiOnly()))
+                    }
+                }
+
                 override fun configureTheme(builder: MarkwonTheme.Builder) {
                     builder
                         .linkColor(primary)
-                        .codeTextColor(codeText)
-                        .codeBackgroundColor(codeBackground)
-                        .codeBlockTextColor(codeText)
-                        .codeBlockBackgroundColor(codeBackground)
-                        .blockQuoteColor(quoteColor)
-                        .blockQuoteWidth((3 * context.resources.displayMetrics.density).toInt())
+                        .codeBlockTextColor(onSurface)
+                        // The block background is drawn by RoundedCodeBlockSpan.
+                        .codeBlockBackgroundColor(Color.TRANSPARENT)
+                        .codeBlockMargin((12 * density).toInt())
+                        .blockQuoteColor(primary.withAlpha(0x66))
+                        .blockQuoteWidth((3 * density).toInt())
+                        .bulletWidth((5 * density).toInt())
+                        .listItemColor(colorOnSurfaceVariant)
+                        .thematicBreakColor(colorOutline)
+                        .thematicBreakHeight((1 * density).toInt())
+                        // Markwon underlines h1/h2 by default, which fights with
+                        // the surrounding text; size alone carries the hierarchy.
+                        .headingBreakHeight(0)
+                        .headingTextSizeMultipliers(
+                            floatArrayOf(1.4f, 1.25f, 1.12f, 1.0f, 1.0f, 1.0f)
+                        )
                 }
 
                 override fun configureSpansFactory(builder: MarkwonSpansFactory.Builder) {
                     builder
                         .setFactory(FencedCodeBlock::class.java) { _, _ ->
-                            arrayOf(RoundedCodeBlockSpan(codeBackground, radius))
+                            arrayOf(RoundedCodeBlockSpan(colorSurfaceVariant, radius, density))
                         }
                         .setFactory(IndentedCodeBlock::class.java) { _, _ ->
-                            arrayOf(RoundedCodeBlockSpan(codeBackground, radius))
+                            arrayOf(RoundedCodeBlockSpan(colorSurfaceVariant, radius, density))
                         }
                 }
             })
@@ -425,16 +612,29 @@ class AgentChatAdapter(
     }
 
     /**
-     * Rounded background behind code blocks, replacing Markwon's flat gray rectangle.
-     * A [LeadingMarginSpan] so indentation of wrapped lines stays aligned.
+     * Rounded background behind code blocks, replacing Markwon's flat grey
+     * rectangle.
+     *
+     * [LineBackgroundSpan] is invoked once per line. Drawing a fully rounded rect
+     * each time scallops the edges of every multi-line block, so the corner radii
+     * are applied only on the line that holds the span's start and the line that
+     * holds its end; interior lines get square corners and stack seamlessly.
      */
     private class RoundedCodeBlockSpan(
         private val backgroundColor: Int,
         private val cornerRadius: Float,
+        density: Float,
     ) : LeadingMarginSpan, LineBackgroundSpan {
-        private val paint = Paint().apply { isAntiAlias = true }
+        private val paint = Paint().apply {
+            isAntiAlias = true
+            style = Paint.Style.FILL
+        }
+        private val path = Path()
+        private val rect = RectF()
+        private val radii = FloatArray(8)
+        private val padding = (12 * density).toInt()
 
-        override fun getLeadingMargin(first: Boolean): Int = 0
+        override fun getLeadingMargin(first: Boolean): Int = padding
 
         override fun drawLeadingMargin(
             c: Canvas,
@@ -464,22 +664,54 @@ class AgentChatAdapter(
             end: Int,
             lineNumber: Int,
         ) {
+            val spanned = text as? Spanned
+            val spanStart = spanned?.getSpanStart(this) ?: -1
+            val spanEnd = spanned?.getSpanEnd(this) ?: -1
+
+            val topRadius = if (spanStart in start..end) cornerRadius else 0f
+            // The span end may sit just past the final newline, hence the +1.
+            val bottomRadius = if (spanEnd in start..(end + 1)) cornerRadius else 0f
+
+            radii[0] = topRadius
+            radii[1] = topRadius
+            radii[2] = topRadius
+            radii[3] = topRadius
+            radii[4] = bottomRadius
+            radii[5] = bottomRadius
+            radii[6] = bottomRadius
+            radii[7] = bottomRadius
+
+            rect.set(left.toFloat(), top.toFloat(), right.toFloat(), bottom.toFloat())
+            path.reset()
+            path.addRoundRect(rect, radii, Path.Direction.CW)
+
             paint.color = backgroundColor
-            c.drawRoundRect(
-                left.toFloat(),
-                top.toFloat(),
-                right.toFloat(),
-                bottom.toFloat(),
-                cornerRadius,
-                cornerRadius,
-                paint,
-            )
+            c.drawPath(path, paint)
         }
     }
+
+    /**
+     * Counts steps that actually changed something: a tool that completed and
+     * whose declared risk is anything other than read-only. The catalog is the
+     * same one the engine exposes to the model, so the classification cannot
+     * drift from what was really offered.
+     */
+    private fun countSuccessfulWrites(trace: List<AgentTraceEntry>): Int = trace.count { entry ->
+        entry.status == AgentTraceStatus.SUCCESS &&
+            AgentExecutableTools.all.firstOrNull { it.name == entry.toolName }
+                ?.risk?.let { it != AgentOperationRisk.READ_ONLY } == true
+    }
+
+    /** Monospace suits identifiers and addresses; CJK has no mono glyphs. */
+    private fun String.isAsciiOnly(): Boolean = all { it.code in 0x20..0x7E }
 
     private fun String.toStableLong(): Long = runCatching {
         UUID.fromString(this).let { it.mostSignificantBits xor it.leastSignificantBits }
     }.getOrElse { hashCode().toLong() }
 
     private fun Int.withAlpha(alpha: Int): Int = Color.argb(alpha, Color.red(this), Color.green(this), Color.blue(this))
+
+    private companion object {
+        const val NBSP = '\u00a0'
+    }
 }

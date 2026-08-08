@@ -42,12 +42,29 @@ data class AgentConversationMessage(
     val running: Boolean = false,
 )
 
+/**
+ * Lifecycle of a single step in a run.
+ *
+ * A tool call is one step that moves RUNNING -> SUCCESS/ERROR, rather than a
+ * "started" line followed by a separate "finished" line, so the log reads as a
+ * checklist instead of repeating every operation twice.
+ */
+@Serializable
+enum class AgentTraceStatus {
+    RUNNING,
+    SUCCESS,
+    WARNING,
+    ERROR,
+    INFO,
+}
+
 @Serializable
 data class AgentTraceEntry(
     val kind: String,
     val summary: String,
     val detail: String = "",
     val toolName: String? = null,
+    val status: AgentTraceStatus = AgentTraceStatus.INFO,
 )
 
 data class AgentToolExecutionResult(

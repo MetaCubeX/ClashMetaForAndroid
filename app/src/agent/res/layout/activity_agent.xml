@@ -8,9 +8,10 @@
     <LinearLayout
         android:id="@+id/agent_header"
         android:layout_width="match_parent"
-        android:layout_height="64dp"
+        android:layout_height="@dimen/agent_header_height"
+        android:baselineAligned="false"
         android:gravity="center_vertical"
-        android:paddingHorizontal="8dp">
+        android:paddingHorizontal="4dp">
 
         <ImageButton
             android:id="@+id/agent_back"
@@ -25,103 +26,151 @@
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
             android:layout_weight="1"
             android:orientation="vertical">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
                 android:text="@string/agent_title"
-                android:textAppearance="@style/TextAppearance.MaterialComponents.Headline6" />
+                android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1"
+                android:textColor="?attr/colorOnSurface" />
 
             <TextView
                 android:id="@+id/agent_model_status"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:ellipsize="end"
                 android:maxLines="1"
                 android:text="@string/agent_not_configured"
-                android:textAppearance="@style/TextAppearance.MaterialComponents.Caption" />
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:textSize="12sp" />
         </LinearLayout>
 
         <ImageButton
             android:id="@+id/agent_clear"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/agent_clear"
-            android:padding="13dp"
+            android:padding="11dp"
             android:src="@drawable/ic_outline_delete"
-            app:tint="?attr/colorOnSurface" />
+            app:tint="?attr/colorOnSurfaceVariant" />
 
         <ImageButton
             android:id="@+id/agent_settings"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/agent_settings"
-            android:padding="13dp"
+            android:padding="11dp"
             android:src="@drawable/ic_baseline_settings"
-            app:tint="?attr/colorOnSurface" />
+            app:tint="?attr/colorOnSurfaceVariant" />
     </LinearLayout>
 
-    <HorizontalScrollView
-        android:id="@+id/agent_suggestions_container"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:clipToPadding="false"
-        android:fillViewport="false"
-        android:overScrollMode="never"
-        android:paddingHorizontal="16dp"
-        android:scrollbars="none">
-
-        <com.google.android.material.chip.ChipGroup
-            android:id="@+id/agent_suggestions"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:paddingVertical="2dp"
-            app:chipSpacingHorizontal="8dp"
-            app:singleLine="true">
-
-            <com.google.android.material.chip.Chip
-                android:id="@+id/agent_suggest_create"
-                style="@style/Widget.MaterialComponents.Chip.Action"
-                android:layout_width="wrap_content"
-                android:layout_height="40dp"
-                android:text="@string/agent_quick_create" />
-
-            <com.google.android.material.chip.Chip
-                android:id="@+id/agent_suggest_apps"
-                style="@style/Widget.MaterialComponents.Chip.Action"
-                android:layout_width="wrap_content"
-                android:layout_height="40dp"
-                android:text="@string/agent_quick_apps" />
-
-            <com.google.android.material.chip.Chip
-                android:id="@+id/agent_suggest_diagnose"
-                style="@style/Widget.MaterialComponents.Chip.Action"
-                android:layout_width="wrap_content"
-                android:layout_height="40dp"
-                android:text="@string/agent_quick_diagnose" />
-        </com.google.android.material.chip.ChipGroup>
-    </HorizontalScrollView>
-
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/agent_messages"
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"
-        android:clipToPadding="false"
-        android:paddingHorizontal="12dp"
-        android:paddingVertical="8dp" />
+        android:layout_weight="1">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/agent_messages"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:paddingHorizontal="@dimen/agent_list_padding_horizontal"
+            android:paddingVertical="8dp"
+            android:scrollbars="none" />
+
+        <!--
+          Shown only while the conversation is empty. Placing it inside the list
+          frame lets it use the full area instead of pinning suggestion chips
+          above the messages, where they had no room and no context.
+        -->
+        <ScrollView
+            android:id="@+id/agent_empty"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:fillViewport="true"
+            android:overScrollMode="never"
+            android:scrollbars="none">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:paddingHorizontal="28dp"
+                android:paddingVertical="24dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/agent_empty_title"
+                    android:textAppearance="@style/TextAppearance.MaterialComponents.Headline6"
+                    android:textColor="?attr/colorOnSurface" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:gravity="center"
+                    android:lineSpacingExtra="3dp"
+                    android:text="@string/agent_empty_summary"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:textSize="13sp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/agent_suggest_create"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="24dp"
+                    android:gravity="center_vertical|start"
+                    android:text="@string/agent_quick_create"
+                    android:textAlignment="viewStart"
+                    app:icon="@drawable/ic_baseline_add"
+                    app:iconGravity="start" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/agent_suggest_apps"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:gravity="center_vertical|start"
+                    android:text="@string/agent_quick_apps"
+                    android:textAlignment="viewStart"
+                    app:icon="@drawable/ic_baseline_apps"
+                    app:iconGravity="start" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/agent_suggest_diagnose"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:gravity="center_vertical|start"
+                    android:text="@string/agent_quick_diagnose"
+                    android:textAlignment="viewStart"
+                    app:icon="@drawable/ic_baseline_help_center"
+                    app:iconGravity="start" />
+            </LinearLayout>
+        </ScrollView>
+    </FrameLayout>
 
     <LinearLayout
         android:id="@+id/agent_composer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:baselineAligned="false"
         android:gravity="bottom"
         android:paddingStart="12dp"
         android:paddingEnd="8dp"
-        android:paddingTop="4dp"
+        android:paddingTop="8dp"
         android:paddingBottom="10dp">
 
         <com.google.android.material.textfield.TextInputLayout
@@ -129,7 +178,11 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:hint="@string/agent_input_hint">
+            android:hint="@string/agent_input_hint"
+            app:boxCornerRadiusBottomEnd="@dimen/agent_bubble_radius"
+            app:boxCornerRadiusBottomStart="@dimen/agent_bubble_radius"
+            app:boxCornerRadiusTopEnd="@dimen/agent_bubble_radius"
+            app:boxCornerRadiusTopStart="@dimen/agent_bubble_radius">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/agent_input"
@@ -139,14 +192,14 @@
                 android:imeOptions="flagNoEnterAction"
                 android:inputType="textCapSentences|textMultiLine"
                 android:maxLines="5"
-                android:minHeight="56dp"
+                android:minHeight="@dimen/agent_composer_button"
                 android:minLines="1"
                 android:singleLine="false" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <FrameLayout
-            android:layout_width="56dp"
-            android:layout_height="56dp"
+            android:layout_width="@dimen/agent_composer_button"
+            android:layout_height="@dimen/agent_composer_button"
             android:layout_marginStart="8dp">
 
             <com.google.android.material.button.MaterialButton
@@ -159,10 +212,11 @@
                 android:insetBottom="0dp"
                 android:minWidth="0dp"
                 android:padding="0dp"
+                app:cornerRadius="@dimen/agent_bubble_radius"
                 app:icon="@drawable/ic_agent_send"
                 app:iconGravity="textStart"
                 app:iconPadding="0dp"
-                app:iconSize="24dp" />
+                app:iconSize="22dp" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/agent_stop"
@@ -175,10 +229,11 @@
                 android:minWidth="0dp"
                 android:padding="0dp"
                 android:visibility="gone"
+                app:cornerRadius="@dimen/agent_bubble_radius"
                 app:icon="@drawable/ic_agent_stop"
                 app:iconGravity="textStart"
                 app:iconPadding="0dp"
-                app:iconSize="24dp" />
+                app:iconSize="22dp" />
         </FrameLayout>
     </LinearLayout>
 </LinearLayout>

@@ -10,4 +10,46 @@
     <color name="color_light_control_disabled">#FFD3D3D3</color>
     <color name="color_dark_control_disabled">#FF808080</color>
     <color name="color_error">#FFB00020</color>
+
+    <!--
+      Secondary surface ramp.
+
+      Material 1.6.1 only assigns colorSurfaceVariant / colorOnSurfaceVariant /
+      colorOutline inside Theme.Material3.*; this app is built on
+      Theme.MaterialComponents (M2), where those attributes resolve to 0. The
+      values below are bound to the attributes in themes.xml so any component
+      reading them renders correctly in both day and night.
+
+      The neutrals carry a slight blue tint pulled from the brand primary
+      (#1e4376 / #1976d2) so secondary surfaces read as part of the palette
+      instead of as flat grey. Foreground pairs are checked for WCAG AA:
+      #515B6B on #EEF1F6 = 5.7:1, #AFB8C6 on #262A31 = 7.2:1.
+    -->
+    <color name="color_light_surface_variant">#FFEEF1F6</color>
+    <color name="color_light_on_surface_variant">#FF515B6B</color>
+    <color name="color_light_outline">#FFD3DAE4</color>
+
+    <color name="color_dark_surface_variant">#FF262A31</color>
+    <color name="color_dark_on_surface_variant">#FFAFB8C6</color>
+    <color name="color_dark_outline">#FF3A4049</color>
+
+    <!--
+      Grouped-block fill and outline.
+
+      These are deliberately translucent rather than solid. Material applies an
+      elevation overlay to dark surfaces, so a dialog window renders noticeably
+      lighter than colorSurface; a solid colorSurfaceVariant block placed on it
+      ends up darker than its own container and reads as sunken. A translucent
+      overlay always lifts by the same amount, whatever it is drawn on.
+    -->
+    <color name="color_light_block_fill">#14000000</color>
+    <color name="color_light_block_stroke">#24000000</color>
+    <color name="color_dark_block_fill">#1FFFFFFF</color>
+    <color name="color_dark_block_stroke">#38FFFFFF</color>
+
+    <!-- Status accents for operation results (agent tool steps, health checks). -->
+    <color name="color_light_success">#FF1B7F4B</color>
+    <color name="color_light_warning">#FFB26B00</color>
+    <color name="color_dark_success">#FF56D68D</color>
+    <color name="color_dark_warning">#FFE0A244</color>
 </resources>

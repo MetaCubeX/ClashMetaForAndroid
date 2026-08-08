@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  One step of the agent's run log. The leading slot holds either a spinner (the
+  step is still running) or a status glyph, so rows never reflow when a step
+  finishes.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:baselineAligned="false"
+    android:orientation="horizontal"
+    android:paddingVertical="@dimen/agent_trace_step_padding_vertical">
+
+    <FrameLayout
+        android:layout_width="@dimen/agent_trace_step_icon_slot"
+        android:layout_height="@dimen/agent_trace_step_icon_slot"
+        android:layout_marginEnd="8dp">
+
+        <ProgressBar
+            android:id="@+id/agent_step_progress"
+            style="?android:attr/progressBarStyleSmall"
+            android:layout_width="@dimen/agent_trace_step_icon"
+            android:layout_height="@dimen/agent_trace_step_icon"
+            android:layout_gravity="center"
+            android:indeterminateTint="?attr/colorPrimary"
+            android:visibility="gone" />
+
+        <ImageView
+            android:id="@+id/agent_step_icon"
+            android:layout_width="@dimen/agent_trace_step_icon_slot"
+            android:layout_height="@dimen/agent_trace_step_icon_slot"
+            android:layout_gravity="center"
+            android:contentDescription="@null" />
+    </FrameLayout>
+
+    <TextView
+        android:id="@+id/agent_step_text"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:lineSpacingExtra="1dp"
+        android:textSize="@dimen/agent_trace_text_size" />
+</LinearLayout>

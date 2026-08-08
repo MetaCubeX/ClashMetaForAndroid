@@ -1,8 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  Grouped into "where the model lives" and "what it may do on its own". Helper
+  text is attached in code and only shown while a field has focus, so the dialog
+  stays compact but still explains each field on demand. Horizontal insets come
+  from the dialog's setView() margins.
+-->
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    android:overScrollMode="never"
+    android:scrollbars="none">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -10,52 +18,74 @@
         android:orientation="vertical"
         android:paddingBottom="8dp">
 
+        <TextView
+            style="@style/AgentSettingsSection"
+            android:layout_marginTop="4dp"
+            android:text="@string/agent_settings_section_endpoint" />
+
         <com.google.android.material.textfield.TextInputLayout
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:hint="@string/agent_base_url">
+            android:hint="@string/agent_base_url"
+            android:id="@+id/agent_layout_base_url">
+
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/agent_setting_base_url"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:inputType="textUri" />
+                android:inputType="textUri"
+                android:singleLine="true" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
+            android:layout_marginTop="6dp"
             android:hint="@string/agent_api_key"
-            app:endIconMode="password_toggle">
+            app:endIconMode="password_toggle"
+            android:id="@+id/agent_layout_api_key">
+
+            <!--
+              textVisiblePassword, not textPassword: the password variations are
+              what make OEM IMEs swap in a "secure keyboard", which typically
+              blocks paste. An API key is only ever pasted, so that keyboard is
+              pure obstruction. This variation still tells the IME to keep
+              suggestions and personalised learning off. Masking is applied in
+              code instead — see AgentActivity.showSettings.
+            -->
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/agent_setting_api_key"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:inputType="textPassword" />
+                android:inputType="textVisiblePassword"
+                android:singleLine="true" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:hint="@string/agent_model">
+            android:layout_marginTop="6dp"
+            android:hint="@string/agent_model"
+            android:id="@+id/agent_layout_model">
+
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/agent_setting_model"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:inputType="text" />
+                android:inputType="text"
+                android:singleLine="true" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:hint="@string/agent_api_format">
+            android:layout_marginTop="6dp"
+            android:hint="@string/agent_api_format"
+            android:id="@+id/agent_layout_api_format">
 
             <AutoCompleteTextView
                 android:id="@+id/agent_setting_api_format"
@@ -64,12 +94,22 @@
                 android:inputType="none" />
         </com.google.android.material.textfield.TextInputLayout>
 
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/divider_size"
+            android:layout_marginTop="16dp"
+            android:background="?attr/colorBlockStroke" />
+
+        <TextView
+            style="@style/AgentSettingsSection"
+            android:text="@string/agent_settings_section_behavior" />
+
         <com.google.android.material.textfield.TextInputLayout
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:hint="@string/agent_authorization">
+            android:hint="@string/agent_authorization"
+            android:id="@+id/agent_layout_authorization">
 
             <AutoCompleteTextView
                 android:id="@+id/agent_setting_authorization"

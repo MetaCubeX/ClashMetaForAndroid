@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  One hop of a proxy chain. The connector is part of the hop rather than a
+  separate sibling so the container stays a flat list of these components.
+-->
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <View
+            android:id="@+id/connector_view"
+            android:layout_width="@dimen/detail_connector_width"
+            android:layout_height="@dimen/detail_connector_height"
+            android:layout_marginStart="@dimen/detail_connector_inset"
+            android:background="?attr/colorBlockStroke"
+            android:visibility="gone" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_detail_card"
+            android:orientation="vertical"
+            android:padding="@dimen/detail_card_padding">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/hop_view"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    android:background="@drawable/bg_detail_hop_badge"
+                    android:paddingHorizontal="7dp"
+                    android:paddingVertical="2dp"
+                    android:textColor="?attr/colorOnPrimary"
+                    android:textSize="@dimen/detail_badge_text_size"
+                    android:textStyle="bold"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/name_view"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle2"
+                    android:textColor="?attr/colorOnSurface" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/meta_view"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:visibility="gone">
+
+                <TextView
+                    android:id="@+id/type_view"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    android:background="@drawable/bg_detail_type_chip"
+                    android:paddingHorizontal="7dp"
+                    android:paddingVertical="1dp"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:textSize="@dimen/detail_badge_text_size"
+                    android:textStyle="bold"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/server_view"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:ellipsize="middle"
+                    android:fontFamily="monospace"
+                    android:maxLines="1"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:textSize="@dimen/detail_text_size"
+                    android:visibility="gone" />
+            </LinearLayout>
+
+            <View
+                android:id="@+id/divider_view"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/divider_size"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="4dp"
+                android:background="?attr/colorBlockStroke"
+                android:visibility="gone" />
+
+            <LinearLayout
+                android:id="@+id/rows_view"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+        </LinearLayout>
+    </LinearLayout>
+</layout>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Outlined rather than filled: the hop badge next to it is a solid primary
+  block, so the type reads as a quieter second tier instead of competing.
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="@android:color/transparent" />
+    <stroke
+        android:width="@dimen/divider_size"
+        android:color="?attr/colorBlockStroke" />
+    <corners android:radius="@dimen/detail_badge_radius" />
+</shape>

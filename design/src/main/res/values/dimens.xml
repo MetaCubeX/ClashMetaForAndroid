@@ -74,6 +74,17 @@
     <dimen name="proxy_card_radius">5dp</dimen>
     <dimen name="proxy_card_offset">0dp</dimen>
 
+    <!-- Proxy Detail Dialog -->
+    <dimen name="detail_badge_radius">4dp</dimen>
+    <dimen name="detail_card_padding">14dp</dimen>
+    <dimen name="detail_connector_width">2dp</dimen>
+    <dimen name="detail_connector_height">18dp</dimen>
+    <dimen name="detail_connector_inset">22dp</dimen>
+    <dimen name="detail_label_width">76dp</dimen>
+    <dimen name="detail_row_padding_vertical">5dp</dimen>
+    <dimen name="detail_text_size">12sp</dimen>
+    <dimen name="detail_badge_text_size">10sp</dimen>
+
     <!-- Properties Design -->
     <dimen name="properties_element_margin_vertical">2.5dp</dimen>
 
