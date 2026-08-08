@@ -229,6 +229,7 @@
     <string name="export_to_clipboard">Export to Clipboard</string>
 
     <string name="clash_meta_for_android">Clash Meta for Android</string>
+    <string name="modified_source">This build (modified fork)</string>
 
     <string name="document">Document</string>
     <string name="feedback">Feedback</string>
@@ -240,6 +241,8 @@
     <string name="clash_meta_core">Clash Meta Core</string>
     <string name="clash_wiki_url" translatable="false">https://github.com/Dreamacro/clash/wiki</string>
     <string name="meta_github_url" translatable="false">https://github.com/MetaCubeX/ClashMetaForAndroid</string>
+    <!-- GPLv3 §6: users of this binary must be able to reach the source it was built from. -->
+    <string name="modified_source_url" translatable="false">https://github.com/viewer12/ClashMetaForAndroid</string>
     <string name="clash_meta_core_url" translatable="false">https://github.com/MetaCubeX/Clash.Meta</string>
 
     <string name="tips_properties"><![CDATA[Accept Only <strong>Clash Config</strong>(including <strong>Proxy</strong>/<strong>Rules</strong>)]]></string>

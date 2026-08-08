@@ -55,6 +55,18 @@ class HelpDesign(
 
             category(R.string.sources)
 
+            // This build is a modified fork, so its own corresponding source has
+            // to be reachable from the app itself — the upstream link below does
+            // not carry these modifications (GPLv3 section 6).
+            clickable(
+                title = R.string.modified_source,
+                summary = R.string.modified_source_url
+            ) {
+                clicked {
+                    openLink(Uri.parse(context.getString(R.string.modified_source_url)))
+                }
+            }
+
             clickable(
                 title = R.string.clash_meta_core,
                 summary = R.string.clash_meta_core_url

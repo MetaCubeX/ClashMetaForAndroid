@@ -1,3 +1,32 @@
+> ### This is a modified version
+>
+> This repository is a **modified fork** of
+> [MetaCubeX/ClashMetaForAndroid](https://github.com/MetaCubeX/ClashMetaForAndroid),
+> maintained at <https://github.com/viewer12/ClashMetaForAndroid>.
+> It is **not** the upstream project and is not endorsed by MetaCubeX.
+>
+> **Modifications since August 2026** (branched from upstream `v2.11.32`):
+>
+> * Added an `agent` build flavor with a built-in AI assistant: a tool-calling
+>   agent that can read and edit profiles, per-app routing, VPN settings,
+>   proxies, providers and connections through an OpenAI-compatible API of the
+>   user's choosing. See [Privacy](PRIVACY_POLICY.md) before using it — it sends
+>   configuration data, **including credentials**, to whichever endpoint you
+>   configure.
+> * Added proxy node type badges and a long-press node/chain detail dialog,
+>   with per-hop protocol details read from the bundled core.
+> * Added process-exit diagnostics and VPN service recovery.
+> * Assorted UI and theming work across the above.
+>
+> Like the upstream project, this fork is licensed under the
+> [GNU General Public License v3.0](LICENSE). The complete corresponding source
+> for any binary built from this repository is the repository itself.
+>
+> **Release builds are not signed with the `release.keystore` committed in this
+> repository.** That file is inherited from upstream history; anyone packaging
+> their own builds should generate a private key and keep it out of version
+> control.
+
 ## Clash Meta for Android
 
 A Graphical user interface of [Clash.Meta](https://github.com/MetaCubeX/Clash.Meta) for Android

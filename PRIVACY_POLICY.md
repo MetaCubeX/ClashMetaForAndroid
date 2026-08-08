@@ -8,6 +8,36 @@ If you choose to use our app, then you agree to the collection and use of inform
 
 The terms used in this Privacy Policy have the same meanings as in our Terms and Conditions, which is accessible at Clash for Android unless otherwise defined in this Privacy Policy.
 
+**AI Assistant (this fork only)**
+
+Builds of the `agent` flavour include an optional AI assistant. It is off until
+you enter an API endpoint, model name and API key yourself. Nothing is sent
+anywhere until you do, and no data is ever sent to the maintainers of this fork
+— there is no server operated by this project.
+
+Once configured, the assistant sends data **to the endpoint you configured**,
+which is a third party of your own choosing. Depending on what you ask it to do,
+that can include:
+
+*   **The complete YAML of your profile, including secrets.** Proxy passwords,
+    UUIDs, pre-shared keys and subscription URLs are part of that YAML and are
+    sent verbatim so the assistant can edit the profile without destroying them.
+*   The list of applications installed on your device, when you ask for per-app
+    routing.
+*   Network state: active transports, DNS servers, routes, and the current VPN
+    and tunnel settings.
+*   Active connections, including destination hosts and matched rules.
+*   Recent core log output and process-exit history, when you ask for diagnosis.
+
+Treat your model provider as you would treat anyone you hand your full proxy
+configuration to. Their handling of that data is governed by their privacy
+policy, not this one. If you do not want credentials leaving the device, do not
+use the assistant.
+
+Your API key is stored on-device, encrypted with a key held in the Android
+Keystore on Android 6.0 and above. Conversation history is stored on-device in
+app-private storage and can be cleared from the assistant screen.
+
 **Information Collection and Use**
 
 For a better experience, while using our app, we may require you to provide us with certain personally identifiable information. The information that we request will be retained by us and used as described in this privacy policy.

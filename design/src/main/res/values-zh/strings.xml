@@ -98,6 +98,7 @@
     <string name="package_name">应用包名称</string>
     <string name="install_time">安装时间</string>
     <string name="clash_meta_for_android">Clash Meta for Android</string>
+    <string name="modified_source">本版本源代码（修改版）</string>
     <string name="feedback">反馈</string>
     <string name="github_issues">Github Issues</string>
     <string name="tips_properties"><![CDATA[仅接受 <strong>Clash 配置文件</strong>(包含<strong>代理</strong>/<strong>规则</strong>)]]></string>
