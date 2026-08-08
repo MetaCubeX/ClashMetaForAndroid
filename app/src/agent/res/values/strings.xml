@@ -78,6 +78,6 @@
     <string name="agent_connect_failed">连接失败</string>
     <string name="agent_save_failed">保存失败：%1$s</string>
     <string name="agent_error_url_scheme">请输入 http:// 或 https:// 地址</string>
-    <string name="agent_error_insecure_key">为防止密钥泄露，非本机地址请使用 HTTPS</string>
+    <string name="agent_error_insecure_url">非本机地址必须使用 HTTPS，明文 HTTP 仅允许连接本机</string>
     <string name="agent_error_model_empty">请输入模型名称</string>
 </resources>

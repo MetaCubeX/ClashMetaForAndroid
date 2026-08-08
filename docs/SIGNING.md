@@ -52,7 +52,7 @@ Release builds must be signed with the **production** keystore, configured via
 `signing.properties` (see `README.md`):
 
 ```properties
-keystore.path=<unused by current script>
+keystore.path=/absolute/path/to/your-release.keystore
 keystore.password=<store password>
 key.alias=<key alias>
 key.password=<key password>
@@ -60,6 +60,25 @@ key.password=<key password>
 
 The build refuses to sign release variants with the debug key: `assemble*Release`
 requires `signing.properties` to exist, otherwise Gradle fails with a clear error.
+
+### Do not use the repository's `release.keystore`
+
+A file named `release.keystore` sits in the repository root. It is inherited from
+upstream history (committed in 2022, before this fork existed) and is therefore
+**public**. Signing a distributed build with it would let anyone who cracks its
+password publish an APK that Android accepts as an update to yours.
+
+`keystore.path` is what decides which key is used. Point it at a key you generated
+yourself and keep outside the working tree:
+
+```bash
+keytool -genkeypair -v -keystore ~/keys/cmfa-ai-release.keystore \
+  -alias cmfa-ai -keyalg RSA -keysize 4096 -validity 10000
+```
+
+If `keystore.path` is missing or empty the build falls back to the committed
+`release.keystore` and prints a warning. Treat that warning as an error for
+anything you intend to distribute.
 
 ## Version code
 

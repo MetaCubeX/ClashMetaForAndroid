@@ -84,6 +84,26 @@ class HelpDesign(
                     openLink(Uri.parse(context.getString(R.string.meta_github_url)))
                 }
             }
+
+            // Reachable from the app rather than only from the repository: a user
+            // who sideloaded the APK has no other route to either document.
+            clickable(
+                title = R.string.license_gplv3,
+                summary = R.string.license_url
+            ) {
+                clicked {
+                    openLink(Uri.parse(context.getString(R.string.license_url)))
+                }
+            }
+
+            clickable(
+                title = R.string.privacy_policy,
+                summary = R.string.privacy_policy_url
+            ) {
+                clicked {
+                    openLink(Uri.parse(context.getString(R.string.privacy_policy_url)))
+                }
+            }
         }
 
         binding.content.addView(screen.root)

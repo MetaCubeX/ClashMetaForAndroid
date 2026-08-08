@@ -408,9 +408,12 @@ class AgentActivity : BaseActivity<AgentScreenDesign>() {
             return null
         }
         val host = runCatching { Uri.parse(normalizedUrl).host.orEmpty() }.getOrDefault("")
-        if (normalizedUrl.startsWith("http://") && key.isNotEmpty() &&
-            host !in setOf("localhost", "127.0.0.1", "::1")) {
-            apiKey.error = getString(R.string.agent_error_insecure_key)
+        // Rejected here regardless of whether a key is set, because the network
+        // security config only permits cleartext to loopback. Catching it at
+        // save time gives a reason; letting it through would surface later as an
+        // unexplained connection failure.
+        if (normalizedUrl.startsWith("http://") && host !in LOOPBACK_HOSTS) {
+            baseUrl.error = getString(R.string.agent_error_insecure_url)
             return null
         }
         if (modelName.isEmpty()) {
@@ -504,4 +507,9 @@ class AgentActivity : BaseActivity<AgentScreenDesign>() {
 
     private fun message(role: AgentMessageRole, content: String, isError: Boolean = false) =
         AgentConversationMessage(UUID.randomUUID().toString(), role, content, isError = isError)
+
+    private companion object {
+        /** Matches the hosts network_security_config permits cleartext for. */
+        val LOOPBACK_HOSTS = setOf("localhost", "127.0.0.1", "::1")
+    }
 }

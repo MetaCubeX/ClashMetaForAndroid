@@ -175,6 +175,12 @@ subprojects {
 
             create("agent") {
                 dimension = flavorDimensionList[0]
+                // Without this an agent release reports the same versionName as an
+                // upstream release, so a bug report cannot say which build it came
+                // from. The other flavors already carry .Alpha / .Meta.
+                if (!removeSuffix) {
+                    versionNameSuffix = ".AI"
+                }
 
                 buildConfigField("boolean", "PREMIUM", "Boolean.parseBoolean(\"false\")")
 
@@ -239,7 +245,22 @@ subprojects {
                         keystore.inputStream().use(this::load)
                     }
 
-                    storeFile = rootProject.file("release.keystore")
+                    // README documents keystore.path, but it was ignored and the
+                    // key committed to this repository was used unconditionally.
+                    // That file is public, so signing a redistributed build with
+                    // it would let anyone forge updates. Honour the property so
+                    // the production key can live outside the working tree.
+                    val configuredKeystore = prop.getProperty("keystore.path")?.trim()
+                    storeFile = if (configuredKeystore.isNullOrEmpty()) {
+                        logger.warn(
+                            "signing.properties has no keystore.path; falling back to the " +
+                            "release.keystore committed in this repository. That key is public — " +
+                            "generate your own before distributing builds. See docs/SIGNING.md."
+                        )
+                        rootProject.file("release.keystore")
+                    } else {
+                        file(configuredKeystore)
+                    }
                     storePassword = prop.getProperty("keystore.password")!!
                     keyAlias = prop.getProperty("key.alias")!!
                     keyPassword = prop.getProperty("key.password")!!

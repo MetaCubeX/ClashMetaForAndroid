@@ -230,6 +230,8 @@
 
     <string name="clash_meta_for_android">Clash Meta for Android</string>
     <string name="modified_source">This build (modified fork)</string>
+    <string name="license_gplv3">License (GPL-3.0)</string>
+    <string name="privacy_policy">Privacy policy</string>
 
     <string name="document">Document</string>
     <string name="feedback">Feedback</string>
@@ -243,6 +245,8 @@
     <string name="meta_github_url" translatable="false">https://github.com/MetaCubeX/ClashMetaForAndroid</string>
     <!-- GPLv3 §6: users of this binary must be able to reach the source it was built from. -->
     <string name="modified_source_url" translatable="false">https://github.com/viewer12/ClashMetaForAndroid</string>
+    <string name="license_url" translatable="false">https://github.com/viewer12/ClashMetaForAndroid/blob/main/LICENSE</string>
+    <string name="privacy_policy_url" translatable="false">https://github.com/viewer12/ClashMetaForAndroid/blob/main/PRIVACY_POLICY.md</string>
     <string name="clash_meta_core_url" translatable="false">https://github.com/MetaCubeX/Clash.Meta</string>
 
     <string name="tips_properties"><![CDATA[Accept Only <strong>Clash Config</strong>(including <strong>Proxy</strong>/<strong>Rules</strong>)]]></string>

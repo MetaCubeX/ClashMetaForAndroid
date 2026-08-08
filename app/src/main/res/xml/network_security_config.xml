@@ -1,10 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  Cleartext is permitted for loopback only, not app-wide.
+
+  The agent's model endpoint is the sole caller that can be pointed at a plain
+  http:// URL, and it is normal to run a local model server on the device. Every
+  other Java-side request already hardcodes https. Enabling cleartext for the
+  whole application to serve that one case would also silently allow any future
+  caller to be downgraded, which is not something a VPN client should ship.
+
+  Note this governs the app's own Java/Kotlin HTTP only. Proxied traffic and
+  subscription fetching run inside the Go core and are unaffected.
+-->
 <network-security-config xmlns:tools="http://schemas.android.com/tools"
     tools:ignore="AcceptsUserCertificates">
-    <base-config cleartextTrafficPermitted="true">
+    <base-config cleartextTrafficPermitted="false">
         <trust-anchors>
             <certificates src="system" />
             <certificates src="user" />
         </trust-anchors>
     </base-config>
+
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">localhost</domain>
+        <domain includeSubdomains="false">127.0.0.1</domain>
+        <domain includeSubdomains="false">::1</domain>
+        <trust-anchors>
+            <certificates src="system" />
+            <certificates src="user" />
+        </trust-anchors>
+    </domain-config>
 </network-security-config>
