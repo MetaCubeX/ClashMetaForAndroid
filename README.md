@@ -1,31 +1,63 @@
-> ### This is a modified version
->
-> This repository is a **modified fork** of
-> [MetaCubeX/ClashMetaForAndroid](https://github.com/MetaCubeX/ClashMetaForAndroid),
-> maintained at <https://github.com/viewer12/ClashMetaForAndroid>.
-> It is **not** the upstream project and is not endorsed by MetaCubeX.
->
-> **Modifications since August 2026** (branched from upstream `v2.11.32`):
->
-> * Added an `agent` build flavor with a built-in AI assistant: a tool-calling
->   agent that can read and edit profiles, per-app routing, VPN settings,
->   proxies, providers and connections through an OpenAI-compatible API of the
->   user's choosing. See [Privacy](PRIVACY_POLICY.md) before using it — it sends
->   configuration data, **including credentials**, to whichever endpoint you
->   configure.
-> * Added proxy node type badges and a long-press node/chain detail dialog,
->   with per-hop protocol details read from the bundled core.
-> * Added process-exit diagnostics and VPN service recovery.
-> * Assorted UI and theming work across the above.
->
-> Like the upstream project, this fork is licensed under the
-> [GNU General Public License v3.0](LICENSE). The complete corresponding source
-> for any binary built from this repository is the repository itself.
->
-> **Release builds are not signed with the `release.keystore` committed in this
-> repository.** That file is inherited from upstream history; anyone packaging
-> their own builds should generate a private key and keep it out of version
-> control.
+# Clash Meta AI
+
+A modified build of [ClashMetaForAndroid](https://github.com/MetaCubeX/ClashMetaForAndroid)
+with a built-in AI assistant that can read and change the client's configuration
+by conversation.
+
+**This is not the upstream project and is not endorsed by MetaCubeX.** Forked from
+upstream `v2.11.32`; modifications began August 2026. Licensed under
+[GPL-3.0](LICENSE) like upstream — this repository is the corresponding source for
+any build made from it. Upstream's own README follows below.
+
+## What this fork adds
+
+**AI assistant** — a tool-calling agent with 32 operations over profiles, per-app
+routing, VPN settings, proxy groups, providers, connections and logs. It reads state
+before writing, validates every profile change against the bundled core, keeps
+backups and rolls back on failure. Works with any OpenAI-compatible endpoint
+(Chat Completions or Responses); you supply the URL, model and key.
+
+Three approval modes decide what runs unattended. Read-only operations always do;
+under the default *balanced* mode config edits and VPN changes stop and ask. The
+gate is enforced in code from each tool's declared risk level, so no prompt can
+talk its way past it. Every run shows exactly which tools executed and whether
+they succeeded — the header states `已完成 · 写入 N 项` or `未修改任何配置`, taken
+from the tool results rather than from what the model claims.
+
+**Proxy node details** — nodes carry a protocol badge, and long-pressing one opens
+its full configuration: cipher, transport, TLS, SNI, fingerprint and so on, read
+live from the core. Chained nodes render as a hop-by-hop stepper. Credentials are
+masked before they leave the core.
+
+**Reliability** — records why the VPN process died (low-memory kill, ANR, crash,
+user stop) and recovers a service the system killed unexpectedly.
+
+## Install
+
+Grab an APK from [Releases](https://github.com/viewer12/ClashMetaForAndroid/releases).
+The package is `io.github.viewer12.cmfa.agent`, so it installs alongside an existing
+Clash Meta rather than replacing it. Builds are signed with this fork's own key and
+cannot update an upstream install.
+
+## Privacy
+
+The assistant sends whatever it needs to the endpoint **you** configure — and for
+profile edits that includes the full YAML, proxy passwords and subscription URLs
+among it. Nothing is sent anywhere until you configure a model, and nothing is ever
+sent to this project. Read [PRIVACY_POLICY.md](PRIVACY_POLICY.md) before enabling it.
+
+## Build
+
+```bash
+git submodule update --init --recursive
+./gradlew :app:assembleAgentDebug -PagentArm64Only=true
+```
+
+Needs JDK 21, the Android SDK, CMake and Go. `-PagentArm64Only=true` builds only
+arm64-v8a, which is much faster. Release builds need your own signing key — run
+`scripts/generate-release-key.sh` and see [docs/SIGNING.md](docs/SIGNING.md).
+
+---
 
 ## Clash Meta for Android
 
