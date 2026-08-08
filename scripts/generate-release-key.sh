@@ -35,7 +35,34 @@ esac
 
 [ -e "$KEYSTORE" ] && die "already exists, refusing to overwrite: $KEYSTORE"
 
-command -v keytool >/dev/null 2>&1 || die "keytool not found; set JAVA_HOME or install a JDK"
+# macOS ships /usr/bin/keytool as a stub that exists but exits 1 with "Unable to
+# locate a Java Runtime" when no JDK is selected, and Homebrew's JDKs are
+# keg-only so /usr/libexec/java_home does not see them either. Every candidate is
+# therefore probed by running it, not by testing for the file.
+resolve_keytool() {
+    local candidate
+    for candidate in \
+        "${JAVA_HOME:-}/bin/keytool" \
+        "$(/usr/libexec/java_home 2>/dev/null || true)/bin/keytool" \
+        /opt/homebrew/opt/openjdk/bin/keytool \
+        /opt/homebrew/opt/openjdk@21/bin/keytool \
+        /opt/homebrew/opt/openjdk@17/bin/keytool \
+        /usr/local/opt/openjdk/bin/keytool \
+        /usr/local/opt/openjdk@21/bin/keytool \
+        /usr/local/opt/openjdk@17/bin/keytool \
+        "$(command -v keytool 2>/dev/null || true)"
+    do
+        case "$candidate" in ""|"/bin/keytool") continue ;; esac
+        [ -x "$candidate" ] || continue
+        "$candidate" -help >/dev/null 2>&1 || continue
+        printf '%s' "$candidate"
+        return 0
+    done
+    return 1
+}
+
+KEYTOOL="$(resolve_keytool)" || die "no usable JDK found. Install one (brew install openjdk@21) or set JAVA_HOME."
+note "keytool  : $KEYTOOL"
 
 note "Keystore : $KEYSTORE"
 note "Alias    : $ALIAS"
@@ -50,7 +77,7 @@ unset PW2
 # Fed over stdin rather than -storepass so the password never appears in the
 # process list. The trailing blank line answers "key password (RETURN if same
 # as keystore password)", keeping both passwords identical.
-printf '%s\n%s\n\n' "$PW1" "$PW1" | keytool -genkeypair \
+printf '%s\n%s\n\n' "$PW1" "$PW1" | "$KEYTOOL" -genkeypair \
     -keystore "$KEYSTORE" \
     -alias "$ALIAS" \
     -keyalg RSA \
@@ -76,7 +103,7 @@ note "Created $KEYSTORE"
 note "Wrote   $PROPS  (mode 600, git-ignored)"
 echo
 echo "Certificate fingerprint — record this, it identifies your builds:"
-printf '%s\n' "$PW1" | keytool -list -v -keystore "$KEYSTORE" -alias "$ALIAS" \
+printf '%s\n' "$PW1" | "$KEYTOOL" -list -v -keystore "$KEYSTORE" -alias "$ALIAS" \
     | grep -E "SHA256:" || true
 unset PW1
 echo
