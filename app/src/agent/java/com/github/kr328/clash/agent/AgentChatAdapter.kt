@@ -18,12 +18,14 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.view.doOnNextLayout
 import androidx.recyclerview.widget.RecyclerView
 import com.github.kr328.clash.R
 import com.github.kr328.clash.agent.model.AgentConversationMessage
 import com.github.kr328.clash.agent.model.AgentMessageRole
+import com.github.kr328.clash.agent.model.AgentTraceEntry
 import com.google.android.material.card.MaterialCardView
 import io.noties.markwon.AbstractMarkwonPlugin
 import io.noties.markwon.Markwon
@@ -55,8 +57,17 @@ class AgentChatAdapter(
     private val attachedHolders = mutableSetOf<Holder>()
 
     class Holder(view: View) : RecyclerView.ViewHolder(view) {
+        val wrap: LinearLayout = view.findViewById(R.id.agent_message_wrap)
         val card: MaterialCardView = view.findViewById(R.id.agent_message_card)
         val text: TextView = view.findViewById(R.id.agent_message_text)
+        val traceCard: MaterialCardView = view.findViewById(R.id.agent_trace_card)
+        val traceProgress: android.widget.ProgressBar = view.findViewById(R.id.agent_trace_progress)
+        val traceHeader: View = view.findViewById(R.id.agent_trace_header)
+        val traceChevron: TextView = view.findViewById(R.id.agent_trace_chevron)
+        val traceTitle: TextView = view.findViewById(R.id.agent_trace_title)
+        val traceText: TextView = view.findViewById(R.id.agent_trace_text)
+        var traceExpanded = false
+        var traceBoundMessageId: String? = null
         var boundMessageId: String? = null
         val bindToken = AtomicLong()
         val sequence = AtomicLong()
@@ -103,6 +114,7 @@ class AgentChatAdapter(
     override fun onViewRecycled(holder: Holder) {
         holder.bindToken.incrementAndGet()
         holder.boundMessageId = null
+        holder.traceBoundMessageId = null
         holder.pendingRender.set(null)
         super.onViewRecycled(holder)
     }
@@ -134,9 +146,9 @@ class AgentChatAdapter(
         }
         if (fullBind || identityChanged) {
             val mine = message.role == AgentMessageRole.USER
-            val params = holder.card.layoutParams as FrameLayout.LayoutParams
-            params.gravity = if (mine) Gravity.END else Gravity.START
-            holder.card.layoutParams = params
+            val wrapParams = holder.wrap.layoutParams as FrameLayout.LayoutParams
+            wrapParams.gravity = if (mine) Gravity.END else Gravity.START
+            holder.wrap.layoutParams = wrapParams
 
             val background = when {
                 message.isError -> resolve(com.google.android.material.R.attr.colorError, Color.RED)
@@ -153,7 +165,101 @@ class AgentChatAdapter(
             holder.text.setTextColor(foreground)
         }
         holder.card.visibility = if (message.content.isBlank()) View.INVISIBLE else View.VISIBLE
+        bindTrace(holder, message)
         enqueueMarkdown(holder, message, streaming = false)
+    }
+
+    private fun bindTrace(holder: Holder, message: AgentConversationMessage) {
+        val running = message.running
+        val hasToolSteps = message.trace.any {
+            it.kind == "tool_start" || it.kind == "tool_done" || it.kind == "tool_error"
+        }
+
+        // Show the single-line status card while running (any phase) or when the
+        // finished run actually performed tool steps. Finished pure-thinking
+        // messages collapse to just the answer bubble.
+        val showCard = running || hasToolSteps
+        if (message.role != AgentMessageRole.ASSISTANT || !showCard) {
+            holder.traceCard.visibility = View.GONE
+            holder.traceBoundMessageId = null
+            holder.traceProgress.visibility = View.GONE
+            return
+        }
+
+        val identityChanged = holder.traceBoundMessageId != message.id
+        if (identityChanged) {
+            holder.traceBoundMessageId = message.id
+            // Default to collapsed (single-line summary). User taps to expand.
+            holder.traceExpanded = false
+        }
+
+        holder.traceText.text = message.trace.joinToString("\n") { entry ->
+            when (entry.kind) {
+                "thinking" -> "• ${entry.summary}"
+                "tool_start" -> "▸ ${entry.summary}"
+                "tool_done" -> "  ✓ ${entry.summary}"
+                "tool_error" -> "  ⚠ ${entry.summary}"
+                "retry" -> "  ↻ ${entry.summary}"
+                else -> "• ${entry.summary}"
+            }
+        }
+
+        // Header shows the newest operation on a single line; spinner indicates liveness.
+        // Progressive verbs ("正在思考/正在调用") only apply while running; once
+        // finished the summary must never stay stuck on an in-progress state.
+        val last = message.trace.lastOrNull()
+        val latestSummary = if (running) {
+            when (last?.kind) {
+                "thinking" -> last.summary
+                "tool_start" -> "正在调用 · ${last.summary}"
+                "tool_done" -> "✓ ${last.summary}"
+                "tool_error" -> "⚠ ${last.summary}"
+                "retry" -> "↻ ${last.summary}"
+                else -> last?.summary.orEmpty()
+            }
+        } else {
+            when (last?.kind) {
+                "tool_done" -> "✓ ${last.summary}"
+                "tool_error" -> "⚠ ${last.summary}"
+                "retry" -> "↻ ${last.summary}"
+                else -> "✓ 已完成"
+            }
+        }
+        holder.traceTitle.text = latestSummary.ifEmpty {
+            if (running) "正在连接模型…" else "✓ 已完成"
+        }
+        holder.traceProgress.visibility = if (running) View.VISIBLE else View.GONE
+
+        val surfaceVariant = resolve(
+            com.google.android.material.R.attr.colorSurfaceVariant,
+            Color.rgb(0xE6, 0xE6, 0xE9)
+        )
+        val onSurfaceVariant = resolve(
+            com.google.android.material.R.attr.colorOnSurfaceVariant,
+            Color.rgb(0x44, 0x44, 0x44)
+        )
+        holder.traceCard.setCardBackgroundColor(surfaceVariant)
+        holder.traceCard.strokeColor = onSurfaceVariant.withAlpha(48)
+        holder.traceChevron.setTextColor(onSurfaceVariant)
+        holder.traceTitle.setTextColor(onSurfaceVariant)
+        holder.traceText.setTextColor(onSurfaceVariant)
+
+        if (holder.traceHeader.getTag(R.id.agent_trace_header) == null) {
+            holder.traceHeader.setTag(R.id.agent_trace_header, true)
+            holder.traceHeader.setOnClickListener {
+                holder.traceExpanded = !holder.traceExpanded
+                renderTraceExpansion(holder)
+                onContentHeightChanged(message.id)
+            }
+        }
+
+        renderTraceExpansion(holder)
+    }
+
+    private fun renderTraceExpansion(holder: Holder) {
+        holder.traceCard.visibility = View.VISIBLE
+        holder.traceChevron.text = if (holder.traceExpanded) "▾" else "▸"
+        holder.traceText.visibility = if (holder.traceExpanded) View.VISIBLE else View.GONE
     }
 
     private fun enqueueMarkdown(holder: Holder, message: AgentConversationMessage, streaming: Boolean) {
@@ -234,6 +340,7 @@ class AgentChatAdapter(
         messages[position] = message
         val holder = attachedHolders.firstOrNull { it.boundMessageId == message.id }
         if (holder != null) {
+            bindTrace(holder, message)
             if (streaming) {
                 holder.card.visibility = if (message.content.isBlank()) View.INVISIBLE else View.VISIBLE
                 enqueueMarkdown(holder, message, streaming = true)
@@ -244,6 +351,20 @@ class AgentChatAdapter(
                 bindMessage(holder, message, fullBind = true)
             }
         }
+    }
+
+    /**
+     * Update only the trace panel (single-line status + expandable log) of a
+     * message without touching markdown rendering. Called on every agent state
+     * change while streaming so the header always reflects the newest step.
+     */
+    fun updateTrace(position: Int, trace: List<AgentTraceEntry>, running: Boolean) {
+        if (position !in messages.indices) return
+        val message = messages[position]
+        if (message.trace == trace && message.running == running) return
+        messages[position] = message.copy(trace = trace, running = running)
+        attachedHolders.firstOrNull { it.boundMessageId == message.id }
+            ?.let { bindTrace(it, messages[position]) }
     }
 
     fun clear() {

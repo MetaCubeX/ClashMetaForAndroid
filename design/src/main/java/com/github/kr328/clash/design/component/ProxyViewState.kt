@@ -5,6 +5,7 @@ import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.Rect
 import com.github.kr328.clash.core.model.Proxy
+import com.github.kr328.clash.design.R
 import com.github.kr328.clash.design.model.ProxyState
 import kotlin.math.absoluteValue
 import kotlin.math.max
@@ -22,6 +23,10 @@ class ProxyViewState(
     var title: String = ""
     var subtitle: String = ""
     var delayText: String = ""
+    var hasChain: Boolean = false
+    var chainLabel: String = ""
+    val isSelected: Boolean
+        get() = selected
     var background: Int = config.unselectedBackground
     var controls: Int = config.unselectedControl
 
@@ -54,6 +59,15 @@ class ProxyViewState(
         } else {
             title = proxy.title
             subtitle = proxy.subtitle
+
+            if (hasChain != proxy.chain.size > 1) {
+                hasChain = proxy.chain.size > 1
+                chainLabel = if (hasChain) {
+                    config.context.getString(R.string.chain_badge)
+                } else {
+                    ""
+                }
+            }
         }
 
         if (delay != proxy.delay) {

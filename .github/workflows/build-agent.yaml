@@ -85,7 +85,22 @@ jobs:
           echo "Cached key certificate: ${key_fingerprint,,}"
           echo "Built APK certificate:  ${apk_fingerprint,,}"
           test "${key_fingerprint,,}" = "${apk_fingerprint,,}"
+          # The stable development identity: a keystore that signed every agent build
+          # since the agent foundation. If the secret is ever lost/rotated this fails
+          # loudly instead of silently shipping an update that cannot install over
+          # previous builds (see docs/SIGNING.md).
+          test "${apk_fingerprint,,}" = "b7123699861708e7c515c6e436ba3aea6b0e364e08dd97f8001c5052fa50380e"
           echo "Verified stable APK signing certificate: ${apk_fingerprint}"
+
+      - name: Verify versionCode monotonicity
+        shell: bash
+        run: |
+          apk="$(find app/build/outputs/apk/agent/debug -name '*-arm64-v8a-*.apk' -print -quit)"
+          aapt="$(find "$ANDROID_HOME/build-tools" -name aapt2 -type f | sort -V | tail -n 1)"
+          code="$("$aapt" dump badging "$apk" | sed -n 's/^package: name=.*versionCode='\''\([0-9]*\)'\''.*/\1/p')"
+          test -n "$code"
+          test "$code" -ge 211032
+          echo "Built APK versionCode: $code"
 
       - name: Upload arm64 APK
         uses: actions/upload-artifact@v7

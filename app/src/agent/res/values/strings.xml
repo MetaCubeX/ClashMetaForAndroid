@@ -6,6 +6,7 @@
     <string name="agent_input_hint">告诉 AI 你想做什么…</string>
     <string name="agent_send">发送</string>
     <string name="agent_stop">停止</string>
+    <string name="agent_trace_title">思考过程</string>
     <string name="agent_settings">模型与授权设置</string>
     <string name="agent_test_connection">测试连接</string>
     <string name="agent_testing_connection">正在测试…</string>
@@ -17,10 +18,13 @@
     <string name="agent_base_url">接口地址</string>
     <string name="agent_api_key">API Key（本地接口可留空）</string>
     <string name="agent_model">模型名称</string>
+    <string name="agent_api_format">接口格式</string>
+    <string name="agent_format_chat">Chat Completions</string>
+    <string name="agent_format_responses">Responses API</string>
     <string name="agent_authorization">操作授权</string>
-    <string name="agent_auth_cautious">谨慎：所有修改都询问</string>
-    <string name="agent_auth_balanced">均衡：常规修改自动执行，高风险询问</string>
-    <string name="agent_auth_full">完全自动：所有可用操作自动放行</string>
+    <string name="agent_auth_cautious">谨慎</string>
+    <string name="agent_auth_balanced">均衡</string>
+    <string name="agent_auth_full">完全自动</string>
     <string name="agent_save">保存</string>
     <string name="agent_cancel">取消</string>
     <string name="agent_approve_title">允许 AI 执行操作？</string>

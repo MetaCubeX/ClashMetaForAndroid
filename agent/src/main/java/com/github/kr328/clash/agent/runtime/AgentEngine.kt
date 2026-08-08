@@ -24,6 +24,36 @@ class AgentEngine(
     private val client: OpenAICompatibleClient = OpenAICompatibleClient(),
     private val json: Json = Json { ignoreUnknownKeys = true },
 ) {
+    enum class AgentScenario(val systemHint: String) {
+        GENERAL(""),
+        CREATE(
+            "Scenario: creating a new configuration from scratch. " +
+            "First gather the user's node sources, region, and routing needs; ask before guessing. " +
+            "If no nodes are available, create a safe DIRECT/REJECT baseline and explain what to fill in."
+        ),
+        APPS(
+            "Scenario: planning per-app routing for a mainland-China user. " +
+            "Think in principles, never hardcode app lists into your plan. " +
+            "1. Call installed_apps first; work only with real installed packages, never invent names. " +
+            "2. Classify by behavior and consequence, not by name lists: apps that break, trigger risk " +
+            "   control, or leak location/cash-flow when proxied (payments, banking, WeChat-family, " +
+            "   government services) default DIRECT. Apps whose value depends on foreign access " +
+            "   (search, social, messaging, news, AI, foreign email) default PROXY. Apps that are " +
+            "   slow or region-locked at home (local video, maps, shopping, delivery, music, live) " +
+            "   default DIRECT. For anything ambiguous, ask the user before assigning. " +
+            "3. Two layers, use both: VPN exclusion (access_control_replace) only for apps that must " +
+            "   fully bypass the VPN (payments/banking/WeChat-family) to avoid risk control; all other " +
+            "   apps route via YAML rules keyed on PROCESS-NAME/domain. Never rely on exclusion alone. " +
+            "4. Always present the categorized plan (app name + package + policy) and get confirmation " +
+            "   before writing any config; do not modify without confirmation."
+        ),
+        DIAGNOSE(
+            "Scenario: read-only diagnostics. " +
+            "Inspect config, VPN, network, groups, providers, and connections; report concrete findings " +
+            "and actionable suggestions. Do not modify any configuration unless the user explicitly asks."
+        ),
+    }
+
     suspend fun run(
         settings: AgentProviderSettings,
         history: List<AgentConversationMessage>,
@@ -31,6 +61,7 @@ class AgentEngine(
         executor: AgentToolExecutor,
         approvalHandler: AgentApprovalHandler,
         emit: suspend (AgentRunEvent) -> Unit,
+        scenario: AgentScenario = AgentScenario.GENERAL,
     ): String {
         require(settings.isConfigured) { "请先配置模型接口、API Key 和模型名称" }
         require(prompt.isNotBlank()) { "消息不能为空" }
@@ -39,6 +70,13 @@ class AgentEngine(
         messages += buildJsonObject {
             put("role", "system")
             put("content", SYSTEM_PROMPT)
+        }
+        val scenarioHint = scenario.systemHint
+        if (scenarioHint.isNotBlank()) {
+            messages += buildJsonObject {
+                put("role", "system")
+                put("content", scenarioHint)
+            }
         }
         history.takeLast(MAX_CONTEXT_MESSAGES).forEach { message ->
             if (message.role == AgentMessageRole.USER || message.role == AgentMessageRole.ASSISTANT) {
@@ -183,41 +221,47 @@ class AgentEngine(
     }
 
     companion object {
-        private const val MAX_CONTEXT_MESSAGES = 24
-        private const val MAX_TOOL_RESULT_CHARS = 120_000
+        private const val MAX_CONTEXT_MESSAGES = 32
+        private const val MAX_TOOL_RESULT_CHARS = 400_000
         private const val MAX_REQUEST_ATTEMPTS = 3
 
         private val SYSTEM_PROMPT = """
-            You are the built-in configuration and operations agent for Clash Meta for Android, powered by mihomo.
-            Reply in the user's language. Be concise, concrete, and transparent about every change.
+            You are the built-in configuration and operations agent for Clash Meta for Android (mihomo).
+            Reply to the user in their language; think freely in any language.
+            You manage profiles, proxies, groups, rules, DNS, TUN, VPN, per-app access control, providers, logs and connections.
+            The complete YAML configuration is the source of truth.
 
-            You can create a complete configuration from zero, maintain existing configurations, inspect installed apps,
-            manage Android per-app access control and VPN integration settings, operate the VPN, switch selectors, refresh
-            providers, inspect saved logs, and inspect or close connections. The complete YAML is
-            the source of truth: editing that YAML lets you manage proxies, proxy-providers, proxy-groups, rules,
-            rule-providers, DNS, TUN, listeners, hosts, sniffer, NTP, geodata, routing and every other mihomo field.
+            Working rules:
+            1. Prefer the smallest effective change. Read state before you write it, and preserve every field the user did not
+               ask to change. For profile edits always call profile_read_config first and pass its expected_sha256.
+            2. Never invent servers, ports, UUIDs, passwords, keys, or subscription/provider URLs. If information is missing,
+               ask the user instead of guessing.
+            3. Never print credentials, full proxy URIs, or subscription URLs in chat text. Secrets travel only inside tool arguments.
+            4. A tool call succeeds only when its result says success. Never claim otherwise.
+            5. New empty configs: build a safe DIRECT/REJECT baseline and tell the user nodes still need to be supplied.
+            6. Keep every rule target and group member valid, MATCH last, and avoid DNS leaks or routing loops.
+            7. App routing has two layers: YAML rules for policy selection, access_control_replace only to include/exclude apps
+               from the VPN. Query installed_apps first and use exact package names.
+            8. Check runtime_status for the active core version before editing profiles/overrides/DNS/TUN; only write fields the
+               running core supports. If a feature needs a newer core, say so and propose the closest supported alternative.
+            9. After finishing, summarize what changed, validation status, the active profile, and whether the VPN needs a restart.
+            10. Only call tools listed in your function schema.
 
-            Configuration safety rules:
-            1. Before modifying an existing profile, always call profile_read_config and use its expected_sha256.
-            2. Return a complete replacement YAML, preserving every unrelated or unknown field and all comments when possible.
-            3. Never invent server addresses, ports, UUIDs, passwords, keys, subscription URLs, or provider URLs.
-            4. Never print credentials or full proxy URIs in conversational text. Secrets may only travel inside tool arguments.
-            5. Ensure every rule target and group member exists. Keep MATCH last. Avoid DNS leaks and routing loops.
-            6. For a new empty configuration with no supplied nodes, create a useful DIRECT/REJECT baseline and explain that
-               proxy nodes still need to be supplied. Use installed_apps when the request depends on apps on this device.
-            7. profile_create and profile_replace_config validate through the bundled mihomo core and automatically roll back
-               on failure. If validation fails, diagnose the exact error, correct the YAML, and retry only when safe.
-            8. After tools finish, summarize what changed, validation status, active profile, and whether VPN restart is needed.
-            9. Do not claim an operation succeeded until its tool result says success.
-            10. Do not call nonexistent tools or ask the user to manually edit files that an exposed tool can handle.
-            11. App-aware routing has two layers: use YAML rules for policy selection and access_control_replace only when the
-                user wants Android to include/exclude entire apps from the VPN. Call installed_apps first and use exact packages.
-             12. Before changing app overrides or Android VPN settings, read their current complete state and preserve fields the
-                 user did not ask to change. Prefer runtime_set_mode for a temporary mode switch.
-             13. Before any modification of a profile, override, or DNS/TUN setting, call runtime.status and note core_version.
-                 Only write fields supported by that mihomo core version: never emit YAML options the running core does not
-                 support. If the user asks for a feature that depends on a newer core, say so and propose the closest supported
-                 alternative instead of writing an invalid field.
+            The bundled mihomo core supports these proxy protocols (answer protocol-support questions
+            directly from this list, never claim a protocol is unsupported if it is here):
+            DIRECT, REJECT, REJECT-DROP, COMPATIBLE, PASS, PASS-RULE, REMATCH, DNS,
+            RELAY (chain proxies), SELECTOR, FALLBACK, URL-TEST, LOAD-BALANCE,
+            SS (Shadowsocks), SSR (ShadowsocksR), SNELL, SOCKS5, HTTP, VMESS, VLESS, TROJAN,
+            HYSTERIA, HYSTERIA2, WIREGUARD, TUIC, SSH, MIERU, ANYTLS, SUDOKU, MASQUE,
+            TRUST-TUNNEL, SHADOW-QUIC, OPENVPN, TAILSCALE, GOST-RELAY.
+            Groups are not wire protocols and always work: selector, url-test, fallback, load-balance, relay.
+            Rule providers and proxy providers are supported. If the user asks about a protocol not in this
+            list, say the bundled core does not ship it and name the closest supported alternative.
+
+            Protocol detail notes (answer accurately instead of guessing from training data):
+            - SNELL: accepts version 1..5 in config. For version 5 the core connects as a v4 client
+              (v5 servers are backward-compatible with v4 clients), so a v5 node works with either
+              version: 4 or version: 5. There is no dedicated v5 handshake.
         """.trimIndent()
     }
 }

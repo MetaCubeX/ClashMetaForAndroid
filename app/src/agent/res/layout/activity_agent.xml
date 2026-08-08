@@ -115,36 +115,6 @@
         android:paddingVertical="8dp" />
 
     <LinearLayout
-        android:id="@+id/agent_progress_row"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center_vertical"
-        android:paddingHorizontal="18dp"
-        android:paddingVertical="6dp"
-        android:visibility="gone">
-
-        <ProgressBar
-            android:layout_width="18dp"
-            android:layout_height="18dp" />
-
-        <TextView
-            android:id="@+id/agent_progress_text"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="10dp"
-            android:layout_weight="1"
-            android:maxLines="2"
-            android:textAppearance="@style/TextAppearance.MaterialComponents.Body2" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/agent_stop"
-            style="@style/Widget.MaterialComponents.Button.TextButton"
-            android:layout_width="wrap_content"
-            android:layout_height="40dp"
-            android:text="@string/agent_stop" />
-    </LinearLayout>
-
-    <LinearLayout
         android:id="@+id/agent_composer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -174,20 +144,41 @@
                 android:singleLine="false" />
         </com.google.android.material.textfield.TextInputLayout>
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/agent_send"
-            style="@style/Widget.MaterialComponents.Button.Icon"
+        <FrameLayout
             android:layout_width="56dp"
             android:layout_height="56dp"
-            android:layout_marginStart="8dp"
-            android:contentDescription="@string/agent_send"
-            android:insetTop="0dp"
-            android:insetBottom="0dp"
-            android:minWidth="0dp"
-            android:padding="0dp"
-            app:icon="@drawable/ic_agent_send"
-            app:iconGravity="textStart"
-            app:iconPadding="0dp"
-            app:iconSize="24dp" />
+            android:layout_marginStart="8dp">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/agent_send"
+                style="@style/Widget.MaterialComponents.Button.Icon"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:contentDescription="@string/agent_send"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:minWidth="0dp"
+                android:padding="0dp"
+                app:icon="@drawable/ic_agent_send"
+                app:iconGravity="textStart"
+                app:iconPadding="0dp"
+                app:iconSize="24dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/agent_stop"
+                style="@style/Widget.MaterialComponents.Button.Icon"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:contentDescription="@string/agent_stop"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:minWidth="0dp"
+                android:padding="0dp"
+                android:visibility="gone"
+                app:icon="@drawable/ic_agent_stop"
+                app:iconGravity="textStart"
+                app:iconPadding="0dp"
+                app:iconSize="24dp" />
+        </FrameLayout>
     </LinearLayout>
 </LinearLayout>

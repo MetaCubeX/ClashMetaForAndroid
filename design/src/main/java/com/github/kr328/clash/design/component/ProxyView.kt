@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Path
+import android.graphics.RectF
 import android.view.View
 import com.github.kr328.clash.common.compat.getDrawableCompat
 import com.github.kr328.clash.design.store.UiStore
@@ -133,13 +134,27 @@ class ProxyView(
 
         val delayWidth = state.rect.width()
 
-        val mainTextWidth = (width -
+        var mainTextWidth = (width -
                 state.config.layoutPadding * 2 -
                 state.config.contentPadding * 2 -
                 delayWidth -
                 state.config.textMargin * 2
                 )
             .coerceAtLeast(0f)
+
+        // measure chain badge before title so the title gets the remaining space
+        var badgeWidth = 0f
+        var badgeGap = 0f
+        if (state.hasChain && state.chainLabel.isNotEmpty()) {
+            val badgeTextSize = state.config.textSize * 0.62f
+            paint.reset()
+            paint.textSize = badgeTextSize
+            val labelWidth = paint.measureText(state.chainLabel)
+            val badgePaddingX = badgeTextSize * 0.5f
+            badgeWidth = labelWidth + badgePaddingX * 2
+            badgeGap = state.config.textMargin
+            mainTextWidth = (mainTextWidth - badgeWidth - badgeGap).coerceAtLeast(0f)
+        }
 
         // measure title text bounds
         val titleCount = paint.breakText(
@@ -150,6 +165,8 @@ class ProxyView(
         )
 
         // measure subtitle text bounds
+        paint.reset()
+        paint.textSize = state.config.textSize
         val subtitleCount = paint.breakText(
             state.subtitle,
             false,
@@ -175,12 +192,53 @@ class ProxyView(
         }
 
         // draw title
-        canvas.apply {
-            val x = state.config.layoutPadding + state.config.contentPadding
-            val y = state.config.layoutPadding +
-                    (height - state.config.layoutPadding * 2) / 3f - textOffset
+        val titleX = state.config.layoutPadding + state.config.contentPadding
+        val titleY = state.config.layoutPadding +
+                (height - state.config.layoutPadding * 2) / 3f - textOffset
 
-            drawText(state.title, 0, titleCount, x, y, paint)
+        canvas.apply {
+            drawText(state.title, 0, titleCount, titleX, titleY, paint)
+        }
+
+        // draw chain badge right after the title line
+        if (state.hasChain && state.chainLabel.isNotEmpty()) {
+            val badgeTextSize = state.config.textSize * 0.62f
+            val badgeHeight = state.config.textSize * 1.15f
+
+            val titleWidth = paint.measureText(state.title, 0, titleCount)
+            val bx = (titleX + titleWidth + state.config.textMargin * 2)
+                .coerceAtLeast(titleX)
+            val by = state.config.layoutPadding + state.config.textSize * 0.18f
+
+            val badgeRect = RectF(
+                bx,
+                by,
+                bx + badgeWidth,
+                by + badgeHeight
+            )
+
+            // When selected the card background is already primary: invert the badge.
+            val badgeFill = if (state.isSelected) state.config.onPrimary else state.config.primary
+            val badgeText = if (state.isSelected) state.config.primary else state.config.onPrimary
+
+            paint.reset()
+            paint.isAntiAlias = true
+            paint.color = badgeFill
+            paint.style = Paint.Style.FILL
+
+            canvas.drawRoundRect(badgeRect, badgeHeight / 2f, badgeHeight / 2f, paint)
+
+            paint.color = badgeText
+            paint.textSize = badgeTextSize
+            paint.style = Paint.Style.FILL
+
+            val baseline = badgeRect.centerY() - (paint.descent() + paint.ascent()) / 2f
+            canvas.drawText(
+                state.chainLabel,
+                badgeRect.left + badgeTextSize * 0.5f,
+                baseline,
+                paint
+            )
         }
 
         // draw subtitle

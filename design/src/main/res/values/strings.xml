@@ -376,7 +376,10 @@
     <string name="shortcut_stop_long">Stop Clash service</string>
 
     <string name="chain_detail">Chain Details</string>
+    <string name="chain_badge">Chain</string>
     <string name="chain_entry">Entry</string>
     <string name="chain_middle">Hop</string>
     <string name="chain_exit">Exit</string>
+    <string name="chain_secret_masked">Secret masked, tap to show</string>
+    <string name="chain_secret_revealed">Tap again to hide</string>
 </resources>

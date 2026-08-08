@@ -3,7 +3,9 @@
 import com.android.build.gradle.AppExtension
 import com.android.build.gradle.BaseExtension
 import java.net.URL
+import java.io.ByteArrayOutputStream
 import java.util.*
+import java.security.MessageDigest
 
 buildscript {
     repositories {
@@ -32,6 +34,39 @@ subprojects {
         listOf("arm64-v8a")
     } else {
         listOf("arm64-v8a", "armeabi-v7a", "x86", "x86_64")
+    }
+
+    // Monotonic versionCode derived from git history. Counts every commit reachable
+    // from HEAD, so it only grows over time and differs per build/CI checkout.
+    // floor(versionCode / 1000) groups builds into "major.minor" blocks; the
+    // remainder is the per-release sequence, mirroring the upstream 2.11.32 -> 211032
+    // convention (versionCode = major * 10000 + minor * 100 + sequence).
+    val buildVersionCode: Int by lazy {
+        val base = 211032
+        val commits = try {
+            val stdout = ByteArrayOutputStream()
+            exec {
+                commandLine("git", "rev-list", "--count", "HEAD")
+                standardOutput = stdout
+            }
+            stdout.toString().trim().toIntOrNull() ?: 0
+        } catch (e: Exception) {
+            0
+        }
+        base + commits
+    }
+
+    // The development signing key must stay stable across machines so every
+    // build can update previous installs without data loss. If it is missing,
+    // fail fast with a hint instead of silently creating a fresh key.
+    val agentDebugKeystore = file(System.getProperty("user.home") + "/.android/debug.keystore")
+    if (isApp && !agentDebugKeystore.exists()) {
+        throw GradleException(
+            "Missing development keystore ${agentDebugKeystore}. " +
+            "Copy the repository's backed-up key to this path (see docs/SIGNING.md) " +
+            "or restore it from CI secret AGENT_DEBUG_KEYSTORE, otherwise updates " +
+            "would lose installed-app data."
+        )
     }
 
     apply(plugin = if (isApp) "com.android.application" else "com.android.library")
@@ -64,7 +99,7 @@ subprojects {
             targetSdk = 35
 
             versionName = "2.11.32"
-            versionCode = 211032
+            versionCode = buildVersionCode
 
             resValue("string", "release_name", "v$versionName")
             resValue("integer", "release_code", "$versionCode")
@@ -174,6 +209,29 @@ subprojects {
                 keyPassword = "android"
             }
 
+            if (isApp) {
+                // Debug/release signing identity must be stable for updates to install
+                // without wiping app data. The keystore backup workflow is documented in
+                // docs/SIGNING.md; CI restores the same key from AGENT_DEBUG_KEYSTORE.
+                val debugKeystore = file(System.getProperty("user.home") + "/.android/debug.keystore")
+                if (debugKeystore.exists()) {
+                    val expectedSha256 = providers.gradleProperty("expectedDebugKeySha256").orNull
+                    if (expectedSha256 != null) {
+                        val actual = debugKeystore.inputStream().use { input ->
+                            MessageDigest.getInstance("SHA-256")
+                                .digest(input.readBytes())
+                                .joinToString("") { "%02x".format(it) }
+                        }
+                        if (!actual.equals(expectedSha256, ignoreCase = true)) {
+                            throw GradleException(
+                                "Debug keystore SHA-256 mismatch: expected $expectedSha256, got $actual. " +
+                                "Restore the stable key (see docs/SIGNING.md) before building."
+                            )
+                        }
+                    }
+                }
+            }
+
             val keystore = rootProject.file("signing.properties")
             if (keystore.exists()) {
                 create("release") {
@@ -193,7 +251,22 @@ subprojects {
             named("release") {
                 isMinifyEnabled = isApp
                 isShrinkResources = isApp
-                signingConfig = signingConfigs.findByName("release") ?: signingConfigs["debug"]
+                // Never silently fall back to the debug key for a release build:
+                // that would change the signing identity and break updates.
+                val requestedTasks = gradle.startParameter.taskNames.joinToString(" ")
+                val buildingRelease = requestedTasks.split(" ").any { it.contains("Release", ignoreCase = true) || it.contains("release", ignoreCase = true) }
+                if (buildingRelease) {
+                    val releaseConfig = signingConfigs.findByName("release")
+                    if (releaseConfig == null) {
+                        throw GradleException(
+                            "Release builds require signing.properties with the production keystore. " +
+                            "See docs/SIGNING.md. Refusing to sign release with the debug key."
+                        )
+                    }
+                    signingConfig = releaseConfig
+                } else {
+                    signingConfig = signingConfigs.findByName("release") ?: signingConfigs["debug"]
+                }
                 proguardFiles(
                     getDefaultProguardFile("proguard-android-optimize.txt"),
                     "proguard-rules.pro"

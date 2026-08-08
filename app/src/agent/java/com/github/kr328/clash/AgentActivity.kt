@@ -5,8 +5,9 @@ import android.content.DialogInterface
 import android.net.Uri
 import android.view.View
 import android.view.inputmethod.InputMethodManager
+import android.widget.ArrayAdapter
+import android.widget.AutoCompleteTextView
 import android.widget.EditText
-import android.widget.RadioGroup
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
@@ -14,48 +15,39 @@ import androidx.core.content.getSystemService
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.github.kr328.clash.agent.AgentChatAdapter
+import com.github.kr328.clash.agent.AgentRunController
 import com.github.kr328.clash.agent.AgentScreenDesign
-import com.github.kr328.clash.agent.AndroidAgentToolExecutor
 import com.github.kr328.clash.agent.SmoothMarkdownStream
 import com.github.kr328.clash.agent.authorization.AgentAuthorizationMode
 import com.github.kr328.clash.agent.model.AgentConversationMessage
+import com.github.kr328.clash.agent.model.AgentApiFormat
 import com.github.kr328.clash.agent.model.AgentMessageRole
 import com.github.kr328.clash.agent.model.AgentProviderSettings
-import com.github.kr328.clash.agent.model.AgentRunEvent
 import com.github.kr328.clash.agent.protocol.OpenAICompatibleClient
-import com.github.kr328.clash.agent.runtime.AgentApprovalHandler
-import com.github.kr328.clash.agent.runtime.AgentEngine
+import com.github.kr328.clash.agent.runtime.AgentEngine.AgentScenario
 import com.github.kr328.clash.agent.settings.AgentConversationStore
 import com.github.kr328.clash.agent.settings.AgentSettingsStore
 import com.github.kr328.clash.agent.tools.AgentToolSpec
-import com.github.kr328.clash.remote.Remote
-import com.github.kr328.clash.util.startClashService
-import com.github.kr328.clash.util.stopClashService
-import com.github.kr328.clash.util.withProfile
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textfield.TextInputEditText
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
-import kotlinx.coroutines.withContext
 import java.util.UUID
 import kotlin.coroutines.resume
 
 class AgentActivity : BaseActivity<AgentScreenDesign>() {
     private val settingsStore by lazy { AgentSettingsStore(this) }
     private val conversationStore by lazy { AgentConversationStore(this) }
-    private var generation: Job? = null
     private lateinit var adapter: AgentChatAdapter
     private lateinit var recycler: RecyclerView
     private lateinit var input: TextInputEditText
     private lateinit var modelStatus: TextView
-    private lateinit var progressRow: View
-    private lateinit var progressText: TextView
     private lateinit var suggestions: View
+    private var smoothStream: SmoothMarkdownStream? = null
+    private var streamJob: Job? = null
     private var streamingMessageId: String? = null
     private var followOutput = true
     private var scrollScheduled = false
@@ -65,6 +57,13 @@ class AgentActivity : BaseActivity<AgentScreenDesign>() {
         setContentDesign(screen)
         bindViews(screen.root)
         updateModelStatus()
+        AgentRunController.bindActivity(
+            vpnConsent = { intent -> this@AgentActivity.startActivityForResultSuspend(intent) },
+            approval = { tool, summary -> approve(tool, summary) },
+        )
+
+        // Resume rendering of a background run (e.g. user re-entered mid-run).
+        observeRun()
 
         while (isActive) events.receive()
     }
@@ -73,8 +72,6 @@ class AgentActivity : BaseActivity<AgentScreenDesign>() {
         recycler = root.findViewById(R.id.agent_messages)
         input = root.findViewById(R.id.agent_input)
         modelStatus = root.findViewById(R.id.agent_model_status)
-        progressRow = root.findViewById(R.id.agent_progress_row)
-        progressText = root.findViewById(R.id.agent_progress_text)
         suggestions = root.findViewById(R.id.agent_suggestions_container)
         adapter = AgentChatAdapter(this, conversationStore.load().toMutableList()) { messageId ->
             if (followOutput && messageId == streamingMessageId) scheduleScrollToEnd()
@@ -98,16 +95,16 @@ class AgentActivity : BaseActivity<AgentScreenDesign>() {
         root.findViewById<View>(R.id.agent_settings).setOnClickListener { showSettings() }
         root.findViewById<View>(R.id.agent_clear).setOnClickListener { confirmClear() }
         root.findViewById<View>(R.id.agent_send).setOnClickListener { sendCurrentMessage() }
-        root.findViewById<View>(R.id.agent_stop).setOnClickListener { generation?.cancel() }
+        root.findViewById<View>(R.id.agent_stop).setOnClickListener { AgentRunController.cancel() }
 
         root.findViewById<View>(R.id.agent_suggest_create).setOnClickListener {
-            submitPrompt("请从零开始帮我创建一份可用配置。先了解我的节点来源、使用地区和分流需求；如果没有节点，先创建安全的 DIRECT/REJECT 基础配置。")
+            submitPrompt("请从零开始帮我创建一份可用配置。", AgentScenario.CREATE)
         }
         root.findViewById<View>(R.id.agent_suggest_apps).setOnClickListener {
-            submitPrompt("请读取我安装的应用，帮我规划应用级分流。先列出建议分类并询问我的偏好，确认后再修改配置。")
+            submitPrompt("请读取我安装的应用，帮我规划应用级分流。", AgentScenario.APPS)
         }
         root.findViewById<View>(R.id.agent_suggest_diagnose).setOnClickListener {
-            submitPrompt("请检查当前配置、VPN、网络、代理组、Provider 和活动连接状态，诊断明显问题并给出可执行建议；只读检查不需要询问。")
+            submitPrompt("请检查当前配置、VPN、网络、代理组、Provider 和活动连接状态，诊断明显问题并给出可执行建议。", AgentScenario.DIAGNOSE)
         }
         if (!settingsStore.load().isConfigured) root.post { showSettings() }
     }
@@ -120,8 +117,11 @@ class AgentActivity : BaseActivity<AgentScreenDesign>() {
         submitPrompt(text)
     }
 
-    private fun submitPrompt(prompt: String) {
-        if (generation?.isActive == true) return
+    private fun submitPrompt(prompt: String, scenario: AgentScenario = AgentScenario.GENERAL) {
+        if (AgentRunController.isRunning) {
+            Toast.makeText(this, "AI 正在处理中，请先停止再发送新消息", Toast.LENGTH_SHORT).show()
+            return
+        }
         val settings = settingsStore.load()
         if (!settings.isConfigured) {
             input.setText(prompt)
@@ -133,72 +133,101 @@ class AgentActivity : BaseActivity<AgentScreenDesign>() {
         val history = adapter.messages.toList()
         val userMessage = message(AgentMessageRole.USER, prompt)
         adapter.append(userMessage)
-        val assistantMessage = message(AgentMessageRole.ASSISTANT, "")
+        val assistantMessage = message(AgentMessageRole.ASSISTANT, "").copy(running = true)
         val assistantPosition = adapter.append(assistantMessage)
         streamingMessageId = assistantMessage.id
         followOutput = true
         updateSuggestionsVisibility()
         scrollToEnd()
-        setRunning(true, "正在连接 ${settings.model}…")
+        conversationStore.save(adapter.messages)
 
-        generation = launch {
-            val smoothStream = SmoothMarkdownStream { visibleText ->
-                adapter.replace(
-                    assistantPosition,
-                    assistantMessage.copy(content = visibleText),
-                    streaming = true,
-                )
-            }
-            try {
-                val executor = AndroidAgentToolExecutor(
-                    context = this@AgentActivity,
-                    startVpn = { startVpnFromAgent() },
-                    stopVpn = { stopClashService() },
-                )
-                val finalText = AgentEngine().run(
-                    settings = settings,
-                    history = history,
-                    prompt = prompt,
-                    executor = executor,
-                    approvalHandler = AgentApprovalHandler { tool, _, summary -> approve(tool, summary) },
-                ) { event -> withContext(Dispatchers.Main.immediate) {
-                    when (event) {
-                        is AgentRunEvent.Thinking -> progressText.text = "正在思考 · 规划第 ${event.round} 步…"
-                        is AgentRunEvent.Streaming -> {
-                            progressText.text = "正在生成回复…"
-                            smoothStream.submit(event.text)
-                        }
-                        is AgentRunEvent.ToolStarted -> progressText.text = event.summary
-                        is AgentRunEvent.ToolFinished -> progressText.text =
-                            (if (event.success) "✓ " else "⚠ ") + event.summary
-                        is AgentRunEvent.Failed -> progressText.text = event.message
-                        is AgentRunEvent.Completed -> Unit
-                    }
-                } }
-                smoothStream.finish(finalText)
-                adapter.replace(assistantPosition, assistantMessage.copy(content = finalText))
-            } catch (_: CancellationException) {
-                val preserved = smoothStream.currentText().trimEnd()
-                val content = if (preserved.isBlank()) {
-                    "已停止本次操作。"
-                } else {
-                    "$preserved\n\n> 已停止本次操作。"
-                }
-                adapter.replace(assistantPosition, assistantMessage.copy(content = content))
-            } catch (error: Throwable) {
-                val detail = error.message?.take(1200) ?: error.javaClass.simpleName
-                adapter.replace(
-                    assistantPosition,
-                    assistantMessage.copy(content = "操作未完成：$detail", isError = true),
-                )
-            } finally {
-                smoothStream.cancel()
-                conversationStore.save(adapter.messages)
-                setRunning(false, "")
-                if (followOutput) scrollToEnd()
-                streamingMessageId = null
+        AgentRunController.submit(
+            context = this,
+            settings = settings,
+            history = history,
+            prompt = prompt,
+            scenario = scenario,
+            assistantId = assistantMessage.id,
+            store = conversationStore,
+        )
+        renderRunningUi()
+    }
+
+    private fun renderRunningUi() {
+        val running = AgentRunController.isRunning
+        design?.root?.findViewById<View>(R.id.agent_send)?.visibility = if (running) View.GONE else View.VISIBLE
+        design?.root?.findViewById<View>(R.id.agent_stop)?.visibility = if (running) View.VISIBLE else View.GONE
+        input.isEnabled = true
+        design?.root?.findViewById<View>(R.id.agent_settings)?.isEnabled = true
+    }
+
+    private fun observeRun() {
+        streamJob?.cancel()
+        streamJob = launch {
+            AgentRunController.state.collectLatest { state ->
+                renderRunState(state)
             }
         }
+    }
+
+    private fun renderRunState(state: AgentRunController.RunState) {
+        if (!::adapter.isInitialized) return
+        renderRunningUi()
+
+        val id = state.messageId ?: return
+        val index = adapter.messages.indexOfFirst { it.id == id }
+        if (index < 0) {
+            // Run belongs to a session that was cleared; nothing to render.
+            return
+        }
+
+        streamingMessageId = id
+        val current = adapter.messages[index]
+        val content = if (state.error != null) "操作未完成：${state.error}" else state.streamed
+
+        // Always keep the trace panel in sync with the latest step, even while
+        // text streaming owns the markdown updates.
+        adapter.updateTrace(index, state.trace, state.running)
+
+        val stream = smoothStream
+        if (state.running) {
+            if (stream == null) {
+                smoothStream = SmoothMarkdownStream { visible ->
+                    val pos = adapter.messages.indexOfFirst { it.id == id }
+                    if (pos >= 0) {
+                        // Preserve whatever trace updateTrace already stored; only
+                        // the streamed text changes here.
+                        adapter.replace(
+                            pos,
+                            adapter.messages[pos].copy(content = visible, running = true),
+                            streaming = true,
+                        )
+                    }
+                }.also { it.submit(state.streamed) }
+            } else {
+                stream.submit(state.streamed)
+            }
+        } else {
+            stream?.cancel()
+            smoothStream = null
+            adapter.replace(
+                index,
+                current.copy(
+                    content = content,
+                    trace = state.trace,
+                    running = false,
+                    isError = state.error != null,
+                ),
+                streaming = false,
+            )
+            streamingMessageId = null
+        }
+    }
+
+
+    private suspend fun startActivityForResultSuspend(intent: android.content.Intent): Int {
+        return startActivityForResult(ActivityResultContracts.StartActivityForResult(), intent)
+            .resultCode
     }
 
     private suspend fun approve(tool: AgentToolSpec, summary: String): Boolean =
@@ -226,21 +255,50 @@ class AgentActivity : BaseActivity<AgentScreenDesign>() {
         }
 
     private fun showSettings() {
-        if (generation?.isActive == true) return
         val current = settingsStore.load()
         val view = layoutInflater.inflate(R.layout.dialog_agent_settings, null, false)
         val baseUrl = view.findViewById<EditText>(R.id.agent_setting_base_url)
         val apiKey = view.findViewById<EditText>(R.id.agent_setting_api_key)
         val model = view.findViewById<EditText>(R.id.agent_setting_model)
-        val authorization = view.findViewById<RadioGroup>(R.id.agent_setting_authorization)
+        val apiFormat = view.findViewById<AutoCompleteTextView>(R.id.agent_setting_api_format)
+        val authorization = view.findViewById<AutoCompleteTextView>(R.id.agent_setting_authorization)
         baseUrl.setText(current.baseUrl)
         apiKey.setText(current.apiKey)
         model.setText(current.model)
-        authorization.check(when (current.authorizationMode) {
-            AgentAuthorizationMode.CAUTIOUS -> R.id.agent_auth_cautious
-            AgentAuthorizationMode.BALANCED -> R.id.agent_auth_balanced
-            AgentAuthorizationMode.FULL_AUTO -> R.id.agent_auth_full
-        })
+        apiFormat.setAdapter(ArrayAdapter(
+            this,
+            android.R.layout.simple_list_item_1,
+            listOf(
+                getString(R.string.agent_format_chat),
+                getString(R.string.agent_format_responses),
+            ),
+        ))
+        apiFormat.setText(
+            if (current.apiFormat == AgentApiFormat.RESPONSES) {
+                getString(R.string.agent_format_responses)
+            } else {
+                getString(R.string.agent_format_chat)
+            },
+            false,
+        )
+        val authOptions = listOf(
+            getString(R.string.agent_auth_cautious),
+            getString(R.string.agent_auth_balanced),
+            getString(R.string.agent_auth_full),
+        )
+        authorization.setAdapter(ArrayAdapter(
+            this,
+            android.R.layout.simple_list_item_1,
+            authOptions,
+        ))
+        authorization.setText(
+            when (current.authorizationMode) {
+                AgentAuthorizationMode.CAUTIOUS -> getString(R.string.agent_auth_cautious)
+                AgentAuthorizationMode.BALANCED -> getString(R.string.agent_auth_balanced)
+                AgentAuthorizationMode.FULL_AUTO -> getString(R.string.agent_auth_full)
+            },
+            false,
+        )
 
         val horizontalMargin = (24 * resources.displayMetrics.density).toInt()
         val dialog = MaterialAlertDialogBuilder(this)
@@ -254,7 +312,7 @@ class AgentActivity : BaseActivity<AgentScreenDesign>() {
         dialog.setOnShowListener {
             val testButton = dialog.getButton(DialogInterface.BUTTON_NEUTRAL)
             testButton.setOnClickListener {
-                val candidate = readProviderSettings(baseUrl, apiKey, model, authorization, current)
+                val candidate = readProviderSettings(baseUrl, apiKey, model, apiFormat, authorization, current)
                     ?: return@setOnClickListener
                 testButton.isEnabled = false
                 testButton.setText(R.string.agent_testing_connection)
@@ -275,18 +333,15 @@ class AgentActivity : BaseActivity<AgentScreenDesign>() {
                 }
             }
             dialog.getButton(DialogInterface.BUTTON_POSITIVE).setOnClickListener {
-                val candidate = readProviderSettings(baseUrl, apiKey, model, authorization, current)
+                val candidate = readProviderSettings(baseUrl, apiKey, model, apiFormat, authorization, current)
                     ?: return@setOnClickListener
                 runCatching { settingsStore.save(candidate) }.onFailure {
-                    apiKey.error = it.message ?: "API Key 保存失败"
-                    return@setOnClickListener
+                    Toast.makeText(this, "保存失败：${it.message}", Toast.LENGTH_SHORT).show()
                 }
                 updateModelStatus()
                 dialog.dismiss()
-                if (input.text?.isNotBlank() == true) input.requestFocus()
             }
         }
-        dialog.setOnDismissListener { testJob?.cancel() }
         dialog.show()
     }
 
@@ -294,7 +349,8 @@ class AgentActivity : BaseActivity<AgentScreenDesign>() {
         baseUrl: EditText,
         apiKey: EditText,
         model: EditText,
-        authorization: RadioGroup,
+        apiFormat: AutoCompleteTextView,
+        authorization: AutoCompleteTextView,
         current: AgentProviderSettings,
     ): AgentProviderSettings? {
         val normalizedUrl = baseUrl.text.toString().trim()
@@ -314,41 +370,38 @@ class AgentActivity : BaseActivity<AgentScreenDesign>() {
             model.error = "请输入模型名称"
             return null
         }
-        val mode = when (authorization.checkedRadioButtonId) {
-            R.id.agent_auth_cautious -> AgentAuthorizationMode.CAUTIOUS
-            R.id.agent_auth_full -> AgentAuthorizationMode.FULL_AUTO
+        val mode = when (authorization.text?.toString()) {
+            getString(R.string.agent_auth_cautious) -> AgentAuthorizationMode.CAUTIOUS
+            getString(R.string.agent_auth_full) -> AgentAuthorizationMode.FULL_AUTO
             else -> AgentAuthorizationMode.BALANCED
         }
-        return AgentProviderSettings(normalizedUrl, modelName, key, mode, current.maxToolRounds)
+        val format = if (apiFormat.text?.toString() == getString(R.string.agent_format_responses)) {
+            AgentApiFormat.RESPONSES
+        } else {
+            AgentApiFormat.CHAT_COMPLETIONS
+        }
+        return AgentProviderSettings(
+            normalizedUrl, modelName, key, format, mode, current.maxToolRounds
+        )
     }
 
     private fun confirmClear() {
-        if (generation?.isActive == true || adapter.messages.isEmpty()) return
+        if (AgentRunController.isRunning || adapter.messages.isEmpty()) {
+            if (AgentRunController.isRunning) {
+                Toast.makeText(this, "AI 正在处理中，请先停止再清空", Toast.LENGTH_SHORT).show()
+            }
+            return
+        }
         MaterialAlertDialogBuilder(this)
             .setMessage(R.string.agent_clear_confirm)
             .setNegativeButton(R.string.agent_cancel, null)
             .setPositiveButton(R.string.agent_clear) { _, _ ->
                 adapter.clear()
                 conversationStore.clear()
+                AgentRunController.clearPending()
                 updateSuggestionsVisibility()
             }
             .show()
-    }
-
-    private suspend fun startVpnFromAgent(): Boolean {
-        val active = withProfile { queryActive() }
-        if (active == null || !active.imported) return false
-        val request = startClashService()
-        if (request != null) {
-            val result = startActivityForResult(ActivityResultContracts.StartActivityForResult(), request)
-            if (result.resultCode != Activity.RESULT_OK) return false
-            startClashService()
-        }
-        repeat(100) {
-            if (Remote.broadcasts.clashRunning) return true
-            delay(100)
-        }
-        return false
     }
 
     private fun updateModelStatus() {
@@ -361,14 +414,6 @@ class AgentActivity : BaseActivity<AgentScreenDesign>() {
                 AgentAuthorizationMode.FULL_AUTO -> "全部自动放行"
             }}"
         } else getString(R.string.agent_not_configured)
-    }
-
-    private fun setRunning(running: Boolean, status: String) {
-        progressRow.visibility = if (running) View.VISIBLE else View.GONE
-        progressText.text = status
-        input.isEnabled = !running
-        design?.root?.findViewById<View>(R.id.agent_send)?.isEnabled = !running
-        design?.root?.findViewById<View>(R.id.agent_settings)?.isEnabled = !running
     }
 
     private fun scrollToEnd() {
@@ -401,11 +446,13 @@ class AgentActivity : BaseActivity<AgentScreenDesign>() {
     }
 
     override fun onDestroy() {
+        streamJob?.cancel()
+        smoothStream?.cancel()
+        AgentRunController.bindActivity(null, null)
         if (::adapter.isInitialized) adapter.close()
         super.onDestroy()
     }
 
     private fun message(role: AgentMessageRole, content: String, isError: Boolean = false) =
         AgentConversationMessage(UUID.randomUUID().toString(), role, content, isError = isError)
-
 }

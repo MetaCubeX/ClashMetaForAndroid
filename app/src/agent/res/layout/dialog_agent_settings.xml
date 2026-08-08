@@ -50,20 +50,32 @@
                 android:inputType="text" />
         </com.google.android.material.textfield.TextInputLayout>
 
-        <TextView
+        <com.google.android.material.textfield.TextInputLayout
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="@string/agent_authorization"
-            android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1" />
+            android:layout_marginTop="10dp"
+            android:hint="@string/agent_api_format">
 
-        <RadioGroup
-            android:id="@+id/agent_setting_authorization"
+            <AutoCompleteTextView
+                android:id="@+id/agent_setting_api_format"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="none" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-            <RadioButton android:id="@+id/agent_auth_cautious" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/agent_auth_cautious" />
-            <RadioButton android:id="@+id/agent_auth_balanced" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/agent_auth_balanced" />
-            <RadioButton android:id="@+id/agent_auth_full" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/agent_auth_full" />
-        </RadioGroup>
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:hint="@string/agent_authorization">
+
+            <AutoCompleteTextView
+                android:id="@+id/agent_setting_authorization"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="none" />
+        </com.google.android.material.textfield.TextInputLayout>
     </LinearLayout>
 </ScrollView>

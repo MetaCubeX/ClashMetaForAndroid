@@ -6,26 +6,102 @@
     android:paddingHorizontal="4dp"
     android:paddingVertical="4dp">
 
-    <com.google.android.material.card.MaterialCardView
-        android:id="@+id/agent_message_card"
+    <LinearLayout
+        android:id="@+id/agent_message_wrap"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="start"
-        android:maxWidth="340dp"
-        app:cardCornerRadius="16dp"
-        app:cardElevation="0dp"
-        app:strokeWidth="1dp">
+        android:orientation="vertical">
 
-        <TextView
-            android:id="@+id/agent_message_text"
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/agent_trace_card"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:includeFontPadding="false"
-            android:lineSpacingExtra="2dp"
-            android:minWidth="48dp"
-            android:paddingHorizontal="14dp"
-            android:paddingVertical="11dp"
-            android:textAppearance="@style/TextAppearance.MaterialComponents.Body1"
-            android:textIsSelectable="true" />
-    </com.google.android.material.card.MaterialCardView>
+            android:layout_marginBottom="4dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:maxWidth="340dp"
+            android:visibility="gone"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="0dp"
+            app:strokeWidth="1dp">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:id="@+id/agent_trace_header"
+                    android:layout_width="wrap_content"
+                    android:layout_height="44dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingStart="12dp"
+                    android:paddingEnd="12dp">
+
+                    <ProgressBar
+                        android:id="@+id/agent_trace_progress"
+                        android:layout_width="16dp"
+                        android:layout_height="16dp"
+                        android:indeterminateTint="?attr/colorPrimary"
+                        android:visibility="gone" />
+
+                    <TextView
+                        android:id="@+id/agent_trace_chevron"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="6dp"
+                        android:text="▸"
+                        android:textSize="11sp" />
+
+                    <TextView
+                        android:id="@+id/agent_trace_title"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="6dp"
+                        android:layout_weight="1"
+                        android:ellipsize="end"
+                        android:maxLines="1"
+                        android:textAppearance="@style/TextAppearance.MaterialComponents.Body2" />
+
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/agent_trace_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:lineSpacingExtra="2dp"
+                    android:maxWidth="316dp"
+                    android:paddingStart="12dp"
+                    android:paddingEnd="12dp"
+                    android:paddingBottom="10dp"
+                    android:textAppearance="@style/TextAppearance.MaterialComponents.Caption"
+                    android:textIsSelectable="true"
+                    android:visibility="gone" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/agent_message_card"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:maxWidth="340dp"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="0dp"
+            app:strokeWidth="1dp">
+
+            <TextView
+                android:id="@+id/agent_message_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:includeFontPadding="false"
+                android:lineSpacingExtra="2dp"
+                android:minWidth="48dp"
+                android:paddingHorizontal="14dp"
+                android:paddingVertical="11dp"
+                android:textAppearance="@style/TextAppearance.MaterialComponents.Body1"
+                android:textIsSelectable="true" />
+        </com.google.android.material.card.MaterialCardView>
+    </LinearLayout>
 </FrameLayout>

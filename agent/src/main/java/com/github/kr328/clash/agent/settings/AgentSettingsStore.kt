@@ -6,6 +6,7 @@ import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import android.util.Base64
 import com.github.kr328.clash.agent.authorization.AgentAuthorizationMode
+import com.github.kr328.clash.agent.model.AgentApiFormat
 import com.github.kr328.clash.agent.model.AgentProviderSettings
 import java.security.KeyStore
 import javax.crypto.Cipher
@@ -20,6 +21,11 @@ class AgentSettingsStore(context: Context) {
         baseUrl = preferences.getString(KEY_BASE_URL, DEFAULT_BASE_URL).orEmpty(),
         model = preferences.getString(KEY_MODEL, "").orEmpty(),
         apiKey = decrypt(preferences.getString(KEY_API_KEY, "").orEmpty()),
+        apiFormat = runCatching {
+            AgentApiFormat.valueOf(
+                preferences.getString(KEY_API_FORMAT, AgentApiFormat.CHAT_COMPLETIONS.name).orEmpty()
+            )
+        }.getOrDefault(AgentApiFormat.CHAT_COMPLETIONS),
         authorizationMode = runCatching {
             AgentAuthorizationMode.valueOf(
                 preferences.getString(KEY_AUTHORIZATION, AgentAuthorizationMode.BALANCED.name).orEmpty()
@@ -33,6 +39,7 @@ class AgentSettingsStore(context: Context) {
             .putString(KEY_BASE_URL, normalizeBaseUrl(settings.baseUrl))
             .putString(KEY_MODEL, settings.model.trim())
             .putString(KEY_API_KEY, encrypt(settings.apiKey.trim()))
+            .putString(KEY_API_FORMAT, settings.apiFormat.name)
             .putString(KEY_AUTHORIZATION, settings.authorizationMode.name)
             .putInt(KEY_MAX_ROUNDS, settings.maxToolRounds.coerceIn(4, 24))
             .apply()
@@ -90,6 +97,7 @@ class AgentSettingsStore(context: Context) {
     companion object {
         private const val PREFERENCES = "agent_settings"
         private const val KEY_BASE_URL = "base_url"
+        private const val KEY_API_FORMAT = "api_format"
         private const val KEY_MODEL = "model"
         private const val KEY_API_KEY = "api_key"
         private const val KEY_AUTHORIZATION = "authorization"

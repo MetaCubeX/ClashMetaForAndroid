@@ -1,6 +1,8 @@
 package tunnel
 
 import (
+	"fmt"
+	"reflect"
 	"sort"
 	"strings"
 
@@ -29,6 +31,27 @@ type Proxy struct {
 	Delay    int      `json:"delay"`
 	IsGroup  bool     `json:"isGroup"`
 	Chain    []string `json:"chain,omitempty"`
+	// Server is the dial address (host:port) of the proxy, when available.
+	Server string `json:"server,omitempty"`
+	// ChainDetail carries per-hop metadata for the dialer-proxy chain. Each
+	// element pairs a node name with its server address (or empty when the
+	// node is a group / has no address).
+	ChainDetail []ProxyChainNode `json:"chainDetail,omitempty"`
+}
+
+type ProxyChainNode struct {
+	Name   string `json:"name"`
+	Type   string `json:"type"`
+	Server string `json:"server,omitempty"`
+	// Details is an ordered key/value list describing the node's configuration
+	// (cipher, TLS, UUID masked, network, etc). Values are already localized-free
+	// raw strings; the UI renders them as label : value rows.
+	Details []ProxyDetail `json:"details,omitempty"`
+}
+
+type ProxyDetail struct {
+	Label string `json:"label"`
+	Value string `json:"value"`
 }
 
 type ProxyGroup struct {
@@ -192,6 +215,8 @@ func convertProxies(proxies []C.Proxy, uiSubtitlePattern *regexp2.Regexp) []*Pro
 			}
 		}
 		_, isGroup := p.Adapter().(outboundgroup.ProxyGroup)
+		chain := buildProxyChain(p)
+		chainDetail := buildProxyChainDetail(chain)
 
 		result = append(result, &Proxy{
 			Name:     name,
@@ -200,10 +225,44 @@ func convertProxies(proxies []C.Proxy, uiSubtitlePattern *regexp2.Regexp) []*Pro
 			Type:     p.Type().String(),
 			Delay:    int(p.LastDelayForTestUrl(testURL)),
 			IsGroup:  isGroup,
-			Chain:    buildProxyChain(p),
+			Chain:    chain,
+			Server:   serverOf(p),
+			ChainDetail: chainDetail,
 		})
 	}
 	return result
+}
+
+// serverOf returns the dial address of a proxy (host:port) when the adapter
+// exposes one, otherwise an empty string.
+func serverOf(p C.Proxy) string {
+	if p == nil {
+		return ""
+	}
+	addr := p.Addr()
+	if addr == "" {
+		return ""
+	}
+	return addr
+}
+
+// buildProxyChainDetail resolves per-hop metadata for a chain of names so the
+// UI can show each hop's type and server alongside its name.
+func buildProxyChainDetail(chain []string) []ProxyChainNode {
+	if len(chain) == 0 {
+		return nil
+	}
+	nodes := make([]ProxyChainNode, 0, len(chain))
+	for _, name := range chain {
+		node := ProxyChainNode{Name: name}
+		if p, ok := tunnel.Proxies()[name]; ok && p != nil {
+			node.Type = p.Type().String()
+			node.Server = serverOf(p)
+			node.Details = proxyDetailsOf(p)
+		}
+		nodes = append(nodes, node)
+	}
+	return nodes
 }
 
 // buildProxyChain resolves the dialer-proxy chain of a proxy into physical
@@ -248,7 +307,8 @@ func collectProviders(providers []provider.ProxyProvider, uiSubtitlePattern *reg
 		for _, px := range p.Proxies() {
 			name := px.Name()
 			title := name
-			subtitle := px.Type().String()
+			proxyType := px.Type().String()
+			subtitle := proxyType
 
 			if uiSubtitlePattern != nil {
 				if _, ok := px.Adapter().(outboundgroup.ProxyGroup); !ok {
@@ -256,7 +316,12 @@ func collectProviders(providers []provider.ProxyProvider, uiSubtitlePattern *reg
 					match, err := uiSubtitlePattern.FindRunesMatch(runes)
 					if err == nil && match != nil {
 						title = string(runes[:match.Index]) + string(runes[match.Index+match.Length:])
-						subtitle = string(runes[match.Index : match.Index+match.Length])
+						fragment := string(runes[match.Index : match.Index+match.Length])
+						if fragment != "" && fragment != proxyType {
+							subtitle = proxyType + " · " + fragment
+						} else {
+							subtitle = proxyType
+						}
 					}
 				}
 			}
@@ -282,4 +347,129 @@ func collectProviders(providers []provider.ProxyProvider, uiSubtitlePattern *reg
 	}
 
 	return result
+}
+
+// proxyDetailsOf extracts the key configuration of a proxy node as an ordered
+// label/value list for the UI. The per-type option struct is a private field
+// on each outbound adapter, so it is read via reflection. Sensitive values are
+// masked, and empty/default fields are skipped.
+func proxyDetailsOf(p C.Proxy) []ProxyDetail {
+	if p == nil {
+		return nil
+	}
+	out := []ProxyDetail{
+		{Label: "Type", Value: p.Type().String()},
+	}
+	if addr := p.Addr(); addr != "" {
+		out = append(out, ProxyDetail{Label: "Server", Value: addr})
+	}
+
+	opt := reflectOption(p)
+	if opt.IsValid() {
+		// Order matters: show identity/encryption fields first, then transport.
+		fields := []string{
+			"UUID", "Cipher", "Encryption", "AlterID", "alterId", "Flow",
+			"Password", "Token", "Up", "Down", "Obfs", "Network", "TLS", "SNI",
+			"ServerName", "Fingerprint", "ALPN", "UDP", "UDPOverTCP",
+			"Plugin", "Protocol", "ObfsParam", "ProtocolParam", "UserName",
+			"CongestionController", "UdpRelayMode", "ReduceRtt", "Version",
+		}
+		for _, f := range fields {
+			fv := opt.FieldByName(f)
+			if !fv.IsValid() {
+				continue
+			}
+			val := fieldValue(fv)
+			if strings.TrimSpace(val) == "" {
+				continue
+			}
+			label := f
+			switch f {
+			case "AlterID", "alterId":
+				label = "alterId"
+			case "ServerName":
+				label = "SNI"
+			case "CongestionController":
+				label = "Congestion"
+			case "UdpRelayMode":
+				label = "UDP relay"
+			case "ReduceRtt":
+				label = "Reduce RTT"
+			case "UserName":
+				label = "Username"
+			case "UDPOverTCP":
+				label = "UDP over TCP"
+			}
+			if label == "UUID" || label == "Password" || label == "Token" {
+				val = maskSecret(val)
+			}
+			out = append(out, ProxyDetail{Label: label, Value: val})
+		}
+	}
+
+	info := p.ProxyInfo()
+	if info.XUDP {
+		out = append(out, ProxyDetail{Label: "XUDP", Value: "on"})
+	}
+	if info.TFO {
+		out = append(out, ProxyDetail{Label: "TFO", Value: "on"})
+	}
+	if info.MPTCP {
+		out = append(out, ProxyDetail{Label: "MPTCP", Value: "on"})
+	}
+	return out
+}
+
+// reflectOption returns the private `option` struct field of an outbound
+// adapter via reflection (or an invalid value when absent).
+func reflectOption(p C.Proxy) reflect.Value {
+	v := reflect.ValueOf(p)
+	if v.Kind() != reflect.Ptr || v.IsNil() {
+		return reflect.Value{}
+	}
+	v = v.Elem()
+	if v.Kind() != reflect.Struct {
+		return reflect.Value{}
+	}
+	f := v.FieldByName("option")
+	if !f.IsValid() || f.Kind() != reflect.Ptr || f.IsNil() {
+		return reflect.Value{}
+	}
+	return f.Elem()
+}
+
+func fieldValue(v reflect.Value) string {
+	switch v.Kind() {
+	case reflect.String:
+		return v.String()
+	case reflect.Bool:
+		if v.Bool() {
+			return "yes"
+		}
+		return ""
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		if v.Int() != 0 {
+			return fmt.Sprintf("%d", v.Int())
+		}
+		return ""
+	case reflect.Slice:
+		if v.Type().Elem().Kind() == reflect.String {
+			var parts []string
+			for i := 0; i < v.Len(); i++ {
+				s := v.Index(i).String()
+				if s != "" {
+					parts = append(parts, s)
+				}
+			}
+			return strings.Join(parts, ",")
+		}
+	}
+	return ""
+}
+
+func maskSecret(s string) string {
+	if len(s) <= 4 {
+		return "****"
+	}
+	return s[:2] + "****" + s[len(s)-2:]
 }

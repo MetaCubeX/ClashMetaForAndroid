@@ -8,11 +8,18 @@ data class AgentProviderSettings(
     val baseUrl: String = "https://api.openai.com/v1",
     val model: String = "",
     val apiKey: String = "",
+    val apiFormat: AgentApiFormat = AgentApiFormat.CHAT_COMPLETIONS,
     val authorizationMode: AgentAuthorizationMode = AgentAuthorizationMode.BALANCED,
     val maxToolRounds: Int = 12,
 ) {
     val isConfigured: Boolean
         get() = baseUrl.isNotBlank() && model.isNotBlank()
+}
+
+@Serializable
+enum class AgentApiFormat {
+    CHAT_COMPLETIONS,
+    RESPONSES,
 }
 
 @Serializable
@@ -31,6 +38,16 @@ data class AgentConversationMessage(
     val createdAt: Long = System.currentTimeMillis(),
     val toolName: String? = null,
     val isError: Boolean = false,
+    val trace: List<AgentTraceEntry> = emptyList(),
+    val running: Boolean = false,
+)
+
+@Serializable
+data class AgentTraceEntry(
+    val kind: String,
+    val summary: String,
+    val detail: String = "",
+    val toolName: String? = null,
 )
 
 data class AgentToolExecutionResult(

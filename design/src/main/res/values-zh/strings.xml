@@ -286,7 +286,10 @@
     <string name="shortcut_stop_long">停止 Clash 服务</string>
 
     <string name="chain_detail">链路详情</string>
+    <string name="chain_badge">链式</string>
     <string name="chain_entry">入口</string>
     <string name="chain_middle">中转</string>
     <string name="chain_exit">出口</string>
+    <string name="chain_secret_masked">敏感信息已隐藏,点击显示</string>
+    <string name="chain_secret_revealed">点击再次隐藏</string>
 </resources>
