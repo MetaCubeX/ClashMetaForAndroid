@@ -69,7 +69,19 @@ upstream history (committed in 2022, before this fork existed) and is therefore
 password publish an APK that Android accepts as an update to yours.
 
 `keystore.path` is what decides which key is used. Point it at a key you generated
-yourself and keep outside the working tree:
+yourself and keep outside the working tree. The helper does that and writes
+`signing.properties` for you:
+
+```bash
+scripts/generate-release-key.sh
+```
+
+It prompts for a password on the terminal (never as an argument, which would put
+it in the process list), refuses to create the key inside the repository, and
+creates both files mode 600. Pass a path and alias to override the defaults of
+`~/keys/cmfa-ai-release.keystore` and `cmfa-ai`.
+
+Equivalent by hand:
 
 ```bash
 keytool -genkeypair -v -keystore ~/keys/cmfa-ai-release.keystore \
