@@ -250,4 +250,15 @@
     <string name="import_from_qr">Nhập từ Mã QR</string>
     <string name="import_from_qr_no_permission">Quyền truy cập camera bị hạn chế. Vui lòng bật trong Cài đặt.</string>
     <string name="import_from_qr_exception">Đã xảy ra ngoại lệ hệ thống không xử lý được.</string>
+
+    <string name="tailscale">Tailscale</string>
+t<string name="tailscale_enable">Enable Tailscale</string>
+t<string name="tailscale_enable_summary">Create a Tailscale proxy node and route tailnet traffic to it</string>
+    <string name="tailscale_field_hostname">Hostname</string>
+    <string name="tailscale_field_auth_key">Auth key</string>
+    <string name="tailscale_field_control_url">Control URL (optional, for headscale)</string>
+    <string name="tailscale_field_state_dir">State directory</string>
+    <string name="tailscale_field_exit_node">Exit node</string>
+    <string name="tailscale_ip_cidrs">Route IP CIDRs</string>
+    <string name="tailscale_cidrs_hint">empty = 100.64.0.0/10</string>
 </resources>

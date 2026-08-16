@@ -264,4 +264,15 @@
     <string name="override_destination">Override Destination</string>
     <string name="import_from_qr_no_permission">카메라 접근이 제한되었습니다. 설정에서 허용해 주세요.</string>
     <string name="import_from_qr_exception">처리되지 않은 시스템 예외가 발생했습니다.</string>
+
+    <string name="tailscale">Tailscale</string>
+t<string name="tailscale_enable">Enable Tailscale</string>
+t<string name="tailscale_enable_summary">Create a Tailscale proxy node and route tailnet traffic to it</string>
+    <string name="tailscale_field_hostname">Hostname</string>
+    <string name="tailscale_field_auth_key">Auth key</string>
+    <string name="tailscale_field_control_url">Control URL (optional, for headscale)</string>
+    <string name="tailscale_field_state_dir">State directory</string>
+    <string name="tailscale_field_exit_node">Exit node</string>
+    <string name="tailscale_ip_cidrs">Route IP CIDRs</string>
+    <string name="tailscale_cidrs_hint">empty = 100.64.0.0/10</string>
 </resources>
