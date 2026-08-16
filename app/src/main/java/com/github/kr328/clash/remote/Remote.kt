@@ -30,16 +30,16 @@ object Remote {
     fun launch() {
         ApplicationObserver.attach(Global.application)
 
+        broadcasts.register()
+
         ApplicationObserver.onVisibleChanged {
             if(it) {
                 Log.d("App becomes visible")
                 service.bind()
-                broadcasts.register()
             }
             else {
                 Log.d("App becomes invisible")
                 service.unbind()
-                broadcasts.unregister()
             }
         }
 
