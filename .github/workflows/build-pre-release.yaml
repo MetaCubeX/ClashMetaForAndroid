@@ -8,6 +8,10 @@ on:
 jobs:
   BuildPreRelease:
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      attestations: write
+      contents: write
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v6
@@ -67,6 +71,11 @@ jobs:
       - name: Pre-release Build
         if: success()
         run: ./gradlew --no-daemon app:assembleAlphaRelease
+
+      - name: Generate Artifact Attestation
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: app/build/outputs/apk/alpha/release/*.apk
 
       # Delete old Prerelease-alpha
       - uses: dev-drprasad/delete-tag-and-release@v1.1
