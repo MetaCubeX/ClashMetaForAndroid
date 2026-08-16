@@ -44,6 +44,11 @@ func patchOverride(cfg *config.RawConfig, _ string) error {
 func patchExternalController(cfg *config.RawConfig, _ string) error {
 	cfg.ExternalController = ""
 	cfg.ExternalControllerTLS = ""
+	cfg.ExternalControllerUnix = ""
+	cfg.ExternalControllerPipe = ""
+	cfg.ExternalControllerCors = config.RawCors{}
+	cfg.Secret = ""
+	cfg.DNS.Listen = ""
 
 	return nil
 }
