@@ -12,14 +12,16 @@ object ApplicationObserver {
     private val _createdActivities: MutableSet<Activity> = mutableSetOf()
     private val _visibleActivities: MutableSet<Activity> = mutableSetOf()
 
-    private var visibleChanged: (Boolean) -> Unit = {}
+    private val visibleChangedListeners: MutableList<(Boolean) -> Unit> = mutableListOf()
 
     private var appVisible = false
         private set(value) {
             if (field != value) {
                 field = value
 
-                visibleChanged(value)
+                visibleChangedListeners.forEach { listener ->
+                    listener(value)
+                }
             }
         }
 
@@ -55,7 +57,7 @@ object ApplicationObserver {
     }
 
     fun onVisibleChanged(visibleChanged: (Boolean) -> Unit) {
-        this.visibleChanged = visibleChanged
+        visibleChangedListeners.add(visibleChanged)
     }
 
     fun attach(application: Application) {

@@ -30,6 +30,14 @@ import java.util.concurrent.TimeUnit
 import com.github.kr328.clash.design.R as DesignR
 
 class MainActivity : BaseActivity<MainDesign>() {
+
+    companion object {
+        @Volatile
+        @JvmStatic
+        var pendingExternalRequest: Boolean = false
+            private set
+    }
+
     override suspend fun main() {
         val design = MainDesign(this)
 
@@ -129,13 +137,18 @@ class MainActivity : BaseActivity<MainDesign>() {
 
         try {
             if (vpnRequest != null) {
-                val result = startActivityForResult(
-                    ActivityResultContracts.StartActivityForResult(),
-                    vpnRequest
-                )
+                pendingExternalRequest = true
+                try {
+                    val result = startActivityForResult(
+                        ActivityResultContracts.StartActivityForResult(),
+                        vpnRequest
+                    )
 
-                if (result.resultCode == RESULT_OK)
-                    startClashService()
+                    if (result.resultCode == RESULT_OK)
+                        startClashService()
+                } finally {
+                    pendingExternalRequest = false
+                }
             }
         } catch (e: Exception) {
             design?.showToast(DesignR.string.unable_to_start_vpn, ToastDuration.Long)

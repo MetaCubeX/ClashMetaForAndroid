@@ -264,4 +264,6 @@
     <string name="override_destination">Override Destination</string>
     <string name="import_from_qr_no_permission">카메라 접근이 제한되었습니다. 설정에서 허용해 주세요.</string>
     <string name="import_from_qr_exception">처리되지 않은 시스템 예외가 발생했습니다.</string>
+    <string name="auto_destroy_ui_title">UI 자동 종료</string>
+    <string name="auto_destroy_ui_desc">앱이 백그라운드로 전환된 후 3초 후 메모리 절약을 위해 UI를 자동으로 종료합니다</string>
 </resources>
