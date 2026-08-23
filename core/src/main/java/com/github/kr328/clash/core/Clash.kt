@@ -116,7 +116,7 @@ object Clash {
     fun queryGroup(name: String, sort: ProxySort): ProxyGroup {
         return Bridge.nativeQueryGroup(name, sort.name)
             ?.let { Json.Default.decodeFromString(ProxyGroup.serializer(), it) }
-            ?: ProxyGroup(Proxy.Type.Unknown, emptyList(), "")
+            ?: ProxyGroup("Unknown", emptyList(), "")
     }
 
     fun healthCheck(name: String): CompletableDeferred<Unit> {

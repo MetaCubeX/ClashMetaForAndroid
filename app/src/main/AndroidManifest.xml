@@ -21,6 +21,13 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
 
+    <!-- Workaround for Android 17+ cross profile loopback networking restrictions.
+         This permission allows CMFA to connect to loopback addresses and ports bound
+         by the same app running in different profiles.
+         It can only be granted via ADB. -->
+    <uses-permission android:name="android.permission.INTERACT_ACROSS_USERS"
+        tools:ignore="ProtectedPermissions" />
+
     <application
         android:name=".MainApplication"
         android:allowBackup="true"

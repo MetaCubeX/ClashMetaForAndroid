@@ -178,6 +178,7 @@ class PropertiesDesign(context: Context) : Design<PropertiesDesign.Request>(cont
                 max = status.max
                 progress = status.progress
             }
+            FetchStatus.Action.SubscriptionInfo -> Unit
             FetchStatus.Action.Verifying -> {
                 text = context.getString(R.string.verifying)
                 isIndeterminate = false
