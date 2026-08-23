@@ -65,4 +65,15 @@ class ServiceStore(context: Context) {
         key = "dynamic_notification",
         defaultValue = true
     )
+
+    var autoConnectVpnOnWifiDisconnect by store.boolean(
+        key = "auto_connect_vpn_on_wifi_disconnect",
+        defaultValue = false
+    )
+
+    var wifiSsidForVpn by store.typedString(
+        key = "wifi_ssid_for_vpn",
+        from = { if (it.isBlank()) null else it },
+        to = { it ?: "" }
+    )
 }
