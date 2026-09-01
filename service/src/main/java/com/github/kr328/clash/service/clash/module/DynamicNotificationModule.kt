@@ -74,7 +74,7 @@ class DynamicNotificationModule(service: Service) : Module<Unit>(service) {
                     uploaded, downloaded
                 )
             ).setShortCriticalText(
-                "$downloaded ↓"
+                "$downloading ↓"
             ).build()
 
         notificationManager.notify(R.id.nf_clash_status, notification)
