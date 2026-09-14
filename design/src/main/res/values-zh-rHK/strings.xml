@@ -261,4 +261,15 @@
     <string name="override_destination">Override Destination</string>
     <string name="import_from_qr_no_permission">相機權限受限，請前往設定開啟。</string>
     <string name="import_from_qr_exception">發生系統未知異常，操作失敗。</string>
+
+    <string name="tailscale">Tailscale</string>
+t<string name="tailscale_enable">啟用 Tailscale</string>
+t<string name="tailscale_enable_summary">建立 Tailscale 代理節點並將尾網流量路由到它</string>
+    <string name="tailscale_field_hostname">主機名稱</string>
+    <string name="tailscale_field_auth_key">認證金鑰</string>
+    <string name="tailscale_field_control_url">控制伺服器位址（可選，用於自建 headscale）</string>
+    <string name="tailscale_field_state_dir">狀態目錄</string>
+    <string name="tailscale_field_exit_node">出口節點</string>
+    <string name="tailscale_ip_cidrs">路由 IP 段</string>
+    <string name="tailscale_cidrs_hint">留空 = 100.64.0.0/10</string>
 </resources>

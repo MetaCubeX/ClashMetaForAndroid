@@ -280,4 +280,15 @@
     <string name="shortcut_start_long">启动 Clash 服务</string>
     <string name="shortcut_stop_short">停止 Clash</string>
     <string name="shortcut_stop_long">停止 Clash 服务</string>
+
+    <string name="tailscale">Tailscale</string>
+t<string name="tailscale_enable">启用 Tailscale</string>
+t<string name="tailscale_enable_summary">创建 Tailscale 代理节点并将尾网流量路由到它</string>
+    <string name="tailscale_field_hostname">主机名</string>
+    <string name="tailscale_field_auth_key">认证密钥</string>
+    <string name="tailscale_field_control_url">控制服务器地址（可选，用于自建 headscale）</string>
+    <string name="tailscale_field_state_dir">状态目录</string>
+    <string name="tailscale_field_exit_node">出口节点</string>
+    <string name="tailscale_ip_cidrs">路由 IP 段</string>
+    <string name="tailscale_cidrs_hint">留空 = 100.64.0.0/10</string>
 </resources>
