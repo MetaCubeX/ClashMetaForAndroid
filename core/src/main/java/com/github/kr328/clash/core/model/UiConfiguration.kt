@@ -6,7 +6,9 @@ import com.github.kr328.clash.core.util.Parcelizer
 import kotlinx.serialization.Serializable
 
 @Serializable
-class UiConfiguration : Parcelable {
+class UiConfiguration(
+    val routeExcludeAddress: List<String> = emptyList(),
+) : Parcelable {
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         Parcelizer.encodeToParcel(serializer(), parcel, this)
     }
