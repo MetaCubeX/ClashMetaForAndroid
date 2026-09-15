@@ -280,4 +280,21 @@
     <string name="shortcut_start_long">启动 Clash 服务</string>
     <string name="shortcut_stop_short">停止 Clash</string>
     <string name="shortcut_stop_long">停止 Clash 服务</string>
+
+    <!-- WebDAV 云同步 -->
+    <string name="webdav_sync">WebDAV 同步</string>
+    <string name="webdav_server">WebDAV 服务器</string>
+    <string name="webdav_actions">同步</string>
+    <string name="webdav_server_url">服务器地址</string>
+    <string name="webdav_username">用户名</string>
+    <string name="webdav_password">密码</string>
+    <string name="webdav_not_configured">未设置</string>
+    <string name="webdav_pull_sync">立即拉取同步</string>
+    <string name="webdav_pull_sync_summary">下载最新的 Clash Verge 备份并导入其中的订阅</string>
+    <string name="webdav_tips">从 Clash Verge 的 WebDAV 备份同步订阅配置。请填入与 Clash Verge 相同的服务器地址、用户名和密码。仅导入订阅类配置，本地配置与增强配置会被跳过。</string>
+    <string name="webdav_missing_credentials">请先填写服务器地址、用户名和密码</string>
+    <string name="webdav_syncing">正在从 WebDAV 同步…</string>
+    <string name="webdav_no_backup_found">WebDAV 服务器上未找到备份</string>
+    <string name="webdav_sync_failed">同步失败：%1$s</string>
+    <string name="webdav_sync_result">同步完成 · 新增 %1$d，已存在 %2$d，失败 %3$d，跳过本地 %4$d</string>
 </resources>
