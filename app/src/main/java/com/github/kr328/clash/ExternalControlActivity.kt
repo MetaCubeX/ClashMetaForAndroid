@@ -10,7 +10,6 @@ import com.github.kr328.clash.common.util.intent
 import com.github.kr328.clash.common.util.setUUID
 import com.github.kr328.clash.design.MainDesign
 import com.github.kr328.clash.design.ui.ToastDuration
-import com.github.kr328.clash.remote.Remote
 import com.github.kr328.clash.remote.StatusClient
 import com.github.kr328.clash.service.model.Profile
 import com.github.kr328.clash.util.startClashService
@@ -56,28 +55,31 @@ class ExternalControlActivity : Activity(), CoroutineScope by MainScope() {
                 return
             }
 
-            Intents.ACTION_TOGGLE_CLASH -> if(Remote.broadcasts.clashRunning) {
+            Intents.ACTION_TOGGLE_CLASH -> {
+                if (isClashRunning()) {
+                    stopClash()
+                } else {
+                    startClash()
+                }
+            }
+            
+            Intents.ACTION_START_CLASH -> {
+                if (isClashRunning()) {
+                    Toast.makeText(this, R.string.external_control_started, Toast.LENGTH_LONG).show()
+                } else {
+                    startClash()
+                }
+            }
+            
+            Intents.ACTION_STOP_CLASH -> {
                 stopClash()
-            }
-            else {
-                startClash()
-            }
-
-            Intents.ACTION_START_CLASH -> if(!Remote.broadcasts.clashRunning) {
-                startClash()
-            }
-            else {
-                Toast.makeText(this, R.string.external_control_started, Toast.LENGTH_LONG).show()
-            }
-
-            Intents.ACTION_STOP_CLASH -> if(Remote.broadcasts.clashRunning) {
-                stopClash()
-            }
-            else {
-                Toast.makeText(this, R.string.external_control_stopped, Toast.LENGTH_LONG).show()
             }
         }
         return finish()
+    }
+
+    private fun isClashRunning(): Boolean {
+        return StatusClient(this).currentProfile() != null
     }
 
     private fun startClash() {
