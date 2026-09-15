@@ -1,6 +1,8 @@
 package com.github.kr328.clash.design.view
 
 import android.content.Context
+import android.content.res.Configuration
+import android.graphics.Rect
 import android.graphics.drawable.Drawable
 import android.util.AttributeSet
 import android.view.View
@@ -19,6 +21,8 @@ class LargeActionLabel @JvmOverloads constructor(
     @AttrRes defStyleAttr: Int = 0,
     @StyleRes defStyleRes: Int = 0
 ) : FrameLayout(context, attributeSet, defStyleAttr, defStyleRes) {
+    private val television = resources.configuration.uiMode and Configuration.UI_MODE_TYPE_MASK ==
+        Configuration.UI_MODE_TYPE_TELEVISION
     private val binding = ComponentLargeActionLabelBinding
         .inflate(context.layoutInflater, this, true)
 
@@ -71,5 +75,19 @@ class LargeActionLabel @JvmOverloads constructor(
                 recycle()
             }
         }
+    }
+
+    override fun onFocusChanged(gainFocus: Boolean, direction: Int, previouslyFocusedRect: Rect?) {
+        super.onFocusChanged(gainFocus, direction, previouslyFocusedRect)
+        if (!television) return
+
+        val scale = if (gainFocus) 1.01f else 1f
+        alpha = if (gainFocus) 1f else 0.88f
+        animate()
+            .scaleX(scale)
+            .scaleY(scale)
+            .translationZ(if (gainFocus) context.resources.getDimension(R.dimen.tv_focus_elevation) else 0f)
+            .setDuration(120L)
+            .start()
     }
 }

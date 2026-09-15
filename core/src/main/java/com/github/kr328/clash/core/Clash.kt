@@ -50,6 +50,14 @@ object Clash {
         return Bridge.nativeQueryTrafficTotal()
     }
 
+    fun queryActiveConnections(): Int {
+        return Bridge.nativeQueryActiveConnections()
+    }
+
+    fun queryMemory(): Long {
+        return Bridge.nativeQueryMemory()
+    }
+
     fun notifyDnsChanged(dns: List<String>) {
         Bridge.nativeNotifyDnsChanged(dns.toSet().joinToString(separator = ","))
     }

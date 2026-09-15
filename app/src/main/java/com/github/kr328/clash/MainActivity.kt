@@ -15,6 +15,7 @@ import androidx.core.graphics.drawable.IconCompat
 import com.github.kr328.clash.common.constants.Intents
 import com.github.kr328.clash.common.util.intent
 import com.github.kr328.clash.common.util.ticker
+import com.github.kr328.clash.core.model.ProxySort
 import com.github.kr328.clash.design.MainDesign
 import com.github.kr328.clash.design.ui.ToastDuration
 import com.github.kr328.clash.util.startClashService
@@ -52,6 +53,10 @@ class MainActivity : BaseActivity<MainDesign>() {
                 }
                 design.requests.onReceive {
                     when (it) {
+                        MainDesign.Request.OpenHome -> {
+                            design.fetch()
+                            design.focusPrimaryAction()
+                        }
                         MainDesign.Request.ToggleStatus -> {
                             if (clashRunning)
                                 stopClashService()
@@ -59,22 +64,22 @@ class MainActivity : BaseActivity<MainDesign>() {
                                 design.startClash()
                         }
                         MainDesign.Request.OpenProxy ->
-                            startActivity(ProxyActivity::class.intent)
+                            openTvTab(ProxyActivity::class.intent)
                         MainDesign.Request.OpenProfiles ->
-                            startActivity(ProfilesActivity::class.intent)
+                            openTvTab(ProfilesActivity::class.intent)
                         MainDesign.Request.OpenProviders ->
-                            startActivity(ProvidersActivity::class.intent)
+                            openTvTab(ProvidersActivity::class.intent)
                         MainDesign.Request.OpenLogs -> {
                             if (LogcatService.running) {
-                                startActivity(LogcatActivity::class.intent)
+                                openTvTab(LogcatActivity::class.intent)
                             } else {
-                                startActivity(LogsActivity::class.intent)
+                                openTvTab(LogsActivity::class.intent)
                             }
                         }
                         MainDesign.Request.OpenSettings ->
-                            startActivity(SettingsActivity::class.intent)
+                            openTvTab(SettingsActivity::class.intent)
                         MainDesign.Request.OpenHelp ->
-                            startActivity(HelpActivity::class.intent)
+                            openTvTab(HelpActivity::class.intent)
                         MainDesign.Request.OpenAbout ->
                             design.showAbout(queryAppVersionName())
                     }
@@ -97,9 +102,38 @@ class MainActivity : BaseActivity<MainDesign>() {
         val providers = withClash {
             queryProviders()
         }
+        val currentProxy = if (clashRunning) {
+            withClash {
+                val rootGroup = queryProxyGroupNames(true).firstOrNull()
+                val groupNames = queryProxyGroupNames(false).toHashSet()
+
+                rootGroup?.let { group ->
+                    val visited = mutableSetOf(group)
+                    var node = queryProxyGroup(group, ProxySort.Default).now
+                    val route = mutableListOf<String>()
+
+                    while (node.isNotBlank()) {
+                        route += node
+                        if (node !in groupNames || !visited.add(node)) break
+                        val next = queryProxyGroup(node, ProxySort.Default).now
+                        if (next.isBlank() || next == node) break
+                        node = next
+                    }
+
+                    group to route.distinct().joinToString(" → ")
+                }
+            }
+        } else {
+            null
+        }
 
         setMode(state.mode)
         setHasProviders(providers.isNotEmpty())
+        setProviderCount(providers.size)
+        setCurrentProxy(currentProxy?.first, currentProxy?.second)
+        val traffic = if (clashRunning) queryTrafficStats() else TrafficSnapshot()
+        setForwarded(traffic.total)
+        setTrafficStats(traffic.now, traffic.total, traffic.connections, traffic.memory)
 
         withProfile {
             setProfileName(queryActive()?.name)
@@ -107,8 +141,19 @@ class MainActivity : BaseActivity<MainDesign>() {
     }
 
     private suspend fun MainDesign.fetchTraffic() {
-        withClash {
-            setForwarded(queryTrafficTotal())
+        val traffic = queryTrafficStats()
+        setForwarded(traffic.total)
+        setTrafficStats(traffic.now, traffic.total, traffic.connections, traffic.memory)
+    }
+
+    private suspend fun queryTrafficStats(): TrafficSnapshot {
+        return withClash {
+            TrafficSnapshot(
+                now = queryTrafficNow(),
+                total = queryTrafficTotal(),
+                connections = queryActiveConnections(),
+                memory = queryMemory(),
+            )
         }
     }
 
@@ -118,7 +163,7 @@ class MainActivity : BaseActivity<MainDesign>() {
         if (active == null || !active.imported) {
             showToast(DesignR.string.no_profile_selected, ToastDuration.Long) {
                 setAction(DesignR.string.profiles) {
-                    startActivity(ProfilesActivity::class.intent)
+                    openTvTab(ProfilesActivity::class.intent)
                 }
             }
 
@@ -164,6 +209,13 @@ class MainActivity : BaseActivity<MainDesign>() {
         }
         setupShortcuts()
     }
+
+    private data class TrafficSnapshot(
+        val now: Long = 0L,
+        val total: Long = 0L,
+        val connections: Int = 0,
+        val memory: Long = 0L,
+    )
 
     private fun setupShortcuts() {
         // Skip dynamic shortcut setup when the app icon is hidden.
