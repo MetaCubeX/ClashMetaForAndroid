@@ -221,7 +221,11 @@ class TunService : VpnService(), CoroutineScope by CoroutineScope(Dispatchers.De
                 stack = store.tunStackMode,
                 gateway = "$TUN_GATEWAY/$TUN_SUBNET_PREFIX" + if (store.allowIpv6) ",$TUN_GATEWAY6/$TUN_SUBNET_PREFIX6" else "",
                 portal = TUN_PORTAL + if (store.allowIpv6) ",$TUN_PORTAL6" else "",
-                dns = if (store.dnsHijacking) NET_ANY else (TUN_DNS + if (store.allowIpv6) ",$TUN_DNS6" else ""),
+                dns = if (store.dnsHijacking) {
+                    NET_ANY + if (store.allowIpv6) ",$NET_ANY6" else ""
+                } else {
+                    TUN_DNS + if (store.allowIpv6) ",$TUN_DNS6" else ""
+                },
             )
         }
 
