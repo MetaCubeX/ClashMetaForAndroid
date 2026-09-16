@@ -223,6 +223,7 @@ class TunService : VpnService(), CoroutineScope by CoroutineScope(Dispatchers.De
                 portal = TUN_PORTAL + if (store.allowIpv6) ",$TUN_PORTAL6" else "",
                 dns = if (store.dnsHijacking) NET_ANY else (TUN_DNS + if (store.allowIpv6) ",$TUN_DNS6" else ""),
                 disableIcmpForwarding = store.disableIcmpForwarding,
+                icmpTimeout = store.icmpTimeout,
             )
         }
 

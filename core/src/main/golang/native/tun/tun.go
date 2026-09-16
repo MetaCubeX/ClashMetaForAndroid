@@ -14,7 +14,7 @@ import (
 	"github.com/metacubex/mihomo/tunnel"
 )
 
-func Start(fd int, stack, gateway, portal, dns string, disableICMPForwarding bool) (io.Closer, error) {
+func Start(fd int, stack, gateway, portal, dns string, disableICMPForwarding bool, icmpTimeout int64) (io.Closer, error) {
 	log.Debugln("TUN: fd = %d, stack = %s, gateway = %s, portal = %s, dns = %s", fd, stack, gateway, portal, dns)
 
 	tunStack, ok := C.StackTypeMapping[strings.ToLower(stack)]
@@ -63,6 +63,7 @@ func Start(fd int, stack, gateway, portal, dns string, disableICMPForwarding boo
 		MTU:                   9000, // private const val TUN_MTU = 9000 in TunService.kt
 		FileDescriptor:        fd,
 		DisableICMPForwarding: disableICMPForwarding,
+		ICMPTimeout:           icmpTimeout,
 	}
 
 	tunOptions, _ := json.Marshal(options)

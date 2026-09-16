@@ -77,6 +77,14 @@ class NetworkSettingsDesign(
                 configure = vpnDependencies::add,
             )
 
+            editableText(
+                value = srvStore::icmpTimeout,
+                adapter = NullableTextAdapter.Int,
+                title = R.string.icmp_timeout,
+                empty = R.string.icmp_timeout_default,
+                configure = vpnDependencies::add,
+            )
+
             switch(
                 value = srvStore::allowBypass,
                 title = R.string.allow_bypass,

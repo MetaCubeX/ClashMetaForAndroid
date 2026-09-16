@@ -26,6 +26,7 @@ object Bridge {
         portal: String,
         dns: String,
         disableIcmpForwarding: Boolean,
+        icmpTimeout: Int,
         cb: TunInterface
     )
     external fun nativeStopTun()

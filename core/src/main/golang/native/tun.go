@@ -64,7 +64,7 @@ func (t *remoteTun) close() {
 }
 
 //export startTun
-func startTun(fd C.int, stack, gateway, portal, dns C.c_string, disableICMPForwarding C.int, callback unsafe.Pointer) C.int {
+func startTun(fd C.int, stack, gateway, portal, dns C.c_string, disableICMPForwarding C.int, icmpTimeout C.int, callback unsafe.Pointer) C.int {
 	rTunLock.Lock()
 	defer rTunLock.Unlock()
 
@@ -83,7 +83,7 @@ func startTun(fd C.int, stack, gateway, portal, dns C.c_string, disableICMPForwa
 
 	app.ApplyTunContext(remote.markSocket, remote.querySocketUid)
 
-	closer, err := tun.Start(f, s, g, p, d, disableICMPForwarding != 0)
+	closer, err := tun.Start(f, s, g, p, d, disableICMPForwarding != 0, int64(icmpTimeout))
 	if err != nil {
 		remote.close()
 

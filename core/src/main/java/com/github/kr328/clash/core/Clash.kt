@@ -71,10 +71,11 @@ object Clash {
         portal: String,
         dns: String,
         disableIcmpForwarding: Boolean,
+        icmpTimeout: Int,
         markSocket: (Int) -> Boolean,
         querySocketUid: (protocol: Int, source: InetSocketAddress, target: InetSocketAddress) -> Int
     ) {
-        Bridge.nativeStartTun(fd, stack, gateway, portal, dns, disableIcmpForwarding, object : TunInterface {
+        Bridge.nativeStartTun(fd, stack, gateway, portal, dns, disableIcmpForwarding, icmpTimeout, object : TunInterface {
             override fun markSocket(fd: Int) {
                 markSocket(fd)
             }

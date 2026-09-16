@@ -66,6 +66,11 @@ class ServiceStore(context: Context) {
         defaultValue = true
     )
 
+    var icmpTimeout by store.int(
+        key = "icmp_timeout",
+        defaultValue = 0
+    )
+
     var dynamicNotification by store.boolean(
         key = "dynamic_notification",
         defaultValue = true
