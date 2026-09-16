@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"sync"
 
 	"github.com/dlclark/regexp2"
 
@@ -29,6 +30,19 @@ var processors = []processor{
 }
 
 type processor func(cfg *config.RawConfig, profileDir string) error
+
+var (
+	tunICMPMu                sync.RWMutex
+	tunDisableICMPForwarding bool
+	tunICMPTimeout           int64
+	tunOptionsReady          bool
+)
+
+func GetTunICMPOptions() (bool, int64, bool) {
+	tunICMPMu.RLock()
+	defer tunICMPMu.RUnlock()
+	return tunDisableICMPForwarding, tunICMPTimeout, tunOptionsReady
+}
 
 func patchOverride(cfg *config.RawConfig, _ string) error {
 	if err := json.NewDecoder(strings.NewReader(ReadOverride(OverrideSlotPersist))).Decode(cfg); err != nil {
@@ -85,6 +99,11 @@ func patchDns(cfg *config.RawConfig, _ string) error {
 }
 
 func patchTun(cfg *config.RawConfig, _ string) error {
+	tunICMPMu.Lock()
+	tunDisableICMPForwarding = cfg.Tun.DisableICMPForwarding
+	tunICMPTimeout = cfg.Tun.ICMPTimeout
+	tunOptionsReady = true
+	tunICMPMu.Unlock()
 	cfg.Tun.Enable = false
 	cfg.Tun.AutoRoute = false
 	cfg.Tun.AutoDetectInterface = false

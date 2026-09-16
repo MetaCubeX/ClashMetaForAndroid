@@ -6,6 +6,9 @@ import (
 	"net"
 	"net/netip"
 	"strings"
+	"time"
+
+	"cfa/native/config"
 
 	C "github.com/metacubex/mihomo/constant"
 	LC "github.com/metacubex/mihomo/listener/config"
@@ -63,6 +66,17 @@ func Start(fd int, stack, gateway, portal, dns string) (io.Closer, error) {
 		MTU:                 9000, // private const val TUN_MTU = 9000 in TunService.kt
 		FileDescriptor:      fd,
 	}
+
+	disableICMPForwarding, icmpTimeout, ready := config.GetTunICMPOptions()
+	if !ready {
+		deadline := time.Now().Add(3 * time.Second)
+		for !ready && time.Now().Before(deadline) {
+			time.Sleep(50 * time.Millisecond)
+			disableICMPForwarding, icmpTimeout, ready = config.GetTunICMPOptions()
+		}
+	}
+	options.DisableICMPForwarding = disableICMPForwarding
+	options.ICMPTimeout = icmpTimeout
 
 	tunOptions, _ := json.Marshal(options)
 	log.Debugln(string(tunOptions))
