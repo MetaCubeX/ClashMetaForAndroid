@@ -61,6 +61,11 @@ class ServiceStore(context: Context) {
         defaultValue = "system"
     )
 
+    var disableIcmpForwarding by store.boolean(
+        key = "disable_icmp_forwarding",
+        defaultValue = true
+    )
+
     var dynamicNotification by store.boolean(
         key = "dynamic_notification",
         defaultValue = true

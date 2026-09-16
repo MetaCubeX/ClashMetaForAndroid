@@ -116,6 +116,7 @@ Java_com_github_kr328_clash_core_bridge_Bridge_nativeStartTun(JNIEnv *env, jobje
                                                               jstring gateway,
                                                               jstring portal,
                                                               jstring dns,
+                                                              jboolean disable_icmp_forwarding,
                                                               jobject cb) {
     TRACE_METHOD();
 
@@ -125,7 +126,7 @@ Java_com_github_kr328_clash_core_bridge_Bridge_nativeStartTun(JNIEnv *env, jobje
     scoped_string _dns = get_string(dns);
     jobject _interface = new_global(cb);
 
-    startTun(fd, _stack, _gateway, _portal, _dns, _interface);
+    startTun(fd, _stack, _gateway, _portal, _dns, (int) disable_icmp_forwarding, _interface);
 }
 
 JNIEXPORT void JNICALL
