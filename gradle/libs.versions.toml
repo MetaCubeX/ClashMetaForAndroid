@@ -18,6 +18,7 @@ room = "2.4.2"
 multiprocess = "1.0.0"
 quickie = "1.11.0"
 androidx-activity-ktx = "1.9.0"
+androidx-splashscreen = "1.0.1"
 
 [libraries]
 build-android = { module = "com.android.tools.build:gradle", version.ref = "agp" }
@@ -28,6 +29,7 @@ build-golang = { module = "com.github.kr328.golang:gradle-plugin", version.ref =
 kotlin-coroutine = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutine" }
 kotlin-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serialization" }
 androidx-core = { module = "androidx.core:core-ktx", version.ref = "coreKtx" }
+androidx-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "androidx-splashscreen" }
 androidx-activity = { module = "androidx.activity:activity", version.ref = "activity" }
 androidx-fragment = { module = "androidx.fragment:fragment", version.ref = "fragment" }
 androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
