@@ -25,7 +25,7 @@ interface NullableTextAdapter<T> {
             }
 
             override fun to(text: String?): Int {
-                return text?.toIntOrNull() ?: 0
+                return text?.trim()?.toIntOrNull()?.coerceAtLeast(0) ?: 0
             }
         }
 

@@ -137,7 +137,7 @@
     <string name="dns_hijacking_summary">Handle all dns packet</string>
     <string name="disable_icmp_forwarding">Disable ICMP Forwarding</string>
     <string name="disable_icmp_forwarding_summary">Reply ICMP echo requests locally instead of forwarding them</string>
-    <string name="icmp_timeout">ICMP Timeout</string>
+    <string name="icmp_timeout">ICMP Timeout (seconds)</string>
     <string name="icmp_timeout_default">Default</string>
     <string name="block_loopback">Block Loopback</string>
     <string name="block_loopback_summary">Block loopback connections</string>
