@@ -159,6 +159,22 @@ class ProxyDesign(
         updateUrlTestButtonStatus()
     }
 
+    // Called when the url test of a page is over, even if it failed, otherwise the progress
+    // indicator of the toolbar would spin forever.
+    suspend fun finishUrlTesting(position: Int) {
+        withContext(Dispatchers.Main) {
+            if (binding.pagesView.adapter !is ProxyPageAdapter)
+                return@withContext
+
+            if (position !in adapter.states.indices)
+                return@withContext
+
+            adapter.states[position].urlTesting = false
+
+            updateUrlTestButtonStatus()
+        }
+    }
+
     private fun updateUrlTestButtonStatus() {
         if (verticalBottomScrolled || horizontalScrolling || urlTesting) {
             binding.urlTestFloatView.hide()
