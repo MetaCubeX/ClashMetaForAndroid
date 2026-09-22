@@ -36,6 +36,7 @@ class ProxyDesign(
         data class Reload(val index: Int) : Request()
         data class Select(val index: Int, val name: String) : Request()
         data class UrlTest(val index: Int) : Request()
+        data class HealthCheck(val index: Int, val name: String) : Request()
     }
 
     private val binding = DesignProxyBinding
@@ -116,9 +117,15 @@ class ProxyDesign(
                     surface,
                     config,
                     List(groupNames.size) { index ->
-                        ProxyAdapter(config) { name ->
-                            requests.trySend(Request.Select(index, name))
-                        }
+                        ProxyAdapter(
+                            config,
+                            { name ->
+                                requests.trySend(Request.Select(index, name))
+                            },
+                            { name ->
+                                requests.trySend(Request.HealthCheck(index, name))
+                            }
+                        )
                     }
                 ) {
                     if (it == currentItem)
