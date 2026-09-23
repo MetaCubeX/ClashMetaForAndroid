@@ -26,6 +26,8 @@ class SettingsActivity : BaseActivity<SettingsDesign>() {
                             startActivity(OverrideSettingsActivity::class.intent)
                         SettingsDesign.Request.StartMetaFeature ->
                             startActivity(MetaFeatureSettingsActivity::class.intent)
+                        SettingsDesign.Request.StartWebDav ->
+                            startActivity(WebDavSettingsActivity::class.intent)
                     }
                 }
             }
