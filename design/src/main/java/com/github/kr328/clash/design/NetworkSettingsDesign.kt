@@ -41,6 +41,28 @@ class NetworkSettingsDesign(
         val screen = preferenceScreen(context) {
             val vpnDependencies: MutableList<Preference> = mutableListOf()
 
+            lateinit var ssidInput: EditableTextPreference
+
+            val autoConnectVpnSwitch = switch(
+                value = srvStore::autoConnectVpnOnWifiDisconnect,
+                title = R.string.auto_connect_vpn_on_wifi_disconnect,
+                summary = R.string.auto_connect_vpn_on_wifi_disconnect_summary,
+            ) {
+                listener = OnChangedListener {
+                    ssidInput.enabled = srvStore.autoConnectVpnOnWifiDisconnect
+                }
+            }
+
+            ssidInput = editableText(
+                value = srvStore::wifiSsidForVpn,
+                adapter = NullableTextAdapter.String,
+                title = R.string.wifi_ssid_for_vpn,
+                placeholder = R.string.wifi_ssid_placeholder,
+                empty = R.string.empty,
+            ) {
+                enabled = srvStore.autoConnectVpnOnWifiDisconnect
+            }
+
             val vpn = switch(
                 value = uiStore::enableVpn,
                 icon = R.drawable.ic_baseline_vpn_lock,
