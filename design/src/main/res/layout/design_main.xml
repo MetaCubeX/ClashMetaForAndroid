@@ -86,7 +86,9 @@
                     app:cardBackgroundColor="@{clashRunning ? colorClashStarted : colorClashStopped}"
                     app:icon="@{clashRunning ? @drawable/ic_outline_check_circle : @drawable/ic_outline_not_interested}"
                     app:subtext="@{clashRunning ? @string/format_traffic_forwarded(forwarded) : @string/tap_to_start}"
-                    app:text="@{clashRunning ? @string/running : @string/stopped}" />
+                    app:text="@{clashRunning ? @string/running : @string/stopped}">
+                    <requestFocus />
+                </com.github.kr328.clash.design.view.LargeActionCard>
 
                 <com.github.kr328.clash.design.view.LargeActionCard
                     android:layout_width="match_parent"
