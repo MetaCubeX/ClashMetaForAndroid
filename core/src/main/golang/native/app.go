@@ -8,6 +8,7 @@ import (
 	"unsafe"
 
 	"cfa/native/app"
+	"cfa/native/config"
 
 	"github.com/metacubex/mihomo/log"
 )
@@ -48,10 +49,11 @@ func notifyTimeZoneChanged(name C.c_string, offset C.int) {
 	app.NotifyTimeZoneChanged(C.GoString(name), int(offset))
 }
 
-
 //export queryConfiguration
 func queryConfiguration() *C.char {
-	response := &struct{}{}
+	response := struct {
+		RouteExcludeAddress []string `json:"routeExcludeAddress"`
+	}{config.QueryRouteExclusions()}
 
 	return marshalJson(&response)
 }
