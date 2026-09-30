@@ -27,6 +27,7 @@ class ProxyViewConfig(val context: Context, var proxyLine: Int) {
         get() = if (proxyLine==2) context.getPixels(R.dimen.proxy_text_margin).toFloat() else context.getPixels(R.dimen.proxy_text_margin_grid3).toFloat()
     val textSize
         get() = if (proxyLine==2) context.getPixels(R.dimen.proxy_text_size).toFloat() else context.getPixels(R.dimen.proxy_text_size_grid3).toFloat()
+    val delayPadding = context.getPixels(R.dimen.proxy_delay_padding).toFloat()
 
     val shadow = Color.argb(
         0x15,
