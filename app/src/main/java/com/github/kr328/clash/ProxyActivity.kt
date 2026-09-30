@@ -1,11 +1,13 @@
 package com.github.kr328.clash
 
+import com.github.kr328.clash.common.log.Log
 import com.github.kr328.clash.common.util.intent
 import com.github.kr328.clash.core.Clash
 import com.github.kr328.clash.core.model.Proxy
 import com.github.kr328.clash.design.ProxyDesign
 import com.github.kr328.clash.design.model.ProxyState
 import com.github.kr328.clash.util.withClash
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.select
@@ -92,11 +94,19 @@ class ProxyActivity : BaseActivity<ProxyDesign>() {
                         }
                         is ProxyDesign.Request.UrlTest -> {
                             launch {
-                                withClash {
-                                    healthCheck(names[it.index])
-                                }
+                                try {
+                                    withClash {
+                                        healthCheck(names[it.index])
+                                    }
 
-                                design.requests.send(ProxyDesign.Request.Reload(it.index))
+                                    design.requests.send(ProxyDesign.Request.Reload(it.index))
+                                } catch (e: CancellationException) {
+                                    throw e
+                                } catch (e: Exception) {
+                                    Log.w("Request url test for `${names[it.index]}`", e)
+
+                                    design.finishUrlTesting(it.index)
+                                }
                             }
                         }
                         is ProxyDesign.Request.PatchMode -> {

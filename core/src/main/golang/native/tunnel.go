@@ -71,6 +71,8 @@ func healthCheck(completable unsafe.Pointer, name C.c_string) {
 		tunnel.HealthCheck(name)
 
 		C.complete(completable, nil)
+
+		C.release_object(completable)
 	}(C.GoString(name))
 }
 
