@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="large_item_padding_vertical">18dp</dimen>
+    <dimen name="large_item_header_component_size">36dp</dimen>
+    <dimen name="large_item_header_margin_horizontal">22dp</dimen>
+    <dimen name="large_item_header_layout_size">80dp</dimen>
+    <dimen name="large_item_tailing_margin_horizontal">24dp</dimen>
+    <dimen name="large_action_card_min_height">96dp</dimen>
+    <dimen name="main_card_margin_vertical">7dp</dimen>
+    <dimen name="main_label_margin_vertical">5dp</dimen>
+    <dimen name="main_padding_horizontal">56dp</dimen>
+    <dimen name="main_logo_size">64dp</dimen>
+    <dimen name="main_top_banner_height">104dp</dimen>
+    <dimen name="tv_focus_stroke">3dp</dimen>
+    <dimen name="tv_focus_elevation">10dp</dimen>
+    <dimen name="tv_item_gap">12dp</dimen>
+    <dimen name="tv_dashboard_radius">10dp</dimen>
+    <dimen name="tv_dashboard_stroke">2dp</dimen>
+</resources>
