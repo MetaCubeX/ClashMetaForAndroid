@@ -16,10 +16,12 @@ serialization = "1.3.3"
 kaidl = "1.15"
 room = "2.4.2"
 multiprocess = "1.0.0"
+junit = "4.13.2"
 quickie = "1.11.0"
 androidx-activity-ktx = "1.9.0"
 
 [libraries]
+junit = { module = "junit:junit", version.ref = "junit" }
 build-android = { module = "com.android.tools.build:gradle", version.ref = "agp" }
 build-kotlin-common = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 build-kotlin-serialization = { module = "org.jetbrains.kotlin:kotlin-serialization", version.ref = "kotlin" }
