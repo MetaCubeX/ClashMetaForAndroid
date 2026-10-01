@@ -3,6 +3,7 @@ build/
 /app/foss/release
 /app/premium/release
 /captures
+/.kotlin/
 
 # Ignore Gradle GUI config
 gradle-app.setting

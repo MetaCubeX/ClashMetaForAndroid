@@ -154,15 +154,22 @@ class TunService : VpnService(), CoroutineScope by CoroutineScope(Dispatchers.De
             }
 
             // Access Control
-            when (store.accessControlMode) {
+            val activeConfig = store.activeAppsStrategyConfigUuid?.let { uuid ->
+                store.appsStrategyConfigs.find { it.uuid == uuid }
+            }
+
+            val mode = activeConfig?.mode ?: store.accessControlMode
+            val packages = activeConfig?.packages ?: store.accessControlPackages.toList()
+
+            when (mode) {
                 AccessControlMode.AcceptAll -> Unit
                 AccessControlMode.AcceptSelected -> {
-                    (store.accessControlPackages + packageName).forEach {
+                    (packages + packageName).forEach {
                         runCatching { addAllowedApplication(it) }
                     }
                 }
                 AccessControlMode.DenySelected -> {
-                    (store.accessControlPackages - packageName).forEach {
+                    (packages - packageName).forEach {
                         runCatching { addDisallowedApplication(it) }
                     }
                 }
