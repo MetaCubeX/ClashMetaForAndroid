@@ -49,6 +49,11 @@
     <string name="qr" translatable="false">QR Code</string>
     <string name="import_from_url">Import from URL</string>
     <string name="import_from_qr">Import from QR Code</string>
+    <string name="share_subscription_qr">Share Subscription QR</string>
+    <string name="share_subscription_qr_tips">Another device can scan this with Import from QR Code.</string>
+    <string name="copy_link">Copy Link</string>
+    <string name="share_link">Share Link</string>
+    <string name="subscription_qr_too_long">This subscription URL is too long to encode as a QR code.</string>
     <string name="external">External</string>
     <string name="format_type_unsaved">%s (Unsaved)</string>
 

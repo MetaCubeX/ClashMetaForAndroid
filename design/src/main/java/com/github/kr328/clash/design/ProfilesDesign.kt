@@ -123,6 +123,15 @@ class ProfilesDesign(context: Context) : Design<ProfilesDesign.Request>(context)
         dialog.dismiss()
     }
 
+    fun canShareSubscriptionQr(profile: Profile): Boolean {
+        return isShareableSubscriptionUrl(profile.source)
+    }
+
+    fun requestShareQr(dialog: Dialog, profile: Profile) {
+        dialog.dismiss()
+        showSubscriptionQr(profile.name, profile.source)
+    }
+
     fun requestDuplicate(dialog: Dialog, profile: Profile) {
         requests.trySend(Request.Duplicate(profile))
 

@@ -31,6 +31,11 @@
     <string name="url">URL</string>
     <string name="import_from_url">URLからインポート</string>
     <string name="import_from_qr">QRコードからインポート</string>
+    <string name="share_subscription_qr">サブスクリプションQRを共有</string>
+    <string name="share_subscription_qr_tips">別の端末で「QRコードからインポート」を使って読み取れます。</string>
+    <string name="copy_link">リンクをコピー</string>
+    <string name="share_link">リンクを共有</string>
+    <string name="subscription_qr_too_long">サブスクリプションURLが長すぎるため、QRコードを作成できません。</string>
     <string name="external">外部入力</string>
     <string name="format_type_unsaved">%s (未保存)</string>
     <string name="application_broken">アプリが破損しています</string>

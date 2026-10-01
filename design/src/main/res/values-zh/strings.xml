@@ -45,6 +45,11 @@
     <string name="import_from_file">从文件导入</string>
     <string name="import_from_url">从 URL 导入</string>
     <string name="import_from_qr">从二维码导入</string>
+    <string name="share_subscription_qr">分享订阅二维码</string>
+    <string name="share_subscription_qr_tips">另一台设备可用「从二维码导入」扫描</string>
+    <string name="copy_link">复制链接</string>
+    <string name="share_link">分享链接</string>
+    <string name="subscription_qr_too_long">订阅链接过长，无法生成二维码</string>
     <string name="interface_">界面</string>
     <string name="invalid_url">无效的 URL</string>
     <string name="logcat">Logcat</string>

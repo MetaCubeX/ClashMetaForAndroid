@@ -32,6 +32,11 @@
     <string name="import_from_url">URL에서 가져오기</string>
     <string name="external">외부</string>
     <string name="import_from_qr">QR코드에서 가져오기</string>
+    <string name="share_subscription_qr">구독 QR 코드 공유</string>
+    <string name="share_subscription_qr_tips">다른 기기에서 QR코드에서 가져오기로 스캔할 수 있습니다.</string>
+    <string name="copy_link">링크 복사</string>
+    <string name="share_link">링크 공유</string>
+    <string name="subscription_qr_too_long">구독 주소가 너무 길어 QR 코드를 만들 수 없습니다.</string>
     <string name="format_type_unsaved">%s (저장되지 않음)</string>
     <string name="application_broken">앱 오류</string>
     <string name="application_crashed">앱 중지</string>

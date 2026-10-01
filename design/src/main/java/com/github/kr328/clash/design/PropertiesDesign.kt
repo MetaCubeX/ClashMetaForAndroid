@@ -102,6 +102,14 @@ class PropertiesDesign(context: Context) : Design<PropertiesDesign.Request>(cont
         }
     }
 
+    fun canShareSubscriptionQr(profile: Profile): Boolean {
+        return isShareableSubscriptionUrl(profile.source)
+    }
+
+    fun shareSubscriptionQr() {
+        showSubscriptionQr(profile.name, profile.source)
+    }
+
     fun inputUrl() {
         if (profile.type == Profile.Type.External)
             return

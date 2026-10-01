@@ -41,6 +41,15 @@
         <com.github.kr328.clash.design.view.LargeActionLabel
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:onClick="@{() -> master.requestShareQr(self, profile)}"
+            android:padding="@dimen/bottom_sheet_menu_items_padding"
+            android:visibility="@{master.canShareSubscriptionQr(profile) ? View.VISIBLE : View.GONE}"
+            app:icon="@drawable/ic_baseline_qr_code"
+            app:text="@string/share_subscription_qr" />
+
+        <com.github.kr328.clash.design.view.LargeActionLabel
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:onClick="@{() -> master.requestDuplicate(self, profile)}"
             android:padding="@dimen/bottom_sheet_menu_items_padding"
             android:visibility="@{profile.imported ? View.VISIBLE : View.GONE}"

@@ -41,6 +41,11 @@
     <string name="import_from_file">從檔案匯入</string>
     <string name="import_from_url">從 URL 匯入</string>
     <string name="import_from_qr">從二維碼導入</string>
+    <string name="share_subscription_qr">分享訂閱二維碼</string>
+    <string name="share_subscription_qr_tips">另一台裝置可用「從二維碼導入」掃描</string>
+    <string name="copy_link">複製連結</string>
+    <string name="share_link">分享連結</string>
+    <string name="subscription_qr_too_long">訂閱連結過長，無法產生二維碼</string>
     <string name="interface_">介面</string>
     <string name="invalid_url">無效 URL</string>
     <string name="logcat">Logcat</string>

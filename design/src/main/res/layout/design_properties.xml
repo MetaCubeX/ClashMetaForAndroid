@@ -77,6 +77,16 @@
                     app:text="@{profile.source}"
                     app:title="@string/url" />
 
+                <com.github.kr328.clash.design.view.ActionLabel
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginVertical="@dimen/properties_element_margin_vertical"
+                    android:onClick="@{() -> self.shareSubscriptionQr()}"
+                    android:visibility="@{self.canShareSubscriptionQr(profile) ? View.VISIBLE : View.GONE}"
+                    app:icon="@drawable/ic_baseline_qr_code"
+                    app:subtext="@string/share_subscription_qr_tips"
+                    app:text="@string/share_subscription_qr" />
+
                 <com.github.kr328.clash.design.view.ActionTextField
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
