@@ -1,56 +1,33 @@
-Subject: [PATCH] remove 64bits syscall on 32bit linux
+From bef1938b64a444911de119db613e60b9078ddd81 Mon Sep 17 00:00:00 2001
+From: wwqgtxx <wwqgtxx@gmail.com>
+Date: Sat, 9 May 2026 00:05:48 +0800
+Subject: [PATCH] Disable futex_time64 again
+
 ---
-Index: src/runtime/os_linux32.go
-IDEA additional info:
-Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
-<+>UTF-8
-===================================================================
+ src/runtime/os_linux32.go | 6 ------
+ 1 file changed, 6 deletions(-)
+
 diff --git a/src/runtime/os_linux32.go b/src/runtime/os_linux32.go
---- a/src/runtime/os_linux32.go	(revision 030384681641464bf71ed16500075c458363510f)
-+++ b/src/runtime/os_linux32.go	(date 1771666707318)
-@@ -21,14 +21,14 @@
+index 1ee1cdcaf90051..4aa42132d73739 100644
+--- a/src/runtime/os_linux32.go
++++ b/src/runtime/os_linux32.go
+@@ -24,9 +24,6 @@ var use64bitsTimeOn32bits bool
  
  //go:nosplit
  func futex(addr unsafe.Pointer, op int32, val uint32, ts *timespec, addr2 unsafe.Pointer, val3 uint32) int32 {
--	if !isFutexTime32bitOnly.Load() {
--		ret := futex_time64(addr, op, val, ts, addr2, val3)
--		// futex_time64 is only supported on Linux 5.0+
--		if ret != -_ENOSYS {
--			return ret
--		}
--		isFutexTime32bitOnly.Store(true)
+-	if use64bitsTimeOn32bits {
+-		return futex_time64(addr, op, val, ts, addr2, val3)
 -	}
-+	//if !isFutexTime32bitOnly.Load() {
-+	//	ret := futex_time64(addr, op, val, ts, addr2, val3)
-+	//	// futex_time64 is only supported on Linux 5.0+
-+	//	if ret != -_ENOSYS {
-+	//		return ret
-+	//	}
-+	//	isFutexTime32bitOnly.Store(true)
-+	//}
  	// Downgrade ts.
  	var ts32 timespec32
  	var pts32 *timespec32
-@@ -49,14 +49,14 @@
+@@ -45,9 +42,6 @@ func timer_settime64(timerid int32, flags int32, new, old *itimerspec) int32
  
  //go:nosplit
  func timer_settime(timerid int32, flags int32, new, old *itimerspec) int32 {
--	if !isSetTime32bitOnly.Load() {
--		ret := timer_settime64(timerid, flags, new, old)
--		// timer_settime64 is only supported on Linux 5.0+
--		if ret != -_ENOSYS {
--			return ret
--		}
--		isSetTime32bitOnly.Store(true)
+-	if use64bitsTimeOn32bits {
+-		return timer_settime64(timerid, flags, new, old)
 -	}
-+	//if !isSetTime32bitOnly.Load() {
-+	//	ret := timer_settime64(timerid, flags, new, old)
-+	//	// timer_settime64 is only supported on Linux 5.0+
-+	//	if ret != -_ENOSYS {
-+	//		return ret
-+	//	}
-+	//	isSetTime32bitOnly.Store(true)
-+	//}
  
  	var newts, oldts itimerspec32
  	var new32, old32 *itimerspec32

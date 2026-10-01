@@ -19,4 +19,5 @@ data class Pending(
     @ColumnInfo(name = "total") val total: Long,
     @ColumnInfo(name = "expire") val expire: Long,
     @ColumnInfo(name = "createdAt") val createdAt: Long = System.currentTimeMillis(),
+    @ColumnInfo(name = "ageSecretKey") val ageSecretKey: String? = null,
 )

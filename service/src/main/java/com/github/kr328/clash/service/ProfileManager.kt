@@ -2,7 +2,6 @@ package com.github.kr328.clash.service
 
 import android.content.Context
 import com.github.kr328.clash.service.data.Database
-import com.github.kr328.clash.service.data.Imported
 import com.github.kr328.clash.service.data.ImportedDao
 import com.github.kr328.clash.service.data.Pending
 import com.github.kr328.clash.service.data.PendingDao
@@ -19,10 +18,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import okhttp3.OkHttpClient
-import okhttp3.Request
 import java.io.FileNotFoundException
-import java.math.BigDecimal
 import java.util.*
 
 class ProfileManager(private val context: Context) : IProfileManager,
@@ -37,7 +33,7 @@ class ProfileManager(private val context: Context) : IProfileManager,
         }
     }
 
-    override suspend fun create(type: Profile.Type, name: String, source: String): UUID {
+    override suspend fun create(type: Profile.Type, name: String, source: String, ageSecretKey: String?): UUID {
         val uuid = generateProfileUUID()
         val pending = Pending(
             uuid = uuid,
@@ -49,6 +45,7 @@ class ProfileManager(private val context: Context) : IProfileManager,
             total = 0,
             download = 0,
             expire = 0,
+            ageSecretKey = ageSecretKey,
         )
 
         PendingDao().insert(pending)
@@ -81,6 +78,7 @@ class ProfileManager(private val context: Context) : IProfileManager,
             total = imported.total,
             download = imported.download,
             expire = imported.expire,
+            ageSecretKey = imported.ageSecretKey
         )
 
         cloneImportedFiles(uuid, newUUID)
@@ -90,7 +88,7 @@ class ProfileManager(private val context: Context) : IProfileManager,
         return newUUID
     }
 
-    override suspend fun patch(uuid: UUID, name: String, source: String, interval: Long) {
+    override suspend fun patch(uuid: UUID, name: String, source: String, interval: Long, ageSecretKey: String?) {
         val pending = PendingDao().queryByUUID(uuid)
 
         if (pending == null) {
@@ -110,6 +108,7 @@ class ProfileManager(private val context: Context) : IProfileManager,
                     total = 0,
                     download = 0,
                     expire = 0,
+                    ageSecretKey = ageSecretKey,
                 )
             )
         } else {
@@ -121,6 +120,7 @@ class ProfileManager(private val context: Context) : IProfileManager,
                 total = 0,
                 download = 0,
                 expire = 0,
+                ageSecretKey = ageSecretKey,
             )
 
             PendingDao().update(newPending)
@@ -129,82 +129,6 @@ class ProfileManager(private val context: Context) : IProfileManager,
 
     override suspend fun update(uuid: UUID) {
         scheduleUpdate(uuid, true)
-        ImportedDao().queryByUUID(uuid)?.let {
-            if (it.type == Profile.Type.Url && it.source.startsWith("https://",true)) {
-                updateFlow(it)
-            }
-        }
-    }
-
-    suspend fun updateFlow(old: Imported) {
-        val client = OkHttpClient()
-        try {
-            val versionName = context.packageManager.getPackageInfo(context.packageName, 0).versionName
-            val request = Request.Builder()
-                .url(old.source)
-                .header("User-Agent", "ClashMetaForAndroid/$versionName")
-                .build()
-
-            client.newCall(request).execute().use { response ->
-                if (!response.isSuccessful || response.headers["subscription-userinfo"] == null) return
-
-                var upload: Long = 0
-                var download: Long = 0
-                var total: Long = 0
-                var expire: Long = 0
-
-                val userinfo = response.headers["subscription-userinfo"]
-                if (response.isSuccessful && userinfo != null) {
-
-                    val flags = userinfo.split(";")
-                    for (flag in flags) {
-                        val info = flag.split("=")
-                        when {
-                            info[0].contains("upload") && info[1].isNotEmpty() -> upload =
-                                BigDecimal(info[1].split('.').first()).longValueExact()
-
-                            info[0].contains("download") && info[1].isNotEmpty() -> download =
-                                BigDecimal(info[1].split('.').first()).longValueExact()
-
-                            info[0].contains("total") && info[1].isNotEmpty() ->  total =
-                                BigDecimal(info[1].split('.').first()).longValueExact()
-
-                            info[0].contains("expire") && info[1].isNotEmpty() -> {
-                                if (info[1].isNotEmpty()) {
-                                    expire = (info[1].toDouble()*1000).toLong()
-                                }
-                            }
-                        }
-                    }
-                }
-
-                val new = Imported(
-                    old.uuid,
-                    old.name,
-                    old.type,
-                    old.source,
-                    old.interval,
-                    upload,
-                    download,
-                    total,
-                    expire,
-                    old?.createdAt ?: System.currentTimeMillis()
-                )
-
-                if (old != null) {
-                    ImportedDao().update(new)
-                } else {
-                    ImportedDao().insert(new)
-                }
-
-                PendingDao().remove(new.uuid)
-                context.sendProfileChanged(new.uuid)
-                // println(response.body!!.string())
-            }
-
-        } catch (e: Exception) {
-            System.out.println(e)
-        }
     }
 
     override suspend fun commit(uuid: UUID, callback: IFetchObserver?) {
@@ -266,19 +190,20 @@ class ProfileManager(private val context: Context) : IProfileManager,
         val expire = pending?.expire ?: imported?.expire ?: return null
 
         return Profile(
-            uuid,
-            name,
-            type,
-            source,
-            active != null && imported?.uuid == active,
-            interval,
-            upload,
-            download,
-            total,
-            expire,
-            resolveUpdatedAt(uuid),
-            imported != null,
-            pending != null
+            uuid = uuid,
+            name = name,
+            type = type,
+            source = source,
+            active = active != null && imported?.uuid == active,
+            interval = interval,
+            upload = upload,
+            download = download,
+            total = total,
+            expire = expire,
+            updatedAt = resolveUpdatedAt(uuid),
+            imported = imported != null,
+            pending = pending != null,
+            ageSecretKey = if (pending != null) pending.ageSecretKey else imported?.ageSecretKey,
         )
     }
 

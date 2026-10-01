@@ -19,4 +19,5 @@ data class Imported(
     @ColumnInfo(name = "total") val total: Long,
     @ColumnInfo(name = "expire") val expire: Long,
     @ColumnInfo(name = "createdAt") val createdAt: Long,
+    @ColumnInfo(name = "ageSecretKey") val ageSecretKey: String? = null,
 )

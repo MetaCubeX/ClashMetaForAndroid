@@ -172,6 +172,9 @@ data class ConfigurationOverride(
 
         @SerialName("whitelist")
         WhiteList,
+
+        @SerialName("rule")
+        Rule,
     }
 
     @Serializable

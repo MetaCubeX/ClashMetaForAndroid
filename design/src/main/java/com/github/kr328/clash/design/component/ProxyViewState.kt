@@ -36,17 +36,17 @@ class ProxyViewState(
         val frameTime = System.currentTimeMillis()
         var invalidate = false
 
-        if (proxy.type.group) {
+        if (proxy.isGroup) {
             title = proxy.name
 
             if (link == null) {
-                subtitle = proxy.type.name
+                subtitle = proxy.type
             } else {
                 if (linkNow !== link.now) {
                     linkNow = link.now
 
                     subtitle = "%s(%s)".format(
-                        proxy.type.name,
+                        proxy.type,
                         link.now.ifEmpty { "*" }
                     )
                 }

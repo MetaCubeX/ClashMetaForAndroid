@@ -34,7 +34,7 @@ class ProxyPageAdapter(
     ) {
         val states = withContext(Dispatchers.Default) {
             proxies.map {
-                val link = if (it.type.group) links[it.name] else null
+                val link = if (it.isGroup) links[it.name] else null
 
                 ProxyViewState(config, it, parent, link)
             }

@@ -352,12 +352,14 @@ class OverrideSettingsDesign(
                 values = arrayOf(
                     null,
                     ConfigurationOverride.FilterMode.BlackList,
-                    ConfigurationOverride.FilterMode.WhiteList
+                    ConfigurationOverride.FilterMode.WhiteList,
+                    ConfigurationOverride.FilterMode.Rule
                 ),
                 valuesText = arrayOf(
                     R.string.dont_modify,
                     R.string.blacklist,
-                    R.string.whitelist
+                    R.string.whitelist,
+                    R.string.rule
                 ),
                 title = R.string.fakeip_filter_mode,
                 configure = dnsDependencies::add,
