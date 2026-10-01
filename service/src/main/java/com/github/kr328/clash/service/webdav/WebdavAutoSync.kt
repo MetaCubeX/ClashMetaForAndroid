@@ -57,6 +57,20 @@ object WebdavAutoSync {
         WebdavLocalState(context).update { it.copy(activeStrategyUpdatedAt = now) }
     }
 
+    fun noteStrategyDeleted(context: Context, uuid: UUID) {
+        val deletedAt = System.currentTimeMillis()
+        WebdavLocalState(context).update { state ->
+            state.copy(
+                strategyTombstones = state.strategyTombstones + TombstonePayload(
+                    uuid = uuid.toString(),
+                    type = "AppsStrategy",
+                    deletedAt = deletedAt,
+                ),
+                strategyUpdatedAt = state.strategyUpdatedAt - uuid.toString(),
+            )
+        }
+    }
+
     private suspend fun sync(context: Context, force: Boolean) {
         val settings = WebdavSettingsStore(context).load()
         if (!settings.autoSync || settings.url.isBlank() || settings.username.isBlank() || settings.password.isEmpty()) {

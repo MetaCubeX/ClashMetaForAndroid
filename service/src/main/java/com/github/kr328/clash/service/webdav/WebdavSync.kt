@@ -68,12 +68,21 @@ class WebdavSync(
             localAccess = local.access,
             remoteAccess = remote.meta.access(),
             now = now,
+            localStrategies = local.strategies,
+            remoteStrategies = remote.meta.appsStrategies,
+            localStrategyTombstones = local.strategyTombstones,
+            remoteStrategyTombstones = remote.meta.appsStrategyTombstones,
+            localActiveStrategy = local.activeAppsStrategy,
+            localActiveStrategyUpdatedAt = local.activeAppsStrategyUpdatedAt,
+            remoteActiveStrategy = remote.meta.activeAppsStrategy,
+            remoteActiveStrategyUpdatedAt = remote.meta.activeAppsStrategyUpdatedAt,
         )
-        val counts = profiles.apply(merged, local)
+        val counts = profiles.apply(merged, local, now)
         val uploaded = if (action == ACTION_PULL) 0 else upload(config, remote, merged)
         WebdavLocalState(context).update { current ->
             current.copy(
                 tombstones = mergeTombstones(merged.tombstones + current.tombstones, now),
+                strategyTombstones = mergeTombstones(merged.strategyTombstones + current.strategyTombstones, now),
             )
         }
         if (counts.downloaded == 0 && uploaded == 0 && counts.removed == 0) {
@@ -138,13 +147,21 @@ class WebdavSync(
         }
         val metaChanged = uploaded > 0 || removedRemote > 0 ||
             remote.meta.access() != merged.access ||
-            remote.meta.tombstones != merged.tombstones
+            remote.meta.tombstones != merged.tombstones ||
+            remote.meta.appsStrategies != merged.strategies ||
+            remote.meta.appsStrategyTombstones != merged.strategyTombstones ||
+            remote.meta.activeAppsStrategy != merged.activeAppsStrategy ||
+            remote.meta.activeAppsStrategyUpdatedAt != merged.activeAppsStrategyUpdatedAt
         if (metaChanged) {
             val meta = SyncMetaPayload(
                 updatedAt = System.currentTimeMillis(),
                 accessControlMode = merged.access.mode,
                 accessControlPackages = merged.access.packages,
                 accessControlUpdatedAt = merged.access.updatedAt,
+                appsStrategies = merged.strategies,
+                appsStrategyTombstones = merged.strategyTombstones,
+                activeAppsStrategy = merged.activeAppsStrategy,
+                activeAppsStrategyUpdatedAt = merged.activeAppsStrategyUpdatedAt,
                 tombstones = merged.tombstones,
             )
             client.put(

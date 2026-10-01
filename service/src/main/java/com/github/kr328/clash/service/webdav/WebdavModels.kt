@@ -49,6 +49,15 @@ data class AccessControlPayload(
 )
 
 @Serializable
+data class AppsStrategyPayload(
+    val uuid: String,
+    val name: String,
+    val mode: String = "AcceptAll",
+    val packages: List<String> = emptyList(),
+    val updatedAt: Long = 0,
+)
+
+@Serializable
 data class SyncMetaPayload(
     val kind: String = WEBDAV_SYNC_KIND,
     val version: Int = WEBDAV_SYNC_VERSION,
@@ -56,6 +65,10 @@ data class SyncMetaPayload(
     val accessControlMode: String = "AcceptAll",
     val accessControlPackages: List<String> = emptyList(),
     val accessControlUpdatedAt: Long = 0,
+    val appsStrategies: List<AppsStrategyPayload> = emptyList(),
+    val appsStrategyTombstones: List<TombstonePayload> = emptyList(),
+    val activeAppsStrategy: String? = null,
+    val activeAppsStrategyUpdatedAt: Long = 0,
     val tombstones: List<TombstonePayload> = emptyList(),
 ) {
     fun access(): AccessControlPayload {

@@ -14,6 +14,7 @@ data class LocalState(
     val accessControlUpdatedAt: Long = 0,
     val strategyUpdatedAt: Map<String, Long> = emptyMap(),
     val activeStrategyUpdatedAt: Long = 0,
+    val strategyTombstones: List<TombstonePayload> = emptyList(),
     val lastSyncAt: Long = 0,
     val lastMessage: String = "",
 )

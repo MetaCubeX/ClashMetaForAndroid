@@ -8,6 +8,7 @@ import com.github.kr328.clash.service.data.Imported
 import com.github.kr328.clash.service.data.ImportedDao
 import com.github.kr328.clash.service.data.PendingDao
 import com.github.kr328.clash.service.model.AccessControlMode
+import com.github.kr328.clash.service.model.AppsStrategyConfig
 import com.github.kr328.clash.service.model.Profile
 import com.github.kr328.clash.service.store.ServiceStore
 import com.github.kr328.clash.service.util.importedDir
@@ -20,6 +21,10 @@ data class LocalSnapshot(
     val profiles: List<ProfilePayload>,
     val access: AccessControlPayload,
     val tombstones: List<TombstonePayload>,
+    val strategies: List<AppsStrategyPayload> = emptyList(),
+    val strategyTombstones: List<TombstonePayload> = emptyList(),
+    val activeAppsStrategy: String? = null,
+    val activeAppsStrategyUpdatedAt: Long = 0,
 )
 
 class WebdavProfiles(private val context: Context) {
@@ -68,6 +73,8 @@ class WebdavProfiles(private val context: Context) {
             }
             accessUpdatedAt = state.read().accessControlUpdatedAt
         }
+        val strategies = exportStrategies(store, local)
+        val active = exportActiveStrategy(store, local)
         return LocalSnapshot(
             profiles = profiles,
             access = AccessControlPayload(
@@ -76,10 +83,14 @@ class WebdavProfiles(private val context: Context) {
                 updatedAt = accessUpdatedAt,
             ),
             tombstones = local.tombstones,
+            strategies = strategies,
+            strategyTombstones = local.strategyTombstones,
+            activeAppsStrategy = active.first,
+            activeAppsStrategyUpdatedAt = active.second,
         )
     }
 
-    suspend fun apply(result: MergeResult, local: LocalSnapshot): ApplyCounts {
+    suspend fun apply(result: MergeResult, local: LocalSnapshot, startedAt: Long): ApplyCounts {
         var downloaded = 0
         var removed = 0
         var skipped = 0
@@ -114,7 +125,12 @@ class WebdavProfiles(private val context: Context) {
         }
 
         applyAccess(result.access, local.access)
-        return ApplyCounts(downloaded = downloaded, removed = removed, skipped = skipped)
+        val strategyCounts = applyStrategies(result, local, startedAt)
+        return ApplyCounts(
+            downloaded = downloaded + strategyCounts.first,
+            removed = removed + strategyCounts.second,
+            skipped = skipped,
+        )
     }
 
     private suspend fun install(payload: ProfilePayload): Boolean {
@@ -203,6 +219,90 @@ class WebdavProfiles(private val context: Context) {
         state.update { current ->
             if (current.accessControlUpdatedAt > remote.updatedAt) current
             else current.copy(accessControlUpdatedAt = remote.updatedAt)
+        }
+    }
+
+    private fun exportStrategies(store: ServiceStore, local: LocalState): List<AppsStrategyPayload> {
+        return store.appsStrategyConfigs.map { config ->
+            val id = config.uuid.toString()
+            var stamp = local.strategyUpdatedAt[id] ?: 0L
+            if (stamp == 0L) {
+                val stamped = System.currentTimeMillis()
+                state.update { current ->
+                    if ((current.strategyUpdatedAt[id] ?: 0L) > 0) current
+                    else current.copy(strategyUpdatedAt = current.strategyUpdatedAt + (id to stamped))
+                }
+                stamp = state.read().strategyUpdatedAt[id] ?: stamped
+            }
+            AppsStrategyPayload(
+                uuid = id,
+                name = config.name,
+                mode = config.mode.name,
+                packages = config.packages.sorted(),
+                updatedAt = stamp,
+            )
+        }
+    }
+
+    private fun exportActiveStrategy(store: ServiceStore, local: LocalState): Pair<String?, Long> {
+        val active = store.activeAppsStrategyConfigUuid?.toString()
+        var stamp = local.activeStrategyUpdatedAt
+        if (stamp == 0L && active != null) {
+            val stamped = System.currentTimeMillis()
+            state.update { current ->
+                if (current.activeStrategyUpdatedAt > 0) current
+                else current.copy(activeStrategyUpdatedAt = stamped)
+            }
+            stamp = state.read().activeStrategyUpdatedAt
+        }
+        return active to stamp
+    }
+
+    private fun applyStrategies(result: MergeResult, local: LocalSnapshot, startedAt: Long): Pair<Int, Int> {
+        val store = ServiceStore(context)
+        val fresh = state.read()
+        val current = store.appsStrategyConfigs.associateBy { it.uuid.toString() }.toMutableMap()
+        var downloaded = 0
+        var removed = 0
+        val keep = result.strategies.map { it.uuid }.toSet()
+        for (remote in result.strategies) {
+            val stamp = fresh.strategyUpdatedAt[remote.uuid] ?: 0L
+            if (stamp > remote.updatedAt) continue
+            val previous = local.strategies.find { it.uuid == remote.uuid }
+            if (previous != null && previous == remote && current.containsKey(remote.uuid)) continue
+            val mode = AccessControlMode.values().find { it.name == remote.mode } ?: AccessControlMode.AcceptAll
+            current[remote.uuid] = AppsStrategyConfig(
+                uuid = UUID.fromString(remote.uuid),
+                name = remote.name.ifBlank { remote.uuid },
+                mode = mode,
+                packages = remote.packages,
+            )
+            state.update { item ->
+                item.copy(strategyUpdatedAt = item.strategyUpdatedAt + (remote.uuid to remote.updatedAt))
+            }
+            if (previous == null || remote.updatedAt > previous.updatedAt) downloaded += 1
+        }
+        for (id in current.keys.toList()) {
+            if (id in keep) continue
+            val stamp = fresh.strategyUpdatedAt[id] ?: 0L
+            if (stamp > startedAt) continue
+            current.remove(id)
+            removed += 1
+            state.update { item ->
+                item.copy(strategyUpdatedAt = item.strategyUpdatedAt - id)
+            }
+        }
+        store.appsStrategyConfigs = current.values.toList()
+        applyActiveStrategy(store, result, fresh.activeStrategyUpdatedAt)
+        return downloaded to removed
+    }
+
+    private fun applyActiveStrategy(store: ServiceStore, result: MergeResult, freshUpdatedAt: Long) {
+        if (result.activeAppsStrategyUpdatedAt <= freshUpdatedAt) return
+        store.activeAppsStrategyConfigUuid = result.activeAppsStrategy?.let { runCatching { UUID.fromString(it) }.getOrNull() }
+        state.update { current ->
+            if (current.activeStrategyUpdatedAt > result.activeAppsStrategyUpdatedAt) current
+            else current.copy(activeStrategyUpdatedAt = result.activeAppsStrategyUpdatedAt)
         }
     }
 }

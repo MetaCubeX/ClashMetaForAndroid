@@ -289,7 +289,7 @@
     <string name="shortcut_stop_long">停止 Clash 服务</string>
 
     <string name="webdav_sync">WebDAV 同步</string>
-    <string name="webdav_tips">同步已保存的订阅配置，以及访问控制里的应用包名。地址必须是 https。同步会先合并，不会盖掉其他设备独有的订阅。正在编辑、尚未保存的配置不会上传。</string>
+    <string name="webdav_tips">同步已保存的订阅配置，以及各分组里的应用包名。地址必须是 https。同步会先合并，不会盖掉其他设备独有的订阅或分组。正在编辑、尚未保存的配置不会上传。</string>
     <string name="webdav_status_empty">尚未同步</string>
     <string name="webdav_server">服务器</string>
     <string name="webdav_url">地址</string>
@@ -301,7 +301,7 @@
     <string name="webdav_remote_path">远端目录</string>
     <string name="webdav_remote_path_default">/clash-meta</string>
     <string name="webdav_auto_sync">自动同步</string>
-    <string name="webdav_auto_sync_summary">启动后，以及订阅或应用包名变化后自动同步</string>
+    <string name="webdav_auto_sync_summary">启动后，以及订阅或分组包名变化后自动同步</string>
     <string name="webdav_test">测试连接</string>
     <string name="webdav_sync_now">立即同步</string>
     <string name="webdav_pull">仅下载</string>

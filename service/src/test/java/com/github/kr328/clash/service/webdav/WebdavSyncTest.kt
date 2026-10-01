@@ -180,6 +180,16 @@ class WebdavSyncTest {
     }
 
     @Test
+    fun newerAppGroupReplacesPackagesWithoutRemovingTheOtherGroup() {
+        val local = AppsStrategyPayload("a", "Home", "AcceptSelected", listOf("com.a"), 10)
+        val other = AppsStrategyPayload("b", "Work", "DenySelected", listOf("com.b"), 10)
+        val remote = AppsStrategyPayload("a", "Home", "AcceptSelected", listOf("com.a", "com.c"), 20)
+        val merged = mergeStrategies(listOf(local, other), listOf(remote), emptyList(), emptyList(), 100)
+        assertEquals(setOf("a", "b"), merged.strategies.map { it.uuid }.toSet())
+        assertEquals(listOf("com.a", "com.c"), merged.strategies.first { it.uuid == "a" }.packages)
+    }
+
+    @Test
     fun rejectsUnsafePathsAndBrokenProfiles() {
         try {
             safeRelativePath("../config.yaml")

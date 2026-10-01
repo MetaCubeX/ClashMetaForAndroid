@@ -8,6 +8,10 @@ import com.github.kr328.clash.design.requestAppListsConfigEdit
 import com.github.kr328.clash.service.model.AccessControlMode
 import com.github.kr328.clash.service.model.AppsStrategyConfig
 import com.github.kr328.clash.service.store.ServiceStore
+import com.github.kr328.clash.service.webdav.WebdavAutoSync
+import com.github.kr328.clash.service.webdav.WebdavSettingsStore
+import com.github.kr328.clash.service.webdav.WebdavSync
+import com.github.kr328.clash.util.withProfile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.selects.select
@@ -102,7 +106,9 @@ class AppsStrategyActivity : BaseActivity<AppsStrategyDesign>() {
         withContext(Dispatchers.IO) {
             val service = ServiceStore(this@AppsStrategyActivity)
             service.activeAppsStrategyConfigUuid = uuid
+            WebdavAutoSync.noteActiveAppsStrategy(this@AppsStrategyActivity)
             design?.fetch()
+            syncIfEnabled()
         }
     }
 
@@ -113,7 +119,10 @@ class AppsStrategyActivity : BaseActivity<AppsStrategyDesign>() {
             service.appsStrategyConfigs = configs
             if (service.activeAppsStrategyConfigUuid == uuid) {
                 service.activeAppsStrategyConfigUuid = null
+                WebdavAutoSync.noteActiveAppsStrategy(this@AppsStrategyActivity)
             }
+            WebdavAutoSync.noteStrategyDeleted(this@AppsStrategyActivity, uuid)
+            syncIfEnabled()
         }
     }
 
@@ -129,7 +138,9 @@ class AppsStrategyActivity : BaseActivity<AppsStrategyDesign>() {
             )
             configs.add(newConfig)
             service.appsStrategyConfigs = configs
+            WebdavAutoSync.noteAppsStrategy(this@AppsStrategyActivity, newConfig.uuid)
             design?.fetch()
+            syncIfEnabled()
         }
     }
 
@@ -149,6 +160,24 @@ class AppsStrategyActivity : BaseActivity<AppsStrategyDesign>() {
                 }
             }
             service.appsStrategyConfigs = configs
+            WebdavAutoSync.noteAppsStrategy(this@AppsStrategyActivity, uuid)
+            syncIfEnabled()
+        }
+    }
+
+    private suspend fun syncIfEnabled() {
+        val settings = WebdavSettingsStore(this).load()
+        if (!settings.autoSync || settings.url.isBlank() || settings.username.isBlank() || settings.password.isEmpty()) {
+            return
+        }
+        withProfile {
+            webdavPerform(
+                WebdavSync.ACTION_SYNC,
+                settings.url,
+                settings.username,
+                settings.password,
+                settings.remotePath,
+            )
         }
     }
 }

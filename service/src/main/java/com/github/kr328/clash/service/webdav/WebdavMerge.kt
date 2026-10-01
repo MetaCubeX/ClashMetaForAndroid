@@ -4,6 +4,10 @@ data class MergeResult(
     val profiles: List<ProfilePayload>,
     val tombstones: List<TombstonePayload>,
     val access: AccessControlPayload,
+    val strategies: List<AppsStrategyPayload> = emptyList(),
+    val strategyTombstones: List<TombstonePayload> = emptyList(),
+    val activeAppsStrategy: String? = null,
+    val activeAppsStrategyUpdatedAt: Long = 0,
 )
 
 fun mergeWebdav(
@@ -14,6 +18,14 @@ fun mergeWebdav(
     localAccess: AccessControlPayload,
     remoteAccess: AccessControlPayload,
     now: Long,
+    localStrategies: List<AppsStrategyPayload> = emptyList(),
+    remoteStrategies: List<AppsStrategyPayload> = emptyList(),
+    localStrategyTombstones: List<TombstonePayload> = emptyList(),
+    remoteStrategyTombstones: List<TombstonePayload> = emptyList(),
+    localActiveStrategy: String? = null,
+    localActiveStrategyUpdatedAt: Long = 0,
+    remoteActiveStrategy: String? = null,
+    remoteActiveStrategyUpdatedAt: Long = 0,
 ): MergeResult {
     val tombstones = mergeTombstones(localTombstones + remoteTombstones, now)
     val localByIdentity = localProfiles.associateBy { subscriptionIdentity(it.type, it.source, it.uuid) }
@@ -41,11 +53,59 @@ fun mergeWebdav(
         profiles.add(merged)
     }
 
+    val strategyMerge = mergeStrategies(
+        localStrategies,
+        remoteStrategies,
+        localStrategyTombstones,
+        remoteStrategyTombstones,
+        now,
+    )
+    val active = if (remoteActiveStrategyUpdatedAt > localActiveStrategyUpdatedAt) {
+        remoteActiveStrategy to remoteActiveStrategyUpdatedAt
+    } else {
+        localActiveStrategy to localActiveStrategyUpdatedAt
+    }
+    val activeUuid = active.first?.takeIf { id -> strategyMerge.strategies.any { it.uuid == id } }
     return MergeResult(
         profiles = profiles.sortedBy { it.uuid },
         tombstones = keptTombstones.sortedBy { it.uuid },
         access = if (remoteAccess.updatedAt > localAccess.updatedAt) remoteAccess else localAccess,
+        strategies = strategyMerge.strategies,
+        strategyTombstones = strategyMerge.tombstones,
+        activeAppsStrategy = activeUuid,
+        activeAppsStrategyUpdatedAt = if (activeUuid == null) active.second else active.second,
     )
+}
+
+data class StrategyMerge(
+    val strategies: List<AppsStrategyPayload>,
+    val tombstones: List<TombstonePayload>,
+)
+
+fun mergeStrategies(
+    local: List<AppsStrategyPayload>,
+    remote: List<AppsStrategyPayload>,
+    localTombstones: List<TombstonePayload>,
+    remoteTombstones: List<TombstonePayload>,
+    now: Long,
+): StrategyMerge {
+    val tombstones = mergeTombstones(localTombstones + remoteTombstones, now).toMutableList()
+    val localById = local.associateBy { it.uuid }
+    val remoteById = remote.associateBy { it.uuid }
+    val kept = mutableListOf<AppsStrategyPayload>()
+    for (uuid in localById.keys + remoteById.keys) {
+        val merged = when {
+            localById[uuid] == null -> remoteById[uuid]
+            remoteById[uuid] == null -> localById[uuid]
+            remoteById.getValue(uuid).updatedAt > localById.getValue(uuid).updatedAt -> remoteById[uuid]
+            else -> localById[uuid]
+        } ?: continue
+        val tombstone = tombstones.filter { it.uuid == merged.uuid }.maxByOrNull { it.deletedAt }
+        if (tombstone != null && tombstone.deletedAt >= merged.updatedAt) continue
+        if (tombstone != null) tombstones.removeAll { it.uuid == merged.uuid }
+        kept.add(merged)
+    }
+    return StrategyMerge(kept.sortedBy { it.uuid }, tombstones.sortedBy { it.uuid })
 }
 
 fun mergeTombstones(tombstones: List<TombstonePayload>, now: Long): List<TombstonePayload> {
