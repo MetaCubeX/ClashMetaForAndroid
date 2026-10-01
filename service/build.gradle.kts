@@ -19,6 +19,15 @@ dependencies {
     implementation(libs.androidx.room.ktx)
     implementation(libs.kaidl.runtime)
     implementation(libs.rikkax.multiprocess)
+    implementation(libs.okhttp)
+
+    testImplementation(libs.junit)
+}
+
+android {
+    testOptions {
+        unitTests.isReturnDefaultValues = true
+    }
 }
 
 afterEvaluate {

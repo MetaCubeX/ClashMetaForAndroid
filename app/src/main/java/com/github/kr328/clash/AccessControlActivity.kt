@@ -13,7 +13,11 @@ import com.github.kr328.clash.design.model.AppInfo
 import com.github.kr328.clash.design.util.toAppInfo
 import com.github.kr328.clash.service.model.AppsStrategyConfig
 import com.github.kr328.clash.service.store.ServiceStore
+import com.github.kr328.clash.service.webdav.WebdavAutoSync
+import com.github.kr328.clash.service.webdav.WebdavSettingsStore
+import com.github.kr328.clash.service.webdav.WebdavSync
 import com.github.kr328.clash.util.startClashService
+import com.github.kr328.clash.util.withProfile
 import com.github.kr328.clash.util.stopClashService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -41,9 +45,9 @@ class AccessControlActivity : BaseActivity<AccessControlDesign>() {
 
         defer {
             withContext(Dispatchers.IO) {
-                if (config != null) {
-                    val changed = selected != config.packages.toSet()
-                    if (changed) {
+                val changed = if (config != null) {
+                    val packagesChanged = selected != config.packages.toSet()
+                    if (packagesChanged) {
                         val updatedConfig = AppsStrategyConfig(
                             uuid = config.uuid,
                             name = config.name,
@@ -54,16 +58,36 @@ class AccessControlActivity : BaseActivity<AccessControlDesign>() {
                             if (it.uuid == config.uuid) updatedConfig else it
                         }
                         service.appsStrategyConfigs = configs
+                        WebdavAutoSync.noteAppsStrategy(this@AccessControlActivity, config.uuid)
                     }
+                    packagesChanged
                 } else {
-                    val changed = selected != service.accessControlPackages
+                    val packagesChanged = selected != service.accessControlPackages
                     service.accessControlPackages = selected
-                    if (clashRunning && changed) {
+                    if (packagesChanged) {
+                        WebdavAutoSync.noteAccessControl(this@AccessControlActivity)
+                    }
+                    if (clashRunning && packagesChanged) {
                         stopClashService()
                         while (clashRunning) {
                             delay(200)
                         }
                         startClashService()
+                    }
+                    packagesChanged
+                }
+                if (changed) {
+                    val settings = WebdavSettingsStore(this@AccessControlActivity).load()
+                    if (settings.autoSync && settings.url.isNotBlank() && settings.username.isNotBlank() && settings.password.isNotEmpty()) {
+                        withProfile {
+                            webdavPerform(
+                                WebdavSync.ACTION_SYNC,
+                                settings.url,
+                                settings.username,
+                                settings.password,
+                                settings.remotePath,
+                            )
+                        }
                     }
                 }
             }

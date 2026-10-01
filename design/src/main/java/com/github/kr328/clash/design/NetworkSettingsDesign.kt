@@ -22,7 +22,8 @@ class NetworkSettingsDesign(
     running: Boolean,
 ) : Design<NetworkSettingsDesign.Request>(context) {
     enum class Request {
-        StartAccessControlList
+        StartAccessControlList,
+        AccessControlChanged,
     }
 
     private val binding = DesignSettingsCommonBinding
@@ -120,8 +121,12 @@ class NetworkSettingsDesign(
                     R.string.deny_selected_apps
                 ),
                 title = R.string.access_control_mode,
-                configure = vpnDependencies::add,
-            )
+            ) {
+                vpnDependencies.add(this)
+                listener = OnChangedListener {
+                    requests.trySend(Request.AccessControlChanged)
+                }
+            }
 
             clickable(
                 title = R.string.access_control_packages,

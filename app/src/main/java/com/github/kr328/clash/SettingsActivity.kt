@@ -26,6 +26,8 @@ class SettingsActivity : BaseActivity<SettingsDesign>() {
                             startActivity(OverrideSettingsActivity::class.intent)
                         SettingsDesign.Request.StartMetaFeature ->
                             startActivity(MetaFeatureSettingsActivity::class.intent)
+                        SettingsDesign.Request.StartWebdav ->
+                            startActivity(WebdavSettingsActivity::class.intent)
                     }
                 }
             }

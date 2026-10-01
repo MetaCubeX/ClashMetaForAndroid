@@ -378,4 +378,23 @@
     <string name="shortcut_start_long">Start Clash service</string>
     <string name="shortcut_stop_short">Stop Clash</string>
     <string name="shortcut_stop_long">Stop Clash service</string>
+
+    <string name="webdav_sync">WebDAV Sync</string>
+    <string name="webdav_tips">Sync saved subscriptions and the app package names used by access control. The address must be https. A sync merges first and will not remove subscriptions that exist only on another device. Profiles that are still being edited are not uploaded.</string>
+    <string name="webdav_status_empty">Not synced yet</string>
+    <string name="webdav_server">Server</string>
+    <string name="webdav_url">Address</string>
+    <string name="webdav_url_placeholder">https://example.com/dav</string>
+    <string name="webdav_username">Username</string>
+    <string name="webdav_password">Password</string>
+    <string name="webdav_password_set">Set</string>
+    <string name="webdav_unset">Not set</string>
+    <string name="webdav_remote_path">Remote folder</string>
+    <string name="webdav_remote_path_default">/clash-meta</string>
+    <string name="webdav_auto_sync">Auto sync</string>
+    <string name="webdav_auto_sync_summary">Sync after startup and after subscriptions or package names change</string>
+    <string name="webdav_test">Test connection</string>
+    <string name="webdav_sync_now">Sync now</string>
+    <string name="webdav_pull">Download only</string>
+    <string name="webdav_working">Syncing…</string>
 </resources>

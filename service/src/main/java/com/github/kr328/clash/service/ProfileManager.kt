@@ -14,6 +14,9 @@ import com.github.kr328.clash.service.util.generateProfileUUID
 import com.github.kr328.clash.service.util.importedDir
 import com.github.kr328.clash.service.util.pendingDir
 import com.github.kr328.clash.service.util.sendProfileChanged
+import com.github.kr328.clash.service.webdav.StoredWebdavSettings
+import com.github.kr328.clash.service.webdav.WebdavAutoSync
+import com.github.kr328.clash.service.webdav.WebdavSync
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -31,6 +34,7 @@ class ProfileManager(private val context: Context) : IProfileManager,
 
             ProfileReceiver.rescheduleAll(context)
         }
+        WebdavAutoSync.syncIfDue(context)
     }
 
     override suspend fun create(type: Profile.Type, name: String, source: String, ageSecretKey: String?): UUID {
@@ -135,6 +139,7 @@ class ProfileManager(private val context: Context) : IProfileManager,
         ProfileProcessor.apply(context, uuid, callback)
 
         scheduleUpdate(uuid, false)
+        WebdavAutoSync.enqueue(context)
     }
 
     override suspend fun release(uuid: UUID) {
@@ -142,11 +147,18 @@ class ProfileManager(private val context: Context) : IProfileManager,
     }
 
     override suspend fun delete(uuid: UUID) {
-        ImportedDao().queryByUUID(uuid)?.also {
-            ProfileReceiver.cancelNext(context, it)
+        val imported = ImportedDao().queryByUUID(uuid)
+        if (imported != null) {
+            val updatedAt = context.importedDir.resolve(uuid.toString())
+                .walk()
+                .filter { it.isFile }
+                .maxOfOrNull { it.lastModified() } ?: 0L
+            WebdavAutoSync.noteDeleted(context, uuid, imported.source, imported.type.name, updatedAt)
+            ProfileReceiver.cancelNext(context, imported)
         }
 
         ProfileProcessor.delete(context, uuid)
+        WebdavAutoSync.enqueue(context)
     }
 
     override suspend fun queryByUUID(uuid: UUID): Profile? {
@@ -173,6 +185,24 @@ class ProfileManager(private val context: Context) : IProfileManager,
 
     override suspend fun setActive(profile: Profile) {
         ProfileProcessor.active(context, profile.uuid)
+    }
+
+    override suspend fun webdavPerform(
+        action: String,
+        url: String,
+        username: String,
+        password: String,
+        remotePath: String,
+    ): String {
+        return WebdavSync(context).perform(
+            action,
+            StoredWebdavSettings(
+                url = url,
+                username = username,
+                password = password,
+                remotePath = remotePath,
+            ),
+        )
     }
 
     private suspend fun resolveProfile(uuid: UUID): Profile? {

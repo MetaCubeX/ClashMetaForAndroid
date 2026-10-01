@@ -15,5 +15,24 @@
     <string name="profile_updater">配置更新服务</string>
     <string name="profile_updating">配置更新中</string>
     <string name="profile_service_status">配置文件服务状态</string>
+    <string name="webdav_connected">连接成功</string>
+    <string name="webdav_sync_idle">已经是最新</string>
+    <string name="webdav_sync_done">已同步：下载 %1$d，上传 %2$d，删除 %3$d</string>
+    <string name="webdav_error_empty_url">请先填写 WebDAV 地址</string>
+    <string name="webdav_error_bad_url">WebDAV 地址无效</string>
+    <string name="webdav_error_https">WebDAV 地址必须是 https</string>
+    <string name="webdav_error_empty_user">请先填写 WebDAV 用户名</string>
+    <string name="webdav_error_empty_password">请先填写 WebDAV 密码</string>
+    <string name="webdav_error_auth">WebDAV 认证失败，请检查用户名和密码</string>
+    <string name="webdav_error_redirect">WebDAV 重定向已被拒绝，请直接填写最终 https 地址</string>
+    <string name="webdav_error_timeout">WebDAV 请求超时</string>
+    <string name="webdav_error_connect">无法连接 WebDAV</string>
+    <string name="webdav_error_locked">远端文件被锁定，请稍后重试</string>
+    <string name="webdav_error_not_found">远端目录不存在。如果使用 Alist 等挂载，路径必须在已挂载目录下</string>
+    <string name="webdav_error_conflict">远端文件已被其他设备修改，请重试</string>
+    <string name="webdav_error_bad_version">远端同步文件版本不受支持</string>
+    <string name="webdav_error_broken">远端同步文件不完整</string>
+    <string name="webdav_error_too_large">%1$s 太大，无法同步</string>
+    <string name="webdav_error_generic">WebDAV 失败：%1$s</string>
     <string name="profile_process_result">配置文件处理结果</string>
 </resources>

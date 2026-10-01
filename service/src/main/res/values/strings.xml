@@ -18,4 +18,23 @@
     <string name="provider_files">Provider Files</string>
     <string name="profile_updater">Profile Updater</string>
     <string name="profile_updating">Profile Updating</string>
+    <string name="webdav_connected">Connected</string>
+    <string name="webdav_sync_idle">Already up to date</string>
+    <string name="webdav_sync_done">Synced. Downloaded %1$d, uploaded %2$d, removed %3$d.</string>
+    <string name="webdav_error_empty_url">Enter the WebDAV address</string>
+    <string name="webdav_error_bad_url">Invalid WebDAV address</string>
+    <string name="webdav_error_https">WebDAV address must use https</string>
+    <string name="webdav_error_empty_user">Enter the WebDAV username</string>
+    <string name="webdav_error_empty_password">Enter the WebDAV password</string>
+    <string name="webdav_error_auth">WebDAV authentication failed. Check the username and password</string>
+    <string name="webdav_error_redirect">WebDAV redirect was rejected. Use the final https address</string>
+    <string name="webdav_error_timeout">WebDAV request timed out</string>
+    <string name="webdav_error_connect">Unable to connect to WebDAV</string>
+    <string name="webdav_error_locked">The remote file is locked. Try again later</string>
+    <string name="webdav_error_not_found">The remote folder does not exist, or it is outside the mounted WebDAV path</string>
+    <string name="webdav_error_conflict">The remote file was changed by another device. Try again</string>
+    <string name="webdav_error_bad_version">This WebDAV file was written by an unsupported sync version</string>
+    <string name="webdav_error_broken">The remote sync file is incomplete</string>
+    <string name="webdav_error_too_large">%1$s is too large to sync</string>
+    <string name="webdav_error_generic">WebDAV failed: %1$s</string>
 </resources>

@@ -13,6 +13,7 @@ import com.github.kr328.clash.service.model.Profile
 import com.github.kr328.clash.service.remote.IFetchObserver
 import com.github.kr328.clash.service.store.ServiceStore
 import com.github.kr328.clash.service.util.importedDir
+import com.github.kr328.clash.service.webdav.WebdavAutoSync
 import com.github.kr328.clash.service.util.pendingDir
 import com.github.kr328.clash.service.util.processingDir
 import com.github.kr328.clash.service.util.sendProfileChanged
@@ -132,6 +133,17 @@ object ProfileProcessor {
                 }
             }
         }
+        WebdavAutoSync.enqueue(context)
+    }
+
+    suspend fun <T> guardImported(block: suspend () -> T): T {
+        return withContext(NonCancellable) {
+            processLock.withLock {
+                profileLock.withLock {
+                    block()
+                }
+            }
+        }
     }
 
     private suspend fun fetchProfile(
@@ -163,17 +175,24 @@ object ProfileProcessor {
 
     suspend fun delete(context: Context, uuid: UUID) {
         withContext(NonCancellable) {
-            profileLock.withLock {
-                ImportedDao().remove(uuid)
-                PendingDao().remove(uuid)
+            processLock.withLock {
+                profileLock.withLock {
+                    ImportedDao().remove(uuid)
+                    PendingDao().remove(uuid)
 
-                val pending = context.pendingDir.resolve(uuid.toString())
-                val imported = context.importedDir.resolve(uuid.toString())
+                    val pending = context.pendingDir.resolve(uuid.toString())
+                    val imported = context.importedDir.resolve(uuid.toString())
 
-                pending.deleteRecursively()
-                imported.deleteRecursively()
+                    pending.deleteRecursively()
+                    imported.deleteRecursively()
 
-                context.sendProfileChanged(uuid)
+                    val store = ServiceStore(context)
+                    if (store.activeProfile == uuid) {
+                        store.activeProfile = null
+                    }
+
+                    context.sendProfileChanged(uuid)
+                }
             }
         }
     }
