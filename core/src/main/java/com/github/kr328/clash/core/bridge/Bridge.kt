@@ -19,7 +19,16 @@ object Bridge {
     external fun nativeNotifyDnsChanged(dnsList: String)
     external fun nativeNotifyTimeZoneChanged(name: String, offset: Int)
     external fun nativeNotifyInstalledAppChanged(uidList: String)
-    external fun nativeStartTun(fd: Int, stack: String, gateway: String, portal: String, dns: String, cb: TunInterface)
+    external fun nativeStartTun(
+        fd: Int,
+        stack: String,
+        gateway: String,
+        portal: String,
+        dns: String,
+        disableIcmpForwarding: Boolean,
+        icmpTimeout: Int,
+        cb: TunInterface
+    )
     external fun nativeStopTun()
     external fun nativeStartHttp(listenAt: String): String?
     external fun nativeStopHttp()

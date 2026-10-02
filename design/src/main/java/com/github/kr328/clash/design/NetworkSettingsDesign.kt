@@ -71,6 +71,21 @@ class NetworkSettingsDesign(
             )
 
             switch(
+                value = srvStore::disableIcmpForwarding,
+                title = R.string.disable_icmp_forwarding,
+                summary = R.string.disable_icmp_forwarding_summary,
+                configure = vpnDependencies::add,
+            )
+
+            editableText(
+                value = srvStore::icmpTimeout,
+                adapter = NullableTextAdapter.Int,
+                title = R.string.icmp_timeout,
+                empty = R.string.icmp_timeout_default,
+                configure = vpnDependencies::add,
+            )
+
+            switch(
                 value = srvStore::allowBypass,
                 title = R.string.allow_bypass,
                 summary = R.string.allow_bypass_summary,
