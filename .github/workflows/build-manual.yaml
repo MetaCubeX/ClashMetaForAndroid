@@ -50,6 +50,7 @@ jobs:
         with:
           go-download-base-url: 'https://github.com/MetaCubeX/go/releases/download/build'
           go-version: '1.26'
+          cache: false
 
       - name: Apply Patches
         run: |
