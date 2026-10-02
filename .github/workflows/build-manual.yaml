@@ -4,22 +4,28 @@ on:
   workflow_dispatch:
     inputs:
       branch:
-        description: 'Ветка для сборки'
+        description: 'Branch to build from'
         required: true
         default: 'main'
         type: branch
       flavor:
-        description: 'Flavor сборки'
+        description: 'Build flavor'
         required: true
         default: 'meta'
         type: choice
         options:
           - meta
           - alpha
+      release-tag:
+        description: 'Release tag'
+        required: true
+        default: 'manual'
 
 jobs:
   BuildManual:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v6
@@ -90,42 +96,10 @@ jobs:
             ./gradlew --no-daemon app:assembleAlphaRelease
           fi
 
-      - name: Upload APK (universal)
-        uses: actions/upload-artifact@v7
+      - name: Upload Release
+        uses: softprops/action-gh-release@v3
         if: ${{ success() }}
         with:
-          name: CMFA-${{ inputs.flavor }}-${{ inputs.branch }}-universal
-          path: |
-            app/build/outputs/apk/${{ inputs.flavor }}/release/*-universal-*.apk
-
-      - name: Upload APK (arm64-v8a)
-        uses: actions/upload-artifact@v7
-        if: ${{ success() }}
-        with:
-          name: CMFA-${{ inputs.flavor }}-${{ inputs.branch }}-arm64-v8a
-          path: |
-            app/build/outputs/apk/${{ inputs.flavor }}/release/*-arm64-v8a-*.apk
-
-      - name: Upload APK (armeabi-v7a)
-        uses: actions/upload-artifact@v7
-        if: ${{ success() }}
-        with:
-          name: CMFA-${{ inputs.flavor }}-${{ inputs.branch }}-armeabi-v7a
-          path: |
-            app/build/outputs/apk/${{ inputs.flavor }}/release/*-armeabi-v7a-*.apk
-
-      - name: Upload APK (x86_64)
-        uses: actions/upload-artifact@v7
-        if: ${{ success() }}
-        with:
-          name: CMFA-${{ inputs.flavor }}-${{ inputs.branch }}-x86_64
-          path: |
-            app/build/outputs/apk/${{ inputs.flavor }}/release/*-x86_64-*.apk
-
-      - name: Upload APK (x86)
-        uses: actions/upload-artifact@v7
-        if: ${{ success() }}
-        with:
-          name: CMFA-${{ inputs.flavor }}-${{ inputs.branch }}-x86
-          path: |
-            app/build/outputs/apk/${{ inputs.flavor }}/release/*-x86-*.apk
+          tag_name: ${{ inputs.release-tag }}
+          files: app/build/outputs/apk/${{ inputs.flavor }}/release/*.apk
+          generate_release_notes: true
