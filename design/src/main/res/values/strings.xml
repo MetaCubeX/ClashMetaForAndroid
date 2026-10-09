@@ -398,4 +398,16 @@
     <string name="webdav_log_removed">− Removed \"%1$s\" (not in the backup)</string>
     <string name="webdav_log_activated">Switched to \"%1$s\" (selected on the desktop)</string>
     <string name="webdav_log_done">Done · updated %1$d, added %2$d, removed %3$d, failed %4$d</string>
+    <string name="webdav_log_cancelled">Cancelled · local profiles not in the backup were kept, nothing was switched</string>
+    <string name="webdav_log_retrying">Retrying %1$d failed subscription(s)…</string>
+    <string name="webdav_log_retry_done">Retry done · succeeded %1$d, failed %2$d</string>
+    <string name="webdav_retry_failed">Retry failed (%1$d)</string>
+    <string name="webdav_test_connection">Test connection</string>
+    <string name="webdav_test_connection_summary">Check the server address and credentials, and look for Clash Verge backups</string>
+    <string name="webdav_testing_connection">Testing connection…</string>
+    <string name="webdav_test_success">Connected · %1$d backup(s), latest: %2$s</string>
+    <string name="webdav_test_no_backup">Connected, but there is no Clash Verge backup on the server yet</string>
+    <string name="webdav_test_failed">Connection failed: %1$s</string>
+    <string name="webdav_unauthorized">authentication failed, check the username and password</string>
+    <string name="sync_log_stopping">Stopping after the current item…</string>
 </resources>

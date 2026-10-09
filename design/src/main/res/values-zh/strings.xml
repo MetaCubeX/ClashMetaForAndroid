@@ -307,4 +307,16 @@
     <string name="webdav_log_removed">− 已删除「%1$s」（备份中没有）</string>
     <string name="webdav_log_activated">已切换到「%1$s」（桌面端当前使用）</string>
     <string name="webdav_log_done">完成 · 更新 %1$d，新增 %2$d，删除 %3$d，失败 %4$d</string>
+    <string name="webdav_log_cancelled">已取消 · 备份中没有的本地配置已保留，未切换配置</string>
+    <string name="webdav_log_retrying">正在重试 %1$d 个失败的订阅…</string>
+    <string name="webdav_log_retry_done">重试完成 · 成功 %1$d，失败 %2$d</string>
+    <string name="webdav_retry_failed">重试失败项（%1$d）</string>
+    <string name="webdav_test_connection">测试连接</string>
+    <string name="webdav_test_connection_summary">检查服务器地址和账号密码，并查找 Clash Verge 备份</string>
+    <string name="webdav_testing_connection">正在测试连接…</string>
+    <string name="webdav_test_success">连接成功 · 共 %1$d 个备份，最新：%2$s</string>
+    <string name="webdav_test_no_backup">连接成功，但服务器上还没有 Clash Verge 备份</string>
+    <string name="webdav_test_failed">连接失败：%1$s</string>
+    <string name="webdav_unauthorized">认证失败，请检查用户名和密码</string>
+    <string name="sync_log_stopping">正在停止，当前项完成后结束…</string>
 </resources>

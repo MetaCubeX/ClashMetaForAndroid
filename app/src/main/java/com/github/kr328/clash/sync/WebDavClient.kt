@@ -49,7 +49,7 @@ class WebDavClient(
             // Directory missing yet -> no backups instead of a hard failure.
             if (resp.code == 404) return emptyList()
             if (!resp.isSuccessful && resp.code != HTTP_MULTI_STATUS) {
-                throw WebDavException("PROPFIND failed: HTTP ${resp.code}")
+                throw WebDavException("PROPFIND failed: HTTP ${resp.code}", resp.code)
             }
             return parseZipHrefs(resp.body?.string().orEmpty())
         }
@@ -65,7 +65,7 @@ class WebDavClient(
             .build()
 
         client.newCall(request).execute().use { resp ->
-            if (!resp.isSuccessful) throw WebDavException("Download failed: HTTP ${resp.code}")
+            if (!resp.isSuccessful) throw WebDavException("Download failed: HTTP ${resp.code}", resp.code)
             return resp.body?.bytes() ?: throw WebDavException("Empty response body")
         }
     }
@@ -106,4 +106,7 @@ class WebDavClient(
     }
 }
 
-class WebDavException(message: String) : Exception(message)
+class WebDavException(message: String, val code: Int = 0) : Exception(message) {
+    val isUnauthorized: Boolean
+        get() = code == 401 || code == 403
+}

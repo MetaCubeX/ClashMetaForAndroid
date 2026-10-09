@@ -20,7 +20,8 @@ class WebDavSettingsDesign(
     uiStore: UiStore,
 ) : Design<WebDavSettingsDesign.Request>(context) {
     enum class Request {
-        SyncNow
+        TestConnection,
+        SyncNow,
     }
 
     private val binding = DesignSettingsCommonBinding
@@ -64,6 +65,16 @@ class WebDavSettingsDesign(
                 icon = R.drawable.ic_baseline_key,
                 placeholder = R.string.webdav_not_configured,
             )
+
+            clickable(
+                title = R.string.webdav_test_connection,
+                icon = R.drawable.ic_outline_check_circle,
+                summary = R.string.webdav_test_connection_summary,
+            ) {
+                clicked {
+                    requests.trySend(Request.TestConnection)
+                }
+            }
 
             category(R.string.webdav_actions)
 
