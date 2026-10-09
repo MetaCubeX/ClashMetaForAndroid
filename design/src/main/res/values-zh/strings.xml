@@ -280,4 +280,43 @@
     <string name="shortcut_start_long">启动 Clash 服务</string>
     <string name="shortcut_stop_short">停止 Clash</string>
     <string name="shortcut_stop_long">停止 Clash 服务</string>
+
+    <!-- WebDAV 云同步 -->
+    <string name="webdav_sync">WebDAV 同步</string>
+    <string name="webdav_server">WebDAV 服务器</string>
+    <string name="webdav_actions">同步</string>
+    <string name="webdav_server_url">服务器地址</string>
+    <string name="webdav_username">用户名</string>
+    <string name="webdav_password">密码</string>
+    <string name="webdav_not_configured">未设置</string>
+    <string name="webdav_pull_sync">立即拉取同步</string>
+    <string name="webdav_pull_sync_summary">下载最新的 Clash Verge 备份，用其中的订阅替换本地全部配置</string>
+    <string name="webdav_tips">从 Clash Verge 的 WebDAV 备份同步订阅配置。请填入与 Clash Verge 相同的服务器地址、用户名和密码。与 Clash Verge 的恢复一致：本地配置会被备份中的订阅整体替换（备份里没有的配置，包括本地文件配置，都会被删除），并切换到桌面端当前使用的配置。Clash Verge 的本地配置与增强配置不会被导入。</string>
+    <string name="webdav_missing_credentials">请先填写服务器地址、用户名和密码</string>
+    <string name="webdav_no_backup_found">WebDAV 服务器上未找到备份</string>
+    <string name="webdav_sync_failed">同步失败：%1$s</string>
+    <string name="webdav_log_connecting">正在连接 %1$s…</string>
+    <string name="webdav_log_found_backup">最新备份：%1$s</string>
+    <string name="webdav_log_parsed">备份中有 %1$d 个订阅，跳过 %2$d 个本地配置</string>
+    <string name="webdav_log_empty_backup">备份中没有订阅，本地配置保持不变</string>
+    <string name="webdav_log_updating">正在更新「%1$s」…</string>
+    <string name="webdav_log_adding">正在新增「%1$s」…</string>
+    <string name="webdav_log_updated">✓ 已更新「%1$s」</string>
+    <string name="webdav_log_added">✓ 已新增「%1$s」</string>
+    <string name="webdav_log_item_failed">✗「%1$s」失败：%2$s</string>
+    <string name="webdav_log_removed">− 已删除「%1$s」（备份中没有）</string>
+    <string name="webdav_log_activated">已切换到「%1$s」（桌面端当前使用）</string>
+    <string name="webdav_log_done">完成 · 更新 %1$d，新增 %2$d，删除 %3$d，失败 %4$d</string>
+    <string name="webdav_log_cancelled">已取消 · 备份中没有的本地配置已保留，未切换配置</string>
+    <string name="webdav_log_retrying">正在重试 %1$d 个失败的订阅…</string>
+    <string name="webdav_log_retry_done">重试完成 · 成功 %1$d，失败 %2$d</string>
+    <string name="webdav_retry_failed">重试失败项（%1$d）</string>
+    <string name="webdav_test_connection">测试连接</string>
+    <string name="webdav_test_connection_summary">检查服务器地址和账号密码，并查找 Clash Verge 备份</string>
+    <string name="webdav_testing_connection">正在测试连接…</string>
+    <string name="webdav_test_success">连接成功 · 共 %1$d 个备份，最新：%2$s</string>
+    <string name="webdav_test_no_backup">连接成功，但服务器上还没有 Clash Verge 备份</string>
+    <string name="webdav_test_failed">连接失败：%1$s</string>
+    <string name="webdav_unauthorized">认证失败，请检查用户名和密码</string>
+    <string name="sync_log_stopping">正在停止，当前项完成后结束…</string>
 </resources>
