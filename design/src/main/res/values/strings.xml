@@ -370,4 +370,31 @@
     <string name="shortcut_start_long">Start Clash service</string>
     <string name="shortcut_stop_short">Stop Clash</string>
     <string name="shortcut_stop_long">Stop Clash service</string>
+
+    <!-- WebDAV cloud sync -->
+    <string name="webdav_sync">WebDAV Sync</string>
+    <string name="webdav_server">WebDAV Server</string>
+    <string name="webdav_actions">Sync</string>
+    <string name="webdav_server_url">Server URL</string>
+    <string name="webdav_username">Username</string>
+    <string name="webdav_password">Password</string>
+    <string name="webdav_not_configured">Not set</string>
+    <string name="webdav_pull_sync">Pull and sync now</string>
+    <string name="webdav_pull_sync_summary">Download the latest Clash Verge backup and replace local profiles with its subscriptions</string>
+    <string name="webdav_tips">Syncs subscriptions from a Clash Verge WebDAV backup. Use the same server URL, username and password as Clash Verge. Works like a restore in Clash Verge: all local profiles are replaced by the backup\'s subscriptions (profiles not in the backup, including local files, are deleted) and the profile selected on the desktop becomes active. Local and enhancement profiles from Clash Verge are not imported.</string>
+    <string name="webdav_missing_credentials">Please fill in the server URL, username and password first</string>
+    <string name="webdav_no_backup_found">No backup found on the WebDAV server</string>
+    <string name="webdav_sync_failed">Sync failed: %1$s</string>
+    <string name="webdav_log_connecting">Connecting to %1$s…</string>
+    <string name="webdav_log_found_backup">Latest backup: %1$s</string>
+    <string name="webdav_log_parsed">%1$d subscription(s) in backup, %2$d local profile(s) skipped</string>
+    <string name="webdav_log_empty_backup">No subscriptions in the backup; local profiles left unchanged</string>
+    <string name="webdav_log_updating">Updating \"%1$s\"…</string>
+    <string name="webdav_log_adding">Adding \"%1$s\"…</string>
+    <string name="webdav_log_updated">✓ Updated \"%1$s\"</string>
+    <string name="webdav_log_added">✓ Added \"%1$s\"</string>
+    <string name="webdav_log_item_failed">✗ \"%1$s\" failed: %2$s</string>
+    <string name="webdav_log_removed">− Removed \"%1$s\" (not in the backup)</string>
+    <string name="webdav_log_activated">Switched to \"%1$s\" (selected on the desktop)</string>
+    <string name="webdav_log_done">Done · updated %1$d, added %2$d, removed %3$d, failed %4$d</string>
 </resources>
