@@ -9,6 +9,7 @@
     <string name="allow_ipv6_summary">Cho phép lưu lượng ipv6 qua hệ thống Vpn</string>
     <string name="tun_stack_gvisor">Gvisor</string>
     <string name="tun_stack_mixed">Mixed</string>
+    <string name="tun_stack_mips">Mips</string>
     <string name="tun_stack_mode">Chế độ xếp chồng dữ liệu</string>
     <string name="tun_stack_system">Hệ thống</string>
     <string name="application_name_alpha">Clash Meta</string>

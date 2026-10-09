@@ -98,12 +98,14 @@ class NetworkSettingsDesign(
                 values = arrayOf(
                     "system",
                     "gvisor",
-                    "mixed"
+                    "mixed",
+                    "mips"
                 ),
                 valuesText = arrayOf(
                     R.string.tun_stack_system,
                     R.string.tun_stack_gvisor,
-                    R.string.tun_stack_mixed
+                    R.string.tun_stack_mixed,
+                    R.string.tun_stack_mips
                 ),
                 title = R.string.tun_stack_mode,
                 configure = vpnDependencies::add,
