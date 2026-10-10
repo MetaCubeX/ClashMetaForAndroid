@@ -66,6 +66,8 @@
     <string name="import_">가져오기</string>
     <string name="properties">속성</string>
     <string name="duplicate">복제</string>
+    <string name="share_qr_code">QR 코드로 공유</string>
+    <string name="qr_code_generation_failed">이 링크의 QR 코드를 생성할 수 없습니다.</string>
     <string name="active_unsaved_tips">활성화하기 전에 구성 파일을 저장해야합니다.</string>
     <string name="exit_without_save">저장없이 종료</string>
     <string name="exit_without_save_warning">모든 변경 사항이 저장되지 않습니다.</string>

@@ -50,6 +50,15 @@
         <com.github.kr328.clash.design.view.LargeActionLabel
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:onClick="@{() -> master.requestShareQrCode(self, profile)}"
+            android:padding="@dimen/bottom_sheet_menu_items_padding"
+            android:visibility="@{profile.imported &amp;&amp; profile.type == Type.Url &amp;&amp; !profile.source.isEmpty() ? View.VISIBLE : View.GONE}"
+            app:icon="@drawable/baseline_qr_code_scanner"
+            app:text="@string/share_qr_code" />
+
+        <com.github.kr328.clash.design.view.LargeActionLabel
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:onClick="@{() -> master.requestDelete(self, profile)}"
             android:padding="@dimen/bottom_sheet_menu_items_padding"
             android:theme="@style/ThemeOverlay.ControlColorError"

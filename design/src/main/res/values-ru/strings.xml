@@ -76,6 +76,8 @@
     <string name="import_">Импорт</string>
     <string name="properties">Свойства</string>
     <string name="duplicate">Создать копию</string>
+    <string name="share_qr_code">Поделиться QR-кодом</string>
+    <string name="qr_code_generation_failed">Не удалось создать QR-код для этой ссылки.</string>
     <string name="active_unsaved_tips">Профиль должен быть сохранён перед активацией</string>
 
     <string name="exit_without_save">Выйти без сохранения</string>

@@ -25,6 +25,8 @@
     <string name="dns_hijacking">DNS 攔截攻擊</string>
     <string name="dns_hijacking_summary">處理所有 DNS 封包</string>
     <string name="duplicate">複製</string>
+    <string name="share_qr_code">分享 QR 碼</string>
+    <string name="qr_code_generation_failed">無法為此連結產生 QR 碼。</string>
     <string name="edit">編輯</string>
     <string name="empty_name">空白名稱</string>
     <string name="exit_without_save">退出而不儲存</string>
