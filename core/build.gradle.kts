@@ -49,6 +49,7 @@ android {
 }
 
 dependencies {
+    testImplementation(libs.junit)
     implementation(project(":common"))
 
     implementation(libs.androidx.core)
