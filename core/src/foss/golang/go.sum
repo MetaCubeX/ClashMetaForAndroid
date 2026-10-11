@@ -29,8 +29,8 @@ github.com/dunglas/httpsfv v1.0.2 h1:iERDp/YAfnojSDJ7PW3dj1AReJz4MrwbECSSE59JWL0
 github.com/dunglas/httpsfv v1.0.2/go.mod h1:zID2mqw9mFsnt7YC3vYQ9/cjq30q41W+1AnDwH8TiMg=
 github.com/easytier/easytier/easytier-go v0.0.0-20260910071355-3d0c9c3ca5e2 h1:2/9iRUcMR3QPrT2XFf/i7QV5YoSHPFjkgBM5tP8xbcc=
 github.com/easytier/easytier/easytier-go v0.0.0-20260910071355-3d0c9c3ca5e2/go.mod h1:fCEi5+K2yt+sPDONSWO1uNpOifrwPgFGvm3J0YrFRvk=
-github.com/enfein/mieru/v3 v3.38.0 h1:+DuixHFoCGEYEopoEg8fHmDJ5Ak30PuXuf1GIh2Xpu0=
-github.com/enfein/mieru/v3 v3.38.0/go.mod h1:zJBUCsi5rxyvHM8fjFf+GLaEl4OEjjBXr1s5F6Qd3hM=
+github.com/enfein/mieru/v3 v3.38.1 h1:UZ5zAJi0caSmaOniVy33pyY7ANxyf4PmPeLSuYZpDro=
+github.com/enfein/mieru/v3 v3.38.1/go.mod h1:zJBUCsi5rxyvHM8fjFf+GLaEl4OEjjBXr1s5F6Qd3hM=
 github.com/ericlagergren/aegis v0.0.0-20250325060835-cd0defd64358 h1:kXYqH/sL8dS/FdoFjr12ePjnLPorPo2FsnrHNuXSDyo=
 github.com/ericlagergren/aegis v0.0.0-20250325060835-cd0defd64358/go.mod h1:hkIFzoiIPZYxdFOOLyDho59b7SrDfo+w3h+yWdlg45I=
 github.com/ericlagergren/polyval v0.0.0-20220411101811-e25bc10ba391 h1:8j2RH289RJplhA6WfdaPqzg1MjH2K8wX5e0uhAxrw2g=
@@ -167,8 +167,8 @@ github.com/metacubex/sing-tun v0.4.27 h1:dWCpFDlWelQrhH3y5KkMrJXEXYeJ0V2LROP8Cxv
 github.com/metacubex/sing-tun v0.4.27/go.mod h1:5nlmrOy+FG0yhiLm+O/pzmirZVrpLuDQZuA+qI9x5kg=
 github.com/metacubex/sing-vmess v0.2.5 h1:m9Zt5I27lB9fmLMZfism9sH2LcnAfShZfwSkf6/KJoE=
 github.com/metacubex/sing-vmess v0.2.5/go.mod h1:AwtlzUgf8COe9tRYAKqWZ+leDH7p5U98a0ZUpYehl8Q=
-github.com/metacubex/sing-wireguard v0.0.0-20260826105301-c3ae17d19f9e h1:KGKZt//rrELT/dEwgYcHCqNYEGr3a7uVutlZrzrZZWY=
-github.com/metacubex/sing-wireguard v0.0.0-20260826105301-c3ae17d19f9e/go.mod h1:OiYj4hitKrN1YIrgGHXp6zKnc9asCspF+SrYlLN2hYQ=
+github.com/metacubex/sing-wireguard v0.0.0-20261002050126-e5fa1a607406 h1:sronRtbNXPCT9sOpcsISq87w4mLufxP7mQFUEg+zUCY=
+github.com/metacubex/sing-wireguard v0.0.0-20261002050126-e5fa1a607406/go.mod h1:OiYj4hitKrN1YIrgGHXp6zKnc9asCspF+SrYlLN2hYQ=
 github.com/metacubex/smux v0.0.0-20260105030934-d0c8756d3141 h1:DK2l6m2Fc85H2BhiAPgbJygiWhesPlfGmF+9Vw6ARdk=
 github.com/metacubex/smux v0.0.0-20260105030934-d0c8756d3141/go.mod h1:/yI4OiGOSn0SURhZdJF3CbtPg3nwK700bG8TZLMBvAg=
 github.com/metacubex/ssh v0.1.0 h1:iGfr99qk/eMHzUnQ/0bTxXT8+8SWqLSHBWDHoAhngzw=
