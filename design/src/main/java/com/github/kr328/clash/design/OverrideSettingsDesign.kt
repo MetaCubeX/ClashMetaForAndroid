@@ -225,6 +225,79 @@ class OverrideSettingsDesign(
                 placeholder = R.string.dont_modify,
             )
 
+            category(R.string.tailscale)
+
+            val tailscaleDeps: MutableList<Preference> = mutableListOf()
+
+            switch(
+                value = configuration.tailscale::enabled,
+                title = R.string.tailscale_enable,
+                summary = R.string.tailscale_enable_summary,
+            ) {
+                listener = OnChangedListener {
+                    tailscaleDeps.forEach {
+                        it.enabled = configuration.tailscale.enabled
+                    }
+                }
+            }
+
+            editableText(
+                value = configuration.tailscale::authKey,
+                adapter = NullableTextAdapter.String,
+                title = R.string.tailscale_field_auth_key,
+                placeholder = R.string.dont_modify,
+                empty = R.string.disabled,
+                configure = tailscaleDeps::add,
+            )
+
+            editableText(
+                value = configuration.tailscale::hostname,
+                adapter = NullableTextAdapter.String,
+                title = R.string.tailscale_field_hostname,
+                placeholder = R.string.dont_modify,
+                empty = R.string.disabled,
+                configure = tailscaleDeps::add,
+            )
+
+            editableText(
+                value = configuration.tailscale::controlUrl,
+                adapter = NullableTextAdapter.String,
+                title = R.string.tailscale_field_control_url,
+                placeholder = R.string.dont_modify,
+                empty = R.string.disabled,
+                configure = tailscaleDeps::add,
+            )
+
+            editableText(
+                value = configuration.tailscale::stateDir,
+                adapter = NullableTextAdapter.String,
+                title = R.string.tailscale_field_state_dir,
+                placeholder = R.string.dont_modify,
+                empty = R.string.disabled,
+                configure = tailscaleDeps::add,
+            )
+
+            editableText(
+                value = configuration.tailscale::exitNode,
+                adapter = NullableTextAdapter.String,
+                title = R.string.tailscale_field_exit_node,
+                placeholder = R.string.dont_modify,
+                empty = R.string.disabled,
+                configure = tailscaleDeps::add,
+            )
+
+            editableTextList(
+                value = configuration.tailscale::ipCidrs,
+                adapter = TextAdapter.String,
+                title = R.string.tailscale_ip_cidrs,
+                placeholder = R.string.tailscale_cidrs_hint,
+                configure = tailscaleDeps::add,
+            )
+
+            tailscaleDeps.forEach {
+                it.enabled = configuration.tailscale.enabled
+            }
+
             category(R.string.dns)
 
             val dnsDependencies: MutableList<Preference> = mutableListOf()
