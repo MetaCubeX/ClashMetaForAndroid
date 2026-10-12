@@ -78,6 +78,28 @@ class UiStore(context: Context) {
         defaultValue = false,
     )
 
+    var webdavUrl: String by store.string(
+        key = "webdav_url",
+        defaultValue = "",
+    )
+
+    var webdavUsername: String by store.string(
+        key = "webdav_username",
+        defaultValue = "",
+    )
+
+    var webdavPassword: String by store.string(
+        key = "webdav_password",
+        defaultValue = "",
+    )
+
+    // Verge profile uid -> CMFA profile uuid of subscriptions created by WebDAV sync,
+    // one "uid<TAB>uuid" pair per line.
+    var webdavSyncedProfiles: String by store.string(
+        key = "webdav_synced_profiles",
+        defaultValue = "",
+    )
+
     companion object {
         private const val PREFERENCE_NAME = "ui"
 
