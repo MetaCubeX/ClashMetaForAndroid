@@ -5,6 +5,7 @@ import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import androidx.core.content.getSystemService
 import com.github.kr328.clash.common.Global
 import com.github.kr328.clash.common.compat.pendingIntentFlags
@@ -13,6 +14,7 @@ import com.github.kr328.clash.common.constants.Intents
 import com.github.kr328.clash.common.log.Log
 import com.github.kr328.clash.common.util.componentName
 import com.github.kr328.clash.common.util.setUUID
+import com.github.kr328.clash.common.util.uuid
 import com.github.kr328.clash.service.data.Imported
 import com.github.kr328.clash.service.data.ImportedDao
 import com.github.kr328.clash.service.model.Profile
@@ -39,7 +41,29 @@ class ProfileReceiver : BroadcastReceiver() {
             Intents.ACTION_PROFILE_REQUEST_UPDATE -> {
                 val redirect = intent.setComponent(ProfileWorker::class.componentName)
 
-                context.startForegroundServiceCompat(redirect)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    try {
+                        context.startForegroundServiceCompat(redirect)
+                    } catch (e: IllegalStateException) {
+                        // Android 12+ forbids starting foreground service from background via AlarmManager
+                        Global.launch {
+                            intent.uuid?.also { uuid ->
+                                try {
+                                    ProfileProcessor.update(context, uuid, null)
+                                    val imported = ImportedDao().queryByUUID(uuid)
+                                    if (imported != null) {
+                                        scheduleNext(context, imported)
+                                    }
+                                    Log.i("ProfileReceiver: background update completed for $uuid")
+                                } catch (e: Exception) {
+                                    Log.e("ProfileReceiver: fallback background update failed", e)
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    context.startForegroundServiceCompat(redirect)
+                }
             }
         }
     }
