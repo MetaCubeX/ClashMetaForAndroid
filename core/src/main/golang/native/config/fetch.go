@@ -1,6 +1,7 @@
 package config
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -18,6 +19,7 @@ import (
 
 	"github.com/metacubex/mihomo/adapter/provider"
 	clashHttp "github.com/metacubex/mihomo/component/http"
+	mihomoConfig "github.com/metacubex/mihomo/config"
 	RB "github.com/metacubex/mihomo/rules/bundle"
 )
 
@@ -44,6 +46,11 @@ func openUrl(ctx context.Context, url string) (io.ReadCloser, fetchHeader, error
 	if err != nil {
 		return nil, fetchHeader{}, err
 	}
+	if response.StatusCode < http.StatusOK || response.StatusCode >= http.StatusMultipleChoices {
+		_ = response.Body.Close()
+
+		return nil, fetchHeader{}, fmt.Errorf("subscription request failed: %s", response.Status)
+	}
 
 	return response.Body, fetchHeader{
 		SubscriptionUserInfo:  response.Header.Get("subscription-userinfo"),
@@ -56,6 +63,20 @@ func openContent(url string) (io.ReadCloser, error) {
 }
 
 func fetch(url *U.URL, file string) (fetchHeader, error) {
+	return fetchWithValidator(url, file, nil)
+}
+
+func fetchConfiguration(url *U.URL, file string) (fetchHeader, error) {
+	return fetchWithValidator(url, file, func(data []byte) error {
+		if _, err := mihomoConfig.UnmarshalRawConfig(data); err != nil {
+			return fmt.Errorf("invalid configuration response: %w", err)
+		}
+
+		return nil
+	})
+}
+
+func fetchWithValidator(url *U.URL, file string, validate func([]byte) error) (fetchHeader, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
@@ -77,6 +98,18 @@ func fetch(url *U.URL, file string) (fetchHeader, error) {
 	}
 
 	defer reader.Close()
+
+	if validate != nil {
+		data, err := io.ReadAll(reader)
+		if err != nil {
+			return fetchHeader{}, err
+		}
+		if err := validate(data); err != nil {
+			return fetchHeader{}, err
+		}
+
+		return header, writeFile(file, bytes.NewReader(data))
+	}
 
 	return header, writeFile(file, reader)
 }
@@ -171,7 +204,7 @@ func FetchAndValid(
 
 		reportStatus(string(bytes))
 
-		header, err := fetch(url, configPath)
+		header, err := fetchConfiguration(url, configPath)
 		if err != nil {
 			return err
 		}
