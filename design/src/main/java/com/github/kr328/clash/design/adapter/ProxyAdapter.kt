@@ -9,6 +9,7 @@ import com.github.kr328.clash.design.component.ProxyViewState
 class ProxyAdapter(
     private val config: ProxyViewConfig,
     private val clicked: (String) -> Unit,
+    private val delayClicked: (String) -> Unit,
 ) : RecyclerView.Adapter<ProxyAdapter.Holder>() {
     class Holder(val view: ProxyView) : RecyclerView.ViewHolder(view)
 
@@ -24,6 +25,9 @@ class ProxyAdapter(
 
         holder.view.apply {
             state = current
+            onDelayClick = {
+                delayClicked(current.proxy.name)
+            }
 
             setOnClickListener {
                 clicked(current.proxy.name)
