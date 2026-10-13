@@ -23,6 +23,8 @@ object Intents {
     val ACTION_PROFILE_SCHEDULE_UPDATES = "$packageName.intent.action.SCHEDULE_UPDATES"
     val ACTION_PROFILE_LOADED = "$packageName.intent.action.PROFILE_LOADED"
     val ACTION_OVERRIDE_CHANGED = "$packageName.intent.action.OVERRIDE_CHANGED"
+    val ACTION_AUTO_SWITCH_RESCHEDULE = "$packageName.intent.action.AUTO_SWITCH_RESCHEDULE"
+    val ACTION_AUTO_SWITCH_TRIGGER = "$packageName.intent.action.AUTO_SWITCH_TRIGGER"
 
     const val EXTRA_STOP_REASON = "stop_reason"
     const val EXTRA_UUID = "uuid"
