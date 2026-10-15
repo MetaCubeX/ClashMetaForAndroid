@@ -73,7 +73,7 @@ object WebdavAutoSync {
 
     private suspend fun sync(context: Context, force: Boolean) {
         val settings = WebdavSettingsStore(context).load()
-        if (!settings.autoSync || settings.url.isBlank() || settings.username.isBlank() || settings.password.isEmpty()) {
+        if (!settings.autoSync || !settings.hasEndpoint() || settings.username.isBlank() || settings.password.isEmpty()) {
             return
         }
         if (!force) {

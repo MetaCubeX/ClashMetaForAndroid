@@ -7,6 +7,7 @@ import com.github.kr328.clash.service.data.Pending
 import com.github.kr328.clash.service.data.PendingDao
 import com.github.kr328.clash.service.model.Profile
 import com.github.kr328.clash.service.remote.IFetchObserver
+import com.github.kr328.clash.service.remote.IWebdavObserver
 import com.github.kr328.clash.service.remote.IProfileManager
 import com.github.kr328.clash.service.store.ServiceStore
 import com.github.kr328.clash.service.util.directoryLastModified
@@ -190,14 +191,22 @@ class ProfileManager(private val context: Context) : IProfileManager,
     override suspend fun webdavPerform(
         action: String,
         url: String,
+        lanUrl: String,
         username: String,
         password: String,
         remotePath: String,
+        observer: IWebdavObserver?,
     ): String {
-        return WebdavSync(context).perform(
+        return WebdavSync(context) { phase, current, total, label ->
+            try {
+                observer?.onProgress(phase, current, total, label)
+            } catch (_: Exception) {
+            }
+        }.perform(
             action,
             StoredWebdavSettings(
                 url = url,
+                lanUrl = lanUrl,
                 username = username,
                 password = password,
                 remotePath = remotePath,

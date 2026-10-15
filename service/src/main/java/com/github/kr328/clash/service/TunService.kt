@@ -15,6 +15,7 @@ import com.github.kr328.clash.service.model.AccessControlMode
 import com.github.kr328.clash.service.store.ServiceStore
 import com.github.kr328.clash.service.util.cancelAndJoinBlocking
 import com.github.kr328.clash.service.util.parseCIDR
+import com.github.kr328.clash.service.util.sendClashReloadRejected
 import com.github.kr328.clash.service.util.sendClashStarted
 import com.github.kr328.clash.service.util.sendClashStopped
 import kotlinx.coroutines.*
@@ -30,6 +31,7 @@ class TunService : VpnService(), CoroutineScope by CoroutineScope(Dispatchers.De
         val store = ServiceStore(self)
 
         val close = install(CloseModule(self))
+        val reload = install(ReloadModule(self))
         val tun = install(TunModule(self))
         val config = install(ConfigurationModule(self))
         val network = install(NetworkObserveModule(self))
@@ -50,6 +52,19 @@ class TunService : VpnService(), CoroutineScope by CoroutineScope(Dispatchers.De
                 val quit = select<Boolean> {
                     close.onEvent {
                         true
+                    }
+                    reload.onEvent {
+                        when (withContext(NonCancellable) { reloadTun(tun) }) {
+                            Reload.Ok -> false
+                            Reload.Rejected -> {
+                                sendClashReloadRejected()
+                                false
+                            }
+                            Reload.Failed -> {
+                                reason = "Reload tun failed"
+                                true
+                            }
+                        }
                     }
                     config.onEvent {
                         reason = it.message
@@ -224,7 +239,7 @@ class TunService : VpnService(), CoroutineScope by CoroutineScope(Dispatchers.De
 
             TunModule.TunDevice(
                 fd = establish()?.detachFd()
-                    ?: throw NullPointerException("Establish VPN rejected by system"),
+                    ?: throw VpnEstablishException(),
                 stack = store.tunStackMode,
                 gateway = "$TUN_GATEWAY/$TUN_SUBNET_PREFIX" + if (store.allowIpv6) ",$TUN_GATEWAY6/$TUN_SUBNET_PREFIX6" else "",
                 portal = TUN_PORTAL + if (store.allowIpv6) ",$TUN_PORTAL6" else "",
@@ -234,6 +249,39 @@ class TunService : VpnService(), CoroutineScope by CoroutineScope(Dispatchers.De
 
         attach(device)
     }
+
+    private fun reloadTun(tun: TunModule): Reload {
+        try {
+            tun.open()
+            Log.i("Tun reloaded")
+            return Reload.Ok
+        } catch (e: VpnEstablishException) {
+            Log.w("Reload tun rejected, keep current interface")
+            return Reload.Rejected
+        } catch (e: Exception) {
+            Log.w("Reload tun: ${e.message}", e)
+        }
+
+        return try {
+            tun.open()
+            Log.i("Tun reloaded")
+            Reload.Ok
+        } catch (e: VpnEstablishException) {
+            Log.w("Reload tun rejected, keep current interface")
+            Reload.Rejected
+        } catch (e: Exception) {
+            Log.e("Reload tun failed: ${e.message}", e)
+            Reload.Failed
+        }
+    }
+
+    private enum class Reload {
+        Ok,
+        Rejected,
+        Failed,
+    }
+
+    private class VpnEstablishException : Exception("Establish VPN rejected by system")
 
     companion object {
         private const val TUN_MTU = 9000

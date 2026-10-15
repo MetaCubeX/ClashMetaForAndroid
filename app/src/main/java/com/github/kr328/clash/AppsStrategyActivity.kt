@@ -167,13 +167,14 @@ class AppsStrategyActivity : BaseActivity<AppsStrategyDesign>() {
 
     private suspend fun syncIfEnabled() {
         val settings = WebdavSettingsStore(this).load()
-        if (!settings.autoSync || settings.url.isBlank() || settings.username.isBlank() || settings.password.isEmpty()) {
+        if (!settings.autoSync || !settings.hasEndpoint() || settings.username.isBlank() || settings.password.isEmpty()) {
             return
         }
         withProfile {
             webdavPerform(
                 WebdavSync.ACTION_SYNC,
                 settings.url,
+                settings.lanUrl,
                 settings.username,
                 settings.password,
                 settings.remotePath,

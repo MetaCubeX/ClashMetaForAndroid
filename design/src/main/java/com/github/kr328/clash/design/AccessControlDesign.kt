@@ -3,12 +3,18 @@ package com.github.kr328.clash.design
 import android.content.Context
 import android.view.View
 import androidx.core.widget.addTextChangedListener
+import androidx.recyclerview.widget.ConcatAdapter
 import com.github.kr328.clash.design.adapter.AppAdapter
+import com.github.kr328.clash.design.adapter.AppSetAdapter
+import com.github.kr328.clash.design.adapter.AppSetRow
 import com.github.kr328.clash.design.component.AccessControlMenu
 import com.github.kr328.clash.design.databinding.DesignAccessControlBinding
 import com.github.kr328.clash.design.databinding.DialogSearchBinding
 import com.github.kr328.clash.design.dialog.FullScreenDialog
 import com.github.kr328.clash.design.model.AppInfo
+import com.github.kr328.clash.design.model.AppSetIds
+import com.github.kr328.clash.design.model.appSetMembership
+import com.github.kr328.clash.design.model.applyAppSetToggle
 import com.github.kr328.clash.design.store.UiStore
 import com.github.kr328.clash.design.util.*
 import kotlinx.coroutines.*
@@ -31,7 +37,13 @@ class AccessControlDesign(
     private val binding = DesignAccessControlBinding
         .inflate(context.layoutInflater, context.root, false)
 
-    private val adapter = AppAdapter(context, selected)
+    private val setAdapter = AppSetAdapter(context) { id -> toggleAppSet(id) }
+
+    private val adapter = AppAdapter(context, selected) { refreshSetRows() }
+
+    private var systemPackages: Set<String> = emptySet()
+
+    private var domesticPackages: Set<String> = emptySet()
 
     private val menu: AccessControlMenu by lazy {
         AccessControlMenu(context, binding.menuView, uiStore, requests)
@@ -47,8 +59,17 @@ class AccessControlDesign(
         adapter.swapDataSet(adapter::apps, apps, false)
     }
 
+    suspend fun patchBuiltinSets(systemPackages: Set<String>, domesticPackages: Set<String>) {
+        this.systemPackages = systemPackages
+        this.domesticPackages = domesticPackages
+        withContext(Dispatchers.Main) {
+            setAdapter.submit(buildRows())
+        }
+    }
+
     suspend fun rebindAll() {
         withContext(Dispatchers.Main) {
+            refreshSetRows()
             adapter.rebindAll()
         }
     }
@@ -60,7 +81,7 @@ class AccessControlDesign(
 
         binding.mainList.recyclerList.also {
             it.bindAppBarElevation(binding.activityBarLayout)
-            it.applyLinearAdapter(context, adapter)
+            it.applyLinearAdapter(context, ConcatAdapter(setAdapter, adapter))
         }
 
         binding.menuView.setOnClickListener {
@@ -84,7 +105,7 @@ class AccessControlDesign(
         coroutineScope {
             val binding = DialogSearchBinding
                 .inflate(context.layoutInflater, context.root, false)
-            val adapter = AppAdapter(context, selected)
+            val adapter = AppAdapter(context, selected) { refreshSetRows() }
             val dialog = FullScreenDialog(context)
             val filter = Channel<Unit>(Channel.CONFLATED)
 
@@ -130,5 +151,54 @@ class AccessControlDesign(
                 delay(200)
             }
         }
+    }
+
+    private fun refreshSetRows() {
+        setAdapter.submit(buildRows())
+    }
+
+    private fun toggleAppSet(id: String) {
+        val members = when (id) {
+            AppSetIds.SYSTEM -> systemPackages
+            AppSetIds.DOMESTIC -> domesticPackages
+            else -> return
+        }
+        applyAppSetToggle(members, selected)
+        refreshSetRows()
+        adapter.rebindAll()
+    }
+
+    private fun buildRows(): List<AppSetRow> {
+        return listOf(
+            row(
+                AppSetIds.SYSTEM,
+                context.getString(R.string.system_apps),
+                R.drawable.ic_baseline_apps,
+                systemPackages,
+            ),
+            row(
+                AppSetIds.DOMESTIC,
+                context.getString(R.string.app_set_domestic),
+                R.drawable.ic_baseline_domain,
+                domesticPackages,
+            ),
+        )
+    }
+
+    private fun row(id: String, title: String, iconRes: Int, members: Set<String>): AppSetRow {
+        val membership = appSetMembership(members, selected)
+        val summary = if (members.isEmpty()) {
+            context.getString(R.string.app_set_summary_empty)
+        } else {
+            context.getString(R.string.app_set_summary, membership.total, membership.selectedCount)
+        }
+        return AppSetRow(
+            id = id,
+            title = title,
+            summary = summary,
+            iconRes = iconRes,
+            checkState = membership.state,
+            enabled = members.isNotEmpty(),
+        )
     }
 }

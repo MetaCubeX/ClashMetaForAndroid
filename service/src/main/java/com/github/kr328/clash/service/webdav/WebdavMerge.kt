@@ -28,8 +28,8 @@ fun mergeWebdav(
     remoteActiveStrategyUpdatedAt: Long = 0,
 ): MergeResult {
     val tombstones = mergeTombstones(localTombstones + remoteTombstones, now)
-    val localByIdentity = localProfiles.associateBy { subscriptionIdentity(it.type, it.source, it.uuid) }
-    val remoteByIdentity = remoteProfiles.associateBy { subscriptionIdentity(it.type, it.source, it.uuid) }
+    val localByIdentity = collapseProfiles(localProfiles)
+    val remoteByIdentity = collapseProfiles(remoteProfiles)
     val keptTombstones = tombstones.toMutableList()
     val profiles = mutableListOf<ProfilePayload>()
 
@@ -90,8 +90,8 @@ fun mergeStrategies(
     now: Long,
 ): StrategyMerge {
     val tombstones = mergeTombstones(localTombstones + remoteTombstones, now).toMutableList()
-    val localById = local.associateBy { it.uuid }
-    val remoteById = remote.associateBy { it.uuid }
+    val localById = collapseStrategies(local)
+    val remoteById = collapseStrategies(remote)
     val kept = mutableListOf<AppsStrategyPayload>()
     for (uuid in localById.keys + remoteById.keys) {
         val merged = when {
@@ -108,6 +108,20 @@ fun mergeStrategies(
     return StrategyMerge(kept.sortedBy { it.uuid }, tombstones.sortedBy { it.uuid })
 }
 
+/**
+ * Keep the merge result. Tombstones recorded after [snapshot] was taken are still new
+ * and must be kept. Tombstones the merge already dropped are not written back.
+ */
+fun retainMergedTombstones(
+    merged: List<TombstonePayload>,
+    snapshot: List<TombstonePayload>,
+    current: List<TombstonePayload>,
+    now: Long,
+): List<TombstonePayload> {
+    val seen = snapshot.toSet()
+    return mergeTombstones(merged + current.filter { it !in seen }, now)
+}
+
 fun mergeTombstones(tombstones: List<TombstonePayload>, now: Long): List<TombstonePayload> {
     val kept = linkedMapOf<String, TombstonePayload>()
     for (tombstone in tombstones) {
@@ -119,6 +133,39 @@ fun mergeTombstones(tombstones: List<TombstonePayload>, now: Long): List<Tombsto
         }
     }
     return kept.values.toList()
+}
+
+private fun collapseProfiles(profiles: List<ProfilePayload>): Map<String, ProfilePayload> {
+    return profiles.preferNewer(
+        identity = { subscriptionIdentity(it.type, it.source, it.uuid) },
+        updatedAt = { it.updatedAt },
+        tie = { it.uuid },
+    )
+}
+
+private fun collapseStrategies(strategies: List<AppsStrategyPayload>): Map<String, AppsStrategyPayload> {
+    return strategies.preferNewer(
+        identity = { it.uuid },
+        updatedAt = { it.updatedAt },
+        tie = { it.uuid },
+    )
+}
+
+private fun <T> List<T>.preferNewer(
+    identity: (T) -> String,
+    updatedAt: (T) -> Long,
+    tie: (T) -> String,
+): Map<String, T> {
+    val best = linkedMapOf<String, T>()
+    for (item in this) {
+        val key = identity(item)
+        val previous = best[key]
+        val newer = previous == null ||
+            updatedAt(item) > updatedAt(previous) ||
+            (updatedAt(item) == updatedAt(previous) && tie(item) > tie(previous))
+        if (newer) best[key] = item
+    }
+    return best
 }
 
 private fun mergeProfile(local: ProfilePayload, remote: ProfilePayload): ProfilePayload {

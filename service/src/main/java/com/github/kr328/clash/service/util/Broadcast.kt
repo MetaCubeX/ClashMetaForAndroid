@@ -56,6 +56,10 @@ fun Context.sendClashStarted() {
     sendBroadcastSelf(Intent(Intents.ACTION_CLASH_STARTED))
 }
 
+fun Context.sendClashReloadRejected() {
+    sendBroadcastSelf(Intent(Intents.ACTION_CLASH_RELOAD_REJECTED))
+}
+
 fun Context.sendClashStopped(reason: String?) {
     sendBroadcastSelf(
         Intent(Intents.ACTION_CLASH_STOPPED).putExtra(

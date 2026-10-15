@@ -30,3 +30,7 @@ fun Context.startClashService(): Intent? {
 fun Context.stopClashService() {
     sendBroadcastSelf(Intent(Intents.ACTION_CLASH_REQUEST_STOP))
 }
+
+fun Context.requestClashReload() {
+    sendBroadcastSelf(Intent(Intents.ACTION_CLASH_REQUEST_RELOAD))
+}

@@ -141,6 +141,10 @@
     <string name="access_control_mode">Режим контроля доступа</string>
     <string name="access_control_packages">Приложения с контролируемым доступом</string>
     <string name="access_control_packages_summary">Настройте доступ для приложения</string>
+    <string name="app_sets">Наборы приложений</string>
+    <string name="app_set_domestic">Популярные китайские приложения</string>
+    <string name="app_set_summary">Установлено %1$d · Выбрано %2$d</string>
+    <string name="app_set_summary_empty">Не установлено</string>
 
     <string name="options_unavailable">Настройки недоступны, пока Clash не будет остановлен</string>
 
@@ -336,4 +340,36 @@
     <string name="new_config">Новая конфигурация</string>
     <string name="config_name">Название конфигурации</string>
     <string name="edit_config_name">Изменить название конфигурации</string>
+    <string name="webdav_sync">Синхронизация WebDAV</string>
+    <string name="webdav_tips">Синхронизируются сохранённые подписки и имена пакетов в каждой группе. Адрес по умолчанию должен быть https. Если указан адрес LAN, он проверяется первым при Wi-Fi, в том числе без доступа в интернет. Пустой адрес LAN не используется. Мобильная сеть использует только адрес по умолчанию. Синхронизация сначала объединяет данные и не удаляет подписки или группы, которые есть только на другом устройстве. Ещё не сохранённые профили не отправляются. «Только отправка» не меняет профили на этом телефоне.</string>
+    <string name="webdav_status_empty">Ещё не синхронизировано</string>
+    <string name="webdav_server">Сервер</string>
+    <string name="webdav_url">Адрес</string>
+    <string name="webdav_url_placeholder">https://alist.taokdao.com/dav</string>
+    <string name="webdav_lan_url">Адрес LAN</string>
+    <string name="webdav_lan_hint">Используется только в Wi-Fi, в том числе без интернета. Оставьте поле пустым, чтобы отключить LAN. Если адрес не отвечает как WebDAV, используется адрес по умолчанию. В частной сети можно указать http, например http://192.168.1.69:5244/dav.</string>
+    <string name="webdav_username">Имя пользователя</string>
+    <string name="webdav_password">Пароль</string>
+    <string name="webdav_password_set">Задан</string>
+    <string name="webdav_unset">Не задан</string>
+    <string name="webdav_remote_path">Удалённая папка</string>
+    <string name="webdav_remote_path_default">/sync/Configs/clash-meta</string>
+    <string name="webdav_auto_sync">Автосинхронизация</string>
+    <string name="webdav_auto_sync_summary">Синхронизировать после запуска и после изменения подписок или пакетов в группах</string>
+    <string name="webdav_test">Проверить соединение</string>
+    <string name="webdav_sync_now">Синхронизировать</string>
+    <string name="webdav_pull">Только загрузка</string>
+    <string name="webdav_push">Только отправка</string>
+    <string name="webdav_working">Синхронизация…</string>
+    <string name="webdav_progress_connect">Подключение…</string>
+    <string name="webdav_progress_list">Список удалённых файлов…</string>
+    <string name="webdav_progress_download">Загрузка %1$d/%2$d</string>
+    <string name="webdav_progress_download_named">Загрузка %1$d/%2$d · %3$s</string>
+    <string name="webdav_progress_apply">Запись на телефон %1$d/%2$d</string>
+    <string name="webdav_progress_apply_named">Запись на телефон %1$d/%2$d · %3$s</string>
+    <string name="webdav_progress_upload">Отправка %1$d/%2$d</string>
+    <string name="webdav_progress_upload_named">Отправка %1$d/%2$d · %3$s</string>
+    <string name="webdav_progress_delete">Удаление на сервере %1$d/%2$d</string>
+    <string name="webdav_progress_delete_named">Удаление на сервере %1$d/%2$d · %3$s</string>
+    <string name="access_control_reload_rejected">Список приложений сохранён, но Android не дал пересоздать VPN. Работающий туннель всё ещё использует прежний список.</string>
 </resources>

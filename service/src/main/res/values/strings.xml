@@ -24,6 +24,9 @@
     <string name="webdav_error_empty_url">Enter the WebDAV address</string>
     <string name="webdav_error_bad_url">Invalid WebDAV address</string>
     <string name="webdav_error_https">WebDAV address must use https</string>
+    <string name="webdav_error_lan_http">A LAN http address must point at a private network</string>
+    <string name="webdav_error_lan_offline">Not on Wi-Fi, so the LAN address cannot be used</string>
+    <string name="webdav_error_lan_unreachable">The LAN WebDAV did not respond, and there is no default address</string>
     <string name="webdav_error_empty_user">Enter the WebDAV username</string>
     <string name="webdav_error_empty_password">Enter the WebDAV password</string>
     <string name="webdav_error_auth">WebDAV authentication failed. Check the username and password</string>

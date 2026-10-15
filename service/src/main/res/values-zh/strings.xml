@@ -21,6 +21,9 @@
     <string name="webdav_error_empty_url">请先填写 WebDAV 地址</string>
     <string name="webdav_error_bad_url">WebDAV 地址无效</string>
     <string name="webdav_error_https">WebDAV 地址必须是 https</string>
+    <string name="webdav_error_lan_http">局域网 http 只能指向内网地址</string>
+    <string name="webdav_error_lan_offline">当前不在 Wi-Fi，无法使用局域网地址</string>
+    <string name="webdav_error_lan_unreachable">局域网 WebDAV 连不通，且没有默认地址</string>
     <string name="webdav_error_empty_user">请先填写 WebDAV 用户名</string>
     <string name="webdav_error_empty_password">请先填写 WebDAV 密码</string>
     <string name="webdav_error_auth">WebDAV 认证失败，请检查用户名和密码</string>

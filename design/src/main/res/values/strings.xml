@@ -156,6 +156,10 @@
     <string name="access_control_mode">Access Control Mode</string>
     <string name="access_control_packages">Access Control Packages</string>
     <string name="access_control_packages_summary">Configure access permission for apps</string>
+    <string name="app_sets">App sets</string>
+    <string name="app_set_domestic">Common Chinese apps</string>
+    <string name="app_set_summary">Installed %1$d · Selected %2$d</string>
+    <string name="app_set_summary_empty">None installed</string>
 
     <string name="options_unavailable">Options Unavailable until Clash Stopped</string>
 
@@ -385,21 +389,35 @@
     <string name="shortcut_stop_long">Stop Clash service</string>
 
     <string name="webdav_sync">WebDAV Sync</string>
-    <string name="webdav_tips">Sync saved subscriptions and the package names in each app group. The address must be https. A sync merges first and will not remove subscriptions or groups that exist only on another device. Profiles that are still being edited are not uploaded.</string>
+    <string name="webdav_tips">Sync saved subscriptions and the package names in each app group. The default address must be https. On Wi-Fi, a LAN address is tried first when one is set, including Wi-Fi without internet access. An empty LAN address is skipped. Mobile data uses only the default address. A sync merges first and will not remove subscriptions or groups that exist only on another device. Profiles that are still being edited are not uploaded. Upload only does not change profiles on this phone.</string>
     <string name="webdav_status_empty">Not synced yet</string>
     <string name="webdav_server">Server</string>
     <string name="webdav_url">Address</string>
-    <string name="webdav_url_placeholder">https://example.com/dav</string>
+    <string name="webdav_url_placeholder">https://alist.taokdao.com/dav</string>
+    <string name="webdav_lan_url">LAN address</string>
+    <string name="webdav_lan_hint">Used only on Wi-Fi, including a network with no internet access. Leave it empty to turn LAN off. If the address does not answer as WebDAV, the default address is used. Private networks may use http, for example http://192.168.1.69:5244/dav.</string>
     <string name="webdav_username">Username</string>
     <string name="webdav_password">Password</string>
     <string name="webdav_password_set">Set</string>
     <string name="webdav_unset">Not set</string>
     <string name="webdav_remote_path">Remote folder</string>
-    <string name="webdav_remote_path_default">/clash-meta</string>
+    <string name="webdav_remote_path_default">/sync/Configs/clash-meta</string>
     <string name="webdav_auto_sync">Auto sync</string>
     <string name="webdav_auto_sync_summary">Sync after startup and after subscriptions or app groups change</string>
     <string name="webdav_test">Test connection</string>
     <string name="webdav_sync_now">Sync now</string>
     <string name="webdav_pull">Download only</string>
+    <string name="webdav_push">Upload only</string>
     <string name="webdav_working">Syncing…</string>
+    <string name="webdav_progress_connect">Connecting…</string>
+    <string name="webdav_progress_list">Listing remote files…</string>
+    <string name="webdav_progress_download">Downloading %1$d/%2$d</string>
+    <string name="webdav_progress_download_named">Downloading %1$d/%2$d · %3$s</string>
+    <string name="webdav_progress_apply">Writing to this phone %1$d/%2$d</string>
+    <string name="webdav_progress_apply_named">Writing to this phone %1$d/%2$d · %3$s</string>
+    <string name="webdav_progress_upload">Uploading %1$d/%2$d</string>
+    <string name="webdav_progress_upload_named">Uploading %1$d/%2$d · %3$s</string>
+    <string name="webdav_progress_delete">Removing remote files %1$d/%2$d</string>
+    <string name="webdav_progress_delete_named">Removing remote files %1$d/%2$d · %3$s</string>
+    <string name="access_control_reload_rejected">The app list was saved, but Android kept the current VPN. The running tunnel still uses the previous app list.</string>
 </resources>

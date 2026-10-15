@@ -47,7 +47,7 @@ class NetworkSettingsActivity : BaseActivity<NetworkSettingsDesign>() {
     private suspend fun syncAccessControl(design: NetworkSettingsDesign) {
         WebdavAutoSync.noteAccessControl(this)
         val settings = WebdavSettingsStore(this).load()
-        if (!settings.autoSync || settings.url.isBlank() || settings.username.isBlank() || settings.password.isEmpty()) {
+        if (!settings.autoSync || !settings.hasEndpoint() || settings.username.isBlank() || settings.password.isEmpty()) {
             return
         }
         try {
@@ -55,6 +55,7 @@ class NetworkSettingsActivity : BaseActivity<NetworkSettingsDesign>() {
                 webdavPerform(
                     WebdavSync.ACTION_SYNC,
                     settings.url,
+                    settings.lanUrl,
                     settings.username,
                     settings.password,
                     settings.remotePath,

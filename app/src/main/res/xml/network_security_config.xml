@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <network-security-config xmlns:tools="http://schemas.android.com/tools"
     tools:ignore="AcceptsUserCertificates">
-    <base-config>
+    <!-- Cleartext stays off for the app. Private LAN WebDAV uses its own HTTP client. -->
+    <base-config cleartextTrafficPermitted="false">
         <trust-anchors>
             <certificates src="system" />
             <certificates src="user" />

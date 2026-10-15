@@ -5,9 +5,11 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.widget.Toast
 import com.github.kr328.clash.common.compat.registerReceiverCompat
 import com.github.kr328.clash.common.constants.Intents
 import com.github.kr328.clash.common.log.Log
+import com.github.kr328.clash.design.R as DesignR
 import java.util.*
 
 class Broadcasts(private val context: Application) {
@@ -72,6 +74,14 @@ class Broadcasts(private val context: Application) {
                         it.onProfileLoaded()
                     }
                 }
+                Intents.ACTION_CLASH_RELOAD_REJECTED -> {
+                    val app = this@Broadcasts.context
+                    Toast.makeText(
+                        app,
+                        app.getString(DesignR.string.access_control_reload_rejected),
+                        Toast.LENGTH_LONG,
+                    ).show()
+                }
             }
         }
     }
@@ -97,6 +107,7 @@ class Broadcasts(private val context: Application) {
                 addAction(Intents.ACTION_PROFILE_UPDATE_COMPLETED)
                 addAction(Intents.ACTION_PROFILE_UPDATE_FAILED)
                 addAction(Intents.ACTION_PROFILE_LOADED)
+                addAction(Intents.ACTION_CLASH_RELOAD_REJECTED)
             })
 
             clashRunning = StatusClient(context).currentProfile() != null

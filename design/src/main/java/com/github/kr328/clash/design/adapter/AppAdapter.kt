@@ -11,6 +11,7 @@ import com.github.kr328.clash.design.util.root
 class AppAdapter(
     private val context: Context,
     private val selected: MutableSet<String>,
+    private val onSelectionChanged: () -> Unit = {},
 ) : RecyclerView.Adapter<AppAdapter.Holder>() {
     class Holder(val binding: AdapterAppBinding) : RecyclerView.ViewHolder(binding.root)
 
@@ -40,6 +41,7 @@ class AppAdapter(
                 selected.add(current.packageName)
                 holder.binding.selected = true
             }
+            onSelectionChanged()
         }
     }
 

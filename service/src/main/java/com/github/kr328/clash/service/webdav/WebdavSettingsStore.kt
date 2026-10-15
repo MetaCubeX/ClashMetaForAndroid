@@ -6,8 +6,9 @@ import java.io.File
 
 @Serializable
 private data class SettingsFile(
-    val url: String = "",
-    val username: String = "",
+    val url: String = WEBDAV_DEFAULT_URL,
+    val lanUrl: String = WEBDAV_DEFAULT_LAN_URL,
+    val username: String = WEBDAV_DEFAULT_USERNAME,
     val passwordSealed: String = "",
     val remotePath: String = WEBDAV_DEFAULT_REMOTE_PATH,
     val autoSync: Boolean = false,
@@ -19,6 +20,10 @@ class WebdavSettingsStore(context: Context) {
     var url: String?
         get() = read().url.ifBlank { null }
         set(value) = update { it.copy(url = value?.trim().orEmpty()) }
+
+    var lanUrl: String?
+        get() = read().lanUrl.ifBlank { null }
+        set(value) = update { it.copy(lanUrl = value?.trim().orEmpty()) }
 
     var username: String?
         get() = read().username.ifBlank { null }
@@ -40,7 +45,7 @@ class WebdavSettingsStore(context: Context) {
 
     fun configured(): Boolean {
         val current = read()
-        return current.url.isNotBlank() && current.username.isNotBlank() && current.password.isNotEmpty()
+        return current.hasEndpoint() && current.username.isNotBlank() && current.password.isNotEmpty()
     }
 
     private fun update(block: (StoredWebdavSettings) -> StoredWebdavSettings) {
@@ -51,12 +56,15 @@ class WebdavSettingsStore(context: Context) {
         if (!file.exists()) return StoredWebdavSettings()
         return try {
             val stored = webdavJson.decodeFromString(SettingsFile.serializer(), file.readText())
-            StoredWebdavSettings(
-                url = stored.url.trim(),
-                username = stored.username.trim(),
-                password = WebdavCipher.open(stored.passwordSealed),
-                remotePath = resolveWebdavRemoteFolder(stored.remotePath),
-                autoSync = stored.autoSync,
+            seedWebdavSettings(
+                StoredWebdavSettings(
+                    url = stored.url.trim(),
+                    lanUrl = stored.lanUrl.trim(),
+                    username = stored.username.trim(),
+                    password = WebdavCipher.open(stored.passwordSealed),
+                    remotePath = stored.remotePath.trim(),
+                    autoSync = stored.autoSync,
+                ),
             )
         } catch (_: Exception) {
             StoredWebdavSettings()
@@ -66,10 +74,11 @@ class WebdavSettingsStore(context: Context) {
     private fun write(settings: StoredWebdavSettings) {
         file.parentFile?.mkdirs()
         val payload = SettingsFile(
-            url = settings.url.trim(),
-            username = settings.username.trim(),
+            url = normalizeWebdavUrl(settings.url),
+            lanUrl = normalizeWebdavLanUrl(settings.lanUrl),
+            username = settings.username.trim().ifBlank { WEBDAV_DEFAULT_USERNAME },
             passwordSealed = WebdavCipher.seal(settings.password),
-            remotePath = resolveWebdavRemoteFolder(settings.remotePath),
+            remotePath = normalizeWebdavRemotePath(settings.remotePath),
             autoSync = settings.autoSync,
         )
         val tmp = File(file.parentFile, "settings.json.tmp")
@@ -82,9 +91,36 @@ class WebdavSettingsStore(context: Context) {
 }
 
 data class StoredWebdavSettings(
-    val url: String = "",
-    val username: String = "",
+    val url: String = WEBDAV_DEFAULT_URL,
+    val lanUrl: String = WEBDAV_DEFAULT_LAN_URL,
+    val username: String = WEBDAV_DEFAULT_USERNAME,
     val password: String = "",
     val remotePath: String = WEBDAV_DEFAULT_REMOTE_PATH,
     val autoSync: Boolean = false,
-)
+) {
+    fun hasEndpoint(): Boolean = url.isNotBlank() || lanUrl.isNotBlank()
+}
+
+internal fun seedWebdavSettings(settings: StoredWebdavSettings): StoredWebdavSettings {
+    val configured = settings.password.isNotEmpty() || settings.autoSync
+    if (configured) {
+        return settings.copy(
+            url = settings.url.trim().trimEnd('/').let { url ->
+                if (url == WEBDAV_LEGACY_MISREAD_URL) WEBDAV_DEFAULT_URL else url
+            },
+            lanUrl = normalizeWebdavLanUrl(settings.lanUrl),
+            username = settings.username.trim(),
+            remotePath = if (settings.remotePath.trim().trimEnd('/') == WEBDAV_LEGACY_REMOTE_PATH) {
+                WEBDAV_DEFAULT_REMOTE_PATH
+            } else {
+                resolveWebdavRemoteFolder(settings.remotePath)
+            },
+        )
+    }
+    return settings.copy(
+        url = normalizeWebdavUrl(settings.url),
+        lanUrl = normalizeWebdavLanUrl(settings.lanUrl),
+        username = settings.username.trim().ifBlank { WEBDAV_DEFAULT_USERNAME },
+        remotePath = normalizeWebdavRemotePath(settings.remotePath),
+    )
+}

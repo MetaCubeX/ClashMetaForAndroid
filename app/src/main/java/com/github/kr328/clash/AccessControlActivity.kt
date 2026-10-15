@@ -1,31 +1,39 @@
 package com.github.kr328.clash
 
-import android.Manifest.permission.INTERNET
 import android.content.ClipData
 import android.content.ClipboardManager
-import android.content.pm.ApplicationInfo
-import android.content.pm.PackageInfo
-import android.content.pm.PackageManager
+import android.content.Context
+import android.os.Bundle
+import androidx.activity.addCallback
 import androidx.core.content.getSystemService
+import com.github.kr328.clash.common.Global
+import com.github.kr328.clash.common.log.Log
 import com.github.kr328.clash.common.util.uuid
 import com.github.kr328.clash.design.AccessControlDesign
 import com.github.kr328.clash.design.model.AppInfo
-import com.github.kr328.clash.design.util.toAppInfo
 import com.github.kr328.clash.service.model.AppsStrategyConfig
 import com.github.kr328.clash.service.store.ServiceStore
 import com.github.kr328.clash.service.webdav.WebdavAutoSync
 import com.github.kr328.clash.service.webdav.WebdavSettingsStore
 import com.github.kr328.clash.service.webdav.WebdavSync
-import com.github.kr328.clash.util.startClashService
+import com.github.kr328.clash.util.requestClashReload
 import com.github.kr328.clash.util.withProfile
-import com.github.kr328.clash.util.stopClashService
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.select
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 
 class AccessControlActivity : BaseActivity<AccessControlDesign>() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        onBackPressedDispatcher.addCallback(this) {
+            finish()
+        }
+    }
+
     override suspend fun main() {
         val configUuid = intent.uuid
         val service = ServiceStore(this)
@@ -44,52 +52,13 @@ class AccessControlActivity : BaseActivity<AccessControlDesign>() {
         }
 
         defer {
-            withContext(Dispatchers.IO) {
-                val changed = if (config != null) {
-                    val packagesChanged = selected != config.packages.toSet()
-                    if (packagesChanged) {
-                        val updatedConfig = AppsStrategyConfig(
-                            uuid = config.uuid,
-                            name = config.name,
-                            mode = config.mode,
-                            packages = selected.toList()
-                        )
-                        val configs = service.appsStrategyConfigs.map {
-                            if (it.uuid == config.uuid) updatedConfig else it
-                        }
-                        service.appsStrategyConfigs = configs
-                        WebdavAutoSync.noteAppsStrategy(this@AccessControlActivity, config.uuid)
-                    }
-                    packagesChanged
-                } else {
-                    val packagesChanged = selected != service.accessControlPackages
-                    service.accessControlPackages = selected
-                    if (packagesChanged) {
-                        WebdavAutoSync.noteAccessControl(this@AccessControlActivity)
-                    }
-                    if (clashRunning && packagesChanged) {
-                        stopClashService()
-                        while (clashRunning) {
-                            delay(200)
-                        }
-                        startClashService()
-                    }
-                    packagesChanged
-                }
-                if (changed) {
-                    val settings = WebdavSettingsStore(this@AccessControlActivity).load()
-                    if (settings.autoSync && settings.url.isNotBlank() && settings.username.isNotBlank() && settings.password.isNotEmpty()) {
-                        withProfile {
-                            webdavPerform(
-                                WebdavSync.ACTION_SYNC,
-                                settings.url,
-                                settings.username,
-                                settings.password,
-                                settings.remotePath,
-                            )
-                        }
-                    }
-                }
+            val running = clashRunning
+            val packages = selected.toSet()
+            val action = withContext(Dispatchers.IO) {
+                persistPackages(service, config, packages, running)
+            }
+            if (action.restartVpn || action.sync) {
+                scheduleExitWork(action)
             }
         }
 
@@ -107,7 +76,9 @@ class AccessControlActivity : BaseActivity<AccessControlDesign>() {
                 design.requests.onReceive {
                     when (it) {
                         AccessControlDesign.Request.ReloadApps -> {
-                            design.patchApps(loadApps(selected))
+                            val loaded = loadApps(selected)
+                            design.patchApps(loaded.apps)
+                            design.patchBuiltinSets(loaded.systemPackages, loaded.domesticPackages)
                         }
 
                         AccessControlDesign.Request.SelectAll -> {
@@ -169,40 +140,109 @@ class AccessControlActivity : BaseActivity<AccessControlDesign>() {
         }
     }
 
-    private suspend fun loadApps(selected: Set<String>): List<AppInfo> =
+    private fun persistPackages(
+        service: ServiceStore,
+        config: AppsStrategyConfig?,
+        packages: Set<String>,
+        clashRunning: Boolean,
+    ): ExitAction {
+        val packagesChanged = if (config != null) {
+            val changed = packages != config.packages.toSet()
+            if (changed) {
+                val updatedConfig = AppsStrategyConfig(
+                    uuid = config.uuid,
+                    name = config.name,
+                    mode = config.mode,
+                    packages = packages.toList(),
+                )
+                service.appsStrategyConfigs = service.appsStrategyConfigs.map {
+                    if (it.uuid == config.uuid) updatedConfig else it
+                }
+                WebdavAutoSync.noteAppsStrategy(this, config.uuid)
+            }
+            changed
+        } else {
+            val changed = packages != service.accessControlPackages
+            if (changed) {
+                service.accessControlPackages = packages
+                WebdavAutoSync.noteAccessControl(this)
+            }
+            changed
+        }
+        if (!packagesChanged) return ExitAction(restartVpn = false, sync = false)
+        val activeId = service.activeAppsStrategyConfigUuid
+        val active = activeId?.let { id -> service.appsStrategyConfigs.find { it.uuid == id } }
+        val drivesVpn = if (config != null) active?.uuid == config.uuid else active == null
+        return ExitAction(restartVpn = clashRunning && drivesVpn, sync = true)
+    }
+
+    private fun scheduleExitWork(action: ExitAction) {
+        val app = applicationContext
+        Global.launch(Dispatchers.Main) {
+            if (action.restartVpn) {
+                try {
+                    restartClash(app)
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    Log.w("Restart after access control change: ${e.message}", e)
+                }
+            }
+            if (action.sync) {
+                try {
+                    syncAccessPackages(app)
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    Log.w("WebDAV after access control change: ${e.message}", e)
+                }
+            }
+        }
+    }
+
+    private fun restartClash(app: Context) {
+        Log.i("Reload tun after access control change")
+        app.requestClashReload()
+    }
+
+    private suspend fun syncAccessPackages(app: Context) {
+        val settings = WebdavSettingsStore(app).load()
+        if (!settings.autoSync || !settings.hasEndpoint() || settings.username.isBlank() || settings.password.isEmpty()) {
+            return
+        }
+        withTimeoutOrNull(SYNC_TIMEOUT_MS) {
+            withProfile {
+                webdavPerform(
+                    WebdavSync.ACTION_SYNC,
+                    settings.url,
+                    settings.lanUrl,
+                    settings.username,
+                    settings.password,
+                    settings.remotePath,
+                )
+            }
+        }
+    }
+
+    private data class ExitAction(
+        val restartVpn: Boolean,
+        val sync: Boolean,
+    )
+
+    private suspend fun loadApps(selected: Set<String>): AccessControlApps =
         withContext(Dispatchers.IO) {
-            val reverse = uiStore.accessControlReverse
-            val sort = uiStore.accessControlSort
-            val systemApp = uiStore.accessControlSystemApp
-
-            val base = compareByDescending<AppInfo> { it.packageName in selected }
-            val comparator = if (reverse) base.thenDescending(sort) else base.then(sort)
-
-            val pm = packageManager
-            val packages = pm.getInstalledPackages(PackageManager.GET_PERMISSIONS)
-
-            packages.asSequence()
-                .filter {
-                    it.packageName != packageName
-                }
-                .filter {
-                    it.applicationInfo != null
-                }
-                .filter {
-                    it.requestedPermissions?.contains(INTERNET) == true || it.applicationInfo!!.uid < android.os.Process.FIRST_APPLICATION_UID
-                }
-                .filter {
-                    systemApp || !it.isSystemApp
-                }
-                .map {
-                    it.toAppInfo(pm)
-                }
-                .sortedWith(comparator)
-                .toList()
+            loadAccessControlApps(
+                pm = packageManager,
+                selfPackage = packageName,
+                showSystem = uiStore.accessControlSystemApp,
+                selected = selected,
+                sort = uiStore.accessControlSort,
+                reverse = uiStore.accessControlReverse,
+                domesticCatalog = DomesticAppCatalog.packages(this@AccessControlActivity),
+            )
         }
 
-    private val PackageInfo.isSystemApp: Boolean
-        get() {
-            return applicationInfo?.flags?.and(ApplicationInfo.FLAG_SYSTEM) != 0
-        }
+    private companion object {
+        const val SYNC_TIMEOUT_MS = 60_000L
+    }
 }

@@ -90,14 +90,21 @@ class WebdavProfiles(private val context: Context) {
         )
     }
 
-    suspend fun apply(result: MergeResult, local: LocalSnapshot, startedAt: Long): ApplyCounts {
+    suspend fun apply(
+        result: MergeResult,
+        local: LocalSnapshot,
+        startedAt: Long,
+        onProgress: (current: Int, total: Int, label: String) -> Unit = { _, _, _ -> },
+    ): ApplyCounts {
         var downloaded = 0
         var removed = 0
         var skipped = 0
         val localByUuid = local.profiles.associateBy { it.uuid }
         val mergedIds = result.profiles.map { it.uuid }.toSet()
+        val total = result.profiles.size
 
-        for (profile in result.profiles) {
+        for ((index, profile) in result.profiles.withIndex()) {
+            onProgress(index + 1, total, profile.name)
             val previous = localByUuid[profile.uuid]
                 ?: local.profiles.find { sameSubscription(it, profile) }
             if (previous != null && sameContent(previous, profile)) continue

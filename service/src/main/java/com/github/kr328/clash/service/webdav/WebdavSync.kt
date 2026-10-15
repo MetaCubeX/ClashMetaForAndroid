@@ -1,6 +1,8 @@
 package com.github.kr328.clash.service.webdav
 
 import android.content.Context
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import com.github.kr328.clash.service.R
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
@@ -10,6 +12,7 @@ import kotlinx.coroutines.withContext
 class WebdavSync(
     private val context: Context,
     private val client: WebdavClient = WebdavClient(),
+    private val onProgress: (phase: String, current: Int, total: Int, label: String) -> Unit = { _, _, _, _ -> },
 ) {
     suspend fun perform(action: String, settings: StoredWebdavSettings): String {
         return gate.withLock {
@@ -36,8 +39,10 @@ class WebdavSync(
     }
 
     private suspend fun execute(action: String, settings: StoredWebdavSettings): String {
+        progress("connect", 0, 0, "")
         val config = config(settings)
         if (action == ACTION_TEST) {
+            progress("list", 0, 0, "")
             client.ensureParents(config)
             client.list(config)
             return context.getString(R.string.webdav_connected)
@@ -77,13 +82,26 @@ class WebdavSync(
             remoteActiveStrategy = remote.meta.activeAppsStrategy,
             remoteActiveStrategyUpdatedAt = remote.meta.activeAppsStrategyUpdatedAt,
         )
-        val counts = profiles.apply(merged, local, now)
-        val uploaded = if (action == ACTION_PULL) 0 else upload(config, remote, merged)
-        WebdavLocalState(context).update { current ->
-            current.copy(
-                tombstones = mergeTombstones(merged.tombstones + current.tombstones, now),
-                strategyTombstones = mergeTombstones(merged.strategyTombstones + current.strategyTombstones, now),
-            )
+        val counts = if (action == ACTION_PUSH) {
+            ApplyCounts(downloaded = 0, removed = 0, skipped = 0)
+        } else {
+            profiles.apply(merged, local, now) { current, total, label ->
+                progress("apply", current, total, label)
+            }
+        }
+        val uploaded = if (action == ACTION_PULL) 0 else upload(config, remote, merged, report = true)
+        if (action != ACTION_PUSH) {
+            WebdavLocalState(context).update { current ->
+                current.copy(
+                    tombstones = retainMergedTombstones(merged.tombstones, local.tombstones, current.tombstones, now),
+                    strategyTombstones = retainMergedTombstones(
+                        merged.strategyTombstones,
+                        local.strategyTombstones,
+                        current.strategyTombstones,
+                        now,
+                    ),
+                )
+            }
         }
         if (counts.downloaded == 0 && uploaded == 0 && counts.removed == 0) {
             return context.getString(R.string.webdav_sync_idle)
@@ -92,23 +110,25 @@ class WebdavSync(
     }
 
     private fun download(config: WebdavConfig): RemoteBundle {
+        progress("list", 0, 0, "")
         client.ensureParents(config)
         val now = System.currentTimeMillis()
         val root = client.list(config)
         val nested = client.list(config, WEBDAV_PROFILES_DIR)
         sweep(config, root.map { it.name to it } + nested.map { "$WEBDAV_PROFILES_DIR/${it.name}" to it }, now)
         val etags = linkedMapOf<String, String?>()
+        val listedMetaEtag = root.firstOrNull { !it.collection && it.name == WEBDAV_META_FILE }?.etag
         val metaGot = client.get(config, WEBDAV_META_FILE)
-        val meta = if (!metaGot.found || metaGot.body.isBlank()) {
-            SyncMetaPayload()
-        } else {
-            etags[WEBDAV_META_FILE] = metaGot.etag
-            parseMeta(metaGot.body)
-        }
+        val readMeta = interpretRemoteMeta(metaGot.found, metaGot.body, metaGot.etag, listedMetaEtag)
+        if (readMeta.recordEtag) etags[WEBDAV_META_FILE] = readMeta.etag
+        val meta = readMeta.meta
         val profiles = mutableListOf<ProfilePayload>()
         val unreadable = mutableSetOf<String>()
-        for (entry in nested) {
-            if (entry.collection || isWebdavTempFileName(entry.name) || !entry.name.endsWith(".json")) continue
+        val files = nested.filter { !it.collection && !isWebdavTempFileName(it.name) && it.name.endsWith(".json") }
+        var downloaded = 0
+        for (entry in files) {
+            downloaded += 1
+            progress("download", downloaded, files.size, entry.name.removeSuffix(".json"))
             val name = "$WEBDAV_PROFILES_DIR/${entry.name}"
             val got = client.get(config, name)
             if (!got.found) continue
@@ -120,14 +140,16 @@ class WebdavSync(
         return RemoteBundle(profiles, meta, etags, unreadable)
     }
 
-    private fun upload(config: WebdavConfig, remote: RemoteBundle, merged: MergeResult): Int {
+    private fun upload(config: WebdavConfig, remote: RemoteBundle, merged: MergeResult, report: Boolean): Int {
         val remoteByUuid = remote.profiles.associateBy { it.uuid }
         var uploaded = 0
-        val kept = mutableSetOf<String>()
-        for (profile in merged.profiles) {
+        val kept = merged.profiles.map { profileFileName(it.uuid) }.toMutableSet()
+        val writable = merged.profiles.filter { profileFileName(it.uuid) !in remote.unreadable }
+        var seen = 0
+        for (profile in writable) {
+            seen += 1
             val name = profileFileName(profile.uuid)
-            kept.add(name)
-            if (name in remote.unreadable) continue
+            if (report) progress("upload", seen, writable.size, profile.name)
             val existing = remoteByUuid[profile.uuid]
             if (existing != null && sameRemote(existing, profile)) continue
             client.put(
@@ -139,11 +161,12 @@ class WebdavSync(
             )
             uploaded += 1
         }
+        val doomed = remote.etags.keys.filter { isProfileFileName(it) && it !in kept && it !in remote.unreadable }
         var removedRemote = 0
-        for (name in remote.etags.keys) {
-            if (!isProfileFileName(name) || name in kept || name in remote.unreadable) continue
-            client.delete(config, name)
+        for (name in doomed) {
             removedRemote += 1
+            if (report) progress("delete", removedRemote, doomed.size, name.substringAfterLast('/').removeSuffix(".json"))
+            client.delete(config, name, ifMatch = remote.etags[name])
         }
         val metaChanged = uploaded > 0 || removedRemote > 0 ||
             remote.meta.access() != merged.access ||
@@ -186,15 +209,25 @@ class WebdavSync(
     }
 
     private fun config(settings: StoredWebdavSettings): WebdavConfig {
-        if (settings.url.isBlank()) throw WebdavException("empty_url")
         if (settings.username.isBlank()) throw WebdavException("empty_user")
         if (settings.password.isEmpty()) throw WebdavException("empty_password")
+        val lan = normalizeWebdavLanUrl(settings.lanUrl)
+        val base = resolveWebdavBaseUrl(
+            url = settings.url,
+            lanUrl = lan,
+            remotePath = settings.remotePath,
+            allowLan = prefersWebdavLan(context),
+            probe = { url -> client.reachable(url) },
+        )
+        val allowPrivateHttp = base.trimEnd('/') == lan.trimEnd('/')
+        joinWebdavUrl(base, resolveWebdavRemoteFolder(settings.remotePath), allowPrivateHttp)
         return WebdavConfig(
-            url = settings.url.trim(),
+            url = base,
             username = settings.username.trim(),
             password = settings.password,
             remotePath = resolveWebdavRemoteFolder(settings.remotePath),
             clientId = WebdavLocalState(context).clientId(),
+            allowPrivateHttp = allowPrivateHttp,
         )
     }
 
@@ -209,9 +242,45 @@ class WebdavSync(
         const val ACTION_TEST = "test"
         const val ACTION_SYNC = "sync"
         const val ACTION_PULL = "pull"
+        const val ACTION_PUSH = "push"
 
         private val gate = Mutex()
     }
+
+    private fun progress(phase: String, current: Int, total: Int, label: String) {
+        try {
+            onProgress(phase, current, total, label)
+        } catch (_: Exception) {
+        }
+    }
+}
+
+internal fun prefersWebdavLan(context: Context): Boolean {
+    val connectivity = context.getSystemService(ConnectivityManager::class.java) ?: return false
+    @Suppress("DEPRECATION")
+    val networks = connectivity.allNetworks
+    return networks.any { network ->
+        val capabilities = connectivity.getNetworkCapabilities(network) ?: return@any false
+        // A Wi-Fi network that failed internet validation can still reach a LAN server.
+        capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)
+    }
+}
+
+internal data class RemoteMetaRead(
+    val meta: SyncMetaPayload,
+    val etag: String?,
+    val recordEtag: Boolean,
+)
+
+internal fun interpretRemoteMeta(
+    found: Boolean,
+    body: String,
+    getEtag: String?,
+    listedEtag: String?,
+): RemoteMetaRead {
+    if (!found) return RemoteMetaRead(SyncMetaPayload(), null, recordEtag = false)
+    if (body.isBlank()) throw WebdavException("broken_meta")
+    return RemoteMetaRead(parseMeta(body), getEtag ?: listedEtag, recordEtag = true)
 }
 
 private fun sameRemote(existing: ProfilePayload, profile: ProfilePayload): Boolean {
@@ -229,6 +298,9 @@ private fun WebdavException.localize(context: Context): String {
         "empty_url" -> context.getString(R.string.webdav_error_empty_url)
         "bad_url" -> context.getString(R.string.webdav_error_bad_url)
         "https" -> context.getString(R.string.webdav_error_https)
+        "lan_http" -> context.getString(R.string.webdav_error_lan_http)
+        "lan_offline" -> context.getString(R.string.webdav_error_lan_offline)
+        "lan_unreachable" -> context.getString(R.string.webdav_error_lan_unreachable)
         "empty_user" -> context.getString(R.string.webdav_error_empty_user)
         "empty_password" -> context.getString(R.string.webdav_error_empty_password)
         "auth" -> context.getString(R.string.webdav_error_auth)

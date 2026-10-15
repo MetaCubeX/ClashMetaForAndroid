@@ -9,6 +9,7 @@ import com.github.kr328.clash.service.webdav.WebdavSettingsStore
 import com.github.kr328.clash.service.webdav.WebdavSync
 import com.github.kr328.clash.util.withProfile
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.select
 
 class WebdavSettingsActivity : BaseActivity<WebdavSettingsDesign>() {
@@ -33,6 +34,7 @@ class WebdavSettingsActivity : BaseActivity<WebdavSettingsDesign>() {
                         WebdavSettingsDesign.Request.Test -> WebdavSync.ACTION_TEST
                         WebdavSettingsDesign.Request.Sync -> WebdavSync.ACTION_SYNC
                         WebdavSettingsDesign.Request.Pull -> WebdavSync.ACTION_PULL
+                        WebdavSettingsDesign.Request.Push -> WebdavSync.ACTION_PUSH
                     }
                     runAction(design, store, action)
                 }
@@ -49,15 +51,19 @@ class WebdavSettingsActivity : BaseActivity<WebdavSettingsDesign>() {
         busy = true
         try {
             val settings = store.load()
-            design.showToast(DesignR.string.webdav_working, ToastDuration.Short)
-            val message = withProfile {
-                webdavPerform(
-                    action,
-                    settings.url,
-                    settings.username,
-                    settings.password,
-                    settings.remotePath,
-                )
+            val message = design.withProgress { update ->
+                withProfile {
+                    webdavPerform(
+                        action,
+                        settings.url,
+                        settings.lanUrl,
+                        settings.username,
+                        settings.password,
+                        settings.remotePath,
+                    ) { phase, current, total, label ->
+                        design.launch { update(phase, current, total, label) }
+                    }
+                }
             }
             design.setStatus(message)
             design.showToast(message, ToastDuration.Long)
