@@ -66,6 +66,8 @@
     <string name="import_">インポート</string>
     <string name="properties">プロパティ</string>
     <string name="duplicate">複製</string>
+    <string name="share_qr_code">QRコードで共有</string>
+    <string name="qr_code_generation_failed">このリンクのQRコードを生成できません。</string>
     <string name="active_unsaved_tips">プロファイルを有効にする前に保存する必要があります</string>
     <string name="exit_without_save">保存せずに閉じる</string>
     <string name="exit_without_save_warning">すべての変更は失われます</string>

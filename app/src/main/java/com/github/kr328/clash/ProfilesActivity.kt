@@ -75,6 +75,8 @@ class ProfilesActivity : BaseActivity<ProfilesDesign>() {
 
                             startActivity(PropertiesActivity::class.intent.setUUID(uuid))
                         }
+                        is ProfilesDesign.Request.ShareQrCode ->
+                            design.showProfileQrCode(it.profile)
                     }
                 }
                 if (activityStarted) {

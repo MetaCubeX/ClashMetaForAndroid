@@ -90,6 +90,8 @@
     <string name="donate">Quyên góp</string>
     <string name="dont_modify">Chưa sửa đổi</string>
     <string name="duplicate">Tạo bản sao</string>
+    <string name="share_qr_code">Chia sẻ mã QR</string>
+    <string name="qr_code_generation_failed">Không thể tạo mã QR cho liên kết này.</string>
     <string name="edit">Sửa</string>
     <string name="empty">Trống</string>
     <string name="empty_name">Tên trống</string>
