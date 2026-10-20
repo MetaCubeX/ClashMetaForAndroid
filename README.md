@@ -2,6 +2,10 @@
 
 A Graphical user interface of [Clash.Meta](https://github.com/MetaCubeX/Clash.Meta) for Android
 
+### Documentation
+
+Architecture, build constraints, and product behavior for this fork are in the documentation system. Start at [docs/INDEX.md](docs/INDEX.md). The agent guide is [AGENTS.md](AGENTS.md).
+
 ### Feature
 
 Feature of [Clash.Meta](https://github.com/MetaCubeX/Clash.Meta)

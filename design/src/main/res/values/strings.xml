@@ -4,11 +4,10 @@
         <item quantity="other">%d apps selected</item>
     </plurals>
 
-    <string name="launch_name_meta">Clash Meta</string>
-    <string name="launch_name_alpha">Clash Meta Alpha</string>
-    <string name="application_name_meta">Clash Meta for Android</string>
-    <string name="application_name_alpha">Clash Meta for Android Alpha</string>
-
+    <string name="launch_name_meta">ClashMetaX</string>
+    <string name="launch_name_alpha">ClashMetaX Alpha</string>
+    <string name="application_name_meta">ClashMetaX</string>
+    <string name="application_name_alpha">ClashMetaX Alpha</string>
     <string name="stopped">Stopped</string>
     <string name="tap_to_start">Tap to start</string>
     <string name="running">Running</string>
@@ -64,6 +63,8 @@
     <string name="github_releases">Github Releases</string>
 
     <string name="profile">Profile</string>
+    <string name="select_profile">Select Profile</string>
+    <string name="profile_expired">Expired</string>
     <string name="name">Name</string>
     <string name="profile_name">Profile Name</string>
     <string name="profile_url">Profile URL</string>
@@ -122,6 +123,8 @@
     <string name="reset">Reset</string>
 
     <string name="clash_logcat">Clash Logcat</string>
+    <string name="logcat_open">Live Log</string>
+    <string name="logcat_open_summary">Tap to start capturing</string>
     <string name="history">History</string>
     <string name="logcat">Logcat</string>
 
@@ -156,6 +159,10 @@
     <string name="access_control_mode">Access Control Mode</string>
     <string name="access_control_packages">Access Control Packages</string>
     <string name="access_control_packages_summary">Configure access permission for apps</string>
+    <string name="apps_strategy">App Routing</string>
+    <string name="choose_apps">Choose Apps</string>
+    <string name="global_app_list">Global App List</string>
+    <string name="access_control_idle">\"%1$s\" is active. This edits the global list used when no strategy is selected.</string>
     <string name="app_sets">App sets</string>
     <string name="app_set_domestic">Common Chinese apps</string>
     <string name="app_set_summary">Installed %1$d · Selected %2$d</string>
@@ -175,6 +182,7 @@
     <string name="allow_lan">Allow LAN</string>
     <string name="bind_address">Bind Address</string>
     <string name="mode">Mode</string>
+    <string name="mode_session_hint">Applies to this session only</string>
     <string name="log_level">Log Level</string>
     <string name="ipv6">IPv6</string>
     <string name="external_controller">External Controller</string>
@@ -187,6 +195,7 @@
     <string name="value">Value</string>
 
     <string name="strategy">Strategy</string>
+    <string name="sniff_strategy">Sniff Strategy</string>
     <string name="listen">Listen</string>
     <string name="append_system_dns">Append System DNS</string>
     <string name="use_hosts">Use Hosts</string>
@@ -238,8 +247,7 @@
     <string name="import_from_clipboard">Import from Clipboard</string>
     <string name="export_to_clipboard">Export to Clipboard</string>
 
-    <string name="clash_meta_for_android">Clash Meta for Android</string>
-
+    <string name="clash_meta_for_android">ClashMetaX</string>
     <string name="document">Document</string>
     <string name="feedback">Feedback</string>
     <string name="sources">Sources</string>
@@ -253,8 +261,7 @@
     <string name="clash_meta_core_url" translatable="false">https://github.com/MetaCubeX/Clash.Meta</string>
 
     <string name="tips_properties"><![CDATA[Accept Only <strong>Clash Config</strong>(including <strong>Proxy</strong>/<strong>Rules</strong>)]]></string>
-    <string name="tips_help"><![CDATA[Clash Meta for Android is a <strong>freeware</strong> and we do <strong>NOT</strong> provide any service for it]]></string>
-
+    <string name="tips_help"><![CDATA[ClashMetaX is a <strong>freeware</strong> and we do <strong>NOT</strong> provide any service for it]]></string>
     <string name="google_play_url" translatable="false">https://play.google.com/store/apps/details?id=com.github.kr328.clash</string>
 
     <string name="app">App</string>
@@ -420,4 +427,35 @@
     <string name="webdav_progress_delete">Removing remote files %1$d/%2$d</string>
     <string name="webdav_progress_delete_named">Removing remote files %1$d/%2$d · %3$s</string>
     <string name="access_control_reload_rejected">The app list was saved, but Android kept the current VPN. The running tunnel still uses the previous app list.</string>
+
+    <string name="connect">Connect</string>
+    <string name="disconnect">Disconnect</string>
+    <string name="proxy_after_connect">Available after connecting</string>
+    <string name="section_in_use">In Use</string>
+    <string name="section_tools">Tools</string>
+    <string name="section_other">More</string>
+    <string name="section_preferences">Preferences</string>
+    <string name="section_advanced">Advanced</string>
+    <string name="mode_rule_short">Rule</string>
+    <string name="mode_global_short">Global</string>
+    <string name="mode_direct_short">Direct</string>
+    <string name="mode_script_short">Script</string>
+    <string name="mode_rule_summary">Traffic follows the rules</string>
+    <string name="mode_global_summary">All traffic goes through the proxy</string>
+    <string name="mode_direct_summary">All traffic connects directly</string>
+    <string name="mode_script_summary">Traffic follows the script</string>
+    <string name="current_node">Current node</string>
+    <string name="upload">Upload</string>
+    <string name="download">Download</string>
+    <string name="traffic">Traffic</string>
+    <string name="per_second">%1$s/s</string>
+    <string name="back">Back</string>
+    <string name="search_empty">No matches</string>
+    <string name="list_empty">Nothing here</string>
+    <string name="search_clear">Clear</string>
+    <string name="settings_app_summary">Appearance, behavior, and notifications</string>
+    <string name="settings_network_summary">Routing, stack, and access control</string>
+    <string name="settings_override_summary">Fields written over the profile</string>
+    <string name="settings_meta_summary">Sniffing, Geo data, and kernel options</string>
+    <string name="settings_webdav_summary">Sync subscriptions and app routing</string>
 </resources>

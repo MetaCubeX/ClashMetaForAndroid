@@ -12,13 +12,13 @@
     <string name="tun_stack_mips">Mips</string>
     <string name="tun_stack_mode">Chế độ xếp chồng dữ liệu</string>
     <string name="tun_stack_system">Hệ thống</string>
-    <string name="application_name_alpha">Clash Meta</string>
-    <string name="application_name_meta">Clash Meta</string>
+    <string name="application_name_alpha">ClashMetaX Alpha</string>
+    <string name="application_name_meta">ClashMetaX</string>
     <string name="clash_meta_core">Clash Meta Core</string>
-    <string name="clash_meta_for_android">Clash Meta</string>
+    <string name="clash_meta_for_android">ClashMetaX</string>
     <string name="clash_meta_wiki">Clash Meta Wiki</string>
-    <string name="launch_name_alpha">Clash Meta</string>
-    <string name="launch_name_meta">Clash Meta</string>
+    <string name="launch_name_alpha">ClashMetaX Alpha</string>
+    <string name="launch_name_meta">ClashMetaX</string>
     <string name="_new">Mới</string>
     <string name="about">Thông tin</string>
     <string name="accept_http_content">Chỉ chấp nhận http(s)</string>
@@ -233,7 +233,7 @@
     <string name="system_proxy">Proxy hệ thống</string>
     <string name="system_proxy_summary">Đính kèm proxy,http vào hệ thống Vpn</string>
     <string name="tap_to_start">Chạm để kết nối</string>
-    <string name="tips_help">Clash Meta là một phần mềm miễn phí và chúng tôi KHÔNG cung cấp bất kỳ dịch vụ trả phí nào cho nó</string>
+    <string name="tips_help">ClashMetaX là một phần mềm miễn phí và chúng tôi KHÔNG cung cấp bất kỳ dịch vụ trả phí nào cho nó</string>
     <string name="tips_properties">Chỉ chấp nhận cấu hình Clash bao gồm Proxy và Quy tắc</string>
     <string name="tproxy_port">Cổng TProxy</string>
     <string name="unable_to_start_vpn">Không thể khởi động thành phần VPN</string>
@@ -295,4 +295,7 @@
     <string name="webdav_progress_delete">Xóa tệp từ xa %1$d/%2$d</string>
     <string name="webdav_progress_delete_named">Xóa tệp từ xa %1$d/%2$d · %3$s</string>
     <string name="access_control_reload_rejected">Danh sách ứng dụng đã được lưu, nhưng Android không cho tạo lại VPN. Đường hầm đang chạy vẫn dùng danh sách cũ.</string>
+    <string name="back">Quay lại</string>
+    <string name="search_empty">Không có kết quả</string>
+    <string name="list_empty">Không có mục nào</string>
 </resources>

@@ -1,349 +1,384 @@
 package com.github.kr328.clash.design
 
+import android.app.Activity
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.view.View
+import androidx.annotation.StringRes
+import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.core.content.getSystemService
 import androidx.core.widget.doOnTextChanged
 import com.github.kr328.clash.core.Clash
 import com.github.kr328.clash.core.model.ConfigurationOverride
-import com.github.kr328.clash.design.databinding.DesignSettingsMetaFeatureBinding
+import com.github.kr328.clash.design.adapter.EditableTextListAdapter
 import com.github.kr328.clash.design.databinding.DialogAgeKeyHelperBinding
-import com.github.kr328.clash.design.preference.*
+import com.github.kr328.clash.design.dialog.requestModelTextInput
+import com.github.kr328.clash.design.ios.ClashMetaXTheme
+import com.github.kr328.clash.design.ios.MetaFeatureSettingsScreen
+import com.github.kr328.clash.design.ios.SettingGroup
+import com.github.kr328.clash.design.ios.SettingRow
+import com.github.kr328.clash.design.ios.iosConfirm
+import com.github.kr328.clash.design.preference.EditableListOverlayResult
+import com.github.kr328.clash.design.preference.TextAdapter
+import com.github.kr328.clash.design.preference.requestEditableListOverlay
+import com.github.kr328.clash.design.ui.Insets
 import com.github.kr328.clash.design.ui.ToastDuration
-import com.github.kr328.clash.design.util.*
+import com.github.kr328.clash.design.util.layoutInflater
+import com.github.kr328.clash.design.util.root
+import com.github.kr328.clash.design.util.setOnInsertsChangedListener
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.suspendCancellableCoroutine
-import kotlin.coroutines.resume
+import kotlinx.coroutines.withContext
 
 class MetaFeatureSettingsDesign(
     context: Context,
-    configuration: ConfigurationOverride
+    private val configuration: ConfigurationOverride,
 ) : Design<MetaFeatureSettingsDesign.Request>(context) {
     enum class Request {
         ResetOverride, ImportGeoIp, ImportGeoSite, ImportCountry, ImportASN
     }
 
-    private val binding = DesignSettingsMetaFeatureBinding
-        .inflate(context.layoutInflater, context.root, false)
+    private val booleanValues: Array<Boolean?> = arrayOf(null, true, false)
+    private val booleanTexts: Array<Int> = arrayOf(
+        R.string.dont_modify,
+        R.string.enabled,
+        R.string.disabled,
+    )
 
-    override val root: View
-        get() = binding.root
+    private val findProcessValues: Array<ConfigurationOverride.FindProcessMode?> = arrayOf(
+        null,
+        ConfigurationOverride.FindProcessMode.Off,
+        ConfigurationOverride.FindProcessMode.Strict,
+        ConfigurationOverride.FindProcessMode.Always,
+    )
+    private val findProcessTexts: Array<Int> = arrayOf(
+        R.string.dont_modify,
+        R.string.off,
+        R.string.strict,
+        R.string.always,
+    )
 
-    suspend fun requestResetConfirm(): Boolean {
-        return suspendCancellableCoroutine { ctx ->
-            val dialog = MaterialAlertDialogBuilder(context)
-                .setTitle(R.string.reset_override_settings)
-                .setMessage(R.string.reset_override_settings_message)
-                .setPositiveButton(R.string.ok) { _, _ -> ctx.resume(true) }
-                .setNegativeButton(R.string.cancel) { _, _ -> }
-                .show()
+    private val snifferStrategyValues: Array<Boolean?> = arrayOf(null, true, false)
+    private val snifferStrategyTexts: Array<Int> = arrayOf(
+        R.string.dont_modify,
+        R.string.enabled,
+        R.string.disabled,
+    )
 
-            dialog.setOnDismissListener {
-                if (!ctx.isCompleted)
-                    ctx.resume(false)
-            }
+    private var insets by mutableStateOf(Insets.EMPTY)
+    private var groups by mutableStateOf<List<SettingGroup>>(emptyList())
 
-            ctx.invokeOnCancellation {
-                dialog.dismiss()
+    override val root: View = ComposeView(context).apply {
+        setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+        setContent {
+            val title = (context as? Activity)?.title?.toString()?.ifBlank { null }
+                ?: context.getString(R.string.meta_features)
+            ClashMetaXTheme {
+                MetaFeatureSettingsScreen(
+                    insets = insets,
+                    title = title,
+                    groups = groups,
+                    onBack = {
+                        (context as? AppCompatActivity)?.onBackPressedDispatcher?.onBackPressed()
+                    },
+                    onReset = { requestClear() },
+                )
             }
         }
     }
 
+    suspend fun requestResetConfirm(): Boolean {
+        return iosConfirm(
+            context = context,
+            title = context.getString(R.string.reset_override_settings),
+            message = context.getString(R.string.reset_override_settings_message),
+            confirm = context.getString(R.string.ok),
+            destructive = true,
+        )
+    }
+
+    fun requestClear() {
+        requests.trySend(Request.ResetOverride)
+    }
+
     init {
-        binding.self = this
-
-        binding.activityBarLayout.applyFrom(context)
-
-        binding.scrollRoot.bindAppBarElevation(binding.activityBarLayout)
-
-        val booleanValues: Array<Boolean?> = arrayOf(
-            null,
-            true,
-            false
-        )
-        val booleanValuesText: Array<Int> = arrayOf(
-            R.string.dont_modify,
-            R.string.enabled,
-            R.string.disabled
-        )
-
-        val screen = preferenceScreen(context) {
-            category(R.string.age_key_category)
-
-            clickable(
-                title = R.string.age_key_type_x25519,
-                summary = R.string.age_key_generate_summary,
-            ) {
-                clicked {
-                    requestAgeKeyHelper(hybrid = false)
-                }
-            }
-
-            clickable(
-                title = R.string.age_key_type_hybrid,
-                summary = R.string.age_key_generate_summary,
-            ) {
-                clicked {
-                    requestAgeKeyHelper(hybrid = true)
-                }
-            }
-
-            category(R.string.settings)
-
-            selectableList(
-                value = configuration::unifiedDelay,
-                values = booleanValues,
-                valuesText = booleanValuesText,
-                title = R.string.unified_delay,
-            )
-
-            selectableList(
-                value = configuration::geodataMode,
-                values = booleanValues,
-                valuesText = booleanValuesText,
-                title = R.string.geodata_mode,
-            )
-
-            selectableList(
-                value = configuration::tcpConcurrent,
-                values = booleanValues,
-                valuesText = booleanValuesText,
-                title = R.string.tcp_concurrent,
-            )
-
-            selectableList(
-                value = configuration::findProcessMode,
-                values = arrayOf(
-                    null,
-                    ConfigurationOverride.FindProcessMode.Off,
-                    ConfigurationOverride.FindProcessMode.Strict,
-                    ConfigurationOverride.FindProcessMode.Always
-                ),
-                valuesText = arrayOf(
-                    R.string.dont_modify,
-                    R.string.off,
-                    R.string.strict,
-                    R.string.always,
-                ),
-                title = R.string.find_process_mode,
-            ) {
-
-            }
-
-            category(R.string.sniffer_setting)
-
-            val snifferDependencies: MutableList<Preference> = mutableListOf()
-
-            val sniffer = selectableList(
-                value = configuration.sniffer::enable,
-                values = arrayOf(
-                    null,
-                    true,
-                    false
-                ),
-                valuesText = arrayOf(
-                    R.string.dont_modify,
-                    R.string.enabled,
-                    R.string.disabled
-                ),
-                title = R.string.strategy
-            ) {
-                listener = OnChangedListener {
-                    if (configuration.sniffer.enable == false) {
-                        snifferDependencies.forEach {
-                            it.enabled = false
-                        }
-                    } else {
-                        snifferDependencies.forEach {
-                            it.enabled = true
-                        }
-                    }
-                }
-            }
-
-            editableTextList(
-                value = configuration.sniffer.sniff.http::ports,
-                adapter = TextAdapter.String,
-                title = R.string.sniff_http_ports,
-                placeholder = R.string.dont_modify,
-                configure = snifferDependencies::add,
-            )
-
-            selectableList(
-                value = configuration.sniffer.sniff.http::overrideDestination,
-                values = booleanValues,
-                valuesText = booleanValuesText,
-                title = R.string.sniff_http_override_destination,
-                configure = snifferDependencies::add,
-            )
-
-            editableTextList(
-                value = configuration.sniffer.sniff.tls::ports,
-                adapter = TextAdapter.String,
-                title = R.string.sniff_tls_ports,
-                placeholder = R.string.dont_modify,
-                configure = snifferDependencies::add,
-            )
-
-            selectableList(
-                value = configuration.sniffer.sniff.tls::overrideDestination,
-                values = booleanValues,
-                valuesText = booleanValuesText,
-                title = R.string.sniff_tls_override_destination,
-                configure = snifferDependencies::add,
-            )
-
-            editableTextList(
-                value = configuration.sniffer.sniff.quic::ports,
-                adapter = TextAdapter.String,
-                title = R.string.sniff_quic_ports,
-                placeholder = R.string.dont_modify,
-                configure = snifferDependencies::add,
-            )
-
-            selectableList(
-                value = configuration.sniffer.sniff.quic::overrideDestination,
-                values = booleanValues,
-                valuesText = booleanValuesText,
-                title = R.string.sniff_quic_override_destination,
-                configure = snifferDependencies::add,
-            )
-
-            selectableList(
-                value = configuration.sniffer::forceDnsMapping,
-                values = booleanValues,
-                valuesText = booleanValuesText,
-                title = R.string.force_dns_mapping,
-                configure = snifferDependencies::add,
-            )
-
-            selectableList(
-                value = configuration.sniffer::parsePureIp,
-                values = booleanValues,
-                valuesText = booleanValuesText,
-                title = R.string.parse_pure_ip,
-                configure = snifferDependencies::add,
-            )
-
-            selectableList(
-                value = configuration.sniffer::overrideDestination,
-                values = booleanValues,
-                valuesText = booleanValuesText,
-                title = R.string.override_destination,
-                configure = snifferDependencies::add,
-            )
-
-            editableTextList(
-                value = configuration.sniffer::forceDomain,
-                adapter = TextAdapter.String,
-                title = R.string.force_domain,
-                placeholder = R.string.dont_modify,
-                configure = snifferDependencies::add,
-            )
-
-            editableTextList(
-                value = configuration.sniffer::skipDomain,
-                adapter = TextAdapter.String,
-                title = R.string.skip_domain,
-                placeholder = R.string.dont_modify,
-                configure = snifferDependencies::add,
-            )
-
-            editableTextList(
-                value = configuration.sniffer::skipSrcAddress,
-                adapter = TextAdapter.String,
-                title = R.string.skip_src_address,
-                placeholder = R.string.dont_modify,
-                configure = snifferDependencies::add,
-            )
-
-            editableTextList(
-                value = configuration.sniffer::skipDstAddress,
-                adapter = TextAdapter.String,
-                title = R.string.skip_dst_address,
-                placeholder = R.string.dont_modify,
-                configure = snifferDependencies::add,
-            )
-
-            sniffer.listener?.onChanged()
-
-            /*
-            category(R.string.geox_url_setting)
-
-            val geoxUrlDependencies: MutableList<Preference> = mutableListOf()
-
-            editableText(
-                value = configuration.geoxurl::geoip,
-                adapter = NullableTextAdapter.String,
-                title = R.string.geox_geoip,
-                placeholder = R.string.dont_modify,
-                empty = R.string.geoip_url,
-                configure = geoxUrlDependencies::add,
-            )
-
-            editableText(
-                value = configuration.geoxurl::mmdb,
-                adapter = NullableTextAdapter.String,
-                title = R.string.geox_mmdb,
-                placeholder = R.string.dont_modify,
-                empty = R.string.mmdb_url,
-                configure = geoxUrlDependencies::add,
-            )
-
-            editableText(
-                value = configuration.geoxurl::geosite,
-                adapter = NullableTextAdapter.String,
-                title = R.string.geox_geosite,
-                placeholder = R.string.dont_modify,
-                empty = R.string.geosite_url,
-                configure = geoxUrlDependencies::add,
-            )
-            */
-
-            category(R.string.geox_files)
-
-            clickable (
-                title = R.string.import_geoip_file,
-                summary = R.string.press_to_import,
-            ){
-                clicked {
-                    requests.trySend(Request.ImportGeoIp)
-                }
-            }
-
-            clickable (
-                title = R.string.import_geosite_file,
-                summary = R.string.press_to_import,
-            ){
-                clicked {
-                    requests.trySend(Request.ImportGeoSite)
-                }
-            }
-
-            clickable (
-                title = R.string.import_country_file,
-                summary = R.string.press_to_import,
-            ){
-                clicked {
-                    requests.trySend(Request.ImportCountry)
-                }
-            }
-            
-            clickable (
-                title = R.string.import_asn_file,
-                summary = R.string.press_to_import,
-            ){
-                clicked {
-                    requests.trySend(Request.ImportASN)
-                }
+        if (context is AppCompatActivity) {
+            context.window.decorView.setOnInsertsChangedListener {
+                if (surface.insets != it) surface.insets = it
+                insets = it
             }
         }
+        publish()
+    }
 
-        binding.content.addView(screen.root)
+    private fun publish() {
+        groups = snapshot()
+    }
+
+    private fun snapshot(): List<SettingGroup> {
+        // 只有 false（已禁用）关掉其余嗅探行，第一次进入也按这个值。
+        val sniffEditable = configuration.sniffer.enable != false
+        return listOf(
+            SettingGroup(
+                title = text(R.string.age_key_category),
+                rows = listOf(
+                    valueRow(
+                        R.string.age_key_type_x25519,
+                        text(R.string.age_key_generate_summary),
+                    ) { requestAgeKeyHelper(hybrid = false) },
+                    valueRow(
+                        R.string.age_key_type_hybrid,
+                        text(R.string.age_key_generate_summary),
+                    ) { requestAgeKeyHelper(hybrid = true) },
+                ),
+            ),
+            SettingGroup(
+                title = text(R.string.settings),
+                rows = listOf(
+                    choice(
+                        R.string.unified_delay,
+                        configuration.unifiedDelay,
+                        booleanValues,
+                        booleanTexts,
+                    ) { configuration.unifiedDelay = it },
+                    choice(
+                        R.string.geodata_mode,
+                        configuration.geodataMode,
+                        booleanValues,
+                        booleanTexts,
+                    ) { configuration.geodataMode = it },
+                    choice(
+                        R.string.tcp_concurrent,
+                        configuration.tcpConcurrent,
+                        booleanValues,
+                        booleanTexts,
+                    ) { configuration.tcpConcurrent = it },
+                    choice(
+                        R.string.find_process_mode,
+                        configuration.findProcessMode,
+                        findProcessValues,
+                        findProcessTexts,
+                    ) { configuration.findProcessMode = it },
+                ),
+            ),
+            SettingGroup(
+                title = text(R.string.sniffer_setting),
+                rows = listOf(
+                    choice(
+                        R.string.sniff_strategy,
+                        configuration.sniffer.enable,
+                        snifferStrategyValues,
+                        snifferStrategyTexts,
+                    ) { configuration.sniffer.enable = it },
+                    listRow(
+                        R.string.sniff_http_ports,
+                        { configuration.sniffer.sniff.http.ports },
+                        { configuration.sniffer.sniff.http.ports = it },
+                        sniffEditable,
+                    ),
+                    choice(
+                        R.string.sniff_http_override_destination,
+                        configuration.sniffer.sniff.http.overrideDestination,
+                        booleanValues,
+                        booleanTexts,
+                        sniffEditable,
+                    ) { configuration.sniffer.sniff.http.overrideDestination = it },
+                    listRow(
+                        R.string.sniff_tls_ports,
+                        { configuration.sniffer.sniff.tls.ports },
+                        { configuration.sniffer.sniff.tls.ports = it },
+                        sniffEditable,
+                    ),
+                    choice(
+                        R.string.sniff_tls_override_destination,
+                        configuration.sniffer.sniff.tls.overrideDestination,
+                        booleanValues,
+                        booleanTexts,
+                        sniffEditable,
+                    ) { configuration.sniffer.sniff.tls.overrideDestination = it },
+                    listRow(
+                        R.string.sniff_quic_ports,
+                        { configuration.sniffer.sniff.quic.ports },
+                        { configuration.sniffer.sniff.quic.ports = it },
+                        sniffEditable,
+                    ),
+                    choice(
+                        R.string.sniff_quic_override_destination,
+                        configuration.sniffer.sniff.quic.overrideDestination,
+                        booleanValues,
+                        booleanTexts,
+                        sniffEditable,
+                    ) { configuration.sniffer.sniff.quic.overrideDestination = it },
+                    choice(
+                        R.string.force_dns_mapping,
+                        configuration.sniffer.forceDnsMapping,
+                        booleanValues,
+                        booleanTexts,
+                        sniffEditable,
+                    ) { configuration.sniffer.forceDnsMapping = it },
+                    choice(
+                        R.string.parse_pure_ip,
+                        configuration.sniffer.parsePureIp,
+                        booleanValues,
+                        booleanTexts,
+                        sniffEditable,
+                    ) { configuration.sniffer.parsePureIp = it },
+                    choice(
+                        R.string.override_destination,
+                        configuration.sniffer.overrideDestination,
+                        booleanValues,
+                        booleanTexts,
+                        sniffEditable,
+                    ) { configuration.sniffer.overrideDestination = it },
+                    listRow(
+                        R.string.force_domain,
+                        { configuration.sniffer.forceDomain },
+                        { configuration.sniffer.forceDomain = it },
+                        sniffEditable,
+                    ),
+                    listRow(
+                        R.string.skip_domain,
+                        { configuration.sniffer.skipDomain },
+                        { configuration.sniffer.skipDomain = it },
+                        sniffEditable,
+                    ),
+                    listRow(
+                        R.string.skip_src_address,
+                        { configuration.sniffer.skipSrcAddress },
+                        { configuration.sniffer.skipSrcAddress = it },
+                        sniffEditable,
+                    ),
+                    listRow(
+                        R.string.skip_dst_address,
+                        { configuration.sniffer.skipDstAddress },
+                        { configuration.sniffer.skipDstAddress = it },
+                        sniffEditable,
+                    ),
+                ),
+            ),
+            SettingGroup(
+                title = text(R.string.geox_files),
+                rows = listOf(
+                    valueRow(R.string.import_geoip_file, text(R.string.press_to_import)) {
+                        requests.trySend(Request.ImportGeoIp)
+                    },
+                    valueRow(R.string.import_geosite_file, text(R.string.press_to_import)) {
+                        requests.trySend(Request.ImportGeoSite)
+                    },
+                    valueRow(R.string.import_country_file, text(R.string.press_to_import)) {
+                        requests.trySend(Request.ImportCountry)
+                    },
+                    valueRow(R.string.import_asn_file, text(R.string.press_to_import)) {
+                        requests.trySend(Request.ImportASN)
+                    },
+                ),
+            ),
+        )
+    }
+
+    private fun <T> choice(
+        @StringRes title: Int,
+        value: T,
+        values: Array<T>,
+        texts: Array<Int>,
+        enabled: Boolean = true,
+        write: (T) -> Unit,
+    ): SettingRow {
+        val index = values.indexOf(value)
+        val labels = texts.map { text(it) }
+        return SettingRow(
+            title = text(title),
+            summary = labels.getOrNull(index).orEmpty(),
+            enabled = enabled,
+            selectable = true,
+            options = labels,
+            selected = index,
+            onSelect = { picked ->
+                if (picked in values.indices) {
+                    val next = values[picked]
+                    launch(Dispatchers.Main) {
+                        withContext(Dispatchers.IO) { write(next) }
+                        publish()
+                    }
+                }
+            },
+        )
+    }
+
+    private fun listRow(
+        @StringRes title: Int,
+        read: () -> List<String>?,
+        write: (List<String>?) -> Unit,
+        enabled: Boolean = true,
+    ) = valueRow(title, elements(read()?.size), enabled) {
+        editList(title, read, write)
+    }
+
+    private fun valueRow(
+        @StringRes title: Int,
+        summary: String,
+        enabled: Boolean = true,
+        onClick: () -> Unit,
+    ) = SettingRow(
+        title = text(title),
+        summary = summary,
+        enabled = enabled,
+        onClick = onClick,
+    )
+
+    private fun elements(size: Int?): String = when (size) {
+        null -> text(R.string.dont_modify)
+        0 -> text(R.string.empty)
+        else -> context.getString(R.string.format_elements, size)
+    }
+
+    private fun text(@StringRes id: Int): String = context.getString(id)
+
+    private fun editList(
+        @StringRes titleRes: Int,
+        read: () -> List<String>?,
+        write: (List<String>?) -> Unit,
+    ) {
+        launch(Dispatchers.Main) {
+            val title = context.getText(titleRes)
+            val initial = withContext(Dispatchers.IO) { read() }
+            val updated = requestTextList(initial, title)
+            withContext(Dispatchers.IO) { write(updated) }
+            publish()
+        }
+    }
+
+    private suspend fun requestTextList(
+        initialValue: List<String>?,
+        title: CharSequence,
+    ): List<String>? {
+        val recyclerAdapter = EditableTextListAdapter(
+            context,
+            initialValue?.toMutableList() ?: mutableListOf(),
+            TextAdapter.String,
+        )
+        val result = requestEditableListOverlay(context, recyclerAdapter, title) {
+            val entered = context.requestModelTextInput(
+                initial = "",
+                title = title,
+                hint = title,
+            )
+            if (entered.isNotBlank()) {
+                recyclerAdapter.addElement(entered)
+            }
+        }
+        return when (result) {
+            EditableListOverlayResult.Cancel -> initialValue
+            EditableListOverlayResult.Apply -> recyclerAdapter.values
+            EditableListOverlayResult.Reset -> null
+        }
     }
 
     private fun requestAgeKeyHelper(hybrid: Boolean) {
@@ -413,9 +448,5 @@ class MetaFeatureSettingsDesign(
 
             dialog.show()
         }
-    }
-
-    fun requestClear() {
-        requests.trySend(Request.ResetOverride)
     }
 }

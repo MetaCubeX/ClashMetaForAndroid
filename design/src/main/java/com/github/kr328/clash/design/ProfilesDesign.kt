@@ -1,19 +1,26 @@
 package com.github.kr328.clash.design
 
+import android.app.Activity
 import android.app.Dialog
 import android.content.Context
 import android.view.View
-import android.view.ViewGroup
-import android.view.animation.Animation
-import android.view.animation.AnimationUtils
-import com.github.kr328.clash.design.adapter.ProfileAdapter
-import com.github.kr328.clash.design.databinding.DesignProfilesBinding
-import com.github.kr328.clash.design.databinding.DialogProfilesMenuBinding
-import com.github.kr328.clash.design.dialog.AppBottomSheetDialog
+import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import com.github.kr328.clash.design.ios.ClashMetaXTheme
+import com.github.kr328.clash.design.ios.ProfilesScreen
+import com.github.kr328.clash.design.ios.iosConfirm
+import com.github.kr328.clash.design.ui.Insets
 import com.github.kr328.clash.design.ui.ToastDuration
-import com.github.kr328.clash.design.util.*
+import com.github.kr328.clash.design.util.setOnInsertsChangedListener
+import com.github.kr328.clash.design.util.showSubscriptionQr
+import com.github.kr328.clash.design.util.isShareableSubscriptionUrl
 import com.github.kr328.clash.service.model.Profile
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class ProfilesDesign(context: Context) : Design<ProfilesDesign.Request>(context) {
@@ -27,31 +34,49 @@ class ProfilesDesign(context: Context) : Design<ProfilesDesign.Request>(context)
         data class Delete(val profile: Profile) : Request()
     }
 
-    private val binding = DesignProfilesBinding
-        .inflate(context.layoutInflater, context.root, false)
-    private val adapter = ProfileAdapter(context, this::requestActive, this::showMenu)
+    private var insets by mutableStateOf(Insets.EMPTY)
+    private var profiles by mutableStateOf<List<Profile>>(emptyList())
+    private var loaded by mutableStateOf(false)
+    private var updatable by mutableStateOf(false)
+    private var allUpdating by mutableStateOf(false)
+    private var now by mutableStateOf(System.currentTimeMillis())
 
-    private var allUpdating: Boolean
-        get() = adapter.states.allUpdating;
-        set(value) {
-            adapter.states.allUpdating = value
+    override val root: View = ComposeView(context).apply {
+        setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+        val title = (context as? Activity)?.title?.toString()?.ifBlank { null }
+            ?: context.getString(R.string.profiles)
+        setContent {
+            ClashMetaXTheme {
+                ProfilesScreen(
+                    insets = insets,
+                    title = title,
+                    profiles = profiles,
+                    loaded = loaded,
+                    updatable = updatable,
+                    allUpdating = allUpdating,
+                    now = now,
+                    onBack = { (context as? AppCompatActivity)?.onBackPressedDispatcher?.onBackPressed() },
+                    onCreate = { requestCreate() },
+                    onUpdateAll = { requestUpdateAll() },
+                    onActive = { requestActive(it) },
+                    onUpdate = { requestUpdate(it) },
+                    onEdit = { requestEdit(it) },
+                    onShare = { requestShare(it) },
+                    onDuplicate = { requestDuplicate(it) },
+                    onDelete = { requestDelete(it) },
+                )
+            }
         }
-    private val rotateAnimation : Animation = AnimationUtils.loadAnimation(context, R.anim.rotate_infinite)
-
-    override val root: View
-        get() = binding.root
+    }
 
     suspend fun patchProfiles(profiles: List<Profile>) {
-        adapter.apply {
-            patchDataSet(this::profiles, profiles, id = { it.uuid })
-        }
-
-        val updatable = withContext(Dispatchers.Default) {
+        val canUpdate = withContext(Dispatchers.Default) {
             profiles.any { it.imported && it.type != Profile.Type.File }
         }
-
         withContext(Dispatchers.Main) {
-            binding.updateView.visibility = if (updatable) View.VISIBLE else View.GONE
+            this@ProfilesDesign.profiles = profiles
+            updatable = canUpdate
+            loaded = true
         }
     }
 
@@ -64,91 +89,99 @@ class ProfilesDesign(context: Context) : Design<ProfilesDesign.Request>(context)
     }
 
     fun updateElapsed() {
-        adapter.updateElapsed()
-    }
-
-    init {
-        binding.self = this
-
-        binding.activityBarLayout.applyFrom(context)
-
-        binding.mainList.recyclerList.also {
-            it.bindAppBarElevation(binding.activityBarLayout)
-            it.applyLinearAdapter(context, adapter)
-        }
-    }
-
-    private fun showMenu(profile: Profile) {
-        val dialog = AppBottomSheetDialog(context)
-
-        val binding = DialogProfilesMenuBinding
-            .inflate(context.layoutInflater, dialog.window?.decorView as ViewGroup?, false)
-
-        binding.master = this
-        binding.self = dialog
-        binding.profile = profile
-
-        dialog.setContentView(binding.root)
-        dialog.show()
+        now = System.currentTimeMillis()
     }
 
     fun requestUpdateAll() {
-        allUpdating = true;
-        changeUpdateAllButtonStatus()
+        if (allUpdating) return
+        allUpdating = true
         requests.trySend(Request.UpdateAll)
     }
 
     fun finishUpdateAll() {
-        allUpdating = false;
-        changeUpdateAllButtonStatus()
+        allUpdating = false
     }
 
     fun requestCreate() {
         requests.trySend(Request.Create)
     }
 
-    private fun requestActive(profile: Profile) {
-        requests.trySend(Request.Active(profile))
-    }
-
-    fun requestUpdate(dialog: Dialog, profile: Profile) {
-        requests.trySend(Request.Update(profile))
-
-        dialog.dismiss()
-    }
-
-    fun requestEdit(dialog: Dialog, profile: Profile) {
-        requests.trySend(Request.Edit(profile))
-
-        dialog.dismiss()
-    }
-
     fun canShareSubscriptionQr(profile: Profile): Boolean {
         return isShareableSubscriptionUrl(profile.source)
     }
 
+    fun requestUpdate(dialog: Dialog, profile: Profile) {
+        dialog.dismiss()
+        requestUpdate(profile)
+    }
+
+    fun requestEdit(dialog: Dialog, profile: Profile) {
+        dialog.dismiss()
+        requestEdit(profile)
+    }
+
     fun requestShareQr(dialog: Dialog, profile: Profile) {
         dialog.dismiss()
-        showSubscriptionQr(profile.name, profile.source)
+        requestShare(profile)
     }
 
     fun requestDuplicate(dialog: Dialog, profile: Profile) {
-        requests.trySend(Request.Duplicate(profile))
-
         dialog.dismiss()
+        requestDuplicate(profile)
     }
 
     fun requestDelete(dialog: Dialog, profile: Profile) {
-        requests.trySend(Request.Delete(profile))
-
         dialog.dismiss()
+        requestDelete(profile)
     }
 
-    private fun changeUpdateAllButtonStatus() {
-        if (allUpdating) {
-            binding.updateView.startAnimation(rotateAnimation)
-        } else {
-            binding.updateView.clearAnimation()
+    private fun requestActive(profile: Profile) {
+        requests.trySend(Request.Active(profile))
+    }
+
+    private fun requestUpdate(profile: Profile) {
+        requests.trySend(Request.Update(profile))
+    }
+
+    private fun requestEdit(profile: Profile) {
+        requests.trySend(Request.Edit(profile))
+    }
+
+    private fun requestShare(profile: Profile) {
+        showSubscriptionQr(profile.name, profile.source)
+    }
+
+    private fun requestDuplicate(profile: Profile) {
+        requests.trySend(Request.Duplicate(profile))
+    }
+
+    private fun requestDelete(profile: Profile) {
+        confirm(context.getString(R.string.delete), profile.name, destructive = true) {
+            requests.trySend(Request.Delete(profile))
+        }
+    }
+
+    private fun confirm(title: String, message: String, destructive: Boolean, block: () -> Unit) {
+        launch {
+            val accepted = withContext(Dispatchers.Main) {
+                iosConfirm(
+                    context,
+                    title,
+                    message,
+                    context.getString(R.string.ok),
+                    destructive,
+                )
+            }
+            if (accepted) block()
+        }
+    }
+
+    init {
+        if (context is AppCompatActivity) {
+            context.window.decorView.setOnInsertsChangedListener {
+                if (surface.insets != it) surface.insets = it
+                insets = it
+            }
         }
     }
 }

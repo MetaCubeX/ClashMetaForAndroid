@@ -1,32 +1,36 @@
 package com.github.kr328.clash.design
 
+import android.app.Activity
 import android.content.Context
-import android.content.res.ColorStateList
 import android.view.View
 import android.widget.Toast
-import androidx.viewpager2.widget.ViewPager2
+import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import com.github.kr328.clash.core.model.Proxy
+import com.github.kr328.clash.core.model.ProxySort
 import com.github.kr328.clash.core.model.TunnelState
-import com.github.kr328.clash.design.adapter.ProxyAdapter
-import com.github.kr328.clash.design.adapter.ProxyPageAdapter
-import com.github.kr328.clash.design.component.ProxyMenu
-import com.github.kr328.clash.design.component.ProxyViewConfig
-import com.github.kr328.clash.design.databinding.DesignProxyBinding
+import com.github.kr328.clash.design.ios.ClashMetaXTheme
+import com.github.kr328.clash.design.ios.ProxyLinkUi
+import com.github.kr328.clash.design.ios.ProxyPageUi
+import com.github.kr328.clash.design.ios.ProxyScreen
 import com.github.kr328.clash.design.model.ProxyState
 import com.github.kr328.clash.design.store.UiStore
-import com.github.kr328.clash.design.util.applyFrom
-import com.github.kr328.clash.design.util.layoutInflater
-import com.github.kr328.clash.design.util.resolveThemedColor
-import com.github.kr328.clash.design.util.root
-import com.google.android.material.tabs.TabLayoutMediator
+import com.github.kr328.clash.design.ui.Insets
+import com.github.kr328.clash.design.util.setOnInsertsChangedListener
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 class ProxyDesign(
     context: Context,
-    overrideMode: TunnelState.Mode?,
-    groupNames: List<String>,
-    uiStore: UiStore,
+    private val groupNames: List<String>,
+    initialIndex: Int,
+    private val uiStore: UiStore,
+    private val states: List<ProxyState>,
+    private val onUserGroup: (String) -> Unit,
 ) : Design<ProxyDesign.Request>(context) {
     sealed class Request {
         object ReloadAll : Request()
@@ -38,48 +42,113 @@ class ProxyDesign(
         data class UrlTest(val index: Int) : Request()
     }
 
-    private val binding = DesignProxyBinding
-        .inflate(context.layoutInflater, context.root, false)
+    private data class Page(
+        val name: String,
+        val type: String = "",
+        val proxies: List<Proxy> = emptyList(),
+        val selectable: Boolean = false,
+        val now: String = "",
+        val loaded: Boolean = false,
+        val loading: Boolean = false,
+        val urlTesting: Boolean = false,
+    )
 
-    private var config = ProxyViewConfig(context, uiStore.proxyLine)
+    private var insets by mutableStateOf(Insets.EMPTY)
+    private var current by mutableStateOf(initialIndex)
+    private var sort by mutableStateOf(uiStore.proxySort)
+    private var excludeNotSelectable by mutableStateOf(uiStore.proxyExcludeNotSelectable)
+    private var pages by mutableStateOf(
+        List(groupNames.size) { index ->
+            Page(
+                name = groupNames[index],
+                loading = index == initialIndex,
+            )
+        }
+    )
+    private var relaunching = false
 
-    private val menu: ProxyMenu by lazy {
-        ProxyMenu(context, binding.menuView, overrideMode, uiStore, requests) {
-            config.proxyLine = uiStore.proxyLine
+    val currentGroupName: String?
+        get() = pages.getOrNull(current)?.name
+
+    override val root: View = ComposeView(context).apply {
+        setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+        val title = (context as? Activity)?.title?.toString()
+            ?.ifBlank { null }
+            ?: context.getString(R.string.proxy)
+        setContent {
+            ClashMetaXTheme {
+                val page = pages.getOrNull(current)
+                ProxyScreen(
+                    insets = insets,
+                    title = title,
+                    groupNames = groupNames,
+                    current = current,
+                    page = page?.let {
+                        ProxyPageUi(
+                            name = it.name,
+                            type = it.type,
+                            now = it.now,
+                            proxies = it.proxies,
+                            selectable = it.selectable,
+                            loaded = it.loaded,
+                            loading = it.loading,
+                            urlTesting = it.urlTesting,
+                        )
+                    },
+                    links = pages.map { ProxyLinkUi(it.name, it.loaded, it.now) },
+                    sort = sort,
+                    excludeNotSelectable = excludeNotSelectable,
+                    onBack = {
+                        (context as? AppCompatActivity)?.onBackPressedDispatcher?.onBackPressed()
+                    },
+                    onPickGroup = ::pickGroup,
+                    onSelect = ::select,
+                    onUrlTest = ::requestUrlTesting,
+                    onSort = ::applySort,
+                    onExclude = ::setExclude,
+                )
+            }
         }
     }
-
-    private val adapter: ProxyPageAdapter
-        get() = binding.pagesView.adapter!! as ProxyPageAdapter
-
-    private var horizontalScrolling = false
-    private val verticalBottomScrolled: Boolean
-        get() = adapter.states[binding.pagesView.currentItem].bottom
-    private var urlTesting: Boolean
-        get() = adapter.states[binding.pagesView.currentItem].urlTesting
-        set(value) {
-            adapter.states[binding.pagesView.currentItem].urlTesting = value
-        }
-
-    override val root: View = binding.root
 
     suspend fun updateGroup(
         position: Int,
         proxies: List<Proxy>,
         selectable: Boolean,
         parent: ProxyState,
-        links: Map<String, ProxyState>
+        links: Map<String, ProxyState>,
+        type: String,
+        clearUrlTesting: Boolean = false,
     ) {
-        adapter.updateAdapter(position, proxies, selectable, parent, links)
-
-        adapter.states[position].urlTesting = false
-
-        updateUrlTestButtonStatus()
+        withContext(Dispatchers.Main) {
+            if (position !in pages.indices) return@withContext
+            pages = pages.mapIndexed { index, page ->
+                when {
+                    index == position -> page.copy(
+                        type = type,
+                        proxies = proxies,
+                        selectable = selectable,
+                        now = parent.now,
+                        loaded = true,
+                        loading = false,
+                        urlTesting = if (clearUrlTesting) false else page.urlTesting,
+                    )
+                    page.loaded -> {
+                        val now = links[page.name]?.now
+                        if (now != null && now != page.now) page.copy(now = now) else page
+                    }
+                    else -> page
+                }
+            }
+        }
     }
 
     suspend fun requestRedrawVisible() {
         withContext(Dispatchers.Main) {
-            adapter.requestRedrawVisible()
+            pages = pages.mapIndexed { index, page ->
+                val now = states.getOrNull(index)?.now ?: return@mapIndexed page
+                if (now == page.now) page else page.copy(now = now)
+            }
         }
     }
 
@@ -89,89 +158,60 @@ class ProxyDesign(
         }
     }
 
-    init {
-        binding.self = this
-
-        binding.activityBarLayout.applyFrom(context)
-
-        binding.menuView.setOnClickListener {
-            menu.show()
-        }
-
-        if (groupNames.isEmpty()) {
-            binding.emptyView.visibility = View.VISIBLE
-
-            binding.urlTestView.visibility = View.GONE
-            binding.tabLayoutView.visibility = View.GONE
-            binding.elevationView.visibility = View.GONE
-            binding.pagesView.visibility = View.GONE
-            binding.urlTestFloatView.visibility = View.GONE
-        } else {
-            binding.urlTestFloatView.supportImageTintList = ColorStateList.valueOf(
-                context.resolveThemedColor(com.google.android.material.R.attr.colorOnPrimary)
-            )
-
-            binding.pagesView.apply {
-                adapter = ProxyPageAdapter(
-                    surface,
-                    config,
-                    List(groupNames.size) { index ->
-                        ProxyAdapter(config) { name ->
-                            requests.trySend(Request.Select(index, name))
-                        }
-                    }
-                ) {
-                    if (it == currentItem)
-                        updateUrlTestButtonStatus()
-                }
-
-                registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
-                    override fun onPageScrollStateChanged(state: Int) {
-                        horizontalScrolling = state != ViewPager2.SCROLL_STATE_IDLE
-
-                        updateUrlTestButtonStatus()
-                    }
-
-                    override fun onPageSelected(position: Int) {
-                        uiStore.proxyLastGroup = groupNames[position]
-                    }
-                })
-            }
-
-            TabLayoutMediator(binding.tabLayoutView, binding.pagesView) { tab, index ->
-                tab.text = groupNames[index]
-            }.attach()
-
-            val initialPosition = groupNames.indexOf(uiStore.proxyLastGroup)
-
-            binding.pagesView.post {
-                if (initialPosition > 0)
-                    binding.pagesView.setCurrentItem(initialPosition, false)
-            }
-        }
-    }
-
     fun requestUrlTesting() {
-        urlTesting = true
-
-        requests.trySend(Request.UrlTest(binding.pagesView.currentItem))
-
-        updateUrlTestButtonStatus()
+        val index = current
+        val page = pages.getOrNull(index) ?: return
+        if (page.urlTesting) return
+        pages = pages.mapIndexed { i, item ->
+            if (i == index) item.copy(urlTesting = true) else item
+        }
+        requests.trySend(Request.UrlTest(index))
     }
 
-    private fun updateUrlTestButtonStatus() {
-        if (verticalBottomScrolled || horizontalScrolling || urlTesting) {
-            binding.urlTestFloatView.hide()
-        } else {
-            binding.urlTestFloatView.show()
+    private fun pickGroup(index: Int) {
+        val page = pages.getOrNull(index) ?: return
+        onUserGroup(page.name)
+        if (index == current) return
+        current = index
+        pages = pages.mapIndexed { i, item ->
+            if (i == index) item.copy(loading = true) else item
         }
+        requests.trySend(Request.Reload(index))
+    }
 
-        if (urlTesting) {
-            binding.urlTestView.visibility = View.GONE
-            binding.urlTestProgressView.visibility = View.VISIBLE
-        } else {
-            binding.urlTestView.visibility = View.VISIBLE
-            binding.urlTestProgressView.visibility = View.GONE
+    private fun select(name: String) {
+        val index = current
+        val page = pages.getOrNull(index) ?: return
+        if (!page.selectable) return
+        requests.trySend(Request.Select(index, name))
+    }
+
+    private fun applySort(value: ProxySort) {
+        if (value == sort) return
+        uiStore.proxySort = value
+        sort = value
+        val index = current
+        if (index !in pages.indices) return
+        pages = pages.mapIndexed { i, page ->
+            if (i == index) page.copy(loading = true) else page
+        }
+        requests.trySend(Request.Reload(index))
+    }
+
+    private fun setExclude(value: Boolean) {
+        if (relaunching || value == excludeNotSelectable) return
+        uiStore.proxyExcludeNotSelectable = value
+        excludeNotSelectable = value
+        relaunching = true
+        requests.trySend(Request.ReLaunch)
+    }
+
+    init {
+        if (context is AppCompatActivity) {
+            context.window.decorView.setOnInsertsChangedListener {
+                if (surface.insets != it) surface.insets = it
+                insets = it
+            }
         }
     }
 }

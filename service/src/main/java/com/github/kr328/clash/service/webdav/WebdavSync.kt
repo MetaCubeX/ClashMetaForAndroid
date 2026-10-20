@@ -283,11 +283,15 @@ internal fun interpretRemoteMeta(
     return RemoteMetaRead(parseMeta(body), getEtag ?: listedEtag, recordEtag = true)
 }
 
-private fun sameRemote(existing: ProfilePayload, profile: ProfilePayload): Boolean {
+internal fun sameRemote(existing: ProfilePayload, profile: ProfilePayload): Boolean {
     return existing.name == profile.name &&
         existing.type == profile.type &&
         existing.source == profile.source &&
         existing.interval == profile.interval &&
+        existing.upload == profile.upload &&
+        existing.download == profile.download &&
+        existing.total == profile.total &&
+        existing.expire == profile.expire &&
         existing.updatedAt == profile.updatedAt &&
         existing.ageSecretKey == profile.ageSecretKey &&
         fingerprint(existing.files) == fingerprint(profile.files)

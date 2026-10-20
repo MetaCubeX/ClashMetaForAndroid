@@ -53,7 +53,7 @@ class LogcatActivity : BaseActivity<LogcatDesign>() {
             return showInvalid()
         }
 
-        val design = LogcatDesign(this, false)
+        val design = LogcatDesign(this, streaming = false, fileName = file.fileName)
 
         setContentDesign(design)
 

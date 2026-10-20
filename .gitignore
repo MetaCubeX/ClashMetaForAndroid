@@ -63,5 +63,9 @@ google-services.json
 # logs
 *.log
 
+# Python bytecode
+__pycache__/
+*.pyc
+
 # MacOS
 .DS_Store

@@ -80,26 +80,24 @@ class ServiceStore(context: Context) {
 
     var appsStrategyConfigs: List<AppsStrategyConfig>
         get() {
-            return if (appListsConfigsFile.exists()) {
-                try {
-                    json.decodeFromString(
-                        kotlinx.serialization.builtins.ListSerializer(AppsStrategyConfig.serializer()),
-                        appListsConfigsFile.readText()
-                    )
-                } catch (e: Exception) {
-                    emptyList()
-                }
-            } else {
-                emptyList()
-            }
+            if (!appListsConfigsFile.exists()) return emptyList()
+            return json.decodeFromString(
+                kotlinx.serialization.builtins.ListSerializer(AppsStrategyConfig.serializer()),
+                appListsConfigsFile.readText()
+            )
         }
         set(value) {
-            appListsConfigsFile.writeText(
+            appListsConfigsFile.parentFile?.mkdirs()
+            val tmp = File(appListsConfigsFile.parentFile, "app_lists_configs.json.tmp")
+            tmp.writeText(
                 json.encodeToString(
                     kotlinx.serialization.builtins.ListSerializer(AppsStrategyConfig.serializer()),
                     value
                 )
             )
+            if (!tmp.renameTo(appListsConfigsFile)) {
+                tmp.delete()
+            }
         }
 
     var activeAppsStrategyConfigUuid: UUID? by store.typedString(

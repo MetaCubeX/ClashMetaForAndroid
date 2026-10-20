@@ -12,10 +12,11 @@
     <string name="format_update_failure">Update %1$s: %2$s</string>
     <string name="running">Running</string>
     <string name="loading">Loading</string>
-    <string name="clash_meta_for_android">Clash Meta for Android</string>
+    <string name="clash_meta_for_android">ClashMetaX</string>
     <string name="profiles_and_providers">Profiles and Providers</string>
     <string name="configuration_yaml">Configuration.yaml</string>
     <string name="provider_files">Provider Files</string>
+    <string name="no_profile_selected">No profile selected</string>
     <string name="profile_updater">Profile Updater</string>
     <string name="profile_updating">Profile Updating</string>
     <string name="webdav_connected">Connected</string>

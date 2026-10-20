@@ -32,6 +32,9 @@ class WebdavProfiles(private val context: Context) {
 
     suspend fun exportLocal(): LocalSnapshot {
         val local = state.read()
+        val usageByProfile = linkedMapOf<String, String>()
+        val fingerprintByProfile = linkedMapOf<String, String>()
+        val updatedAtByProfile = linkedMapOf<String, Long>()
         val profiles = ImportedDao().queryAllUUIDs().mapNotNull { uuid ->
             if (PendingDao().exists(uuid)) return@mapNotNull null
             val imported = ImportedDao().queryByUUID(uuid) ?: return@mapNotNull null
@@ -39,12 +42,22 @@ class WebdavProfiles(private val context: Context) {
             val fingerprint = fingerprint(files)
             val storedFingerprint = local.fingerprint[uuid.toString()]
             val storedUpdatedAt = local.configUpdatedAt[uuid.toString()] ?: 0L
+            val storedUsage = local.profileUsage[uuid.toString()]
+            val usage = usageStamp(imported.upload, imported.download, imported.total, imported.expire)
             val fileUpdatedAt = files.maxOfOrNull { fileUpdatedAt(context, uuid, it.path) } ?: imported.createdAt
-            val updatedAt = if (fingerprint == storedFingerprint && storedUpdatedAt > 0) {
+            val fileAt = fileUpdatedAt.coerceAtLeast(1)
+            val updatedAt = if (
+                fingerprint == storedFingerprint &&
+                storedUpdatedAt > 0 &&
+                storedUsage == usage
+            ) {
                 storedUpdatedAt
             } else {
-                fileUpdatedAt.coerceAtLeast(1)
+                maxOf(fileAt, storedUpdatedAt) + 1
             }
+            if (storedUsage != usage) usageByProfile[uuid.toString()] = usage
+            if (storedFingerprint != fingerprint) fingerprintByProfile[uuid.toString()] = fingerprint
+            if (updatedAt > storedUpdatedAt) updatedAtByProfile[uuid.toString()] = updatedAt
             ProfilePayload(
                 uuid = uuid.toString(),
                 name = imported.name,
@@ -60,6 +73,19 @@ class WebdavProfiles(private val context: Context) {
                 ageSecretKey = imported.ageSecretKey,
                 files = files,
             )
+        }
+        if (usageByProfile.isNotEmpty() || fingerprintByProfile.isNotEmpty() || updatedAtByProfile.isNotEmpty()) {
+            state.update { current ->
+                val nextUpdated = current.configUpdatedAt.toMutableMap()
+                for ((id, stamp) in updatedAtByProfile) {
+                    if (stamp > (nextUpdated[id] ?: 0L)) nextUpdated[id] = stamp
+                }
+                current.copy(
+                    configUpdatedAt = nextUpdated,
+                    fingerprint = current.fingerprint + fingerprintByProfile,
+                    profileUsage = current.profileUsage + usageByProfile,
+                )
+            }
         }
         val store = ServiceStore(context)
         val packages = store.accessControlPackages.sorted()
@@ -197,6 +223,9 @@ class WebdavProfiles(private val context: Context) {
                 current.copy(
                     configUpdatedAt = current.configUpdatedAt + (uuid.toString() to payload.updatedAt),
                     fingerprint = current.fingerprint + (uuid.toString() to fingerprint(payload.files)),
+                    profileUsage = current.profileUsage + (
+                        uuid.toString() to usageStamp(payload.upload, payload.download, payload.total, payload.expire)
+                    ),
                 )
             }
             if (type != Profile.Type.File) {
@@ -212,6 +241,7 @@ class WebdavProfiles(private val context: Context) {
             current.copy(
                 configUpdatedAt = current.configUpdatedAt - uuid.toString(),
                 fingerprint = current.fingerprint - uuid.toString(),
+                profileUsage = current.profileUsage - uuid.toString(),
             )
         }
     }
@@ -230,7 +260,12 @@ class WebdavProfiles(private val context: Context) {
     }
 
     private fun exportStrategies(store: ServiceStore, local: LocalState): List<AppsStrategyPayload> {
-        return store.appsStrategyConfigs.map { config ->
+        val configs = try {
+            store.appsStrategyConfigs
+        } catch (e: Exception) {
+            throw IllegalStateException(e)
+        }
+        return configs.map { config ->
             val id = config.uuid.toString()
             var stamp = local.strategyUpdatedAt[id] ?: 0L
             if (stamp == 0L) {
@@ -268,7 +303,11 @@ class WebdavProfiles(private val context: Context) {
     private fun applyStrategies(result: MergeResult, local: LocalSnapshot, startedAt: Long): Pair<Int, Int> {
         val store = ServiceStore(context)
         val fresh = state.read()
-        val current = store.appsStrategyConfigs.associateBy { it.uuid.toString() }.toMutableMap()
+        val current = try {
+            store.appsStrategyConfigs.associateBy { it.uuid.toString() }.toMutableMap()
+        } catch (_: Exception) {
+            return 0 to 0
+        }
         var downloaded = 0
         var removed = 0
         val keep = result.strategies.map { it.uuid }.toSet()
@@ -325,15 +364,23 @@ private fun sameSubscription(left: ProfilePayload, right: ProfilePayload): Boole
         subscriptionIdentity(right.type, right.source, right.uuid)
 }
 
-private fun sameContent(left: ProfilePayload, right: ProfilePayload): Boolean {
+internal fun sameContent(left: ProfilePayload, right: ProfilePayload): Boolean {
     return left.uuid == right.uuid &&
         left.name == right.name &&
         left.type == right.type &&
         left.source == right.source &&
         left.interval == right.interval &&
+        left.upload == right.upload &&
+        left.download == right.download &&
+        left.total == right.total &&
+        left.expire == right.expire &&
         left.updatedAt == right.updatedAt &&
         left.ageSecretKey == right.ageSecretKey &&
         left.files == right.files
+}
+
+private fun usageStamp(upload: Long, download: Long, total: Long, expire: Long): String {
+    return "$upload,$download,$total,$expire"
 }
 
 private fun readFiles(dir: File): List<ProfileFilePayload> {

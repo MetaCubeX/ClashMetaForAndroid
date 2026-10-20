@@ -11,6 +11,7 @@ data class LocalState(
     val tombstones: List<TombstonePayload> = emptyList(),
     val configUpdatedAt: Map<String, Long> = emptyMap(),
     val fingerprint: Map<String, String> = emptyMap(),
+    val profileUsage: Map<String, String> = emptyMap(),
     val accessControlUpdatedAt: Long = 0,
     val strategyUpdatedAt: Map<String, Long> = emptyMap(),
     val activeStrategyUpdatedAt: Long = 0,

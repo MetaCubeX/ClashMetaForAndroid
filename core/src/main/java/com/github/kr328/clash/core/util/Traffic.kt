@@ -2,8 +2,12 @@ package com.github.kr328.clash.core.util
 
 import com.github.kr328.clash.core.model.Traffic
 
+fun Traffic.uploadBytes(): Long = scaleTraffic(this ushr 32)
+
+fun Traffic.downloadBytes(): Long = scaleTraffic(this and 0xFFFFFFFF)
+
 fun Traffic.trafficUpload(): String {
-    return trafficString(scaleTraffic(this ushr 32))
+    return trafficString(uploadBytes())
 }
 
 fun Traffic.trafficDownload(): String {

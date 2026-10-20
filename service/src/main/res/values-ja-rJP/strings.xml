@@ -10,10 +10,11 @@
     <string name="format_update_failure">更新 %1$s: %2$s </string>
     <string name="running">実行中</string>
     <string name="loading">読み込み中</string>
-    <string name="clash_meta_for_android">Clash Meta for Android</string>
+    <string name="clash_meta_for_android">ClashMetaX</string>
     <string name="profiles_and_providers">プロファイルと外部リソース</string>
     <string name="configuration_yaml">コンフィグ.yaml</string>
     <string name="provider_files">外部リソースファイル</string>
+    <string name="no_profile_selected">プロファイルが選択されていません</string>
     <string name="profile_updater">プロファイルの更新</string>
     <string name="profile_updating">プロファイルを更新中</string>
 </resources>

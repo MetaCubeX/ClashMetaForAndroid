@@ -180,7 +180,7 @@
     <string name="select_none">모두 해제</string>
     <string name="import_from_clipboard">클립보드에서 가져오기</string>
     <string name="export_to_clipboard">클립보드로 내보내기</string>
-    <string name="clash_meta_for_android">Clash Meta for Android</string>
+    <string name="clash_meta_for_android">ClashMetaX</string>
     <string name="document">문서</string>
     <string name="feedback">피드백</string>
     <string name="sources">소스</string>
@@ -190,7 +190,7 @@
     <string name="google_play">Google Play</string>
     <string name="clash_meta_core">Clash Meta 코어</string>
     <string name="tips_properties"><![CDATA[<strong>Clash 구성 파일</strong>(<strong>프록시</strong>/<strong>규칙</strong> 포함)만 추가할 수 있습니다.]]></string>
-    <string name="tips_help"><![CDATA[Clash Meta for Android는 <strong>프리웨어</strong>이며, <strong>우회 서비스 제공자가 아닙니다.</strong> 따라서, <strong>앱 자체 이외의 문제에 대한 피드백은 받지 않습니다.</strong>]]></string>
+    <string name="tips_help"><![CDATA[ClashMetaX는 <strong>프리웨어</strong>이며, <strong>우회 서비스 제공자가 아닙니다.</strong> 따라서, <strong>앱 자체 이외의 문제에 대한 피드백은 받지 않습니다.</strong>]]></string>
     <string name="app">앱</string>
     <string name="service">서비스</string>
     <string name="dark_mode">다크 모드</string>
@@ -308,4 +308,7 @@
     <string name="webdav_progress_delete">원격 파일 삭제 %1$d/%2$d</string>
     <string name="webdav_progress_delete_named">원격 파일 삭제 %1$d/%2$d · %3$s</string>
     <string name="access_control_reload_rejected">앱 목록은 저장되었지만 Android가 VPN을 다시 만들지 않았습니다. 실행 중인 터널은 이전 목록을 그대로 사용합니다.</string>
+    <string name="back">뒤로</string>
+    <string name="search_empty">검색 결과 없음</string>
+    <string name="list_empty">비어 있음</string>
 </resources>

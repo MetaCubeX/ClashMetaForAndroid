@@ -94,12 +94,16 @@ class Picker(private val context: Context) {
                     nameOverride = context.getString(R.string.configuration_yaml)
                 )
             } else {
+                val dir = when {
+                    pending != null -> context.pendingDir.resolve(pending.uuid.toString())
+                    imported != null -> context.importedDir.resolve(imported.uuid.toString())
+                    else -> throw FileNotFoundException("profile not found")
+                }.resolve("providers")
+                if (!dir.isDirectory) {
+                    dir.mkdirs()
+                }
                 return FileDocument(
-                    file = when {
-                        pending != null -> context.pendingDir.resolve(pending.uuid.toString())
-                        imported != null -> context.importedDir.resolve(imported.uuid.toString())
-                        else -> throw FileNotFoundException("profile not found")
-                    }.resolve("providers"),
+                    file = dir,
                     idOverride = Paths.PROVIDERS_ID,
                     nameOverride = context.getString(R.string.provider_files),
                     flags = setOf(Flag.Virtual)

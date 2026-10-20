@@ -14,7 +14,11 @@ class FileDocument(
     override val name: String
         get() = nameOverride ?: file.name
     override val mimeType: String
-        get() = if (file.isDirectory) DocumentsContract.Document.MIME_TYPE_DIR else "text/plain"
+        get() = if (file.isDirectory || Flag.Virtual in flags) {
+            DocumentsContract.Document.MIME_TYPE_DIR
+        } else {
+            "text/plain"
+        }
     override val size: Long
         get() = file.length()
     override val updatedAt: Long

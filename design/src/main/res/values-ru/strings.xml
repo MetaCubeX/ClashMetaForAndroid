@@ -213,8 +213,7 @@
     <string name="import_from_clipboard">Импорт из буфера обмена</string>
     <string name="export_to_clipboard">Экспорт в буфер обмена</string>
 
-    <string name="clash_meta_for_android">Clash Meta для Android</string>
-
+    <string name="clash_meta_for_android">ClashMetaX</string>
     <string name="document">Документ</string>
     <string name="feedback">Обратная связь</string>
     <string name="sources">Исходный код</string>
@@ -228,8 +227,7 @@
     <string name="clash_meta_core_url" translatable="false">https://github.com/MetaCubeX/Clash.Meta</string>
 
     <string name="tips_properties"><![CDATA[Принимается только <strong>конфиг Clash</strong> (включая <strong>Прокси</strong>/<strong>Правила</strong>)]]></string>
-    <string name="tips_help"><![CDATA[Clash Meta для Android — <strong>бесплатен</strong> и мы <strong>НЕ</strong> предоставляем по нему поддержку]]></string>
-
+    <string name="tips_help"><![CDATA[ClashMetaX — <strong>бесплатен</strong> и мы <strong>НЕ</strong> предоставляем по нему поддержку]]></string>
     <string name="google_play_url" translatable="false">https://play.google.com/store/apps/details?id=com.github.kr328.clash</string>
 
     <string name="app">Приложение</string>
@@ -372,4 +370,7 @@
     <string name="webdav_progress_delete">Удаление на сервере %1$d/%2$d</string>
     <string name="webdav_progress_delete_named">Удаление на сервере %1$d/%2$d · %3$s</string>
     <string name="access_control_reload_rejected">Список приложений сохранён, но Android не дал пересоздать VPN. Работающий туннель всё ещё использует прежний список.</string>
+    <string name="back">Назад</string>
+    <string name="search_empty">Ничего не найдено</string>
+    <string name="list_empty">Здесь пусто</string>
 </resources>

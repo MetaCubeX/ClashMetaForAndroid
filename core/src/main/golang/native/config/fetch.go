@@ -84,19 +84,29 @@ func fetch(url *U.URL, file string) (fetchHeader, error) {
 func writeFile(file string, reader io.Reader) error {
 	_ = os.MkdirAll(P.Dir(file), 0700)
 
-	f, err := os.OpenFile(file, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0600)
+	tmp, err := os.CreateTemp(P.Dir(file), ".cmfa-*")
 	if err != nil {
 		return err
 	}
 
-	defer f.Close()
-
-	_, err = io.Copy(f, reader)
-	if err != nil {
-		_ = os.Remove(file)
+	tmpName := tmp.Name()
+	_, copyErr := io.Copy(tmp, reader)
+	closeErr := tmp.Close()
+	if copyErr != nil {
+		_ = os.Remove(tmpName)
+		return copyErr
+	}
+	if closeErr != nil {
+		_ = os.Remove(tmpName)
+		return closeErr
 	}
 
-	return err
+	if err = os.Rename(tmpName, file); err != nil {
+		_ = os.Remove(tmpName)
+		return err
+	}
+
+	return nil
 }
 
 func parseProfileUpdateInterval(value string) (int64, bool) {
@@ -186,7 +196,7 @@ func FetchAndValid(
 		return err
 	}
 
-	forEachProviders(rawCfg, func(index int, total int, name string, provider map[string]any, prefix string) {
+	err = forEachProviders(rawCfg, func(index int, total int, name string, provider map[string]any, prefix string) error {
 		bytes, _ := json.Marshal(&Status{
 			Action:      "FetchProviders",
 			Args:        []string{name},
@@ -200,23 +210,25 @@ func FetchAndValid(
 		p, pok := provider["path"]
 
 		if !uok || !pok {
-			return
+			return nil
 		}
 
 		us, uok := u.(string)
 		ps, pok := p.(string)
 
 		if !uok || !pok {
-			return
+			return nil
 		}
 
-		if _, err := os.Stat(ps); err == nil {
-			return
+		if !force {
+			if _, err := os.Stat(ps); err == nil {
+				return nil
+			}
 		}
 
 		url, err := U.Parse(us)
 		if err != nil {
-			return
+			return err
 		}
 
 		if prefix == RULES {
@@ -228,15 +240,22 @@ func FetchAndValid(
 					if file, err := RB.Open(pib); err == nil {
 						defer file.Close()
 						if err := writeFile(ps, file); err == nil {
-							return
+							return nil
 						}
 					}
 				}
 			}
 		}
 
-		_, _ = fetch(url, ps)
+		if _, err := fetch(url, ps); err != nil {
+			return err
+		}
+
+		return nil
 	})
+	if err != nil {
+		return err
+	}
 
 	bytes, _ := json.Marshal(&Status{
 		Action:      "Verifying",

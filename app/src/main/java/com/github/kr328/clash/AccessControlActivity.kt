@@ -10,7 +10,11 @@ import com.github.kr328.clash.common.Global
 import com.github.kr328.clash.common.log.Log
 import com.github.kr328.clash.common.util.uuid
 import com.github.kr328.clash.design.AccessControlDesign
+import com.github.kr328.clash.design.ui.ToastDuration
+import com.github.kr328.clash.design.R as DesignR
+import com.github.kr328.clash.design.ios.iosConfirm
 import com.github.kr328.clash.design.model.AppInfo
+import com.github.kr328.clash.design.model.applyAppSetToggle
 import com.github.kr328.clash.service.model.AppsStrategyConfig
 import com.github.kr328.clash.service.store.ServiceStore
 import com.github.kr328.clash.service.webdav.WebdavAutoSync
@@ -62,7 +66,13 @@ class AccessControlActivity : BaseActivity<AccessControlDesign>() {
             }
         }
 
-        val design = AccessControlDesign(this, uiStore, selected)
+        if (config != null && config.name.isNotBlank()) {
+            title = config.name
+        }
+
+        val design = AccessControlDesign(this, uiStore, selected) { members ->
+            applyAppSetToggle(members, selected)
+        }
 
         setContentDesign(design)
 
@@ -110,18 +120,44 @@ class AccessControlActivity : BaseActivity<AccessControlDesign>() {
                         }
 
                         AccessControlDesign.Request.Import -> {
-                            val clipboard = getSystemService<ClipboardManager>()
-                            val data = clipboard?.primaryClip
-
-                            if (data != null && data.itemCount > 0) {
-                                val packages = data.getItemAt(0).text.split("\n").toSet()
-                                val all = design.apps.map(AppInfo::packageName).intersect(packages)
-
-                                selected.clear()
-                                selected.addAll(all)
+                            val confirmed = iosConfirm(
+                                context = this@AccessControlActivity,
+                                title = getString(com.github.kr328.clash.design.R.string.import_),
+                                message = getString(com.github.kr328.clash.design.R.string.import_from_clipboard),
+                                confirm = getString(com.github.kr328.clash.design.R.string.ok),
+                                destructive = true,
+                            )
+                            if (confirmed) {
+                                var failed = false
+                                try {
+                                    val text = getSystemService<ClipboardManager>()
+                                        ?.primaryClip
+                                        ?.takeIf { it.itemCount > 0 }
+                                        ?.getItemAt(0)
+                                        ?.text
+                                    if (text == null) {
+                                        failed = true
+                                    } else {
+                                        val packages = text.split("\n")
+                                            .map { it.replace("\r", "").trim() }
+                                            .filter { it.isNotEmpty() }
+                                            .toSet()
+                                        val matched = design.apps.map(AppInfo::packageName).intersect(packages)
+                                        if (matched.isNotEmpty()) {
+                                            selected.clear()
+                                            selected.addAll(matched)
+                                        }
+                                    }
+                                } catch (e: CancellationException) {
+                                    throw e
+                                } catch (e: Exception) {
+                                    failed = true
+                                }
+                                if (failed) {
+                                    design.showToast(DesignR.string.geofile_import_failed, ToastDuration.Long)
+                                }
+                                design.rebindAll()
                             }
-
-                            design.rebindAll()
                         }
 
                         AccessControlDesign.Request.Export -> {

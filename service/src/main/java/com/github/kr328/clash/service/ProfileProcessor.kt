@@ -60,16 +60,38 @@ object ProfileProcessor {
                         val updateInterval = subscriptionInfo?.subUpdateInterval
                             ?.takeIf { old == null && snapshot.interval == 0L }
                             ?: snapshot.interval
+                        val info = subscriptionInfo
+                        val headerUpload = info?.subUpload
+                        val upload: Long
+                        val download: Long
+                        val total: Long
+                        val expire: Long
+                        if (headerUpload != null) {
+                            upload = headerUpload
+                            download = info?.subDownload ?: 0
+                            total = info?.subTotal ?: 0
+                            expire = info?.subExpire ?: 0
+                        } else if (old != null) {
+                            upload = old.upload
+                            download = old.download
+                            total = old.total
+                            expire = old.expire
+                        } else {
+                            upload = snapshot.upload
+                            download = snapshot.download
+                            total = snapshot.total
+                            expire = snapshot.expire
+                        }
                         val new = Imported(
                             snapshot.uuid,
                             snapshot.name,
                             snapshot.type,
                             snapshot.source,
                             updateInterval,
-                            subscriptionInfo?.subUpload ?: 0,
-                            subscriptionInfo?.subDownload ?: 0,
-                            subscriptionInfo?.subTotal ?: 0,
-                            subscriptionInfo?.subExpire ?: 0,
+                            upload,
+                            download,
+                            total,
+                            expire,
                             old?.createdAt ?: System.currentTimeMillis(),
                             ageSecretKey = snapshot.ageSecretKey
                         )

@@ -4,9 +4,15 @@ import android.app.PendingIntent
 import android.os.Build
 
 fun pendingIntentFlags(flags: Int, mutable: Boolean = false): Int {
-    return if (Build.VERSION.SDK_INT >= 24) {
-        if (Build.VERSION.SDK_INT > 30 && mutable) {
+    return if (Build.VERSION.SDK_INT >= 31) {
+        if (mutable) {
             flags or PendingIntent.FLAG_MUTABLE
+        } else {
+            flags or PendingIntent.FLAG_IMMUTABLE
+        }
+    } else if (Build.VERSION.SDK_INT >= 24) {
+        if (mutable) {
+            flags
         } else {
             flags or PendingIntent.FLAG_IMMUTABLE
         }

@@ -3,26 +3,30 @@ package com.github.kr328.clash.design
 import android.content.Context
 import android.view.View
 import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.core.widget.doOnTextChanged
-import com.github.kr328.clash.design.adapter.AppsStrategyConfigAdapter
-import com.github.kr328.clash.design.databinding.DesignAppsStrategyBinding
 import com.github.kr328.clash.design.databinding.DialogAppsStrategyConfigEditBinding
+import com.github.kr328.clash.design.ios.AppsStrategyScreen
+import com.github.kr328.clash.design.ios.ClashMetaXTheme
+import com.github.kr328.clash.design.ui.Insets
 import com.github.kr328.clash.design.util.Validator
 import com.github.kr328.clash.design.util.ValidatorAcceptAll
-import com.github.kr328.clash.design.util.applyFrom
-import com.github.kr328.clash.design.util.applyLinearAdapter
-import com.github.kr328.clash.design.util.bindAppBarElevation
 import com.github.kr328.clash.design.util.layoutInflater
-import com.github.kr328.clash.design.util.patchDataSet
 import com.github.kr328.clash.design.util.requestTextInput
 import com.github.kr328.clash.design.util.root
+import com.github.kr328.clash.design.util.setOnInsertsChangedListener
 import com.github.kr328.clash.service.model.AccessControlMode
 import com.github.kr328.clash.service.model.AppsStrategyConfig
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
-import java.util.*
+import java.util.UUID
 import kotlin.coroutines.resume
 
 class AppsStrategyDesign(context: Context) : Design<AppsStrategyDesign.Request>(context) {
@@ -34,48 +38,57 @@ class AppsStrategyDesign(context: Context) : Design<AppsStrategyDesign.Request>(
         data class Choose(val config: AppsStrategyConfig) : Request()
     }
 
-    private val binding = DesignAppsStrategyBinding
-        .inflate(context.layoutInflater, context.root, false)
+    var configs by mutableStateOf<List<AppsStrategyConfig>>(emptyList())
+        private set
 
-    private val adapter = AppsStrategyConfigAdapter(
-        context,
-        onClicked = { config ->
-            requests.trySend(Request.Active(config))
-        },
-        onEditClicked = { config ->
-            requests.trySend(Request.Edit(config))
-        },
-        onChooseClicked = { config ->
-            requests.trySend(Request.Choose(config))
-        }
-    )
+    var activeUuid by mutableStateOf<UUID?>(null)
+        private set
 
-    override val root: View
-        get() = binding.root
+    private var insets by mutableStateOf(Insets.EMPTY)
 
-    init {
-        binding.self = this
-
-        binding.activityBarLayout.applyFrom(context)
-
-        binding.mainList.recyclerList.also {
-            it.bindAppBarElevation(binding.activityBarLayout)
-            it.applyLinearAdapter(context, adapter)
+    override val root: View = ComposeView(context).apply {
+        setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+        setContent {
+            ClashMetaXTheme {
+                AppsStrategyScreen(
+                    insets = insets,
+                    title = context.getString(R.string.apps_strategy),
+                    configs = configs,
+                    activeUuid = activeUuid,
+                    onBack = {
+                        (context as? AppCompatActivity)?.onBackPressedDispatcher?.onBackPressed()
+                    },
+                    onCreate = { requestCreate() },
+                    onActive = { request(Request.Active(it)) },
+                    onChoose = { request(Request.Choose(it)) },
+                    onEdit = { request(Request.Edit(it)) },
+                )
+            }
         }
     }
 
     suspend fun patchConfigs(configs: List<AppsStrategyConfig>, activeUuid: UUID?) {
         withContext(Dispatchers.Main) {
-            adapter.apply {
-                patchDataSet(this::configs, configs, id = { it.uuid })
-                this.activeUuid = activeUuid
-                notifyItemRangeChanged(0, configs.size)
-            }
+            this@AppsStrategyDesign.configs = configs
+            this@AppsStrategyDesign.activeUuid = activeUuid
         }
     }
 
     fun requestCreate() {
         requests.trySend(Request.Create)
+    }
+
+    private fun request(request: Request) {
+        requests.trySend(request)
+    }
+
+    init {
+        if (context is AppCompatActivity) {
+            context.window.decorView.setOnInsertsChangedListener {
+                if (surface.insets != it) surface.insets = it
+                insets = it
+            }
+        }
     }
 }
 

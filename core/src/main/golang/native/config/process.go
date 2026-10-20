@@ -31,10 +31,16 @@ var processors = []processor{
 type processor func(cfg *config.RawConfig, profileDir string) error
 
 func patchOverride(cfg *config.RawConfig, _ string) error {
-	if err := json.NewDecoder(strings.NewReader(ReadOverride(OverrideSlotPersist))).Decode(cfg); err != nil {
-		log.Warnln("Apply persist override: %s", err.Error())
+	content, err := ReadOverride(OverrideSlotPersist)
+	if err != nil {
+		return err
 	}
-	if err := json.NewDecoder(strings.NewReader(ReadOverride(OverrideSlotSession))).Decode(cfg); err != nil {
+	if err := json.NewDecoder(strings.NewReader(content)).Decode(cfg); err != nil {
+		return err
+	}
+
+	session, _ := ReadOverride(OverrideSlotSession)
+	if err := json.NewDecoder(strings.NewReader(session)).Decode(cfg); err != nil {
 		log.Warnln("Apply session override: %s", err.Error())
 	}
 
@@ -107,19 +113,19 @@ func patchListeners(cfg *config.RawConfig, _ string) error {
 }
 
 func patchProviders(cfg *config.RawConfig, profileDir string) error {
-	forEachProviders(cfg, func(index int, total int, key string, provider map[string]any, prefix string) {
+	return forEachProviders(cfg, func(index int, total int, key string, provider map[string]any, prefix string) error {
 		path, _ := provider["path"].(string)
 		if len(path) > 0 {
 			path = common.ResolveAsRoot(path)
 		} else if url, ok := provider["url"].(string); ok {
 			path = prefix + "/" + utils.MakeHash([]byte(url)).String() // same as C.GetPathByHash
 		} else {
-			return // both path and url are empty, maybe inline provider
+			return nil // both path and url are empty, maybe inline provider
 		}
 		provider["path"] = profileDir + "/providers/" + path
-	})
 
-	return nil
+		return nil
+	})
 }
 
 func validConfig(cfg *config.RawConfig, _ string) error {

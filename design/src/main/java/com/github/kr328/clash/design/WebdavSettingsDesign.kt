@@ -1,28 +1,31 @@
 package com.github.kr328.clash.design
 
+import android.app.Activity
 import android.content.Context
 import android.view.View
-import com.github.kr328.clash.design.databinding.DesignSettingsCommonBinding
-import com.github.kr328.clash.design.dialog.withModelProgressBar
+import androidx.annotation.StringRes
+import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import com.github.kr328.clash.design.dialog.requestModelTextInput
-import com.github.kr328.clash.design.preference.ClickablePreference
+import com.github.kr328.clash.design.dialog.withModelProgressBar
+import com.github.kr328.clash.design.ios.ClashMetaXTheme
+import com.github.kr328.clash.design.ios.WebdavSettingsScreen
+import com.github.kr328.clash.design.ios.WebdavSettingsUiState
+import com.github.kr328.clash.design.ios.iosConfirm
 import com.github.kr328.clash.design.preference.NullableTextAdapter
-import com.github.kr328.clash.design.preference.OnChangedListener
-import com.github.kr328.clash.design.preference.TipsPreference
-import com.github.kr328.clash.design.preference.category
-import com.github.kr328.clash.design.preference.clickable
-import com.github.kr328.clash.design.preference.editableText
-import com.github.kr328.clash.design.preference.preferenceScreen
-import com.github.kr328.clash.design.preference.switch
-import com.github.kr328.clash.design.preference.tips
-import com.github.kr328.clash.design.util.applyFrom
-import com.github.kr328.clash.design.util.bindAppBarElevation
-import com.github.kr328.clash.design.util.layoutInflater
-import com.github.kr328.clash.design.util.root
+import com.github.kr328.clash.design.ui.Insets
+import com.github.kr328.clash.design.util.setOnInsertsChangedListener
 import com.github.kr328.clash.service.webdav.WebdavSettingsStore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import java.util.concurrent.atomic.AtomicLong
 
 class WebdavSettingsDesign(
     context: Context,
@@ -33,122 +36,58 @@ class WebdavSettingsDesign(
         Test, Sync, Pull, Push,
     }
 
-    private val binding = DesignSettingsCommonBinding
-        .inflate(context.layoutInflater, context.root, false)
+    private var insets by mutableStateOf(Insets.EMPTY)
+    private var urlText by mutableStateOf(store.url)
+    private var lanText by mutableStateOf(store.lanUrl)
+    private var usernameText by mutableStateOf(store.username)
+    private var passwordEmpty by mutableStateOf(store.password.isEmpty())
+    private var remoteText by mutableStateOf(store.remotePath)
+    private var autoSync by mutableStateOf(store.autoSync)
+    private var statusText by mutableStateOf(
+        status.ifBlank { context.getString(R.string.webdav_status_empty) },
+    )
+    private var busy = false
+    private val autoSyncMutex = Mutex()
+    private val autoSyncGeneration = AtomicLong()
 
-    private var statusPreference: TipsPreference? = null
-    private var passwordPreference: ClickablePreference? = null
-
-    override val root: View
-        get() = binding.root
-
-    init {
-        binding.surface = surface
-        binding.activityBarLayout.applyFrom(context)
-        binding.scrollRoot.bindAppBarElevation(binding.activityBarLayout)
-
-        val screen = preferenceScreen(context) {
-            tips(R.string.webdav_tips)
-
-            statusPreference = tips(R.string.webdav_status_empty)
-
-            category(R.string.webdav_server)
-
-            editableText(
-                value = store::url,
-                adapter = NullableTextAdapter.String,
-                title = R.string.webdav_url,
-                placeholder = R.string.webdav_url_placeholder,
-                empty = R.string.webdav_url_placeholder,
-            )
-
-            editableText(
-                value = store::lanUrl,
-                adapter = NullableTextAdapter.String,
-                title = R.string.webdav_lan_url,
-                placeholder = R.string.webdav_unset,
-                empty = R.string.webdav_unset,
-            )
-
-            tips(R.string.webdav_lan_hint)
-
-            editableText(
-                value = store::username,
-                adapter = NullableTextAdapter.String,
-                title = R.string.webdav_username,
-                empty = R.string.webdav_unset,
-            )
-
-            passwordPreference = clickable(
-                title = R.string.webdav_password,
-                summary = if (store.password.isEmpty()) R.string.webdav_unset else R.string.webdav_password_set,
-            ) {
-                clicked {
-                    launch(Dispatchers.Main) {
-                        val entered = context.requestModelTextInput(
-                            initial = store.password,
-                            title = context.getText(R.string.webdav_password),
-                            hint = context.getText(R.string.webdav_password),
-                        )
-                        store.password = entered
-                        refreshPassword()
-                    }
-                }
-            }
-
-            editableText(
-                value = store::remotePath,
-                adapter = NullableTextAdapter.String,
-                title = R.string.webdav_remote_path,
-                placeholder = R.string.webdav_remote_path_default,
-                empty = R.string.webdav_remote_path_default,
-            )
-
-            category(R.string.webdav_sync)
-
-            switch(
-                value = store::autoSync,
-                title = R.string.webdav_auto_sync,
-                summary = R.string.webdav_auto_sync_summary,
-            ) {
-                listener = OnChangedListener {
-                    if (store.autoSync) {
-                        requests.trySend(Request.Sync)
-                    }
-                }
-            }
-
-            clickable(
-                title = R.string.webdav_test,
-                icon = R.drawable.ic_baseline_info,
-            ) {
-                clicked { requests.trySend(Request.Test) }
-            }
-
-            clickable(
-                title = R.string.webdav_sync_now,
-                icon = R.drawable.ic_baseline_sync,
-            ) {
-                clicked { requests.trySend(Request.Sync) }
-            }
-
-            clickable(
-                title = R.string.webdav_pull,
-                icon = R.drawable.ic_baseline_cloud_download,
-            ) {
-                clicked { requests.trySend(Request.Pull) }
-            }
-
-            clickable(
-                title = R.string.webdav_push,
-                icon = R.drawable.ic_baseline_cloud_upload,
-            ) {
-                clicked { requests.trySend(Request.Push) }
+    override val root: View = ComposeView(context).apply {
+        setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+        setContent {
+            ClashMetaXTheme {
+                WebdavSettingsScreen(
+                    insets = insets,
+                    title = context.pushedTitle(R.string.webdav_sync),
+                    state = WebdavSettingsUiState(
+                        url = urlText,
+                        lanUrl = lanText,
+                        username = usernameText,
+                        passwordEmpty = passwordEmpty,
+                        remotePath = remoteText,
+                        autoSync = autoSync,
+                        status = statusText,
+                    ),
+                    onBack = { (context as? AppCompatActivity)?.onBackPressedDispatcher?.onBackPressed() },
+                    onUrl = { onUrl() },
+                    onLanUrl = { onLanUrl() },
+                    onUsername = { onUsername() },
+                    onPassword = { onPassword() },
+                    onRemotePath = { onRemotePath() },
+                    onAutoSync = { onAutoSync(it) },
+                    onTest = { send(Request.Test) },
+                    onSync = { confirmThenSend(R.string.webdav_sync_now, Request.Sync) },
+                    onPull = { confirmThenSend(R.string.webdav_pull, Request.Pull) },
+                    onPush = { confirmThenSend(R.string.webdav_push, Request.Push) },
+                )
             }
         }
+    }
 
-        binding.content.addView(screen.root)
-        setStatus(status)
+    fun setStatus(text: String) {
+        statusText = text.ifBlank { context.getString(R.string.webdav_status_empty) }
+    }
+
+    fun onActionFinished() {
+        busy = false
     }
 
     suspend fun withProgress(
@@ -176,6 +115,101 @@ class WebdavSettingsDesign(
         return result
     }
 
+    private fun onUrl() {
+        edit(R.string.webdav_url, { store.url }, { store.url = it }) { urlText = it }
+    }
+
+    private fun onLanUrl() {
+        edit(R.string.webdav_lan_url, { store.lanUrl }, { store.lanUrl = it }) { lanText = it }
+    }
+
+    private fun onUsername() {
+        edit(R.string.webdav_username, { store.username }, { store.username = it }) { usernameText = it }
+    }
+
+    private fun onRemotePath() {
+        edit(R.string.webdav_remote_path, { store.remotePath }, { store.remotePath = it }) { remoteText = it }
+    }
+
+    private fun onPassword() {
+        launch(Dispatchers.Main) {
+            val initial = withContext(Dispatchers.IO) { store.password }
+            val entered = context.requestModelTextInput(
+                initial = initial,
+                title = context.getText(R.string.webdav_password),
+                hint = context.getText(R.string.webdav_password),
+            )
+            passwordEmpty = withContext(Dispatchers.IO) {
+                store.password = entered
+                store.password.isEmpty()
+            }
+        }
+    }
+
+    private fun onAutoSync(enabled: Boolean) {
+        val generation = autoSyncGeneration.incrementAndGet()
+        autoSync = enabled
+        launch(Dispatchers.Main) {
+            withContext(Dispatchers.IO) {
+                autoSyncMutex.withLock {
+                    if (generation != autoSyncGeneration.get()) return@withLock
+                    store.autoSync = enabled
+                }
+            }
+            if (generation == autoSyncGeneration.get() && enabled) {
+                if (requests.trySend(Request.Sync).isSuccess) busy = true
+            }
+        }
+    }
+
+    private fun confirmThenSend(@StringRes titleRes: Int, request: Request) {
+        if (busy) return
+        busy = true
+        launch(Dispatchers.Main) {
+            var sent = false
+            try {
+                val ok = iosConfirm(
+                    context,
+                    title = context.getString(titleRes),
+                    message = context.getString(R.string.webdav_tips),
+                    confirm = context.getString(R.string.ok),
+                )
+                if (ok) sent = requests.trySend(request).isSuccess
+            } finally {
+                if (!sent) busy = false
+            }
+        }
+    }
+
+    private fun send(request: Request) {
+        if (busy) return
+        busy = true
+        if (!requests.trySend(request).isSuccess) busy = false
+    }
+
+    private fun edit(
+        @StringRes titleRes: Int,
+        read: () -> String?,
+        write: (String?) -> Unit,
+        show: (String?) -> Unit,
+    ) {
+        launch(Dispatchers.Main) {
+            val initial = withContext(Dispatchers.IO) { read() }
+            val text = context.requestModelTextInput(
+                initial = initial,
+                title = context.getText(titleRes),
+                reset = context.getText(R.string.reset),
+                hint = context.getText(titleRes),
+            )
+            val shown = withContext(Dispatchers.IO) {
+                val newValue = NullableTextAdapter.String.to(text)
+                write(newValue)
+                NullableTextAdapter.String.from(newValue)
+            }
+            show(shown)
+        }
+    }
+
     private fun formatWebdavProgress(phase: String, current: Int, total: Int, label: String): String {
         val name = label.substringAfterLast('/').removeSuffix(".json")
         return when (phase) {
@@ -197,13 +231,17 @@ class WebdavSettingsDesign(
         }
     }
 
-    fun setStatus(text: String) {
-        statusPreference?.text = text.ifBlank { context.getString(R.string.webdav_status_empty) }
+    init {
+        if (context is AppCompatActivity) {
+            context.window.decorView.setOnInsertsChangedListener {
+                if (surface.insets != it) surface.insets = it
+                insets = it
+            }
+        }
     }
+}
 
-    private fun refreshPassword() {
-        passwordPreference?.summary = context.getString(
-            if (store.password.isEmpty()) R.string.webdav_unset else R.string.webdav_password_set,
-        )
-    }
+private fun Context.pushedTitle(fallback: Int): String {
+    val current = (this as? Activity)?.title?.toString()?.ifBlank { null }
+    return current ?: getString(fallback)
 }

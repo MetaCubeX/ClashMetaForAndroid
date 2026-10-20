@@ -2,6 +2,11 @@ plugins {
     kotlin("android")
     kotlin("kapt")
     id("com.android.library")
+    alias(libs.plugins.compose.compiler)
+}
+
+android {
+    buildFeatures.compose = true
 }
 
 dependencies {
@@ -19,6 +24,11 @@ dependencies {
     implementation(libs.androidx.viewpager)
     implementation(libs.google.material)
     implementation(libs.zxing.core)
+    implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.androidx.compose.ui)
+    implementation(libs.androidx.compose.foundation)
+    implementation(libs.androidx.compose.icons)
+    implementation(libs.androidx.compose.material)
 
     testImplementation(libs.junit)
 }

@@ -102,6 +102,11 @@
             </intent-filter>
         </activity>
         <activity
+            android:name=".VpnRequestActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar.Fullscreen" />
+        <activity
             android:name=".ApkBrokenActivity"
             android:configChanges="uiMode"
             android:exported="false"
@@ -186,7 +191,7 @@
             android:name=".AppsStrategyActivity"
             android:configChanges="uiMode"
             android:exported="false"
-            android:label="@string/access_control_packages" />
+            android:label="@string/apps_strategy" />
         <activity
             android:name=".HelpActivity"
             android:configChanges="uiMode"

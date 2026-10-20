@@ -4,6 +4,7 @@ import android.app.Service
 import com.github.kr328.clash.common.constants.Intents
 import com.github.kr328.clash.common.log.Log
 import com.github.kr328.clash.core.Clash
+import com.github.kr328.clash.service.R
 import com.github.kr328.clash.service.StatusProvider
 import com.github.kr328.clash.service.data.ImportedDao
 import com.github.kr328.clash.service.data.SelectionDao
@@ -45,7 +46,11 @@ class ConfigurationModule(service: Service) : Module<ConfigurationModule.LoadExc
 
             try {
                 val current = store.activeProfile
-                    ?: throw NullPointerException("No profile selected")
+                if (current == null) {
+                    return enqueueEvent(
+                        LoadException(service.getString(R.string.no_profile_selected)),
+                    )
+                }
 
                 if (current == loaded && changed != null && changed != loaded)
                     continue
@@ -53,7 +58,11 @@ class ConfigurationModule(service: Service) : Module<ConfigurationModule.LoadExc
                 loaded = current
 
                 val active = ImportedDao().queryByUUID(current)
-                    ?: throw NullPointerException("No profile selected")
+                if (active == null) {
+                    return enqueueEvent(
+                        LoadException(service.getString(R.string.no_profile_selected)),
+                    )
+                }
 
                 Clash.setAgeSecretKey(active.ageSecretKey?.takeIf { it.isNotBlank() })
 

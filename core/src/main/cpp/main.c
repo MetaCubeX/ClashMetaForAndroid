@@ -109,7 +109,7 @@ Java_com_github_kr328_clash_core_bridge_Bridge_nativeNotifyInstalledAppChanged(J
     notifyInstalledAppsChanged(_uid_list);
 }
 
-JNIEXPORT void JNICALL
+JNIEXPORT jboolean JNICALL
 Java_com_github_kr328_clash_core_bridge_Bridge_nativeStartTun(JNIEnv *env, jobject thiz,
                                                               jint fd,
                                                               jstring stack,
@@ -125,7 +125,10 @@ Java_com_github_kr328_clash_core_bridge_Bridge_nativeStartTun(JNIEnv *env, jobje
     scoped_string _dns = get_string(dns);
     jobject _interface = new_global(cb);
 
-    startTun(fd, _stack, _gateway, _portal, _dns, _interface);
+    if (startTun(fd, _stack, _gateway, _portal, _dns, _interface) != 0)
+        return JNI_FALSE;
+
+    return JNI_TRUE;
 }
 
 JNIEXPORT void JNICALL
@@ -353,7 +356,7 @@ Java_com_github_kr328_clash_core_bridge_Bridge_nativeReadOverride(JNIEnv *env, j
     return new_string(response);
 }
 
-JNIEXPORT void JNICALL
+JNIEXPORT jstring JNICALL
 Java_com_github_kr328_clash_core_bridge_Bridge_nativeWriteOverride(JNIEnv *env, jobject thiz,
                                                                    jint slot,
                                                                    jstring content) {
@@ -361,7 +364,12 @@ Java_com_github_kr328_clash_core_bridge_Bridge_nativeWriteOverride(JNIEnv *env, 
 
     scoped_string _content = get_string(content);
 
-    writeOverride(slot, _content);
+    scoped_string error = writeOverride(slot, _content);
+
+    if (error == NULL)
+        return NULL;
+
+    return new_string(error);
 }
 
 JNIEXPORT void JNICALL

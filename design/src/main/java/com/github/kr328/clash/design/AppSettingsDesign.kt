@@ -1,105 +1,133 @@
 package com.github.kr328.clash.design
 
+import android.app.Activity
 import android.content.Context
 import android.view.View
-import com.github.kr328.clash.design.databinding.DesignSettingsCommonBinding
+import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import com.github.kr328.clash.design.ios.AppSettingsScreen
+import com.github.kr328.clash.design.ios.AppSettingsUiState
+import com.github.kr328.clash.design.ios.ClashMetaXTheme
 import com.github.kr328.clash.design.model.Behavior
 import com.github.kr328.clash.design.model.DarkMode
-import com.github.kr328.clash.design.preference.*
 import com.github.kr328.clash.design.store.UiStore
-import com.github.kr328.clash.design.util.applyFrom
-import com.github.kr328.clash.design.util.bindAppBarElevation
-import com.github.kr328.clash.design.util.layoutInflater
-import com.github.kr328.clash.design.util.root
+import com.github.kr328.clash.design.ui.Insets
+import com.github.kr328.clash.design.util.setOnInsertsChangedListener
 import com.github.kr328.clash.service.store.ServiceStore
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class AppSettingsDesign(
     context: Context,
-    uiStore: UiStore,
-    srvStore: ServiceStore,
-    behavior: Behavior,
+    private val uiStore: UiStore,
+    private val srvStore: ServiceStore,
+    private val behavior: Behavior,
     running: Boolean,
-    onHideIconChange: (hide: Boolean) -> Unit,
+    private val onHideIconChange: (hide: Boolean) -> Unit,
 ) : Design<AppSettingsDesign.Request>(context) {
     enum class Request {
         ReCreateAllActivities
     }
 
-    private val binding = DesignSettingsCommonBinding
-        .inflate(context.layoutInflater, context.root, false)
+    private var insets by mutableStateOf(Insets.EMPTY)
+    private var state by mutableStateOf(
+        AppSettingsUiState(
+            autoRestart = behavior.autoRestart,
+            darkMode = uiStore.darkMode,
+            hideAppIcon = uiStore.hideAppIcon,
+            hideFromRecents = uiStore.hideFromRecents,
+            dynamicNotification = srvStore.dynamicNotification,
+            running = running,
+        )
+    )
 
-    override val root: View
-        get() = binding.root
-
-    init {
-        binding.surface = surface
-
-        binding.activityBarLayout.applyFrom(context)
-
-        binding.scrollRoot.bindAppBarElevation(binding.activityBarLayout)
-
-        val screen = preferenceScreen(context) {
-            category(R.string.behavior)
-
-            switch(
-                value = behavior::autoRestart,
-                icon = R.drawable.ic_baseline_restore,
-                title = R.string.auto_restart,
-                summary = R.string.allow_clash_auto_restart,
-            )
-
-            category(R.string.interface_)
-
-            selectableList(
-                value = uiStore::darkMode,
-                values = DarkMode.values(),
-                valuesText = arrayOf(
-                    R.string.follow_system_android_10,
-                    R.string.always_light,
-                    R.string.always_dark
-                ),
-                icon = R.drawable.ic_baseline_brightness_4,
-                title = R.string.dark_mode
-            ) {
-                listener = OnChangedListener {
-                    requests.trySend(Request.ReCreateAllActivities)
-                }
-            }
-
-            switch(
-                value = uiStore::hideAppIcon,
-                icon = R.drawable.ic_baseline_hide,
-                title = R.string.hide_app_icon_title,
-                summary = R.string.hide_app_icon_desc,
-            ) {
-                listener = OnChangedListener {
-                    onHideIconChange(uiStore::hideAppIcon.get())
-                }
-            }
-
-            switch(
-                value = uiStore::hideFromRecents,
-                icon = R.drawable.ic_baseline_stack,
-                title = R.string.hide_from_recents_title,
-                summary = R.string.hide_from_recents_desc,
-            ) {
-                listener = OnChangedListener {
-                    requests.trySend(Request.ReCreateAllActivities)
-                }
-            }
-
-            category(R.string.service)
-
-            switch(
-                value = srvStore::dynamicNotification,
-                icon = R.drawable.ic_baseline_domain,
-                title = R.string.show_traffic,
-                summary = R.string.show_traffic_summary
-            ) {
-                enabled = !running
+    override val root: View = ComposeView(context).apply {
+        setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+        val title = (context as? Activity)?.title?.toString()
+            ?.ifBlank { null }
+            ?: context.getString(R.string.app)
+        setContent {
+            ClashMetaXTheme {
+                AppSettingsScreen(
+                    insets = insets,
+                    title = title,
+                    state = state,
+                    onBack = { (context as? AppCompatActivity)?.onBackPressedDispatcher?.onBackPressed() },
+                    onAutoRestart = ::setAutoRestart,
+                    onDarkMode = ::setDarkMode,
+                    onHideIcon = ::setHideIcon,
+                    onHideFromRecents = ::setHideFromRecents,
+                    onShowTraffic = ::setDynamicNotification,
+                )
             }
         }
+    }
 
-        binding.content.addView(screen.root)
+    private fun setAutoRestart(value: Boolean) {
+        launch(Dispatchers.Main) {
+            val stored = withContext(Dispatchers.IO) {
+                behavior.autoRestart = value
+                behavior.autoRestart
+            }
+            state = state.copy(autoRestart = stored)
+        }
+    }
+
+    private fun setDarkMode(value: DarkMode) {
+        launch(Dispatchers.Main) {
+            val stored = withContext(Dispatchers.IO) {
+                uiStore.darkMode = value
+                uiStore.darkMode
+            }
+            state = state.copy(darkMode = stored)
+            requests.trySend(Request.ReCreateAllActivities)
+        }
+    }
+
+    private fun setHideIcon(value: Boolean) {
+        launch(Dispatchers.Main) {
+            val stored = withContext(Dispatchers.IO) {
+                uiStore.hideAppIcon = value
+                uiStore.hideAppIcon
+            }
+            state = state.copy(hideAppIcon = stored)
+            onHideIconChange(stored)
+        }
+    }
+
+    private fun setHideFromRecents(value: Boolean) {
+        launch(Dispatchers.Main) {
+            val stored = withContext(Dispatchers.IO) {
+                uiStore.hideFromRecents = value
+                uiStore.hideFromRecents
+            }
+            state = state.copy(hideFromRecents = stored)
+            requests.trySend(Request.ReCreateAllActivities)
+        }
+    }
+
+    private fun setDynamicNotification(value: Boolean) {
+        if (!state.showTrafficEnabled) return
+        launch(Dispatchers.Main) {
+            val stored = withContext(Dispatchers.IO) {
+                srvStore.dynamicNotification = value
+                srvStore.dynamicNotification
+            }
+            state = state.copy(dynamicNotification = stored)
+        }
+    }
+
+    init {
+        if (context is AppCompatActivity) {
+            context.window.decorView.setOnInsertsChangedListener {
+                if (surface.insets != it) surface.insets = it
+                insets = it
+            }
+        }
     }
 }

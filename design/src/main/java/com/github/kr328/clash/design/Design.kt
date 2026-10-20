@@ -1,8 +1,11 @@
 package com.github.kr328.clash.design
 
 import android.content.Context
+import android.content.res.Configuration
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import com.github.kr328.clash.design.model.DarkMode
+import com.github.kr328.clash.design.store.UiStore
 import com.github.kr328.clash.design.ui.Surface
 import com.github.kr328.clash.design.ui.ToastDuration
 import com.github.kr328.clash.design.util.setOnInsertsChangedListener
@@ -41,7 +44,21 @@ abstract class Design<R>(val context: Context) :
                     ToastDuration.Long -> Snackbar.LENGTH_LONG
                     ToastDuration.Indefinite -> Snackbar.LENGTH_INDEFINITE
                 }
-            ).apply(configure).show()
+            ).apply(configure).apply {
+                val dark = isDarkMode()
+                setBackgroundTint(if (dark) 0xFF1C1C1E.toInt() else 0xFFFFFFFF.toInt())
+                setTextColor(if (dark) 0xFFFFFFFF.toInt() else 0xFF000000.toInt())
+                setActionTextColor(if (dark) 0xFF0A84FF.toInt() else 0xFF007AFF.toInt())
+            }.show()
+        }
+    }
+
+    private fun isDarkMode(): Boolean {
+        val nightFlag = context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
+        return when (UiStore(context).darkMode) {
+            DarkMode.ForceDark -> true
+            DarkMode.ForceLight -> false
+            DarkMode.Auto -> nightFlag == Configuration.UI_MODE_NIGHT_YES
         }
     }
 

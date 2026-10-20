@@ -1,16 +1,22 @@
 package com.github.kr328.clash.design
 
+import android.app.Activity
 import android.content.Context
 import android.view.View
-import com.github.kr328.clash.design.adapter.LogFileAdapter
-import com.github.kr328.clash.design.databinding.DesignLogsBinding
+import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import com.github.kr328.clash.design.ios.ClashMetaXTheme
+import com.github.kr328.clash.design.ios.LogsScreen
+import com.github.kr328.clash.design.ios.iosConfirm
 import com.github.kr328.clash.design.model.LogFile
-import com.github.kr328.clash.design.util.*
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.github.kr328.clash.design.ui.Insets
+import com.github.kr328.clash.design.util.setOnInsertsChangedListener
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
-import kotlin.coroutines.resume
 
 class LogsDesign(context: Context) : Design<LogsDesign.Request>(context) {
     sealed class Request {
@@ -20,38 +26,53 @@ class LogsDesign(context: Context) : Design<LogsDesign.Request>(context) {
         data class OpenFile(val file: LogFile) : Request()
     }
 
-    private val binding = DesignLogsBinding
-        .inflate(context.layoutInflater, context.root, false)
-    private val adapter = LogFileAdapter(context) {
-        requests.trySend(Request.OpenFile(it))
-    }
+    private var insets by mutableStateOf(Insets.EMPTY)
+    private var files by mutableStateOf<List<LogFile>>(emptyList())
 
-    override val root: View
-        get() = binding.root
-
-    suspend fun patchLogs(logs: List<LogFile>) {
-        adapter.patchDataSet(adapter::logs, logs, false, LogFile::fileName)
-    }
-
-    suspend fun requestDeleteAll(): Boolean {
-        return withContext(Dispatchers.Main) {
-            suspendCancellableCoroutine { ctx ->
-                MaterialAlertDialogBuilder(context)
-                    .setTitle(R.string.delete_all_logs)
-                    .setMessage(R.string.delete_all_logs_warn)
-                    .setPositiveButton(R.string.ok) { _, _ -> ctx.resume(true) }
-                    .setNegativeButton(R.string.cancel) { _, _ -> }
-                    .show()
-                    .setOnDismissListener { if (!ctx.isCompleted) ctx.resume(false) }
+    override val root: View = ComposeView(context).apply {
+        setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+        val title = (context as? Activity)?.title?.toString()
+            ?.ifBlank { null }
+            ?: context.getString(R.string.logs)
+        setContent {
+            ClashMetaXTheme {
+                LogsScreen(
+                    insets = insets,
+                    title = title,
+                    files = files,
+                    onBack = { (context as? AppCompatActivity)?.onBackPressedDispatcher?.onBackPressed() },
+                    onStart = { requests.trySend(Request.StartLogcat) },
+                    onDeleteAll = { requests.trySend(Request.DeleteAll) },
+                    onOpen = { requests.trySend(Request.OpenFile(it)) },
+                )
             }
         }
     }
 
+    suspend fun patchLogs(logs: List<LogFile>) {
+        withContext(Dispatchers.Main) {
+            files = logs
+        }
+    }
+
+    suspend fun requestDeleteAll(): Boolean {
+        return withContext(Dispatchers.Main) {
+            iosConfirm(
+                context = context,
+                title = context.getString(R.string.delete_all_logs),
+                message = context.getString(R.string.delete_all_logs_warn),
+                confirm = context.getString(R.string.ok),
+                destructive = true,
+            )
+        }
+    }
+
     init {
-        binding.self = this
-
-        binding.activityBarLayout.applyFrom(context)
-
-        binding.recyclerList.applyLinearAdapter(context, adapter)
+        if (context is AppCompatActivity) {
+            context.window.decorView.setOnInsertsChangedListener {
+                if (surface.insets != it) surface.insets = it
+                insets = it
+            }
+        }
     }
 }

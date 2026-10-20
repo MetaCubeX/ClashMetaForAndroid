@@ -3,7 +3,9 @@ package com.github.kr328.clash
 import com.github.kr328.clash.common.util.intent
 import com.github.kr328.clash.common.util.setUUID
 import com.github.kr328.clash.design.AppsStrategyDesign
+import com.github.kr328.clash.design.util.showExceptionToast
 import com.github.kr328.clash.design.dialog.requestModelTextInput
+import com.github.kr328.clash.design.ios.iosConfirm
 import com.github.kr328.clash.design.requestAppListsConfigEdit
 import com.github.kr328.clash.service.model.AccessControlMode
 import com.github.kr328.clash.service.model.AppsStrategyConfig
@@ -12,6 +14,7 @@ import com.github.kr328.clash.service.webdav.WebdavAutoSync
 import com.github.kr328.clash.service.webdav.WebdavSettingsStore
 import com.github.kr328.clash.service.webdav.WebdavSync
 import com.github.kr328.clash.util.withProfile
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.selects.select
@@ -53,8 +56,19 @@ class AppsStrategyActivity : BaseActivity<AppsStrategyDesign>() {
                             )
                             if (result != null) {
                                 if (result.deleted) {
-                                    deleteConfig(it.config.uuid)
-                                    design.fetch()
+                                    val confirmed = iosConfirm(
+                                        context = this@AppsStrategyActivity,
+                                        title = getString(com.github.kr328.clash.design.R.string.delete),
+                                        message = it.config.name.ifBlank {
+                                            getString(com.github.kr328.clash.design.R.string.delete)
+                                        },
+                                        confirm = getString(com.github.kr328.clash.design.R.string.delete),
+                                        destructive = true,
+                                    )
+                                    if (confirmed) {
+                                        deleteConfig(it.config.uuid)
+                                        design.fetch()
+                                    }
                                 } else if (result.name != it.config.name || result.mode != it.config.mode) {
                                     updateConfig(it.config.uuid, result.name, result.mode)
                                     design.fetch()
@@ -170,15 +184,23 @@ class AppsStrategyActivity : BaseActivity<AppsStrategyDesign>() {
         if (!settings.autoSync || !settings.hasEndpoint() || settings.username.isBlank() || settings.password.isEmpty()) {
             return
         }
-        withProfile {
-            webdavPerform(
-                WebdavSync.ACTION_SYNC,
-                settings.url,
-                settings.lanUrl,
-                settings.username,
-                settings.password,
-                settings.remotePath,
-            )
+        try {
+            withProfile {
+                webdavPerform(
+                    WebdavSync.ACTION_SYNC,
+                    settings.url,
+                    settings.lanUrl,
+                    settings.username,
+                    settings.password,
+                    settings.remotePath,
+                )
+            }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            withContext(Dispatchers.Main) {
+                design?.showExceptionToast(e)
+            }
         }
     }
 }

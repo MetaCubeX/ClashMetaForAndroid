@@ -38,9 +38,9 @@ class NewProfileActivity : BaseActivity<NewProfileDesign>() {
     override suspend fun main() {
         val design = NewProfileDesign(this)
 
-        design.patchProviders(queryProfileProviders())
-
         setContentDesign(design)
+
+        design.patchProviders(queryProfileProviders())
 
         while (isActive) {
             select<Unit> {

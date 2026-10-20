@@ -60,6 +60,7 @@ class ExternalControlActivity : Activity(), CoroutineScope by MainScope() {
                     stopClash()
                 } else {
                     startClash()
+                    return
                 }
             }
             
@@ -68,6 +69,7 @@ class ExternalControlActivity : Activity(), CoroutineScope by MainScope() {
                     Toast.makeText(this, R.string.external_control_started, Toast.LENGTH_LONG).show()
                 } else {
                     startClash()
+                    return
                 }
             }
             
@@ -83,16 +85,28 @@ class ExternalControlActivity : Activity(), CoroutineScope by MainScope() {
     }
 
     private fun startClash() {
-//        if (currentProfile == null) {
-//            Toast.makeText(this, R.string.no_profile_selected, Toast.LENGTH_LONG).show()
-//            return
-//        }
-        val vpnRequest = startClashService()
-        if (vpnRequest != null) {
-            Toast.makeText(this, R.string.unable_to_start_vpn, Toast.LENGTH_LONG).show()
-            return
+        val appContext = applicationContext
+        launch {
+            try {
+                val active = withProfile { queryActive() }
+                if (active == null || !active.imported) {
+                    Toast.makeText(appContext, R.string.no_profile_selected, Toast.LENGTH_LONG).show()
+                    return@launch
+                }
+                val vpnRequest = appContext.startClashService()
+                if (vpnRequest != null) {
+                    try {
+                        startActivity(VpnRequestActivity.consentIntent(this@ExternalControlActivity, vpnRequest))
+                    } catch (e: Exception) {
+                        Toast.makeText(appContext, R.string.unable_to_start_vpn, Toast.LENGTH_LONG).show()
+                    }
+                    return@launch
+                }
+                Toast.makeText(appContext, R.string.external_control_started, Toast.LENGTH_LONG).show()
+            } finally {
+                finish()
+            }
         }
-        Toast.makeText(this, R.string.external_control_started, Toast.LENGTH_LONG).show()
     }
 
     private fun stopClash() {

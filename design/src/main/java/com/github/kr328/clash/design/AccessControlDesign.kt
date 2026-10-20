@@ -1,29 +1,34 @@
 package com.github.kr328.clash.design
 
+import android.app.Activity
 import android.content.Context
 import android.view.View
-import androidx.core.widget.addTextChangedListener
-import androidx.recyclerview.widget.ConcatAdapter
-import com.github.kr328.clash.design.adapter.AppAdapter
-import com.github.kr328.clash.design.adapter.AppSetAdapter
-import com.github.kr328.clash.design.adapter.AppSetRow
-import com.github.kr328.clash.design.component.AccessControlMenu
-import com.github.kr328.clash.design.databinding.DesignAccessControlBinding
-import com.github.kr328.clash.design.databinding.DialogSearchBinding
-import com.github.kr328.clash.design.dialog.FullScreenDialog
+import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import com.github.kr328.clash.common.util.uuid
+import com.github.kr328.clash.design.ios.AccessControlScreen
+import com.github.kr328.clash.design.ios.ClashMetaXTheme
 import com.github.kr328.clash.design.model.AppInfo
+import com.github.kr328.clash.design.model.AppInfoSort
 import com.github.kr328.clash.design.model.AppSetIds
-import com.github.kr328.clash.design.model.appSetMembership
-import com.github.kr328.clash.design.model.applyAppSetToggle
 import com.github.kr328.clash.design.store.UiStore
-import com.github.kr328.clash.design.util.*
-import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.Channel
+import com.github.kr328.clash.design.ui.Insets
+import com.github.kr328.clash.design.util.setOnInsertsChangedListener
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class AccessControlDesign(
     context: Context,
-    uiStore: UiStore,
+    private val uiStore: UiStore,
     private val selected: MutableSet<String>,
+    private val toggleMembers: (Set<String>) -> Unit,
 ) : Design<AccessControlDesign.Request>(context) {
     enum class Request {
         ReloadApps,
@@ -34,171 +39,169 @@ class AccessControlDesign(
         Export,
     }
 
-    private val binding = DesignAccessControlBinding
-        .inflate(context.layoutInflater, context.root, false)
+    /** Unfiltered `loadAccessControlApps` rows. Search must not replace this. */
+    var apps by mutableStateOf<List<AppInfo>>(emptyList())
+        private set
 
-    private val setAdapter = AppSetAdapter(context) { id -> toggleAppSet(id) }
+    private var searchQuery by mutableStateOf("")
 
-    private val adapter = AppAdapter(context, selected) { refreshSetRows() }
+    private var keyword by mutableStateOf("")
 
-    private var systemPackages: Set<String> = emptySet()
+    private var selection by mutableStateOf(selected.toSet())
 
-    private var domesticPackages: Set<String> = emptySet()
+    private var systemPackages by mutableStateOf<Set<String>>(emptySet())
 
-    private val menu: AccessControlMenu by lazy {
-        AccessControlMenu(context, binding.menuView, uiStore, requests)
+    private var domesticPackages by mutableStateOf<Set<String>>(emptySet())
+
+    private var loading by mutableStateOf(true)
+
+    private var hideSystemApps by mutableStateOf(!uiStore.accessControlSystemApp)
+
+    private var sort by mutableStateOf(uiStore.accessControlSort)
+
+    private var reversed by mutableStateOf(uiStore.accessControlReverse)
+
+    private var insets by mutableStateOf(Insets.EMPTY)
+
+    private var appsReady = false
+
+    private var setsReady = false
+
+    private var searchDebounce: Job? = null
+
+    override val root: View = ComposeView(context).apply {
+        setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+        setContent {
+            val activity = context as? Activity
+            val currentTitle = activity?.title?.toString()?.takeIf { it.isNotBlank() }
+            val legacyTitle = context.getString(R.string.access_control_packages)
+            val openedFromStrategy = activity?.intent?.uuid != null
+            val title = if (!openedFromStrategy && (currentTitle == null || currentTitle == legacyTitle)) {
+                context.getString(R.string.global_app_list)
+            } else {
+                currentTitle ?: legacyTitle
+            }
+            ClashMetaXTheme {
+                AccessControlScreen(
+                    insets = insets,
+                    title = title,
+                    query = searchQuery,
+                    keyword = keyword,
+                    apps = apps,
+                    selection = selection,
+                    systemPackages = systemPackages,
+                    domesticPackages = domesticPackages,
+                    loading = loading,
+                    hideSystem = hideSystemApps,
+                    sort = sort,
+                    reversed = reversed,
+                    onBack = {
+                        (context as? AppCompatActivity)?.onBackPressedDispatcher?.onBackPressed()
+                    },
+                    onQueryChange = ::onSearchQueryChange,
+                    onHideSystem = ::applyHideSystemApps,
+                    onToggleApp = ::toggleApp,
+                    onToggleSet = ::toggleSet,
+                    onSelectAll = { request(Request.SelectAll) },
+                    onSelectNone = { request(Request.SelectNone) },
+                    onSelectInvert = { request(Request.SelectInvert) },
+                    onSort = ::chooseSort,
+                    onReverse = ::toggleReverse,
+                    onImport = { request(Request.Import) },
+                    onExport = { request(Request.Export) },
+                )
+            }
+        }
     }
 
-    val apps: List<AppInfo>
-        get() = adapter.apps
-
-    override val root: View
-        get() = binding.root
-
     suspend fun patchApps(apps: List<AppInfo>) {
-        adapter.swapDataSet(adapter::apps, apps, false)
+        withContext(Dispatchers.Main) {
+            this@AccessControlDesign.apps = apps
+            appsReady = true
+            if (appsReady && setsReady) loading = false
+        }
     }
 
     suspend fun patchBuiltinSets(systemPackages: Set<String>, domesticPackages: Set<String>) {
-        this.systemPackages = systemPackages
-        this.domesticPackages = domesticPackages
         withContext(Dispatchers.Main) {
-            setAdapter.submit(buildRows())
+            this@AccessControlDesign.systemPackages = systemPackages
+            this@AccessControlDesign.domesticPackages = domesticPackages
+            setsReady = true
+            if (appsReady && setsReady) loading = false
         }
     }
 
     suspend fun rebindAll() {
         withContext(Dispatchers.Main) {
-            refreshSetRows()
-            adapter.rebindAll()
+            selection = selected.toSet()
         }
     }
 
-    init {
-        binding.self = this
-
-        binding.activityBarLayout.applyFrom(context)
-
-        binding.mainList.recyclerList.also {
-            it.bindAppBarElevation(binding.activityBarLayout)
-            it.applyLinearAdapter(context, ConcatAdapter(setAdapter, adapter))
-        }
-
-        binding.menuView.setOnClickListener {
-            menu.show()
-        }
-
-        binding.searchView.setOnClickListener {
-            launch {
-                try {
-                    requestSearch()
-                } finally {
-                    withContext(NonCancellable) {
-                        rebindAll()
-                    }
-                }
+    private fun onSearchQueryChange(value: String) {
+        searchQuery = value
+        searchDebounce?.cancel()
+        searchDebounce = launch {
+            delay(SEARCH_DEBOUNCE_MS)
+            withContext(Dispatchers.Main) {
+                if (keyword != value) keyword = value
             }
         }
     }
 
-    private suspend fun requestSearch() {
-        coroutineScope {
-            val binding = DialogSearchBinding
-                .inflate(context.layoutInflater, context.root, false)
-            val adapter = AppAdapter(context, selected) { refreshSetRows() }
-            val dialog = FullScreenDialog(context)
-            val filter = Channel<Unit>(Channel.CONFLATED)
+    private fun applyHideSystemApps(hide: Boolean) {
+        // Stored false means system rows stay hidden. The switch is the opposite.
+        uiStore.accessControlSystemApp = !hide
+        hideSystemApps = hide
+        request(Request.ReloadApps)
+    }
 
-            dialog.setContentView(binding.root)
+    private fun chooseSort(value: AppInfoSort) {
+        uiStore.accessControlSort = value
+        sort = value
+        request(Request.ReloadApps)
+    }
 
-            binding.surface = dialog.surface
-            binding.mainList.applyLinearAdapter(context, adapter)
-            binding.keywordView.addTextChangedListener {
-                filter.trySend(Unit)
-            }
-            binding.closeView.setOnClickListener {
-                dialog.dismiss()
-            }
+    private fun toggleReverse() {
+        val next = !uiStore.accessControlReverse
+        uiStore.accessControlReverse = next
+        reversed = next
+        request(Request.ReloadApps)
+    }
 
-            dialog.setOnDismissListener {
-                cancel()
-            }
-
-            dialog.setOnShowListener {
-                binding.keywordView.requestTextInput()
-            }
-
-            dialog.show()
-
-            while (isActive) {
-                filter.receive()
-
-                val keyword = binding.keywordView.text?.toString() ?: ""
-
-                val apps: List<AppInfo> = if (keyword.isEmpty()) {
-                    emptyList()
-                } else {
-                    withContext(Dispatchers.Default) {
-                        apps.filter {
-                            it.label.contains(keyword, ignoreCase = true) ||
-                                    it.packageName.contains(keyword, ignoreCase = true)
-                        }
-                    }
-                }
-
-                adapter.patchDataSet(adapter::apps, apps, false, AppInfo::packageName)
-
-                delay(200)
-            }
+    private fun toggleApp(packageName: String) {
+        if (packageName in selected) {
+            selected.remove(packageName)
+        } else {
+            selected.add(packageName)
         }
+        selection = selected.toSet()
     }
 
-    private fun refreshSetRows() {
-        setAdapter.submit(buildRows())
-    }
-
-    private fun toggleAppSet(id: String) {
+    private fun toggleSet(id: String) {
         val members = when (id) {
             AppSetIds.SYSTEM -> systemPackages
             AppSetIds.DOMESTIC -> domesticPackages
             else -> return
         }
-        applyAppSetToggle(members, selected)
-        refreshSetRows()
-        adapter.rebindAll()
+        if (members.isEmpty()) return
+        toggleMembers(members)
+        selection = selected.toSet()
     }
 
-    private fun buildRows(): List<AppSetRow> {
-        return listOf(
-            row(
-                AppSetIds.SYSTEM,
-                context.getString(R.string.system_apps),
-                R.drawable.ic_baseline_apps,
-                systemPackages,
-            ),
-            row(
-                AppSetIds.DOMESTIC,
-                context.getString(R.string.app_set_domestic),
-                R.drawable.ic_baseline_domain,
-                domesticPackages,
-            ),
-        )
+    private fun request(request: Request) {
+        requests.trySend(request)
     }
 
-    private fun row(id: String, title: String, iconRes: Int, members: Set<String>): AppSetRow {
-        val membership = appSetMembership(members, selected)
-        val summary = if (members.isEmpty()) {
-            context.getString(R.string.app_set_summary_empty)
-        } else {
-            context.getString(R.string.app_set_summary, membership.total, membership.selectedCount)
+    init {
+        if (context is AppCompatActivity) {
+            context.window.decorView.setOnInsertsChangedListener {
+                if (surface.insets != it) surface.insets = it
+                insets = it
+            }
         }
-        return AppSetRow(
-            id = id,
-            title = title,
-            summary = summary,
-            iconRes = iconRes,
-            checkState = membership.state,
-            enabled = members.isNotEmpty(),
-        )
+    }
+
+    private companion object {
+        const val SEARCH_DEBOUNCE_MS = 200L
     }
 }

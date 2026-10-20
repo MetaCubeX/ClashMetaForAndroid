@@ -14,8 +14,9 @@ interface NullableTextAdapter<T> {
 
             override fun to(text: String?): Int? {
                 if (text == null) return null
+                if (text.isEmpty()) return 0
 
-                return text.toIntOrNull() ?: 0
+                return text.toIntOrNull()
             }
         }
 

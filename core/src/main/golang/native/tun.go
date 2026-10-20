@@ -68,11 +68,6 @@ func startTun(fd C.int, stack, gateway, portal, dns C.c_string, callback unsafe.
 	rTunLock.Lock()
 	defer rTunLock.Unlock()
 
-	if rTun != nil {
-		rTun.close()
-		rTun = nil
-	}
-
 	f := int(fd)
 	s := C.GoString(stack)
 	g := C.GoString(gateway)
@@ -87,10 +82,20 @@ func startTun(fd C.int, stack, gateway, portal, dns C.c_string, callback unsafe.
 	if err != nil {
 		remote.close()
 
+		if rTun != nil {
+			app.ApplyTunContext(rTun.markSocket, rTun.querySocketUid)
+		}
+
 		return 1
 	}
 
 	remote.closer = closer
+
+	if rTun != nil {
+		rTun.close()
+	}
+
+	app.ApplyTunContext(remote.markSocket, remote.querySocketUid)
 
 	rTun = remote
 

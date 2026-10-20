@@ -1,5 +1,14 @@
 3th-party software licenses
 
+ * AgenticUILibrary
+==========================================================================
+design/src/main/java/nota/ui and design/src/main/java/universe/agentic/ui/search
+contain source copied from AgenticUILibrary under the Apache License 2.0.
+Adapted for this AndroidX Compose module: Material 3 theme calls were
+removed, dark mode follows UiStore through LocalShellIosDark, and the
+switch thumb is a round rect because the iOS spec is a circle.
+The upstream tree did not ship a NOTICE file.
+
  * Clash
 ==========================================================================
                     GNU GENERAL PUBLIC LICENSE

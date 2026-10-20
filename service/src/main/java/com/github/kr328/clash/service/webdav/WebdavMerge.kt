@@ -180,6 +180,7 @@ private fun mergeProfile(local: ProfilePayload, remote: ProfilePayload): Profile
 
 fun matchesTombstone(tombstone: TombstonePayload, profile: ProfilePayload): Boolean {
     if (tombstone.uuid.isNotBlank() && tombstone.uuid == profile.uuid) return true
+    if (profile.type != "Url" && profile.type != "External") return false
     val source = normalizeSubscriptionSource(profile.source)
     if (source.isEmpty() || normalizeSubscriptionSource(tombstone.source) != source) return false
     val type = if (tombstone.type.isBlank()) profile.type else tombstone.type

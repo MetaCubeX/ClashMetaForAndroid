@@ -180,7 +180,7 @@
     <string name="select_none">クリア</string>
     <string name="import_from_clipboard">クリップボードからインポート</string>
     <string name="export_to_clipboard">クリップボードにエクスポート</string>
-    <string name="clash_meta_for_android">Clash Meta for Android</string>
+    <string name="clash_meta_for_android">ClashMetaX</string>
     <string name="document">ドキュメント</string>
     <string name="feedback">フィードバック</string>
     <string name="sources">ソース</string>
@@ -190,7 +190,7 @@
     <string name="google_play">Google Play</string>
     <string name="clash_meta_core">Clash Meta Core</string>
     <string name="tips_properties"><![CDATA[<strong>Clashプロファイル</strong>のみご利用可能です(<strong>プロキシルール</strong>を含む)]]></string>
-    <string name="tips_help"><![CDATA[Clash Meta for Androidは<strong>無料アプリ</strong>です。当開発者は<strong>一切のプロキシサービスを提供していません。</strong> <strong>サービスに関する問い合わせはご遠慮ください。</strong>]]></string>
+    <string name="tips_help"><![CDATA[ClashMetaXは<strong>無料アプリ</strong>です。当開発者は<strong>一切のプロキシサービスを提供していません。</strong> <strong>サービスに関する問い合わせはご遠慮ください。</strong>]]></string>
     <string name="app">アプリ</string>
     <string name="service">サービス</string>
     <string name="dark_mode">ダークモード</string>
@@ -308,4 +308,7 @@
     <string name="webdav_progress_delete">リモートを削除 %1$d/%2$d</string>
     <string name="webdav_progress_delete_named">リモートを削除 %1$d/%2$d · %3$s</string>
     <string name="access_control_reload_rejected">アプリ一覧は保存しましたが、Android が VPN の作り直しを拒否しました。動作中のトンネルは以前の一覧のままです。</string>
+    <string name="back">戻る</string>
+    <string name="search_empty">該当なし</string>
+    <string name="list_empty">何もありません</string>
 </resources>

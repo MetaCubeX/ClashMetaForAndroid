@@ -6,6 +6,7 @@ import (
 	"net"
 	"net/netip"
 	"strings"
+	"syscall"
 
 	C "github.com/metacubex/mihomo/constant"
 	LC "github.com/metacubex/mihomo/listener/config"
@@ -32,6 +33,7 @@ func Start(fd int, stack, gateway, portal, dns string) (io.Closer, error) {
 		prefix, err := netip.ParsePrefix(gatewayStr)
 		if err != nil {
 			log.Errorln("TUN:", err)
+			_ = syscall.Close(fd)
 			return nil, err
 		}
 

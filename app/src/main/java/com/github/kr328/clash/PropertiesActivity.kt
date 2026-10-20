@@ -1,5 +1,6 @@
 package com.github.kr328.clash
 
+import androidx.activity.addCallback
 import com.github.kr328.clash.common.util.intent
 import com.github.kr328.clash.common.util.setUUID
 import com.github.kr328.clash.common.util.uuid
@@ -36,6 +37,16 @@ class PropertiesActivity : BaseActivity<PropertiesDesign>() {
             withProfile { release(uuid) }
         }
 
+        onBackPressedDispatcher.addCallback(this) {
+            this@PropertiesActivity.launch {
+                if (!design.progressing) {
+                    if (original == design.profile || design.requestExitWithoutSaving()) {
+                        finish()
+                    }
+                }
+            }
+        }
+
         while (isActive) {
             select<Unit> {
                 events.onReceive {
@@ -67,17 +78,6 @@ class PropertiesActivity : BaseActivity<PropertiesDesign>() {
                 }
             }
         }
-    }
-
-    override fun onBackPressed() {
-        design?.apply {
-            launch {
-                if (!progressing) {
-                    if (original == profile || requestExitWithoutSaving())
-                        finish()
-                }
-            }
-        } ?: return super.onBackPressed()
     }
 
     private suspend fun PropertiesDesign.verifyAndCommit() {

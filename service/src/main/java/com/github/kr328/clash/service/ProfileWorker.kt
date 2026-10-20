@@ -1,5 +1,6 @@
 package com.github.kr328.clash.service
 
+import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Intent
 import android.os.Binder
@@ -7,15 +8,19 @@ import android.os.IBinder
 import androidx.core.app.NotificationChannelCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.getSystemService
 import com.github.kr328.clash.common.compat.getColorCompat
 import com.github.kr328.clash.common.compat.pendingIntentFlags
 import com.github.kr328.clash.common.compat.startForegroundCompat
 import com.github.kr328.clash.common.constants.Components
 import com.github.kr328.clash.common.constants.Intents
 import com.github.kr328.clash.common.id.UndefinedIds
+import com.github.kr328.clash.common.util.componentName
 import com.github.kr328.clash.common.util.setUUID
 import com.github.kr328.clash.common.util.uuid
+import com.github.kr328.clash.service.data.Imported
 import com.github.kr328.clash.service.data.ImportedDao
+import com.github.kr328.clash.service.util.importedDir
 import com.github.kr328.clash.service.util.sendProfileUpdateCompleted
 import com.github.kr328.clash.service.util.sendProfileUpdateFailed
 import kotlinx.coroutines.*
@@ -92,7 +97,32 @@ class ProfileWorker : BaseService() {
             ProfileReceiver.scheduleNext(this, imported)
         } catch (e: Exception) {
             failed(imported.uuid, imported.name, e.message ?: "Unknown")
+            scheduleAfterFailure(imported)
         }
+    }
+
+    private fun scheduleAfterFailure(imported: Imported) {
+        if (imported.interval < TimeUnit.MINUTES.toMillis(15))
+            return
+
+        val config = importedDir
+            .resolve(imported.uuid.toString())
+            .resolve("config.yaml")
+        if (!config.exists())
+            return
+
+        val intent = Intent(Intents.ACTION_PROFILE_REQUEST_UPDATE)
+            .setComponent(ProfileReceiver::class.componentName)
+            .setUUID(imported.uuid)
+        val pending = PendingIntent.getBroadcast(
+            this,
+            0,
+            intent,
+            pendingIntentFlags(PendingIntent.FLAG_UPDATE_CURRENT)
+        )
+        val alarm = getSystemService<AlarmManager>() ?: return
+        alarm.cancel(pending)
+        alarm.set(AlarmManager.RTC, System.currentTimeMillis() + imported.interval, pending)
     }
 
     private fun createChannels() {

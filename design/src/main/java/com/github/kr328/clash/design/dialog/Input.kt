@@ -27,6 +27,7 @@ suspend fun Context.requestModelTextInput(
     hint: CharSequence? = null,
     error: CharSequence? = null,
     validator: Validator = ValidatorAcceptAll,
+    preserveUnedited: Boolean = false,
 ): String? {
     return suspendCancellableCoroutine {
         val binding = DialogTextFieldBinding
@@ -38,11 +39,14 @@ suspend fun Context.requestModelTextInput(
             .setCancelable(true)
             .setPositiveButton(R.string.ok) { _, _ ->
                 val text = binding.textField.text?.toString() ?: ""
+                val edited = text != (initial ?: "")
 
-                if (validator(text))
-                    it.resume(text)
-                else
+                if (!validator(text))
                     it.resume(initial)
+                else if (preserveUnedited && !edited)
+                    it.resume(initial)
+                else
+                    it.resume(text)
             }
             .setNegativeButton(R.string.cancel) { _, _ -> }
             .setOnDismissListener { _ ->

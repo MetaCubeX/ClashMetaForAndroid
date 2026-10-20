@@ -1,5 +1,6 @@
 package com.github.kr328.clash
 
+import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -9,6 +10,7 @@ import android.os.Build
 import android.service.quicksettings.Tile
 import android.service.quicksettings.TileService
 import androidx.annotation.RequiresApi
+import com.github.kr328.clash.common.compat.pendingIntentFlags
 import com.github.kr328.clash.common.compat.registerReceiverCompat
 import com.github.kr328.clash.common.constants.Intents
 import com.github.kr328.clash.common.constants.Permissions
@@ -27,11 +29,31 @@ class TileService : TileService() {
 
         when (tile.state) {
             Tile.STATE_INACTIVE -> {
-                startClashService()
+                val prepare = startClashService()
+                if (prepare != null) {
+                    openVpnConsent(prepare)
+                }
             }
             Tile.STATE_ACTIVE -> {
                 stopClashService()
             }
+        }
+    }
+
+    private fun openVpnConsent(prepare: Intent) {
+        val consent = VpnRequestActivity.consentIntent(this, prepare)
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            val pending = PendingIntent.getActivity(
+                this,
+                0,
+                consent,
+                pendingIntentFlags(PendingIntent.FLAG_UPDATE_CURRENT),
+            )
+            startActivityAndCollapse(pending)
+        } else {
+            @Suppress("DEPRECATION")
+            startActivityAndCollapse(consent)
         }
     }
 

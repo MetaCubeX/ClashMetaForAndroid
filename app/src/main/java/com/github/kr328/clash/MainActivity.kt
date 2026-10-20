@@ -20,7 +20,10 @@ import com.github.kr328.clash.util.startClashService
 import com.github.kr328.clash.util.stopClashService
 import com.github.kr328.clash.util.withClash
 import com.github.kr328.clash.util.withProfile
+import com.github.kr328.clash.core.Clash
 import com.github.kr328.clash.core.bridge.*
+import com.github.kr328.clash.core.model.ProxySort
+import com.github.kr328.clash.core.model.TunnelState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.selects.select
@@ -57,8 +60,13 @@ class MainActivity : BaseActivity<MainDesign>() {
                             else
                                 design.startClash()
                         }
-                        MainDesign.Request.OpenProxy ->
-                            startActivity(ProxyActivity::class.intent)
+                        is MainDesign.Request.OpenProxy -> {
+                            val open = ProxyActivity::class.intent
+                            if (!it.group.isNullOrEmpty()) {
+                                open.putExtra(ProxyActivity.EXTRA_PROXY_GROUP, it.group)
+                            }
+                            startActivity(open)
+                        }
                         MainDesign.Request.OpenProfiles ->
                             startActivity(ProfilesActivity::class.intent)
                         MainDesign.Request.OpenProviders ->
@@ -78,6 +86,15 @@ class MainActivity : BaseActivity<MainDesign>() {
                             startActivity(HelpActivity::class.intent)
                         MainDesign.Request.OpenAbout ->
                             design.showAbout(queryAppVersionName())
+                        is MainDesign.Request.SetMode -> {
+                            design.showToast(DesignR.string.mode_switch_tips, ToastDuration.Long)
+                            withClash {
+                                val override = queryOverride(Clash.OverrideSlot.Session)
+                                override.mode = it.mode
+                                patchOverride(Clash.OverrideSlot.Session, override)
+                            }
+                            design.fetch()
+                        }
                     }
                 }
                 if (clashRunning) {
@@ -92,15 +109,21 @@ class MainActivity : BaseActivity<MainDesign>() {
     private suspend fun MainDesign.fetch() {
         setClashRunning(clashRunning)
 
-        val state = withClash {
-            queryTunnelState()
+        val mode = withClash {
+            queryOverride(Clash.OverrideSlot.Session).mode ?: queryTunnelState().mode
         }
         val providers = withClash {
             queryProviders()
         }
 
-        setMode(state.mode)
+        setMode(mode)
         setHasProviders(providers.isNotEmpty())
+        val (node, group) = if (clashRunning) queryCurrentNode(mode) else null to null
+        setCurrentNode(node, group)
+
+        if (clashRunning) {
+            fetchTraffic()
+        }
 
         withProfile {
             setProfileName(queryActive()?.name)
@@ -111,7 +134,22 @@ class MainActivity : BaseActivity<MainDesign>() {
 
     private suspend fun MainDesign.fetchTraffic() {
         withClash {
-            setForwarded(queryTrafficTotal())
+            setTraffic(queryTrafficNow(), queryTrafficTotal())
+        }
+    }
+
+    private suspend fun queryCurrentNode(mode: TunnelState.Mode): Pair<String?, String?> {
+        if (mode == TunnelState.Mode.Direct) return null to null
+        return withClash {
+            val names = queryProxyGroupNames(true)
+            val group = when (mode) {
+                TunnelState.Mode.Global ->
+                    names.firstOrNull { it.equals("GLOBAL", ignoreCase = true) } ?: names.firstOrNull()
+                else ->
+                    names.firstOrNull { !it.equals("GLOBAL", ignoreCase = true) } ?: names.firstOrNull()
+            } ?: return@withClash null to null
+            val now = queryProxyGroup(group, ProxySort.Default).now.takeIf { it.isNotBlank() }
+            now to group
         }
     }
 

@@ -8,14 +8,15 @@ import androidx.activity.result.contract.ActivityResultContracts
 import com.github.kr328.clash.core.Clash
 import com.github.kr328.clash.design.MetaFeatureSettingsDesign
 import com.github.kr328.clash.util.clashDir
+import com.github.kr328.clash.util.importReplacingGeoFile
 import com.github.kr328.clash.util.withClash
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.selects.select
 import kotlinx.coroutines.withContext
-import java.io.File
-import java.io.FileOutputStream
+import java.io.IOException
 import com.github.kr328.clash.design.R
 
 
@@ -103,7 +104,7 @@ class MetaFeatureSettingsActivity : BaseActivity<MetaFeatureSettingsDesign>() {
                         .setTitle(R.string.geofile_unknown_db_format)
                         .setMessage(getString(R.string.geofile_unknown_db_format_message,
                             validDatabaseExtensions.joinToString("/")))
-                        .setPositiveButton("OK") { _, _ -> }
+                        .setPositiveButton(R.string.ok) { _, _ -> }
                         .show()
                     return
                 }
@@ -119,16 +120,21 @@ class MetaFeatureSettingsActivity : BaseActivity<MetaFeatureSettingsDesign>() {
                     else -> ""
                 }
 
-                withContext(Dispatchers.IO) {
-                    val outputFile = File(clashDir, outputFileName);
-                    contentResolver.openInputStream(uri).use { ins ->
-                        FileOutputStream(outputFile).use { outs ->
-                            ins?.copyTo(outs)
+                try {
+                    withContext(Dispatchers.IO) {
+                        val input = contentResolver.openInputStream(uri)
+                            ?: throw IOException("empty stream")
+                        input.use {
+                            importReplacingGeoFile(clashDir, outputFileName, it)
                         }
                     }
+                    Toast.makeText(this, getString(R.string.geofile_imported, displayName),
+                        Toast.LENGTH_LONG).show()
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    Toast.makeText(this, R.string.geofile_import_failed, Toast.LENGTH_LONG).show()
                 }
-                Toast.makeText(this, getString(R.string.geofile_imported, displayName),
-                    Toast.LENGTH_LONG).show()
                 return
             }
         }

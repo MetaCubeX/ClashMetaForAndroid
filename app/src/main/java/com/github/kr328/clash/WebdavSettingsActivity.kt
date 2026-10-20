@@ -47,6 +47,7 @@ class WebdavSettingsActivity : BaseActivity<WebdavSettingsDesign>() {
         store: WebdavSettingsStore,
         action: String,
     ) {
+        // Queued work is received only after finally, when busy is already false.
         if (busy) return
         busy = true
         try {
@@ -71,6 +72,7 @@ class WebdavSettingsActivity : BaseActivity<WebdavSettingsDesign>() {
             design.showExceptionToast(e)
         } finally {
             busy = false
+            design.onActionFinished()
         }
     }
 }

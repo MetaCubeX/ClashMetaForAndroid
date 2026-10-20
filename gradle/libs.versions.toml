@@ -22,6 +22,7 @@ androidx-activity-ktx = "1.9.0"
 okhttp = "4.12.0"
 desugar = "2.1.4"
 junit = "4.13.2"
+composeBom = "2025.02.00"
 
 [libraries]
 build-android = { module = "com.android.tools.build:gradle", version.ref = "agp" }
@@ -51,5 +52,11 @@ androidx-activity-ktx = { group = "androidx.activity", name = "activity-ktx", ve
 okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
 desugar-jdk = { module = "com.android.tools:desugar_jdk_libs", version.ref = "desugar" }
 junit = { module = "junit:junit", version.ref = "junit" }
+androidx-compose-bom = { module = "androidx.compose:compose-bom", version.ref = "composeBom" }
+androidx-compose-ui = { group = "androidx.compose.ui", name = "ui" }
+androidx-compose-foundation = { group = "androidx.compose.foundation", name = "foundation" }
+androidx-compose-icons = { group = "androidx.compose.material", name = "material-icons-core" }
+androidx-compose-material = { group = "androidx.compose.material", name = "material" }
 
 [plugins]
+compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }

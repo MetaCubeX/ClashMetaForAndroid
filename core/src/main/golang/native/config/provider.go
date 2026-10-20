@@ -11,21 +11,27 @@ const (
 	RULES   = "rules"
 )
 
-func forEachProviders(rawCfg *config.RawConfig, fun func(index int, total int, key string, provider map[string]any, prefix string)) {
+func forEachProviders(rawCfg *config.RawConfig, fun func(index int, total int, key string, provider map[string]any, prefix string) error) error {
 	total := len(rawCfg.ProxyProvider) + len(rawCfg.RuleProvider)
 	index := 0
 
 	for k, v := range rawCfg.ProxyProvider {
-		fun(index, total, k, v, PROXIES)
+		if err := fun(index, total, k, v, PROXIES); err != nil {
+			return err
+		}
 
 		index++
 	}
 
 	for k, v := range rawCfg.RuleProvider {
-		fun(index, total, k, v, RULES)
+		if err := fun(index, total, k, v, RULES); err != nil {
+			return err
+		}
 
 		index++
 	}
+
+	return nil
 }
 
 func destroyProviders(cfg *config.Config) {

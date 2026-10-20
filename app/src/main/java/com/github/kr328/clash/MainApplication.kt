@@ -8,8 +8,7 @@ import com.github.kr328.clash.common.log.Log
 import com.github.kr328.clash.remote.Remote
 import com.github.kr328.clash.service.util.sendServiceRecreated
 import com.github.kr328.clash.util.clashDir
-import java.io.File
-import java.io.FileOutputStream
+import com.github.kr328.clash.util.installBundledGeoFile
 
 @Suppress("unused")
 class MainApplication : Application() {
@@ -39,44 +38,17 @@ class MainApplication : Application() {
         clashDir.mkdirs()
 
         val updateDate = packageManager.getPackageInfo(packageName, 0).lastUpdateTime
-        val geoipFile = File(clashDir, "geoip.metadb")
-        if (geoipFile.exists() && geoipFile.lastModified() < updateDate) {
-            geoipFile.delete()
+        installBundledGeoFile(clashDir, "geoip.metadb", updateDate, true) {
+            assets.open("geoip.metadb")
         }
-        if (!geoipFile.exists()) {
-            FileOutputStream(geoipFile).use {
-                assets.open("geoip.metadb").copyTo(it)
-            }
+        installBundledGeoFile(clashDir, "geosite.dat", updateDate, true) {
+            assets.open("geosite.dat")
         }
-
-        val geositeFile = File(clashDir, "geosite.dat")
-        if (geositeFile.exists() && geositeFile.lastModified() < updateDate) {
-            geositeFile.delete()
+        installBundledGeoFile(clashDir, "ASN.mmdb", updateDate, true) {
+            assets.open("ASN.mmdb")
         }
-        if (!geositeFile.exists()) {
-            FileOutputStream(geositeFile).use {
-                assets.open("geosite.dat").copyTo(it)
-            }
-        }
-
-        val asnFile = File(clashDir, "ASN.mmdb")
-        if (asnFile.exists() && asnFile.lastModified() < updateDate) {
-            asnFile.delete()
-        }
-        if (!asnFile.exists()) {
-            FileOutputStream(asnFile).use {
-                assets.open("ASN.mmdb").copyTo(it)
-            }
-        }
-
-        val bundleMRSFile = File(clashDir, "BundleMRS.7z")
-        if (bundleMRSFile.exists() && bundleMRSFile.lastModified() < updateDate) {
-            bundleMRSFile.delete()
-        }
-        if (!bundleMRSFile.exists()) {
-            FileOutputStream(bundleMRSFile).use {
-                assets.open("BundleMRS.7z").copyTo(it)
-            }
+        installBundledGeoFile(clashDir, "BundleMRS.7z", updateDate, false) {
+            assets.open("BundleMRS.7z")
         }
     }
 

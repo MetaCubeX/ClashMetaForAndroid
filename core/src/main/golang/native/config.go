@@ -51,14 +51,19 @@ func load(completable unsafe.Pointer, path C.c_string) {
 
 //export readOverride
 func readOverride(slot C.int) *C.char {
-	return C.CString(config.ReadOverride(config.OverrideSlot(slot)))
+	content, err := config.ReadOverride(config.OverrideSlot(slot))
+	if err != nil {
+		return C.CString("")
+	}
+
+	return C.CString(content)
 }
 
 //export writeOverride
-func writeOverride(slot C.int, content C.c_string) {
+func writeOverride(slot C.int, content C.c_string) *C.char {
 	c := C.GoString(content)
 
-	config.WriteOverride(config.OverrideSlot(slot), c)
+	return marshalString(config.WriteOverride(config.OverrideSlot(slot), c))
 }
 
 //export clearOverride

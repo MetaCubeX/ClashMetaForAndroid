@@ -12,10 +12,11 @@
     <string name="format_update_failure">Обновление %1$s: %2$s</string>
     <string name="running">Работает</string>
     <string name="loading">Загружается</string>
-    <string name="clash_meta_for_android">Clash Meta для Android</string>
+    <string name="clash_meta_for_android">ClashMetaX</string>
     <string name="profiles_and_providers">Профили и провайдеры</string>
     <string name="configuration_yaml">Configuration.yaml</string>
     <string name="provider_files">Файлы провайдера</string>
+    <string name="no_profile_selected">Профиль не выбран</string>
     <string name="profile_updater">Обновление профиля</string>
     <string name="profile_updating">Профиль обновляется</string>
 </resources>

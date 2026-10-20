@@ -16,8 +16,8 @@ fun CoroutineScope.ticker(period: Long): Channel<Long> {
 
                 delay(period)
             }
-        } catch (ignored: Exception) {
-
+        } finally {
+            channel.close()
         }
     }
 

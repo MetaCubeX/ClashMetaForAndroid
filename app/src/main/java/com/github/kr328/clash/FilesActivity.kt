@@ -7,6 +7,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
+import androidx.activity.addCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import com.github.kr328.clash.common.util.grantPermissions
@@ -30,6 +31,9 @@ class FilesActivity : BaseActivity<FilesDesign>() {
         val root = uuid.toString()
 
         val design = FilesDesign(this)
+        onBackPressedDispatcher.addCallback(this) {
+            design.requests.trySend(FilesDesign.Request.PopStack)
+        }
         val client = FilesClient(this)
         val stack = Stack<String>()
 
@@ -58,6 +62,7 @@ class FilesActivity : BaseActivity<FilesDesign>() {
                                     finish()
                                 } else {
                                     stack.pop()
+                                    if (stack.empty()) design.showAtRoot()
                                 }
                             }
                             is FilesDesign.Request.OpenDirectory -> {
@@ -81,6 +86,7 @@ class FilesActivity : BaseActivity<FilesDesign>() {
                                 client.renameDocument(it.file.id, newName)
                             }
                             is FilesDesign.Request.ImportFile -> {
+                                if (it.file == null && stack.empty()) return@onReceive
                                 val uri: Uri? = startActivityForResult(
                                     ActivityResultContracts.GetContent(),
                                     "*/*"
@@ -120,10 +126,6 @@ class FilesActivity : BaseActivity<FilesDesign>() {
                 }
             }
         }
-    }
-
-    override fun onBackPressed() {
-        design?.requests?.trySend(FilesDesign.Request.PopStack)
     }
 
     private suspend fun FilesDesign.fetch(client: FilesClient, stack: Stack<String>, root: String) {

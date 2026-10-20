@@ -3,14 +3,22 @@ package com.github.kr328.clash.design
 import android.app.Dialog
 import android.content.Context
 import android.view.View
-import com.github.kr328.clash.design.adapter.FileAdapter
-import com.github.kr328.clash.design.databinding.DesignFilesBinding
-import com.github.kr328.clash.design.databinding.DialogFilesMenuBinding
-import com.github.kr328.clash.design.dialog.AppBottomSheetDialog
+import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import com.github.kr328.clash.design.dialog.requestModelTextInput
+import com.github.kr328.clash.design.ios.ClashMetaXTheme
+import com.github.kr328.clash.design.ios.FilesScreen
+import com.github.kr328.clash.design.ios.iosConfirm
 import com.github.kr328.clash.design.model.File
-import com.github.kr328.clash.design.util.*
+import com.github.kr328.clash.design.ui.Insets
+import com.github.kr328.clash.design.util.ValidatorFileName
+import com.github.kr328.clash.design.util.setOnInsertsChangedListener
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class FilesDesign(context: Context) : Design<FilesDesign.Request>(context) {
@@ -25,28 +33,49 @@ class FilesDesign(context: Context) : Design<FilesDesign.Request>(context) {
         object PopStack : Request()
     }
 
-    private val binding = DesignFilesBinding
-        .inflate(context.layoutInflater, context.root, false)
-    private val adapter: FileAdapter = FileAdapter(context, this::requestOpen, this::requestMore)
+    private var insets by mutableStateOf(Insets.EMPTY)
+    private var files by mutableStateOf<List<File>>(emptyList())
+    private var currentInBaseDir by mutableStateOf(true)
+    private var now by mutableStateOf(System.currentTimeMillis())
 
-    override val root: View
-        get() = binding.root
+    var configurationEditable by mutableStateOf(false)
 
-    var configurationEditable: Boolean
-        get() = binding.configurationEditable
-        set(value) {
-            binding.configurationEditable = value
-        }
-
-    suspend fun swapFiles(files: List<File>, currentInBaseDir: Boolean) {
-        withContext(Dispatchers.Main) {
-            adapter.swapDataSet(adapter::files, files)
-            binding.currentInBaseDir = currentInBaseDir
+    override val root: View = ComposeView(context).apply {
+        setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+        setContent {
+            ClashMetaXTheme {
+                FilesScreen(
+                    insets = insets,
+                    title = context.getString(R.string.files),
+                    files = files,
+                    currentInBaseDir = currentInBaseDir,
+                    configurationEditable = configurationEditable,
+                    now = now,
+                    onBack = { (context as? AppCompatActivity)?.onBackPressedDispatcher?.onBackPressed() },
+                    onNew = { requestNew() },
+                    onOpen = { requestOpen(it) },
+                    onImport = { requestImport(it) },
+                    onExport = { requestExport(it) },
+                    onRename = { requestRename(it) },
+                    onDelete = { requestDelete(it) },
+                )
+            }
         }
     }
 
+    suspend fun swapFiles(next: List<File>, inBase: Boolean) {
+        withContext(Dispatchers.Main) {
+            files = next
+            currentInBaseDir = inBase
+        }
+    }
+
+    fun showAtRoot() {
+        currentInBaseDir = true
+    }
+
     fun updateElapsed() {
-        adapter.updateElapsed()
+        now = System.currentTimeMillis()
     }
 
     suspend fun requestFileName(name: String): String {
@@ -59,15 +88,30 @@ class FilesDesign(context: Context) : Design<FilesDesign.Request>(context) {
         )
     }
 
-    init {
-        binding.self = this
+    fun requestRename(dialog: Dialog, file: File) {
+        dialog.dismiss()
+        requestRename(file)
+    }
 
-        binding.activityBarLayout.applyFrom(context)
+    fun requestImport(dialog: Dialog, file: File) {
+        dialog.dismiss()
+        requestImport(file)
+    }
 
-        binding.mainList.recyclerList.also {
-            it.applyLinearAdapter(context, adapter)
-            it.bindAppBarElevation(binding.activityBarLayout)
-        }
+    fun requestExport(dialog: Dialog, file: File) {
+        dialog.dismiss()
+        requestExport(file)
+    }
+
+    fun requestDelete(dialog: Dialog, file: File) {
+        dialog.dismiss()
+        requestDelete(file)
+    }
+
+    fun requestNew() {
+        // Root stack is empty. ImportFile(null) calls stack.last() and throws.
+        if (currentInBaseDir) return
+        requests.trySend(Request.ImportFile(null))
     }
 
     private fun requestOpen(file: File) {
@@ -78,46 +122,47 @@ class FilesDesign(context: Context) : Design<FilesDesign.Request>(context) {
         }
     }
 
-    fun requestRename(dialog: Dialog, file: File) {
+    private fun requestRename(file: File) {
         requests.trySend(Request.RenameFile(file))
-
-        dialog.dismiss()
     }
 
-    fun requestImport(dialog: Dialog, file: File) {
-        requests.trySend(Request.ImportFile(file))
-
-        dialog.dismiss()
+    private fun requestImport(file: File) {
+        confirm(context.getString(R.string.import_), file.name, destructive = true) {
+            requests.trySend(Request.ImportFile(file))
+        }
     }
 
-    fun requestExport(dialog: Dialog, file: File) {
+    private fun requestExport(file: File) {
         requests.trySend(Request.ExportFile(file))
-
-        dialog.dismiss()
     }
 
-    fun requestDelete(dialog: Dialog, file: File) {
-        requests.trySend(Request.DeleteFile(file))
-
-        dialog.dismiss()
+    private fun requestDelete(file: File) {
+        confirm(context.getString(R.string.delete), file.name, destructive = true) {
+            requests.trySend(Request.DeleteFile(file))
+        }
     }
 
-    fun requestNew() {
-        requests.trySend(Request.ImportFile(null))
+    private fun confirm(title: String, message: String, destructive: Boolean, block: () -> Unit) {
+        launch {
+            val accepted = withContext(Dispatchers.Main) {
+                iosConfirm(
+                    context,
+                    title,
+                    message,
+                    context.getString(R.string.ok),
+                    destructive,
+                )
+            }
+            if (accepted) block()
+        }
     }
 
-    private fun requestMore(file: File) {
-        val dialog = AppBottomSheetDialog(context)
-
-        val binding = DialogFilesMenuBinding.inflate(context.layoutInflater)
-
-        binding.master = this
-        binding.self = dialog
-        binding.file = file
-        binding.currentInBase = this.binding.currentInBaseDir
-        binding.configurationEditable = this.binding.configurationEditable
-
-        dialog.setContentView(binding.root)
-        dialog.show()
+    init {
+        if (context is AppCompatActivity) {
+            context.window.decorView.setOnInsertsChangedListener {
+                if (surface.insets != it) surface.insets = it
+                insets = it
+            }
+        }
     }
 }

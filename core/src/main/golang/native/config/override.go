@@ -3,6 +3,7 @@ package config
 import (
 	"io"
 	"os"
+	"path"
 
 	"github.com/metacubex/mihomo/constant"
 )
@@ -23,39 +24,65 @@ func overridePersistPath() string {
 	return constant.Path.Resolve("override.json")
 }
 
-func ReadOverride(slot OverrideSlot) string {
+func ReadOverride(slot OverrideSlot) (string, error) {
 	switch slot {
 	case OverrideSlotPersist:
 		file, err := os.OpenFile(overridePersistPath(), os.O_RDONLY, 0600)
 		if err != nil {
-			return defaultPersistOverride
+			return defaultPersistOverride, nil
 		}
+		defer file.Close()
 
 		buf, err := io.ReadAll(file)
 		if err != nil {
-			return defaultPersistOverride
+			return "", err
 		}
 
-		return string(buf)
+		return string(buf), nil
 	case OverrideSlotSession:
-		return sessionOverride
+		return sessionOverride, nil
 	}
 
-	return ""
+	return "", nil
 }
 
-func WriteOverride(slot OverrideSlot, content string) {
+func WriteOverride(slot OverrideSlot, content string) error {
 	switch slot {
 	case OverrideSlotPersist:
-		file, err := os.OpenFile(overridePersistPath(), os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0600)
+		dest := overridePersistPath()
+		tmp, err := os.CreateTemp(path.Dir(dest), "override-*.json")
 		if err != nil {
-			return
+			return err
 		}
 
-		_, err = file.Write([]byte(content))
+		tmpName := tmp.Name()
+		payload := []byte(content)
+		n, werr := tmp.Write(payload)
+		cerr := tmp.Close()
+		if werr != nil {
+			_ = os.Remove(tmpName)
+			return werr
+		}
+		if n != len(payload) {
+			_ = os.Remove(tmpName)
+			return io.ErrShortWrite
+		}
+		if cerr != nil {
+			_ = os.Remove(tmpName)
+			return cerr
+		}
+		if err = os.Rename(tmpName, dest); err != nil {
+			_ = os.Remove(tmpName)
+			return err
+		}
+
+		return nil
 	case OverrideSlotSession:
 		sessionOverride = content
+		return nil
 	}
+
+	return nil
 }
 
 func ClearOverride(slot OverrideSlot) {

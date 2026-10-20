@@ -1,21 +1,34 @@
 package com.github.kr328.clash.design
 
+import android.app.Activity
 import android.content.Context
 import android.view.View
+import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import com.github.kr328.clash.core.model.FetchStatus
-import com.github.kr328.clash.design.databinding.DesignPropertiesBinding
 import com.github.kr328.clash.design.dialog.ModelProgressBarConfigure
 import com.github.kr328.clash.design.dialog.requestModelTextInput
 import com.github.kr328.clash.design.dialog.withModelProgressBar
-import com.github.kr328.clash.design.util.*
+import com.github.kr328.clash.design.ios.ClashMetaXTheme
+import com.github.kr328.clash.design.ios.PropertiesScreen
+import com.github.kr328.clash.design.ios.iosConfirm
+import com.github.kr328.clash.design.ui.Insets
+import com.github.kr328.clash.design.util.ValidatorAgeSecretKey
+import com.github.kr328.clash.design.util.ValidatorAutoUpdateInterval
+import com.github.kr328.clash.design.util.ValidatorHttpUrl
+import com.github.kr328.clash.design.util.ValidatorNotBlank
+import com.github.kr328.clash.design.util.isShareableSubscriptionUrl
+import com.github.kr328.clash.design.util.setOnInsertsChangedListener
+import com.github.kr328.clash.design.util.showSubscriptionQr
 import com.github.kr328.clash.service.model.Profile
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import java.util.concurrent.TimeUnit
-import kotlin.coroutines.resume
 
 class PropertiesDesign(context: Context) : Design<PropertiesDesign.Request>(context) {
     sealed class Request {
@@ -23,24 +36,46 @@ class PropertiesDesign(context: Context) : Design<PropertiesDesign.Request>(cont
         object BrowseFiles : Request()
     }
 
-    private val binding = DesignPropertiesBinding
-        .inflate(context.layoutInflater, context.root, false)
-
-    override val root: View
-        get() = binding.root
+    private var insets by mutableStateOf(Insets.EMPTY)
+    private var profileState by mutableStateOf<Profile?>(null)
+    private var processing by mutableStateOf(false)
 
     var profile: Profile
-        get() = binding.profile!!
+        get() = profileState!!
         set(value) {
-            binding.profile = value
+            profileState = value
         }
 
     val progressing: Boolean
-        get() = binding.processing
+        get() = processing
+
+    override val root: View = ComposeView(context).apply {
+        setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+        val title = (context as? Activity)?.title?.toString()?.ifBlank { null }
+            ?: context.getString(R.string.profile)
+        setContent {
+            ClashMetaXTheme {
+                PropertiesScreen(
+                    insets = insets,
+                    title = title,
+                    profile = profileState,
+                    processing = processing,
+                    onBack = { (context as? AppCompatActivity)?.onBackPressedDispatcher?.onBackPressed() },
+                    onSave = { requestCommit() },
+                    onName = { inputName() },
+                    onUrl = { inputUrl() },
+                    onInterval = { inputInterval() },
+                    onAgeKey = { inputAgeSecretKey() },
+                    onShare = { shareSubscriptionQr() },
+                    onBrowse = { requestBrowseFiles() },
+                )
+            }
+        }
+    }
 
     suspend fun withProcessing(executeTask: suspend (suspend (FetchStatus) -> Unit) -> Unit) {
         try {
-            binding.processing = true
+            processing = true
 
             context.withModelProgressBar {
                 configure {
@@ -55,35 +90,20 @@ class PropertiesDesign(context: Context) : Design<PropertiesDesign.Request>(cont
                 }
             }
         } finally {
-            binding.processing = false
+            processing = false
         }
     }
 
     suspend fun requestExitWithoutSaving(): Boolean {
         return withContext(Dispatchers.Main) {
-            suspendCancellableCoroutine { ctx ->
-                val dialog = MaterialAlertDialogBuilder(context)
-                    .setTitle(R.string.exit_without_save)
-                    .setMessage(R.string.exit_without_save_warning)
-                    .setCancelable(true)
-                    .setPositiveButton(R.string.ok) { _, _ -> ctx.resume(true) }
-                    .setNegativeButton(R.string.cancel) { _, _ -> }
-                    .setOnDismissListener { if (!ctx.isCompleted) ctx.resume(false) }
-                    .show()
-
-                ctx.invokeOnCancellation { dialog.dismiss() }
-            }
+            iosConfirm(
+                context = context,
+                title = context.getString(R.string.exit_without_save),
+                message = context.getString(R.string.exit_without_save_warning),
+                confirm = context.getString(R.string.ok),
+                destructive = false,
+            )
         }
-    }
-
-    init {
-        binding.self = this
-
-        binding.activityBarLayout.applyFrom(context)
-
-        binding.tips.text = context.getHtml(R.string.tips_properties)
-
-        binding.scrollRoot.bindAppBarElevation(binding.activityBarLayout)
     }
 
     fun inputName() {
@@ -167,6 +187,7 @@ class PropertiesDesign(context: Context) : Design<PropertiesDesign.Request>(cont
     }
 
     fun requestCommit() {
+        if (processing) return
         requests.trySend(Request.Commit)
     }
 
@@ -192,6 +213,15 @@ class PropertiesDesign(context: Context) : Design<PropertiesDesign.Request>(cont
                 isIndeterminate = false
                 max = status.max
                 progress = status.progress
+            }
+        }
+    }
+
+    init {
+        if (context is AppCompatActivity) {
+            context.window.decorView.setOnInsertsChangedListener {
+                if (surface.insets != it) surface.insets = it
+                insets = it
             }
         }
     }

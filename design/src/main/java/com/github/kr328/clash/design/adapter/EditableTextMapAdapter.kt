@@ -18,9 +18,15 @@ class EditableTextMapAdapter<K, V>(
     fun addElement(key: String, value: String) {
         val keyValue = keyAdapter.to(key)
         val valueValue = valueAdapter.to(value)
+        val index = values.indexOfFirst { it.first == keyValue }
 
-        notifyItemInserted(values.size)
-        values.add(keyValue to valueValue)
+        if (index >= 0) {
+            values[index] = keyValue to valueValue
+            notifyItemChanged(index)
+        } else {
+            notifyItemInserted(values.size)
+            values.add(keyValue to valueValue)
+        }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): Holder {
