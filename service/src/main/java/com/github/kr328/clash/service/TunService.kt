@@ -3,6 +3,7 @@ package com.github.kr328.clash.service
 import android.annotation.TargetApi
 import android.app.PendingIntent
 import android.content.Intent
+import android.net.IpPrefix
 import android.net.ProxyInfo
 import android.net.VpnService
 import android.os.Build
@@ -13,8 +14,9 @@ import com.github.kr328.clash.service.clash.clashRuntime
 import com.github.kr328.clash.service.clash.module.*
 import com.github.kr328.clash.service.model.AccessControlMode
 import com.github.kr328.clash.service.store.ServiceStore
+import com.github.kr328.clash.service.util.VpnRoutePlanner
+import com.github.kr328.clash.service.util.VpnRouteSession
 import com.github.kr328.clash.service.util.cancelAndJoinBlocking
-import com.github.kr328.clash.service.util.parseCIDR
 import com.github.kr328.clash.service.util.sendClashStarted
 import com.github.kr328.clash.service.util.sendClashStopped
 import kotlinx.coroutines.*
@@ -31,7 +33,10 @@ class TunService : VpnService(), CoroutineScope by CoroutineScope(Dispatchers.De
 
         val close = install(CloseModule(self))
         val tun = install(TunModule(self))
-        val config = install(ConfigurationModule(self))
+        val routes = VpnRouteSession { tun.open(it) }
+        val config = install(ConfigurationModule(self) { configuration ->
+            routes.update(configuration.routeExcludeAddress)
+        })
         val network = install(NetworkObserveModule(self))
 
         if (store.dynamicNotification)
@@ -44,8 +49,6 @@ class TunService : VpnService(), CoroutineScope by CoroutineScope(Dispatchers.De
         install(SuspendModule(self))
 
         try {
-            tun.open()
-
             while (isActive) {
                 val quit = select<Boolean> {
                     close.onEvent {
@@ -120,8 +123,35 @@ class TunService : VpnService(), CoroutineScope by CoroutineScope(Dispatchers.De
         runtime.requestGc()
     }
 
-    private fun TunModule.open() {
+    private fun TunModule.open(exclusions: List<String>) {
         val store = ServiceStore(self)
+
+        val includes = mutableListOf<String>()
+        if (store.bypassPrivateNetwork) {
+            includes.addAll(resources.getStringArray(R.array.bypass_private_route))
+            if (store.allowIpv6) {
+                includes.addAll(resources.getStringArray(R.array.bypass_private_route6))
+            }
+            includes.add("$TUN_DNS/32")
+            if (store.allowIpv6) includes.add("$TUN_DNS6/128")
+        } else {
+            includes.add("$NET_ANY/0")
+            if (store.allowIpv6) includes.add("$NET_ANY6/0")
+        }
+        val plan = try {
+            VpnRoutePlanner.plan(includes, exclusions, Build.VERSION.SDK_INT >= 33)
+        } catch (e: IllegalArgumentException) {
+            // Planner errors contain fixed diagnostics, never raw configuration values.
+            Log.w("VPN_ROUTE_PLAN_REJECTED: ${e.message}")
+            throw e
+        }
+        Log.i("ROUTE_EXCLUDE_MODE=${plan.mode}")
+        Log.i("VPN_ROUTE_INCLUDE_COUNT=${plan.includes.size}")
+        Log.i("VPN_ROUTE_EXCLUDE_COUNT=${plan.requestedExcludes.size}")
+        plan.requestedExcludes.forEach { Log.i("VPN_ROUTE_EXCLUDE=$it") }
+        if (!store.allowIpv6 && plan.requestedExcludes.any { it.bits == 128 }) {
+            Log.w("VPN_ROUTE_IPV6_EXCLUDE_INACTIVE: IPv6 remains disabled")
+        }
 
         val device = with(Builder()) {
             // Interface address
@@ -131,26 +161,9 @@ class TunService : VpnService(), CoroutineScope by CoroutineScope(Dispatchers.De
             }
 
             // Route
-            if (store.bypassPrivateNetwork) {
-                resources.getStringArray(R.array.bypass_private_route).map(::parseCIDR).forEach {
-                    addRoute(it.ip, it.prefix)
-                }
-                if (store.allowIpv6) {
-                    resources.getStringArray(R.array.bypass_private_route6).map(::parseCIDR).forEach {
-                        addRoute(it.ip, it.prefix)
-                    }
-                }
-
-                // Route of virtual DNS
-                addRoute(TUN_DNS, 32)
-                if (store.allowIpv6) {
-                    addRoute(TUN_DNS6, 128)
-                }
-            } else {
-                addRoute(NET_ANY, 0)
-                if (store.allowIpv6) {
-                    addRoute(NET_ANY6, 0)
-                }
+            plan.includes.forEach { addRoute(it.address, it.length) }
+            if (Build.VERSION.SDK_INT >= 33) {
+                plan.excludes.forEach { excludeRoute(IpPrefix(it.address, it.length)) }
             }
 
             // Access Control
