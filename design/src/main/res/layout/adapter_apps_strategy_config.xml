@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
+    <data>
+        <variable
+            name="config"
+            type="com.github.kr328.clash.service.model.AppsStrategyConfig" />
+        <variable
+            name="isActive"
+            type="boolean" />
+        <variable
+            name="clicked"
+            type="android.view.View.OnClickListener" />
+        <variable
+            name="editClicked"
+            type="android.view.View.OnClickListener" />
+        <variable
+            name="chooseClicked"
+            type="android.view.View.OnClickListener" />
+
+        <import type="com.github.kr328.clash.service.model.AccessControlMode" />
+        <import type="android.view.View" />
+    </data>
+
+    <RelativeLayout
+        android:elevation="5dp"
+        android:id="@+id/root_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginVertical="5dp"
+        android:layout_marginHorizontal="@dimen/item_header_margin"
+        android:background="@drawable/bg_b"
+        android:clickable="true"
+        android:focusable="true"
+        android:minHeight="@dimen/item_min_height"
+        android:onClick="@{clicked}">
+
+        <RadioButton
+            android:id="@+id/icon_view"
+            android:layout_width="@dimen/item_header_component_size"
+            android:layout_height="@dimen/item_header_component_size"
+            android:layout_centerVertical="true"
+            android:layout_marginHorizontal="@dimen/item_header_margin"
+            android:checked="@{isActive}"
+            android:clickable="false"
+            android:focusable="false"
+            android:gravity="center" />
+
+        <LinearLayout
+            android:id="@+id/content_layout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_toStartOf="@id/action_layout"
+            android:layout_toEndOf="@id/icon_view"
+            android:orientation="vertical"
+            android:paddingVertical="@dimen/item_padding_vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@{config.name}"
+                android:textAppearance="@style/TextAppearance.MaterialComponents.Body1" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/item_text_margin"
+                android:text="@{config.mode == AccessControlMode.AcceptAll ? @string/allow_all_apps : (config.mode == AccessControlMode.AcceptSelected ? @string/allow_selected_apps : @string/deny_selected_apps)}"
+                android:textAppearance="@style/TextAppearance.MaterialComponents.Body2" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/item_text_margin"
+                android:text="@{@plurals/selected_apps_count(config.packages.size, config.packages.size)}"
+                android:textAppearance="@style/TextAppearance.MaterialComponents.Caption" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/action_layout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:orientation="horizontal">
+
+            <FrameLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:onClick="@{chooseClicked}">
+
+                <View
+                    android:layout_width="@dimen/item_tailing_component_size"
+                    android:layout_height="@dimen/item_tailing_component_size"
+                    android:layout_margin="@dimen/item_tailing_margin"
+                    android:background="@drawable/ic_baseline_apps" />
+            </FrameLayout>
+
+            <FrameLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:onClick="@{editClicked}">
+
+                <View
+                    android:layout_width="@dimen/item_tailing_component_size"
+                    android:layout_height="@dimen/item_tailing_component_size"
+                    android:layout_margin="@dimen/item_tailing_margin"
+                    android:background="@drawable/ic_baseline_edit" />
+            </FrameLayout>
+
+        </LinearLayout>
+    </RelativeLayout>
+</layout>
