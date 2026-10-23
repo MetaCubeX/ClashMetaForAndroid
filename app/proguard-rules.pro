@@ -57,3 +57,10 @@
     boolean getDEBUG() return false;
     boolean getRECOVER_STACK_TRACES() return false;
 }
+
+# SnakeYAML (WebDAV sync: parsing Clash Verge's profiles.yaml).
+# It loads constructors/representers reflectively and references java.beans,
+# which is absent on Android — keep its classes and silence the missing refs.
+-keep class org.yaml.snakeyaml.** { *; }
+-dontwarn org.yaml.snakeyaml.**
+-dontwarn java.beans.**
