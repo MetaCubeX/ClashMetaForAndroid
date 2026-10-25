@@ -3,13 +3,15 @@ title: "当前快照"
 type: progress
 status: active
 phase: N/A
-updated: 2026-10-20
-summary: "底部弹层遮罩单独淡入。已覆盖安装，配置菜单只打开后取消"
+updated: 2026-10-25
+summary: "设置可切换应用语言，列出全部已支持语言，默认跟随系统"
 ---
 
 # 当前快照
 
-**日期**：2026-10-20
+**日期**：2026-10-25
+
+**应用语言**：设置 → 应用 → 界面的第一项是语言。点整行选择，第一项是跟随系统，后面按 `locales_config.xml` 列出 English、日本語、한국어、Русский、Tiếng Việt、简体中文、繁體中文（香港）、繁體中文（台灣），名称用各语言自己的文字。默认不写偏好，跟随系统，包括 Android 13 的按应用语言。选中后写入 `ui` 的 `app_language` 并重建界面。页面标题在重建时按当前语言重新读取。`:background` 启动时套用同一项；已在运行时收到广播后，下一次取文案用新语言，已经显示的通知要等刷新。空值和无法识别的值按跟随系统。
 
 **当前**：显示名是 ClashMetaX。用户可见屏幕的根视图是 Compose。首页在连接之下是规则、全局、直连三个按钮；隧道运行时显示上下行速率和当前节点。其余屏幕用同一套分组列表。决定见 [ADR-002](../decisions/002-compose-ios-home.md)，行为见 [界面](../../docs/systems/ui/INDEX.md)。已落地的规格见 [分组交互](../plans/compose-remaining-screens.md)、[界面视觉收口](../plans/ui-visual-consistency.md) 和 [四处时序修复](../plans/ui-timing-fixes.md)。
 

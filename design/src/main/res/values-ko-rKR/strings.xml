@@ -193,10 +193,12 @@
     <string name="tips_help"><![CDATA[ClashMetaX는 <strong>프리웨어</strong>이며, <strong>우회 서비스 제공자가 아닙니다.</strong> 따라서, <strong>앱 자체 이외의 문제에 대한 피드백은 받지 않습니다.</strong>]]></string>
     <string name="app">앱</string>
     <string name="service">서비스</string>
+    <string name="app_language">언어</string>
     <string name="dark_mode">다크 모드</string>
     <string name="show_traffic">트래픽 차트</string>
     <string name="show_traffic_summary">알림표시줄에서 자동으로 트래픽 차트 업데이트</string>
     <string name="follow_system_android_10">시스템 설정 (Android 10+)과 일치</string>
+    <string name="follow_system">시스템 설정</string>
     <string name="always_dark">다크</string>
     <string name="always_light">라이트</string>
     <string name="allow_all_apps">모든 앱 허용</string>

@@ -3,7 +3,7 @@ title: "common 常量"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-10-15
+updated: 2026-10-25
 summary: "Intents、Components、Permissions、Authorities、Metadata 实际拼出的字符串"
 ---
 
@@ -37,6 +37,7 @@ summary: "Intents、Components、Permissions、Authorities、Metadata 实际拼�
 | `ACTION_PROFILE_SCHEDULE_UPDATES` | `$packageName.intent.action.SCHEDULE_UPDATES` |
 | `ACTION_PROFILE_LOADED` | `$packageName.intent.action.PROFILE_LOADED` |
 | `ACTION_OVERRIDE_CHANGED` | `$packageName.intent.action.OVERRIDE_CHANGED` |
+| `ACTION_APP_LANGUAGE_CHANGED` | `$packageName.intent.action.APP_LANGUAGE_CHANGED` |
 
 Extra 键是 `const`，不加包名前缀：
 
@@ -44,6 +45,7 @@ Extra 键是 `const`，不加包名前缀：
 |:-----|:---|
 | `EXTRA_NAME` | `name` |
 | `EXTRA_STOP_REASON` | `stop_reason` |
+| `EXTRA_APP_LANGUAGE` | `app_language` |
 | `EXTRA_UUID` | `uuid` |
 | `EXTRA_FAIL_REASON` | `fail_reason` |
 

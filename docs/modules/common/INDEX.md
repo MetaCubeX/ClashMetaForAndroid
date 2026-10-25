@@ -3,8 +3,8 @@ title: "common 模块导航"
 type: index
 status: accepted
 phase: N/A
-updated: 2026-10-15
-summary: "跨模块常量、Store 和兼容工具"
+updated: 2026-10-25
+summary: "跨模块常量、Store、应用语言和兼容工具"
 ---
 
 # common
@@ -17,5 +17,6 @@ summary: "跨模块常量、Store 和兼容工具"
 | 动作字符串 | `common/.../constants/Intents.kt` |
 | Store | `common/.../store/` |
 | 兼容工具 | `common/.../compat/` |
+| 应用语言 | `common/.../AppLanguages.kt`。可选语言与套用方式见 [界面](../../systems/ui/INDEX.md) |
 
 外部控制动作如何与 Manifest 对齐，见 [运行时](../../systems/runtime/INDEX.md)。

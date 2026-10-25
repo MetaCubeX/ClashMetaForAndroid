@@ -3,18 +3,25 @@ package com.github.kr328.clash.design.store
 import android.content.ComponentName
 import android.content.Context
 import android.content.pm.PackageManager
+import com.github.kr328.clash.common.AppLanguages
 import com.github.kr328.clash.common.store.Store
 import com.github.kr328.clash.common.store.asStoreProvider
 import com.github.kr328.clash.core.model.ProxySort
 import com.github.kr328.clash.design.model.AppInfoSort
 import com.github.kr328.clash.design.model.DarkMode
 
-class UiStore(context: Context) {
+class UiStore(private val context: Context) {
     private val store = Store(
         context
-            .getSharedPreferences(PREFERENCE_NAME, Context.MODE_PRIVATE)
+            .getSharedPreferences(AppLanguages.PREFERENCE_NAME, Context.MODE_PRIVATE)
             .asStoreProvider()
     )
+
+    var appLanguage: String
+        get() = AppLanguages.read(context)
+        set(value) {
+            AppLanguages.write(context, value)
+        }
 
     var enableVpn: Boolean by store.boolean(
         key = "enable_vpn",
@@ -79,8 +86,6 @@ class UiStore(context: Context) {
     )
 
     companion object {
-        private const val PREFERENCE_NAME = "ui"
-
         val Context.mainActivityAlias: ComponentName
             get() = ComponentName(this, "com.github.kr328.clash.MainActivityAlias")
     }

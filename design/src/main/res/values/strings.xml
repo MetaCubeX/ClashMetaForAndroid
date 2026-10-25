@@ -267,12 +267,14 @@
     <string name="app">App</string>
     <string name="service">Service</string>
 
+    <string name="app_language">Language</string>
     <string name="dark_mode">Dark Mode</string>
 
     <string name="show_traffic">Show Traffic</string>
     <string name="show_traffic_summary">Auto refresh traffic in notification</string>
 
     <string name="follow_system_android_10">Follow System (Android 10+)</string>
+    <string name="follow_system">Follow system</string>
     <string name="always_dark">Always Dark</string>
     <string name="always_light">Always Light</string>
 

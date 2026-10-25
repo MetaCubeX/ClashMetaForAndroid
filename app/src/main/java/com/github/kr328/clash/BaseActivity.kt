@@ -1,6 +1,8 @@
 package com.github.kr328.clash
 
 import android.app.ActivityManager
+import android.content.Context
+import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
@@ -8,6 +10,7 @@ import android.view.View
 import androidx.activity.result.contract.ActivityResultContract
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.getSystemService
+import com.github.kr328.clash.common.AppLanguages
 import com.github.kr328.clash.common.compat.isAllowForceDarkCompat
 import com.github.kr328.clash.common.compat.isLightNavigationBarCompat
 import com.github.kr328.clash.common.compat.isLightStatusBarsCompat
@@ -86,8 +89,13 @@ abstract class BaseActivity<D : Design<*>> : AppCompatActivity(),
         }
     }
 
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(AppLanguages.wrap(newBase))
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        applyLocalizedTitle()
         applyDayNight()
 
         // Apply excludeFromRecents setting to all app tasks.
@@ -143,6 +151,15 @@ abstract class BaseActivity<D : Design<*>> : AppCompatActivity(),
                 it.recreate()
             }
         }
+    }
+
+    private fun applyLocalizedTitle() {
+        val labelRes = try {
+            packageManager.getActivityInfo(componentName, 0).labelRes
+        } catch (_: PackageManager.NameNotFoundException) {
+            0
+        }
+        if (labelRes != 0) setTitle(getString(labelRes))
     }
 
     open fun shouldDisplayHomeAsUpEnabled(): Boolean {

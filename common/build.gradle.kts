@@ -8,4 +8,6 @@ dependencies {
 
     implementation(libs.kotlin.coroutine)
     implementation(libs.androidx.core)
+
+    testImplementation(libs.junit)
 }

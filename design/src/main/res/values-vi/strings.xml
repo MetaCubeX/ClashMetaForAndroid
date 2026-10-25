@@ -73,6 +73,7 @@
     <string name="compatible">Tương thích</string>
     <string name="copied">Đã sao chép</string>
     <string name="create_profile">Tạo cấu hình</string>
+    <string name="app_language">Ngôn ngữ</string>
     <string name="dark_mode">Chế độ tối</string>
     <string name="debug">Gỡ lỗi</string>
     <string name="default_">Mặc định</string>
@@ -115,6 +116,7 @@
     <string name="files">Tệp</string>
     <string name="filter">Bộ lọc</string>
     <string name="follow_system_android_10">Theo hệ thống (Android 10+)</string>
+    <string name="follow_system">Theo hệ thống</string>
     <string name="force_enable">Buộc bật</string>
     <string name="format_days_ago">%d ngày trước</string>
     <string name="format_elements">%d elements</string>

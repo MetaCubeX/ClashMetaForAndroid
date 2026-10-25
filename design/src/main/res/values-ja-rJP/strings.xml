@@ -193,10 +193,12 @@
     <string name="tips_help"><![CDATA[ClashMetaXは<strong>無料アプリ</strong>です。当開発者は<strong>一切のプロキシサービスを提供していません。</strong> <strong>サービスに関する問い合わせはご遠慮ください。</strong>]]></string>
     <string name="app">アプリ</string>
     <string name="service">サービス</string>
+    <string name="app_language">言語</string>
     <string name="dark_mode">ダークモード</string>
     <string name="show_traffic">通信量を表示</string>
     <string name="show_traffic_summary">通知時に通信量を自動更新</string>
     <string name="follow_system_android_10">システム (Android 10+)</string>
+    <string name="follow_system">システムに従う</string>
     <string name="always_dark">常にダークモード</string>
     <string name="always_light">常にライトモード</string>
     <string name="allow_all_apps">すべてのアプリを許可</string>

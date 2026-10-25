@@ -3,8 +3,8 @@ title: "common 模块设计"
 type: index
 status: accepted
 phase: N/A
-updated: 2026-10-15
-summary: "common 的包、依赖，以及 Store、常量以外的 Global、compat 和 util"
+updated: 2026-10-25
+summary: "common 的包、依赖，以及 Store、常量以外的 Global、语言、compat 和 util"
 ---
 
 # common
@@ -20,6 +20,7 @@ summary: "common 的包、依赖，以及 Store、常量以外的 Global、compa
 | `compat` | 按 `SDK_INT` 分支的 Android API 包装 |
 | `util` | 包名、Intent、分片 Parcel、定时 Channel |
 | `Global.kt` | 进程内的 `Application` 和 IO 协程作用域 |
+| `AppLanguages.kt` | 应用语言偏好与进程内套用。行为见 [界面](../../docs/systems/ui/INDEX.md) |
 | `log` | 固定 tag 的 `android.util.Log` 包装 |
 | `id` | 进程内递增整数。仓库里由 `ProfileWorker` 用作通知 id |
 

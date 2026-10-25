@@ -20,6 +20,7 @@
     <string name="cancel">取消</string>
     <string name="clash_logcat">Clash Logcat</string>
     <string name="create_profile">建立設定檔</string>
+    <string name="app_language">語言</string>
     <string name="dark_mode">深色模式</string>
     <string name="default_">預設</string>
     <string name="delay">延遲</string>
@@ -119,6 +120,7 @@
     <string name="select_none">清除</string>
     <string name="app">應用</string>
     <string name="follow_system_android_10">系統預設 (Android 10+)</string>
+    <string name="follow_system">跟隨系統</string>
     <string name="always_dark">深色</string>
     <string name="always_light">淺色</string>
     <string name="service">服務</string>

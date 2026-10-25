@@ -12,6 +12,7 @@ import androidx.compose.ui.platform.ViewCompositionStrategy
 import com.github.kr328.clash.design.ios.AppSettingsScreen
 import com.github.kr328.clash.design.ios.AppSettingsUiState
 import com.github.kr328.clash.design.ios.ClashMetaXTheme
+import com.github.kr328.clash.common.AppLanguages
 import com.github.kr328.clash.design.model.Behavior
 import com.github.kr328.clash.design.model.DarkMode
 import com.github.kr328.clash.design.store.UiStore
@@ -38,6 +39,7 @@ class AppSettingsDesign(
     private var state by mutableStateOf(
         AppSettingsUiState(
             autoRestart = behavior.autoRestart,
+            appLanguage = uiStore.appLanguage,
             darkMode = uiStore.darkMode,
             hideAppIcon = uiStore.hideAppIcon,
             hideFromRecents = uiStore.hideFromRecents,
@@ -59,6 +61,7 @@ class AppSettingsDesign(
                     state = state,
                     onBack = { (context as? AppCompatActivity)?.onBackPressedDispatcher?.onBackPressed() },
                     onAutoRestart = ::setAutoRestart,
+                    onLanguage = ::setLanguage,
                     onDarkMode = ::setDarkMode,
                     onHideIcon = ::setHideIcon,
                     onHideFromRecents = ::setHideFromRecents,
@@ -75,6 +78,19 @@ class AppSettingsDesign(
                 behavior.autoRestart
             }
             state = state.copy(autoRestart = stored)
+        }
+    }
+
+    private fun setLanguage(value: String) {
+        if (value == state.appLanguage) return
+        launch(Dispatchers.Main) {
+            val stored = withContext(Dispatchers.IO) {
+                AppLanguages.write(context, value)
+            }
+            AppLanguages.apply(context, stored)
+            AppLanguages.broadcast(context, stored)
+            state = state.copy(appLanguage = stored)
+            requests.trySend(Request.ReCreateAllActivities)
         }
     }
 

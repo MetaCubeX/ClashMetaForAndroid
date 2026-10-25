@@ -233,12 +233,14 @@
     <string name="app">Приложение</string>
     <string name="service">Сервис</string>
 
+    <string name="app_language">Язык</string>
     <string name="dark_mode">Тёмный режим</string>
 
     <string name="show_traffic">Показывать трафик</string>
     <string name="show_traffic_summary">Автоматически обновлять счётчик трафика в уведомлении</string>
 
     <string name="follow_system_android_10">Как в системе (Android 10+)</string>
+    <string name="follow_system">Как в системе</string>
     <string name="always_dark">Всегда тёмная</string>
     <string name="always_light">Всегда светлая</string>
 

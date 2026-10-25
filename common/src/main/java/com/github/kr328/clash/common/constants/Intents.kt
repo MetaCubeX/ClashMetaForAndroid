@@ -25,8 +25,10 @@ object Intents {
     val ACTION_PROFILE_SCHEDULE_UPDATES = "$packageName.intent.action.SCHEDULE_UPDATES"
     val ACTION_PROFILE_LOADED = "$packageName.intent.action.PROFILE_LOADED"
     val ACTION_OVERRIDE_CHANGED = "$packageName.intent.action.OVERRIDE_CHANGED"
+    val ACTION_APP_LANGUAGE_CHANGED = "$packageName.intent.action.APP_LANGUAGE_CHANGED"
 
     const val EXTRA_STOP_REASON = "stop_reason"
+    const val EXTRA_APP_LANGUAGE = "app_language"
     const val EXTRA_UUID = "uuid"
     const val EXTRA_FAIL_REASON = "fail_reason"
 }

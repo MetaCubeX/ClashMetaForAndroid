@@ -16,12 +16,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.github.kr328.clash.common.AppLanguages
 import com.github.kr328.clash.design.R
 import com.github.kr328.clash.design.model.DarkMode
 import com.github.kr328.clash.design.ui.Insets
 
 data class AppSettingsUiState(
     val autoRestart: Boolean = false,
+    val appLanguage: String = AppLanguages.FOLLOW_SYSTEM,
     val darkMode: DarkMode = DarkMode.Auto,
     val hideAppIcon: Boolean = false,
     val hideFromRecents: Boolean = false,
@@ -38,12 +40,18 @@ fun AppSettingsScreen(
     state: AppSettingsUiState,
     onBack: () -> Unit,
     onAutoRestart: (Boolean) -> Unit,
+    onLanguage: (String) -> Unit,
     onDarkMode: (DarkMode) -> Unit,
     onHideIcon: (Boolean) -> Unit,
     onHideFromRecents: (Boolean) -> Unit,
     onShowTraffic: (Boolean) -> Unit,
 ) {
+    var languageOpen by remember { mutableStateOf(false) }
     var darkModeOpen by remember { mutableStateOf(false) }
+    val languageTags = listOf(AppLanguages.FOLLOW_SYSTEM) + AppLanguages.supported.map { it.tag }
+    val languageLabels = listOf(stringResource(R.string.follow_system)) +
+        AppLanguages.supported.map { it.nativeName }
+    val languageIndex = languageTags.indexOf(state.appLanguage).let { if (it < 0) 0 else it }
     val darkModes = DarkMode.values()
     val darkLabels = listOf(
         stringResource(R.string.follow_system_android_10),
@@ -72,27 +80,36 @@ fun AppSettingsScreen(
             GroupLabel(stringResource(R.string.interface_))
             IosPreferenceRow(
                 row = IosDetail(
+                    title = stringResource(R.string.app_language),
+                    subtitle = languageLabels.getOrNull(languageIndex),
+                    onClick = { languageOpen = true },
+                ),
+                index = 0,
+                count = 4,
+            )
+            IosPreferenceRow(
+                row = IosDetail(
                     title = stringResource(R.string.dark_mode),
                     subtitle = darkLabels.getOrNull(darkIndex),
                     onClick = { darkModeOpen = true },
                 ),
-                index = 0,
-                count = 3,
+                index = 1,
+                count = 4,
             )
             IosSwitchRow(
                 title = stringResource(R.string.hide_app_icon_title),
                 summary = stringResource(R.string.hide_app_icon_desc).withDialCodeKeptIntact(),
                 checked = state.hideAppIcon,
-                index = 1,
-                count = 3,
+                index = 2,
+                count = 4,
                 onCheckedChange = onHideIcon,
             )
             IosSwitchRow(
                 title = stringResource(R.string.hide_from_recents_title),
                 summary = stringResource(R.string.hide_from_recents_desc),
                 checked = state.hideFromRecents,
-                index = 2,
-                count = 3,
+                index = 3,
+                count = 4,
                 onCheckedChange = onHideFromRecents,
             )
             Spacer(Modifier.height(22.dp))
@@ -107,6 +124,16 @@ fun AppSettingsScreen(
                 onCheckedChange = onShowTraffic,
             )
         }
+    }
+
+    if (languageOpen) {
+        IosOptionSheet(
+            title = stringResource(R.string.app_language),
+            options = languageLabels,
+            selected = languageIndex,
+            onSelect = { onLanguage(languageTags[it]) },
+            onDismiss = { languageOpen = false },
+        )
     }
 
     if (darkModeOpen) {
