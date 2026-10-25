@@ -164,38 +164,52 @@ func FetchAndValid(
 	force bool,
 	reportStatus func(string),
 ) error {
-	configPath := P.Join(path, "config.yaml")
+	defer runtime.GC()
 
-	if _, err := os.Stat(configPath); os.IsNotExist(err) || force {
-		url, err := U.Parse(url)
+	configPath := P.Join(path, "config.yaml")
+	_, statErr := os.Stat(configPath)
+	fetchConfig := force || os.IsNotExist(statErr)
+
+	var configURL *U.URL
+	if fetchConfig {
+		parsed, err := U.Parse(url)
 		if err != nil {
 			return err
 		}
+		configURL = parsed
+	}
 
+	staging, err := profileStagingDir(path)
+	if err != nil {
+		return err
+	}
+	defer os.RemoveAll(staging)
+
+	var header fetchHeader
+	if fetchConfig {
 		bytes, _ := json.Marshal(&Status{
 			Action:      "FetchConfiguration",
-			Args:        []string{url.Host},
+			Args:        []string{configURL.Host},
 			Progress:    -1,
 			MaxProgress: -1,
 		})
 
 		reportStatus(string(bytes))
 
-		header, err := fetch(url, configPath)
+		header, err = fetch(configURL, P.Join(staging, "config.yaml"))
 		if err != nil {
 			return err
 		}
-
-		reportSubscriptionInfo(header, reportStatus)
+	} else if err = copyFile(P.Join(staging, "config.yaml"), configPath); err != nil {
+		return err
 	}
 
-	defer runtime.GC()
-
-	rawCfg, err := UnmarshalAndPatch(path)
+	rawCfg, err := UnmarshalAndPatch(staging)
 	if err != nil {
 		return err
 	}
 
+	var staged []string
 	err = forEachProviders(rawCfg, func(index int, total int, name string, provider map[string]any, prefix string) error {
 		bytes, _ := json.Marshal(&Status{
 			Action:      "FetchProviders",
@@ -220,9 +234,17 @@ func FetchAndValid(
 			return nil
 		}
 
+		rel, err := relativeToStaging(staging, ps)
+		if err != nil {
+			return err
+		}
+
 		if !force {
-			if _, err := os.Stat(ps); err == nil {
-				return nil
+			officialPs := P.Join(path, rel)
+			if _, err := os.Stat(officialPs); err == nil {
+				return copyFile(ps, officialPs)
+			} else if !os.IsNotExist(err) {
+				return err
 			}
 		}
 
@@ -240,6 +262,7 @@ func FetchAndValid(
 					if file, err := RB.Open(pib); err == nil {
 						defer file.Close()
 						if err := writeFile(ps, file); err == nil {
+							staged = append(staged, rel)
 							return nil
 						}
 					}
@@ -251,6 +274,7 @@ func FetchAndValid(
 			return err
 		}
 
+		staged = append(staged, rel)
 		return nil
 	})
 	if err != nil {
@@ -272,6 +296,206 @@ func FetchAndValid(
 	}
 
 	destroyProviders(cfg)
+
+	rels := staged
+	if fetchConfig {
+		rels = append([]string{"config.yaml"}, staged...)
+	}
+	if err := publishStaged(path, staging, rels); err != nil {
+		return err
+	}
+
+	if fetchConfig {
+		reportSubscriptionInfo(header, reportStatus)
+	}
+
+	return nil
+}
+
+// profileStagingDir keeps the fetch scratch directory beside the profile.
+// os.MkdirTemp with an empty dir uses os.TempDir, and on Android that is
+// /data/local/tmp, which the app cannot create.
+func profileStagingDir(profilePath string) (string, error) {
+	dir := P.Dir(profilePath)
+	if dir == "" || dir == "." || dir == profilePath {
+		return "", fmt.Errorf("profile path %s has no parent directory", profilePath)
+	}
+	if err := os.MkdirAll(dir, 0700); err != nil {
+		return "", err
+	}
+	return os.MkdirTemp(dir, ".cmfa-profile-*")
+}
+
+func relativeToStaging(stagingDir, stagedPath string) (string, error) {
+	prefix := stagingDir + "/"
+	if !strings.HasPrefix(stagedPath, prefix) {
+		return "", fmt.Errorf("staged file %s is outside %s", stagedPath, stagingDir)
+	}
+
+	return strings.TrimPrefix(stagedPath, prefix), nil
+}
+
+func copyFile(dst, src string) error {
+	in, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	defer in.Close()
+
+	return writeFile(dst, in)
+}
+
+func copyToTemp(dir, src string) (string, error) {
+	in, err := os.Open(src)
+	if err != nil {
+		return "", err
+	}
+	defer in.Close()
+
+	tmp, err := os.CreateTemp(dir, ".cmfa-bak-*")
+	if err != nil {
+		return "", err
+	}
+
+	name := tmp.Name()
+	_, copyErr := io.Copy(tmp, in)
+	closeErr := tmp.Close()
+	if copyErr != nil {
+		_ = os.Remove(name)
+		return "", copyErr
+	}
+	if closeErr != nil {
+		_ = os.Remove(name)
+		return "", closeErr
+	}
+
+	return name, nil
+}
+
+func missingParents(dir string) ([]string, error) {
+	var missing []string
+	cur := dir
+	for {
+		_, err := os.Stat(cur)
+		if err == nil {
+			break
+		}
+		if !os.IsNotExist(err) {
+			return nil, err
+		}
+
+		missing = append(missing, cur)
+		parent := P.Dir(cur)
+		if parent == cur {
+			break
+		}
+		cur = parent
+	}
+
+	return missing, nil
+}
+
+func validPublishRel(rel string) bool {
+	if rel == "" || strings.HasPrefix(rel, "/") {
+		return false
+	}
+
+	for _, part := range strings.Split(rel, "/") {
+		if part == "" || part == "." || part == ".." {
+			return false
+		}
+	}
+
+	return true
+}
+
+type stagedPublish struct {
+	dst     string
+	backup  string
+	created bool
+	dirs    []string
+}
+
+func publishStaged(officialDir, stagingDir string, rels []string) error {
+	var done []stagedPublish
+	rollback := func() {
+		for i := len(done) - 1; i >= 0; i-- {
+			item := done[i]
+			switch {
+			case item.created:
+				_ = os.Remove(item.dst)
+			case item.backup != "":
+				_ = copyFile(item.dst, item.backup)
+			}
+			for _, dir := range item.dirs {
+				_ = os.Remove(dir)
+			}
+		}
+	}
+
+	for _, rel := range rels {
+		if !validPublishRel(rel) {
+			rollback()
+			return fmt.Errorf("refuse to publish %s", rel)
+		}
+
+		dst := P.Join(officialDir, rel)
+		parent := P.Dir(dst)
+		dirs, err := missingParents(parent)
+		if err != nil {
+			rollback()
+			return err
+		}
+		if err = os.MkdirAll(parent, 0700); err != nil {
+			rollback()
+			return err
+		}
+
+		item := stagedPublish{dirs: dirs}
+		info, statErr := os.Stat(dst)
+		switch {
+		case statErr == nil && info.IsDir():
+			done = append(done, item)
+			rollback()
+			return fmt.Errorf("%s is a directory", dst)
+		case statErr == nil:
+			backup, berr := copyToTemp(stagingDir, dst)
+			if berr != nil {
+				done = append(done, item)
+				rollback()
+				return berr
+			}
+			item.backup = backup
+			item.dst = dst
+		case os.IsNotExist(statErr):
+			item.created = true
+			item.dst = dst
+		default:
+			done = append(done, item)
+			rollback()
+			return statErr
+		}
+
+		if err = copyFile(dst, P.Join(stagingDir, rel)); err != nil {
+			if item.backup != "" {
+				_ = os.Remove(item.backup)
+			}
+			item.dst = ""
+			item.backup = ""
+			item.created = false
+			done = append(done, item)
+			rollback()
+			return err
+		}
+
+		done = append(done, item)
+	}
+
+	for _, item := range done {
+		if item.backup != "" {
+			_ = os.Remove(item.backup)
+		}
+	}
 
 	return nil
 }
