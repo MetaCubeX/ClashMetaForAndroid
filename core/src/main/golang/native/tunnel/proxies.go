@@ -21,6 +21,9 @@ const (
 	Delay
 )
 
+// noDelay is mihomo's sentinel for "no usable delay for this test url". The ui renders it as blank.
+const noDelay uint16 = 0xffff
+
 type Proxy struct {
 	Name     string `json:"name"`
 	Title    string `json:"title"`
@@ -98,8 +101,10 @@ func QueryProxyGroup(name string, sortMode SortMode, uiSubtitlePattern *regexp2.
 		return nil
 	}
 
-	proxies := convertProxies(g.Proxies(), uiSubtitlePattern)
-	// 	proxies := collectProviders(g.Providers(), uiSubtitlePattern)
+	testURL := groupTestURL(g)
+
+	proxies := convertProxies(g.Proxies(), uiSubtitlePattern, testURL)
+	// 	proxies := collectProviders(g.Providers(), uiSubtitlePattern, testURL)
 
 	switch sortMode {
 	case Title:
@@ -165,7 +170,44 @@ func PatchSelector(selector, name string) bool {
 	return true
 }
 
-func convertProxies(proxies []C.Proxy, uiSubtitlePattern *regexp2.Regexp) []*Proxy {
+// lastDelay returns the delay of the proxy for the test url the group is checked with.
+//
+// mihomo keeps one delay history per test url and LastDelayForTestUrl returns 0xffff unless the
+// last test of that exact url was alive, so the url must never be picked at random (map iteration
+// order is randomized): ask for the group's own url first, then fall back to any alive url.
+func lastDelay(p C.Proxy, testURL string) uint16 {
+	if testURL != "" {
+		if delay := p.LastDelayForTestUrl(testURL); delay != noDelay {
+			return delay
+		}
+	}
+
+	var best uint16
+
+	for _, state := range p.ExtraDelayHistories() {
+		if !state.Alive || len(state.History) == 0 {
+			continue
+		}
+
+		delay := state.History[len(state.History)-1].Delay
+
+		if delay == 0 || delay == noDelay {
+			continue
+		}
+
+		if best == 0 || delay < best {
+			best = delay
+		}
+	}
+
+	if best == 0 {
+		return noDelay
+	}
+
+	return best
+}
+
+func convertProxies(proxies []C.Proxy, uiSubtitlePattern *regexp2.Regexp, testURL string) []*Proxy {
 	result := make([]*Proxy, 0, 128)
 
 	for _, p := range proxies {
@@ -183,13 +225,6 @@ func convertProxies(proxies []C.Proxy, uiSubtitlePattern *regexp2.Regexp) []*Pro
 				}
 			}
 		}
-		testURL := "https://www.gstatic.com/generate_204"
-		for k := range p.ExtraDelayHistories() {
-			if len(k) > 0 {
-				testURL = k
-				break
-			}
-		}
 		_, isGroup := p.Adapter().(outboundgroup.ProxyGroup)
 
 		result = append(result, &Proxy{
@@ -197,14 +232,14 @@ func convertProxies(proxies []C.Proxy, uiSubtitlePattern *regexp2.Regexp) []*Pro
 			Title:    strings.TrimSpace(title),
 			Subtitle: strings.TrimSpace(subtitle),
 			Type:     p.Type().String(),
-			Delay:    int(p.LastDelayForTestUrl(testURL)),
+			Delay:    int(lastDelay(p, testURL)),
 			IsGroup:  isGroup,
 		})
 	}
 	return result
 }
 
-func collectProviders(providers []provider.ProxyProvider, uiSubtitlePattern *regexp2.Regexp) []*Proxy {
+func collectProviders(providers []provider.ProxyProvider, uiSubtitlePattern *regexp2.Regexp, testURL string) []*Proxy {
 	result := make([]*Proxy, 0, 128)
 
 	for _, p := range providers {
@@ -223,14 +258,6 @@ func collectProviders(providers []provider.ProxyProvider, uiSubtitlePattern *reg
 					}
 				}
 			}
-
-			testURL := "https://www.gstatic.com/generate_204"
-			for k := range px.ExtraDelayHistories() {
-				if len(k) > 0 {
-					testURL = k
-					break
-				}
-			}
 			_, isGroup := px.Adapter().(outboundgroup.ProxyGroup)
 
 			result = append(result, &Proxy{
@@ -238,7 +265,7 @@ func collectProviders(providers []provider.ProxyProvider, uiSubtitlePattern *reg
 				Title:    strings.TrimSpace(title),
 				Subtitle: strings.TrimSpace(subtitle),
 				Type:     px.Type().String(),
-				Delay:    int(px.LastDelayForTestUrl(testURL)),
+				Delay:    int(lastDelay(px, testURL)),
 				IsGroup:  isGroup,
 			})
 		}
