@@ -18,6 +18,7 @@ dependencies {
 
     implementation(libs.kotlin.coroutine)
     implementation(libs.androidx.core)
+    implementation(libs.androidx.splashscreen)
     implementation(libs.androidx.activity)
     implementation(libs.androidx.fragment)
     implementation(libs.androidx.appcompat)
