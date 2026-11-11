@@ -1,4 +1,5 @@
-cmake_minimum_required(VERSION 3.0)
+# 3.5 is the minimum accepted by CMake 4.x (anything lower is a hard error there)
+cmake_minimum_required(VERSION 3.5)
 
 # 获取git hash
 
