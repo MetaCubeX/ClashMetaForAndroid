@@ -6,6 +6,7 @@ plugins {
 }
 
 dependencies {
+    testImplementation(libs.junit)
     implementation(project(":core"))
     implementation(project(":common"))
 
