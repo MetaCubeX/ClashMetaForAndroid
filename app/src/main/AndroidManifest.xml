@@ -86,6 +86,7 @@
 
                 <data android:scheme="clash"/>
                 <data android:scheme="clashmeta"/>
+                <data android:scheme="cmfa"/>
                 <data android:host="install-config"/>
             </intent-filter>
             <intent-filter>
