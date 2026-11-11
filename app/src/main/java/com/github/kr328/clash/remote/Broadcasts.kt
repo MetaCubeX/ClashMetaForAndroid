@@ -7,6 +7,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import com.github.kr328.clash.common.compat.registerReceiverCompat
 import com.github.kr328.clash.common.constants.Intents
+import com.github.kr328.clash.common.constants.Permissions
 import com.github.kr328.clash.common.log.Log
 import java.util.*
 
@@ -59,12 +60,16 @@ class Broadcasts(private val context: Application) {
                 Intents.ACTION_PROFILE_UPDATE_COMPLETED ->
                     receivers.forEach {
                         it.onProfileUpdateCompleted(
-                            UUID.fromString(intent.getStringExtra(Intents.EXTRA_UUID)))
+                            intent.getStringExtra(Intents.EXTRA_UUID)?.let {
+                                runCatching { UUID.fromString(it) }.getOrNull()
+                            })
                     }
                 Intents.ACTION_PROFILE_UPDATE_FAILED ->
                     receivers.forEach {
                         it.onProfileUpdateFailed(
-                            UUID.fromString(intent.getStringExtra(Intents.EXTRA_UUID)),
+                            intent.getStringExtra(Intents.EXTRA_UUID)?.let {
+                                runCatching { UUID.fromString(it) }.getOrNull()
+                            },
                             intent.getStringExtra(Intents.EXTRA_FAIL_REASON))
                     }
                 Intents.ACTION_PROFILE_LOADED -> {
@@ -89,15 +94,20 @@ class Broadcasts(private val context: Application) {
             return
 
         try {
-            context.registerReceiverCompat(broadcastReceiver, IntentFilter().apply {
-                addAction(Intents.ACTION_SERVICE_RECREATED)
-                addAction(Intents.ACTION_CLASH_STARTED)
-                addAction(Intents.ACTION_CLASH_STOPPED)
-                addAction(Intents.ACTION_PROFILE_CHANGED)
-                addAction(Intents.ACTION_PROFILE_UPDATE_COMPLETED)
-                addAction(Intents.ACTION_PROFILE_UPDATE_FAILED)
-                addAction(Intents.ACTION_PROFILE_LOADED)
-            })
+            context.registerReceiverCompat(
+                broadcastReceiver,
+                IntentFilter().apply {
+                    addAction(Intents.ACTION_SERVICE_RECREATED)
+                    addAction(Intents.ACTION_CLASH_STARTED)
+                    addAction(Intents.ACTION_CLASH_STOPPED)
+                    addAction(Intents.ACTION_PROFILE_CHANGED)
+                    addAction(Intents.ACTION_PROFILE_UPDATE_COMPLETED)
+                    addAction(Intents.ACTION_PROFILE_UPDATE_FAILED)
+                    addAction(Intents.ACTION_PROFILE_LOADED)
+                },
+                Permissions.RECEIVE_SELF_BROADCASTS,
+                null,
+            )
 
             clashRunning = StatusClient(context).currentProfile() != null
         } catch (e: Exception) {
