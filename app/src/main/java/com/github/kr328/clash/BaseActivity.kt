@@ -1,6 +1,7 @@
 package com.github.kr328.clash
 
 import android.app.ActivityManager
+import android.content.Intent
 import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
@@ -12,14 +13,19 @@ import com.github.kr328.clash.common.compat.isAllowForceDarkCompat
 import com.github.kr328.clash.common.compat.isLightNavigationBarCompat
 import com.github.kr328.clash.common.compat.isLightStatusBarsCompat
 import com.github.kr328.clash.common.compat.isSystemBarsTranslucentCompat
+import com.github.kr328.clash.common.util.intent
 import com.github.kr328.clash.core.bridge.ClashException
+import com.github.kr328.clash.core.bridge.Bridge
 import com.github.kr328.clash.design.Design
+import com.github.kr328.clash.design.databinding.DesignAboutBinding
 import com.github.kr328.clash.design.model.DarkMode
 import com.github.kr328.clash.design.store.UiStore
 import com.github.kr328.clash.design.ui.DayNight
 import com.github.kr328.clash.design.util.resolveThemedBoolean
 import com.github.kr328.clash.design.util.resolveThemedColor
 import com.github.kr328.clash.design.util.showExceptionToast
+import com.github.kr328.clash.design.view.TvActivityShell
+import com.github.kr328.clash.design.view.TvNavigationBar
 import com.github.kr328.clash.remote.Broadcasts
 import com.github.kr328.clash.remote.Remote
 import com.github.kr328.clash.util.ActivityResultLifecycle
@@ -39,14 +45,16 @@ abstract class BaseActivity<D : Design<*>> : AppCompatActivity(),
     protected val uiStore by lazy { UiStore(this) }
     protected val events = Channel<Event>(Channel.UNLIMITED)
     protected var activityStarted: Boolean = false
+    private var tvShell: TvActivityShell? = null
     protected val clashRunning: Boolean
         get() = Remote.broadcasts.clashRunning
     protected var design: D? = null
         set(value) {
             field = value
             if (value != null) {
-                setContentView(value.root)
+                setContentView(wrapTvContent(value.root))
             } else {
+                tvShell = null
                 setContentView(View(this))
             }
         }
@@ -83,6 +91,103 @@ abstract class BaseActivity<D : Design<*>> : AppCompatActivity(),
                 this.design = design
                 it.resume(Unit)
             }
+        }
+    }
+
+    protected fun openTvTab(intent: Intent) {
+        if (isTelevision) {
+            intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or Intent.FLAG_ACTIVITY_NO_ANIMATION)
+        }
+        startActivity(intent)
+        if (isTelevision) overridePendingTransition(0, 0)
+    }
+
+    private val isTelevision: Boolean
+        get() = resources.configuration.uiMode and Configuration.UI_MODE_TYPE_MASK ==
+            Configuration.UI_MODE_TYPE_TELEVISION
+
+    private fun wrapTvContent(content: View): View {
+        val activeTab = currentTvTab() ?: return content.also { tvShell = null }
+        if (!isTelevision || this is MainActivity) return content.also { tvShell = null }
+
+        return TvActivityShell(this).also { shell ->
+            tvShell = shell
+            shell.setContent(content)
+            shell.navigationBar.apply {
+                setActiveTab(activeTab)
+                proxyEnabled = clashRunning
+                onTabSelected = ::openTvTab
+            }
+
+            if (isTopLevelTvTab()) {
+                content.findViewById<View>(R.id.activity_bar_close_view)?.visibility = View.GONE
+            }
+            shell.focusFirstContent()
+        }
+    }
+
+    private fun currentTvTab(): TvNavigationBar.Tab? = when (this) {
+        is MainActivity -> TvNavigationBar.Tab.Home
+        is ProxyActivity -> TvNavigationBar.Tab.Proxy
+        is ProfilesActivity,
+        is NewProfileActivity,
+        is PropertiesActivity,
+        is FilesActivity,
+        is ProvidersActivity -> TvNavigationBar.Tab.Profiles
+        is LogsActivity,
+        is LogcatActivity -> TvNavigationBar.Tab.Logs
+        is SettingsActivity,
+        is AppSettingsActivity,
+        is NetworkSettingsActivity,
+        is OverrideSettingsActivity,
+        is MetaFeatureSettingsActivity,
+        is AccessControlActivity -> TvNavigationBar.Tab.Settings
+        is HelpActivity -> TvNavigationBar.Tab.Help
+        else -> null
+    }
+
+    private fun isTopLevelTvTab(): Boolean = when (this) {
+        is ProxyActivity,
+        is ProfilesActivity,
+        is LogsActivity,
+        is SettingsActivity,
+        is HelpActivity -> true
+        else -> false
+    }
+
+    private fun openTvTab(tab: TvNavigationBar.Tab) {
+        if (tab == currentTvTab() && isTopLevelTvTab()) {
+            tvShell?.focusFirstContent()
+            return
+        }
+
+        when (tab) {
+            TvNavigationBar.Tab.Home -> openTvTab(
+                MainActivity::class.intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP),
+            )
+            TvNavigationBar.Tab.Proxy -> if (clashRunning) openTvTab(ProxyActivity::class.intent)
+            TvNavigationBar.Tab.Profiles -> openTvTab(ProfilesActivity::class.intent)
+            TvNavigationBar.Tab.Logs -> openTvTab(
+                if (LogcatService.running) LogcatActivity::class.intent else LogsActivity::class.intent,
+            )
+            TvNavigationBar.Tab.Settings -> openTvTab(SettingsActivity::class.intent)
+            TvNavigationBar.Tab.Help -> openTvTab(HelpActivity::class.intent)
+            TvNavigationBar.Tab.About -> launch { showTvAbout() }
+        }
+    }
+
+    private suspend fun showTvAbout() {
+        val versionName = withContext(Dispatchers.IO) {
+            packageManager.getPackageInfo(packageName, 0).versionName + "\n" +
+                Bridge.nativeCoreVersion().replace("_", "-")
+        }
+        withContext(Dispatchers.Main) {
+            val about = DesignAboutBinding.inflate(layoutInflater).apply {
+                this.versionName = versionName
+            }
+            androidx.appcompat.app.AlertDialog.Builder(this@BaseActivity)
+                .setView(about.root)
+                .show()
         }
     }
 
@@ -175,10 +280,12 @@ abstract class BaseActivity<D : Design<*>> : AppCompatActivity(),
     }
 
     override fun onStarted() {
+        tvShell?.navigationBar?.proxyEnabled = true
         events.trySend(Event.ClashStart)
     }
 
     override fun onStopped(cause: String?) {
+        tvShell?.navigationBar?.proxyEnabled = false
         events.trySend(Event.ClashStop)
 
         if (cause != null && activityStarted) {

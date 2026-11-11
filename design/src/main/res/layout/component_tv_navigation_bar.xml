@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="66dp"
+        android:background="@drawable/tv_topbar_background"
+        android:clipChildren="false"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="22dp"
+        android:paddingEnd="18dp">
+
+        <LinearLayout
+            android:layout_width="200dp"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:contentDescription="@null"
+                android:src="@drawable/ic_clash_verge_macos" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="11dp"
+                android:text="@string/application_name"
+                android:textColor="@color/tv_text_primary"
+                android:textSize="17sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <HorizontalScrollView
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:clipChildren="false"
+            android:clipToPadding="false"
+            android:fillViewport="true"
+            android:focusable="false"
+            android:paddingVertical="5dp"
+            android:scrollbars="none">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:clipChildren="false"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <com.github.kr328.clash.design.view.TvNavigationItem
+                    android:id="@+id/tv_nav_home"
+                    android:layout_width="90dp"
+                    android:layout_height="44dp"
+                    app:icon="@drawable/ic_tv_home"
+                    app:text="@string/tv_home" />
+
+                <com.github.kr328.clash.design.view.TvNavigationItem
+                    android:id="@+id/tv_nav_proxy"
+                    android:layout_width="90dp"
+                    android:layout_height="44dp"
+                    android:layout_marginStart="5dp"
+                    app:icon="@drawable/ic_baseline_apps"
+                    app:text="@string/proxy" />
+
+                <com.github.kr328.clash.design.view.TvNavigationItem
+                    android:id="@+id/tv_nav_profiles"
+                    android:layout_width="90dp"
+                    android:layout_height="44dp"
+                    android:layout_marginStart="5dp"
+                    app:icon="@drawable/ic_baseline_view_list"
+                    app:text="@string/profiles" />
+
+                <com.github.kr328.clash.design.view.TvNavigationItem
+                    android:id="@+id/tv_nav_logs"
+                    android:layout_width="90dp"
+                    android:layout_height="44dp"
+                    android:layout_marginStart="5dp"
+                    app:icon="@drawable/ic_baseline_assignment"
+                    app:text="@string/logs" />
+
+                <com.github.kr328.clash.design.view.TvNavigationItem
+                    android:id="@+id/tv_nav_settings"
+                    android:layout_width="90dp"
+                    android:layout_height="44dp"
+                    android:layout_marginStart="5dp"
+                    app:icon="@drawable/ic_baseline_settings"
+                    app:text="@string/settings" />
+
+                <com.github.kr328.clash.design.view.TvNavigationItem
+                    android:id="@+id/tv_nav_help"
+                    android:layout_width="90dp"
+                    android:layout_height="44dp"
+                    android:layout_marginStart="5dp"
+                    app:icon="@drawable/ic_baseline_help_center"
+                    app:text="@string/help" />
+
+                <com.github.kr328.clash.design.view.TvNavigationItem
+                    android:id="@+id/tv_nav_about"
+                    android:layout_width="90dp"
+                    android:layout_height="44dp"
+                    android:layout_marginStart="5dp"
+                    app:icon="@drawable/ic_baseline_info"
+                    app:text="@string/about" />
+            </LinearLayout>
+        </HorizontalScrollView>
+    </LinearLayout>
+</layout>
