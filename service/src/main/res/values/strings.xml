@@ -8,7 +8,6 @@
     <string name="profile_process_result">Profile Process Result</string>
     <string name="update_successfully">Update Successfully</string>
     <string name="update_failure">Update Failure</string>
-    <string name="format_update_complete">Update %s completed</string>
     <string name="format_update_failure">Update %1$s: %2$s</string>
     <string name="running">Running</string>
     <string name="loading">Loading</string>
