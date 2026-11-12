@@ -71,6 +71,7 @@
     <dimen name="proxy_text_margin_grid3">5dp</dimen>
     <dimen name="proxy_text_size">12sp</dimen>
     <dimen name="proxy_text_size_grid3">11sp</dimen>
+    <dimen name="proxy_delay_padding">4dp</dimen>
     <dimen name="proxy_card_radius">5dp</dimen>
     <dimen name="proxy_card_offset">0dp</dimen>
 
