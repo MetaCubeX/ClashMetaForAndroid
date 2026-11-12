@@ -2,6 +2,7 @@
 <resources>
     <!-- exclude 127.0.0.0/8 169.254.0.0/16 10.0.0.0/8 192.168.0.0/16 172.16.0.0/12 -->
     <string-array name="bypass_private_route" translatable="false">
+        <item>0.0.0.0/32</item>
         <item>1.0.0.0/8</item>
         <item>2.0.0.0/7</item>
         <item>4.0.0.0/6</item>
