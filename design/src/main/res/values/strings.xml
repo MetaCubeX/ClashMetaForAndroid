@@ -84,6 +84,8 @@
     <string name="import_">Import</string>
     <string name="properties">Properties</string>
     <string name="duplicate">Duplicate</string>
+    <string name="share_qr_code">Share QR code</string>
+    <string name="qr_code_generation_failed">Unable to generate a QR code for this link.</string>
     <string name="active_unsaved_tips">Profile needs to be saved before activation</string>
 
     <string name="exit_without_save">Exit without Save</string>
