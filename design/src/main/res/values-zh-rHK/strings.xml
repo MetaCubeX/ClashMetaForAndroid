@@ -25,6 +25,8 @@
     <string name="dns_hijacking">DNS 劫持</string>
     <string name="dns_hijacking_summary">處理所有 DNS 數據包</string>
     <string name="duplicate">複製</string>
+    <string name="share_qr_code">二維碼分享</string>
+    <string name="qr_code_generation_failed">無法為此連結產生二維碼。</string>
     <string name="edit">編輯</string>
     <string name="empty_name">空名稱</string>
     <string name="exit_without_save">退出而不保存</string>
