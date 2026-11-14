@@ -148,6 +148,9 @@
     <string name="access_control_mode">Access Control Mode</string>
     <string name="access_control_packages">Access Control Packages</string>
     <string name="access_control_packages_summary">Configure access permission for apps</string>
+    <string name="access_control_clone_suffix">clone</string>
+    <string name="access_control_clone_hint_title">App cloning detected</string>
+    <string name="access_control_clone_hint_message">This device has app-cloning (dual app) profiles. Android isolates VPNs per user, so cloned app instances are outside the VPN of the main profile.\n\nIf cloned apps lose network access while the VPN is on, try one of the following:\n- Turn off \"Block connections without VPN\" in the system VPN settings\n- Clone this app into the cloned profile and run it separately\n\nTo list cloned app instances here, grant the cross-user permission via ADB and restart the app:\n\nadb shell pm grant --user 0 %1$s android.permission.INTERACT_ACROSS_USERS</string>
 
     <string name="options_unavailable">Options Unavailable until Clash Stopped</string>
 

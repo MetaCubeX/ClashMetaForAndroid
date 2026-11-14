@@ -7,7 +7,10 @@ import android.content.pm.ApplicationInfo
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import androidx.core.content.getSystemService
+import com.github.kr328.clash.common.compat.crossUserProfiles
+import com.github.kr328.clash.common.compat.getInstalledPackagesAsUserCompat
 import com.github.kr328.clash.design.AccessControlDesign
+import com.github.kr328.clash.design.R
 import com.github.kr328.clash.design.model.AppInfo
 import com.github.kr328.clash.design.util.toAppInfo
 import com.github.kr328.clash.service.store.ServiceStore
@@ -20,6 +23,8 @@ import kotlinx.coroutines.selects.select
 import kotlinx.coroutines.withContext
 
 class AccessControlActivity : BaseActivity<AccessControlDesign>() {
+    private var crossUserHintPending = false
+
     override suspend fun main() {
         val service = ServiceStore(this)
 
@@ -56,6 +61,17 @@ class AccessControlActivity : BaseActivity<AccessControlDesign>() {
                     when (it) {
                         AccessControlDesign.Request.ReloadApps -> {
                             design.patchApps(loadApps(selected))
+
+                            if (crossUserHintPending) {
+                                crossUserHintPending = false
+
+                                design.showCrossUserHint(
+                                    getString(
+                                        R.string.access_control_clone_hint_message,
+                                        packageName,
+                                    )
+                                )
+                            }
                         }
 
                         AccessControlDesign.Request.SelectAll -> {
@@ -129,7 +145,7 @@ class AccessControlActivity : BaseActivity<AccessControlDesign>() {
             val pm = packageManager
             val packages = pm.getInstalledPackages(PackageManager.GET_PERMISSIONS)
 
-            packages.asSequence()
+            val mainApps = packages.asSequence()
                 .filter {
                     it.packageName != packageName
                 }
@@ -145,8 +161,42 @@ class AccessControlActivity : BaseActivity<AccessControlDesign>() {
                 .map {
                     it.toAppInfo(pm)
                 }
-                .sortedWith(comparator)
                 .toList()
+
+            val cloneSuffix = getString(R.string.access_control_clone_suffix)
+
+            val cloneApps = crossUserProfiles().flatMap { profile ->
+                val clonePackages = getInstalledPackagesAsUserCompat(
+                    PackageManager.GET_PERMISSIONS,
+                    profile,
+                )
+
+                if (clonePackages == null) {
+                    crossUserHintPending = true
+
+                    emptyList()
+                } else {
+                    clonePackages.asSequence()
+                        .filter {
+                            it.packageName != packageName
+                        }
+                        .filter {
+                            it.applicationInfo != null
+                        }
+                        .filter {
+                            it.requestedPermissions?.contains(INTERNET) == true || it.applicationInfo!!.uid < android.os.Process.FIRST_APPLICATION_UID
+                        }
+                        .filter {
+                            systemApp || !it.isSystemApp
+                        }
+                        .map {
+                            it.toAppInfo(pm, cloneSuffix)
+                        }
+                        .toList()
+                }
+            }
+
+            (mainApps + cloneApps).sortedWith(comparator)
         }
 
     private val PackageInfo.isSystemApp: Boolean

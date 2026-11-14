@@ -3,6 +3,8 @@ package com.github.kr328.clash.service.clash.module
 import android.app.Service
 import android.content.Intent
 import android.content.pm.PackageInfo
+import com.github.kr328.clash.common.compat.crossUserProfiles
+import com.github.kr328.clash.common.compat.getInstalledPackagesAsUserCompat
 import com.github.kr328.clash.common.log.Log
 import com.github.kr328.clash.core.Clash
 import kotlinx.coroutines.channels.Channel
@@ -13,9 +15,8 @@ class AppListCacheModule(service: Service) : Module<Unit>(service) {
     private fun PackageInfo.uniqueUidName(): String =
         if (sharedUserId?.isNotBlank() == true) sharedUserId!! else packageName
 
-    private fun reload() {
-        val packages = service.packageManager.getInstalledPackages(0)
-            .filter { it.applicationInfo != null }
+    private fun List<PackageInfo>.toUidNames(): List<Pair<Int, String>> =
+        filter { it.applicationInfo != null }
             .groupBy { it.uniqueUidName() }
             .map { (_, v) ->
                 val info = v[0]
@@ -29,6 +30,21 @@ class AppListCacheModule(service: Service) : Module<Unit>(service) {
                     info.applicationInfo!!.uid to info.uniqueUidName()
                 }
             }
+
+    private fun reload() {
+        val packages = buildList {
+            addAll(service.packageManager.getInstalledPackages(0).toUidNames())
+
+            // Packages in other profiles (e.g. app-cloning instances) have their
+            // own uids; enumerate them separately so connections from cloned apps
+            // can be resolved by package name. Requires INTERACT_ACROSS_USERS,
+            // silently skipped otherwise.
+            service.crossUserProfiles().forEach { profile ->
+                service.getInstalledPackagesAsUserCompat(0, profile)
+                    ?.toUidNames()
+                    ?.let(::addAll)
+            }
+        }
 
         Clash.notifyInstalledAppsChanged(packages)
 
