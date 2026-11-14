@@ -83,7 +83,7 @@ require (
 	github.com/metacubex/sing v0.5.9 // indirect
 	github.com/metacubex/sing-mux v0.3.12 // indirect
 	github.com/metacubex/sing-quic v0.0.0-20260904234848-1c242664697a // indirect
-	github.com/metacubex/sing-shadowsocks v0.2.13 // indirect
+	github.com/metacubex/sing-shadowsocks v0.2.14 // indirect
 	github.com/metacubex/sing-shadowsocks2 v0.2.8 // indirect
 	github.com/metacubex/sing-tun v0.4.29 // indirect
 	github.com/metacubex/sing-vmess v0.2.5 // indirect

@@ -159,8 +159,8 @@ github.com/metacubex/sing-mux v0.3.12 h1:80jrJsGgRW7ZHpJCRpwJhG3yzT5muEHIWjaOsDJ
 github.com/metacubex/sing-mux v0.3.12/go.mod h1:8bT7ZKT3clRrJjYc/x5CRYibC1TX/bK73a3r3+2E+Fc=
 github.com/metacubex/sing-quic v0.0.0-20260904234848-1c242664697a h1:qZzQwtWDrPU1LXoMow0/iLHY3mb7uauS/mho8hYcenE=
 github.com/metacubex/sing-quic v0.0.0-20260904234848-1c242664697a/go.mod h1:6ayFGfzzBE85csgQkM3gf4neFq6s0losHlPRSxY+nuk=
-github.com/metacubex/sing-shadowsocks v0.2.13 h1:PKmInHy9+4nY3FLhmKcWdASUBo9WZ/KrSPWjNpGaUTQ=
-github.com/metacubex/sing-shadowsocks v0.2.13/go.mod h1:2e5EIaw0rxKrm1YTRmiMnDulwbGxH9hAFlrwQLQMQkU=
+github.com/metacubex/sing-shadowsocks v0.2.14 h1:P9HUtAPRVa24sB0dHwwTUkaEu5V0A8FGXJ35zdNAbN4=
+github.com/metacubex/sing-shadowsocks v0.2.14/go.mod h1:kUDOwF06u5/zSkwPQa0BSdYLa1a7XtGVFik1/VSTkN0=
 github.com/metacubex/sing-shadowsocks2 v0.2.8 h1:6MoODu7BAcnwIC0w9muq+2LZVz01wWD07L5IRhOty9Q=
 github.com/metacubex/sing-shadowsocks2 v0.2.8/go.mod h1:vOEbfKC60txi0ca+yUlqEwOGc3Obl6cnSgx9Gf45KjE=
 github.com/metacubex/sing-tun v0.4.29 h1:KIULEuW0iFXxLegOgrW8orq5Sx4TCBBhwo6j8+CIFBs=
