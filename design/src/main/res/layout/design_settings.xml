@@ -56,6 +56,13 @@
                     app:icon="@drawable/ic_baseline_meta"
                     app:text="@string/meta_features" />
 
+                <com.github.kr328.clash.design.view.ActionLabel
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:onClick="@{() -> self.request(Request.StartWidget)}"
+                    app:icon="@drawable/ic_baseline_widgets"
+                    app:text="@string/widget_settings" />
+
             </LinearLayout>
         </com.github.kr328.clash.design.view.ObservableScrollView>
 

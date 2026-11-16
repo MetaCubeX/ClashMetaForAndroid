@@ -239,6 +239,7 @@
     <string name="allow_ipv6_summary">通过 VpnService 代理 Ipv6 流量</string>
     <string name="clash_meta_wiki">Clash Meta Wiki</string>
     <string name="meta_features">Meta 特性</string>
+    <string name="widget_settings">桌面微件</string>
     <string name="unified_delay">统一延迟</string>
     <string name="geodata_mode">Geodata 模式</string>
     <string name="tcp_concurrent">TCP 并发</string>

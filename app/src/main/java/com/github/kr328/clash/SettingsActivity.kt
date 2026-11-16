@@ -2,6 +2,7 @@ package com.github.kr328.clash
 
 import com.github.kr328.clash.common.util.intent
 import com.github.kr328.clash.design.SettingsDesign
+import com.github.kr328.clash.widget.WidgetConfigActivity
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.selects.select
 
@@ -26,6 +27,8 @@ class SettingsActivity : BaseActivity<SettingsDesign>() {
                             startActivity(OverrideSettingsActivity::class.intent)
                         SettingsDesign.Request.StartMetaFeature ->
                             startActivity(MetaFeatureSettingsActivity::class.intent)
+                        SettingsDesign.Request.StartWidget ->
+                            startActivity(WidgetConfigActivity::class.intent)
                     }
                 }
             }

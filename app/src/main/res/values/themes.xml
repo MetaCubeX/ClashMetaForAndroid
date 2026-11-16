@@ -1,4 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <style name="BootstrapTheme" parent="AppThemeLight" />
+
+    <style name="WidgetConfigTheme" parent="BootstrapTheme">
+        <item name="android:windowBackground">@color/widget_config_background</item>
+    </style>
+
+    <style name="WidgetToggleTheme" parent="@android:style/Theme.Translucent.NoTitleBar">
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowDisablePreview">true</item>
+        <item name="android:backgroundDimEnabled">false</item>
+    </style>
 </resources>

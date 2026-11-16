@@ -2,17 +2,20 @@ package com.github.kr328.clash
 
 import android.app.Application
 import android.content.Context
+import android.content.res.Configuration
 import com.github.kr328.clash.common.Global
 import com.github.kr328.clash.common.compat.currentProcessName
 import com.github.kr328.clash.common.log.Log
 import com.github.kr328.clash.remote.Remote
 import com.github.kr328.clash.service.util.sendServiceRecreated
 import com.github.kr328.clash.util.clashDir
+import com.github.kr328.clash.widget.WidgetUpdater
 import java.io.File
 import java.io.FileOutputStream
 
 @Suppress("unused")
 class MainApplication : Application() {
+    private var lastNightMode: Boolean? = null
 
     override fun attachBaseContext(base: Context?) {
         super.attachBaseContext(base)
@@ -24,6 +27,8 @@ class MainApplication : Application() {
         super.onCreate()
 
         val processName = currentProcessName
+        lastNightMode = resources.configuration.isNight()
+
         extractGeoFiles()
 
         Log.d("Process $processName started")
@@ -32,6 +37,22 @@ class MainApplication : Application() {
             Remote.launch()
         } else {
             sendServiceRecreated()
+        }
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+
+        // The widget follows the system night mode independently of the app theme,
+        // so refresh it when the configuration changes while the app is alive.
+        val nightMode = newConfig.isNight()
+
+        if (nightMode != lastNightMode) {
+            lastNightMode = nightMode
+
+            if (currentProcessName == packageName) {
+                Thread { WidgetUpdater.updateAll(this) }.start()
+            }
         }
     }
 
@@ -84,3 +105,6 @@ class MainApplication : Application() {
         Global.destroy()
     }
 }
+
+private fun Configuration.isNight(): Boolean =
+    (uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES

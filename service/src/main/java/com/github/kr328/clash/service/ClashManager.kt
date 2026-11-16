@@ -10,6 +10,7 @@ import com.github.kr328.clash.service.remote.IClashManager
 import com.github.kr328.clash.service.remote.ILogObserver
 import com.github.kr328.clash.service.store.ServiceStore
 import com.github.kr328.clash.service.util.sendOverrideChanged
+import com.github.kr328.clash.service.util.sendSelectionChanged
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.ReceiveChannel
 
@@ -47,10 +48,13 @@ class ClashManager(private val context: Context) : IClashManager,
     }
 
     override fun patchSelector(group: String, name: String): Boolean {
-        return Clash.patchSelector(group, name).also {
+        return Clash.patchSelector(group, name).also { applied ->
+            if (applied)
+                context.sendSelectionChanged()
+
             val current = store.activeProfile ?: return@also
 
-            if (it) {
+            if (applied) {
                 SelectionDao().setSelected(Selection(current, group, name))
             } else {
                 SelectionDao().removeSelected(current, group)

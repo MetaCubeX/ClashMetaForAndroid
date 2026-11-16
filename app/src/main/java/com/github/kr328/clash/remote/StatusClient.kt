@@ -31,4 +31,21 @@ class StatusClient(private val context: Context) {
             null
         }
     }
+
+    fun currentProxy(): String? {
+        return try {
+            val result = context.contentResolver.call(
+                uri,
+                StatusProvider.METHOD_CURRENT_PROXY,
+                null,
+                null
+            )
+
+            result?.getString("name")
+        } catch (e: Exception) {
+            Log.w("Query current proxy: $e", e)
+
+            null
+        }
+    }
 }

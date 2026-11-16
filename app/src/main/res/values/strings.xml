@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="widget_name">ClashMate</string>
+    <string name="widget_description">Quickly toggle the proxy and see the current proxy node.</string>
+    <string name="widget_no_node">Not connected</string>
+    <string name="widget_state_on">Proxy on</string>
+    <string name="widget_state_off">Proxy off</string>
+    <string name="widget_content_description">ClashMate, %1$s, %2$s</string>
+
+    <string name="widget_config_title">Widget settings</string>
+    <string name="widget_config_subtitle">Adjust the appearance of the ClashMate widget.</string>
+    <string name="widget_config_preview">Preview</string>
+    <string name="widget_preview_node">Hong Kong 01 · IPLC</string>
+    <string name="widget_config_color">Color</string>
+    <string name="widget_color_system">Follow system</string>
+    <string name="widget_color_light">Light</string>
+    <string name="widget_color_dark">Dark</string>
+    <string name="widget_config_transparency">Background transparency</string>
+    <string name="widget_transparency_low">Low</string>
+    <string name="widget_transparency_medium">Medium</string>
+    <string name="widget_transparency_high">High</string>
+    <string name="widget_config_save">Save</string>
+    <string name="widget_config_cancel">Cancel</string>
+</resources>

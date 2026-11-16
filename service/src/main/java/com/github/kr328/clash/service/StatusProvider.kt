@@ -6,6 +6,8 @@ import android.database.Cursor
 import android.net.Uri
 import android.os.Bundle
 import com.github.kr328.clash.common.Global
+import com.github.kr328.clash.core.Clash
+import com.github.kr328.clash.core.model.ProxySort
 
 class StatusProvider : ContentProvider() {
     override fun call(method: String, arg: String?, extras: Bundle?): Bundle? {
@@ -18,7 +20,35 @@ class StatusProvider : ContentProvider() {
                 else
                     null
             }
+            METHOD_CURRENT_PROXY -> {
+                // currentProfile is only set after Clash.load() has finished, which
+                // guarantees that the native core is ready to be queried.
+                return if (serviceRunning && currentProfile != null)
+                    Bundle().apply {
+                        putString("name", queryCurrentProxy())
+                    }
+                else
+                    null
+            }
             else -> super.call(method, arg, extras)
+        }
+    }
+
+    private fun queryCurrentProxy(): String? {
+        return try {
+            val names = Clash.queryGroupNames(false)
+
+            // "Proxy" is the conventional main group. Otherwise fall back to the
+            // first group that is not the built-in GLOBAL group.
+            val groupName = names.firstOrNull { it == "Proxy" }
+                ?: names.firstOrNull { !it.equals("GLOBAL", ignoreCase = true) }
+                ?: return null
+
+            Clash.queryGroup(groupName, ProxySort.Default)
+                .now
+                .takeIf { it.isNotBlank() }
+        } catch (e: Throwable) {
+            null
         }
     }
 
@@ -59,6 +89,7 @@ class StatusProvider : ContentProvider() {
 
     companion object {
         const val METHOD_CURRENT_PROFILE = "currentProfile"
+        const val METHOD_CURRENT_PROXY = "currentProxy"
 
         private const val CLASH_SERVICE_RUNNING_FILE = "service_running.lock"
 

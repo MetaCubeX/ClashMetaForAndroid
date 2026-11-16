@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="widget_name">ClashMate</string>
+    <string name="widget_description">快速开关代理并查看当前代理节点。</string>
+    <string name="widget_no_node">未连接</string>
+    <string name="widget_state_on">代理已开启</string>
+    <string name="widget_state_off">代理已关闭</string>
+    <string name="widget_content_description">ClashMate，%1$s，%2$s</string>
+
+    <string name="widget_config_title">微件设置</string>
+    <string name="widget_config_subtitle">调整 ClashMate 微件的外观。</string>
+    <string name="widget_config_preview">预览</string>
+    <string name="widget_preview_node">香港 01 · IPLC</string>
+    <string name="widget_config_color">颜色</string>
+    <string name="widget_color_system">跟随系统</string>
+    <string name="widget_color_light">浅色</string>
+    <string name="widget_color_dark">深色</string>
+    <string name="widget_config_transparency">背景透明度</string>
+    <string name="widget_transparency_low">低</string>
+    <string name="widget_transparency_medium">中</string>
+    <string name="widget_transparency_high">高</string>
+    <string name="widget_config_save">保存</string>
+    <string name="widget_config_cancel">取消</string>
+</resources>

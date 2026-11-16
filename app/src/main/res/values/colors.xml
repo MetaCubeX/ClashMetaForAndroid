@@ -1,4 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="color_launcher_background">#FFFFFF</color>
+
+    <!-- Widget -->
+    <color name="widget_active_light">#FF1E4376</color>
+    <color name="widget_active_dark">#FF4C8DFF</color>
+    <color name="widget_inactive_light">#FF808080</color>
+    <color name="widget_inactive_dark">#FF9E9E9E</color>
+    <color name="widget_config_background">#FFFAFAFA</color>
 </resources>

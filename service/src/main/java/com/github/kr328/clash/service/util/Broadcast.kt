@@ -48,6 +48,10 @@ fun Context.sendOverrideChanged() {
     sendBroadcastSelf(intent)
 }
 
+fun Context.sendSelectionChanged() {
+    sendBroadcastSelf(Intent(Intents.ACTION_SELECTION_CHANGED))
+}
+
 fun Context.sendServiceRecreated() {
     sendBroadcastSelf(Intent(Intents.ACTION_SERVICE_RECREATED))
 }
