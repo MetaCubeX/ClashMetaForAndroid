@@ -134,6 +134,14 @@ class ProxyDesign(
 
                     override fun onPageSelected(position: Int) {
                         uiStore.proxyLastGroup = groupNames[position]
+
+                        // Delay history lives on the proxy, shared by every group holding it, so a
+                        // test run on another tab is only visible here after a fresh query. A page
+                        // still being tested refreshes itself when its own test lands.
+                        // Qualified: inside this apply block the name `adapter` resolves to
+                        // ViewPager2.getAdapter(), not the ProxyPageAdapter field.
+                        if (!this@ProxyDesign.adapter.states[position].urlTesting)
+                            requests.trySend(Request.Reload(position))
                     }
                 })
             }
@@ -157,6 +165,22 @@ class ProxyDesign(
         requests.trySend(Request.UrlTest(binding.pagesView.currentItem))
 
         updateUrlTestButtonStatus()
+    }
+
+    // Called when the url test of a page is over, even if it failed, otherwise the progress
+    // indicator of the toolbar would spin forever.
+    suspend fun finishUrlTesting(position: Int) {
+        withContext(Dispatchers.Main) {
+            if (binding.pagesView.adapter !is ProxyPageAdapter)
+                return@withContext
+
+            if (position !in adapter.states.indices)
+                return@withContext
+
+            adapter.states[position].urlTesting = false
+
+            updateUrlTestButtonStatus()
+        }
     }
 
     private fun updateUrlTestButtonStatus() {
