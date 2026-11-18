@@ -79,6 +79,7 @@ func Load(path string) error {
 	hub.ApplyConfig(cfg)
 
 	app.ApplySubtitlePattern(rawCfg.ClashForAndroid.UiSubtitlePattern)
+	publishRouteExclusions(rawCfg.Tun.RouteExcludeAddress)
 
 	runtime.GC()
 
@@ -86,6 +87,7 @@ func Load(path string) error {
 }
 
 func LoadDefault() {
+	publishRouteExclusions(nil)
 	cfg, err := config.Parse([]byte{})
 	if err != nil {
 		panic(err.Error())
