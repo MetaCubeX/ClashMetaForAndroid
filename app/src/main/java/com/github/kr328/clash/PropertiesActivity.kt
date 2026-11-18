@@ -7,11 +7,14 @@ import com.github.kr328.clash.design.PropertiesDesign
 import com.github.kr328.clash.design.ui.ToastDuration
 import com.github.kr328.clash.design.util.showExceptionToast
 import com.github.kr328.clash.service.model.Profile
+import com.github.kr328.clash.service.util.ProfileParserHelper
 import com.github.kr328.clash.util.withProfile
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.select
+import kotlinx.coroutines.withContext
 import com.github.kr328.clash.design.R
 
 class PropertiesActivity : BaseActivity<PropertiesDesign>() {
@@ -27,6 +30,9 @@ class PropertiesActivity : BaseActivity<PropertiesDesign>() {
         original = withProfile { queryByUUID(uuid) } ?: return finish()
 
         design.profile = original
+        design.parserHelper.setInitial(
+            withContext(Dispatchers.IO) { ProfileParserHelper.load(this@PropertiesActivity, uuid) }
+        )
 
         setContentDesign(design)
 
@@ -43,9 +49,11 @@ class PropertiesActivity : BaseActivity<PropertiesDesign>() {
                         Event.ActivityStop -> {
                             val profile = design.profile
 
-                            if (!canceled && profile != original) {
+                            if (!canceled && (profile != original || design.parserHelper.isChanged())) {
+                                val parserUrl = design.parserHelper.parserUrl
                                 withProfile {
                                     patch(profile.uuid, profile.name, profile.source, profile.interval, profile.ageSecretKey)
+                                    ProfileParserHelper.savePending(this@PropertiesActivity, profile.uuid, parserUrl)
                                 }
                             }
                         }
@@ -73,7 +81,7 @@ class PropertiesActivity : BaseActivity<PropertiesDesign>() {
         design?.apply {
             launch {
                 if (!progressing) {
-                    if (original == profile || requestExitWithoutSaving())
+                    if ((original == profile && !parserHelper.isChanged()) || requestExitWithoutSaving())
                         finish()
                 }
             }
@@ -90,9 +98,11 @@ class PropertiesActivity : BaseActivity<PropertiesDesign>() {
             }
             else -> {
                 try {
+                    val parserUrl = parserHelper.parserUrl
                     withProcessing { updateStatus ->
                         withProfile {
                             patch(profile.uuid, profile.name, profile.source, profile.interval, profile.ageSecretKey)
+                            ProfileParserHelper.savePending(this@PropertiesActivity, profile.uuid, parserUrl)
 
                             coroutineScope {
                                 commit(profile.uuid) {
