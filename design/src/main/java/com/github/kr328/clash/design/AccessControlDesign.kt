@@ -11,7 +11,9 @@ import com.github.kr328.clash.design.dialog.FullScreenDialog
 import com.github.kr328.clash.design.model.AppInfo
 import com.github.kr328.clash.design.store.UiStore
 import com.github.kr328.clash.design.util.*
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.*
+import kotlin.coroutines.resume
 import kotlinx.coroutines.channels.Channel
 
 class AccessControlDesign(
@@ -50,6 +52,23 @@ class AccessControlDesign(
     suspend fun rebindAll() {
         withContext(Dispatchers.Main) {
             adapter.rebindAll()
+        }
+    }
+
+    suspend fun showCrossUserHint(message: CharSequence) {
+        withContext(Dispatchers.Main) {
+            suspendCancellableCoroutine<Unit> { continuation ->
+                val dialog = MaterialAlertDialogBuilder(context)
+                    .setTitle(R.string.access_control_clone_hint_title)
+                    .setMessage(message)
+                    .setPositiveButton(R.string.close) { _, _ -> }
+                    .setOnDismissListener {
+                        if (continuation.isActive) continuation.resume(Unit)
+                    }
+                    .show()
+
+                continuation.invokeOnCancellation { dialog.dismiss() }
+            }
         }
     }
 
