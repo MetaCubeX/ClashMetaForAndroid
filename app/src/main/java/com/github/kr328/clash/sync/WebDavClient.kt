@@ -32,8 +32,9 @@ class WebDavClient(
 
     /**
      * PROPFIND the backup directory and return the *.zip file names, newest first.
-     * Verge names backups "<os>-backup-YYYY-MM-DD_HH-MM-SS.zip", so a descending
-     * lexical sort puts the most recent backup first.
+     * Verge names backups "<os>-backup-YYYY-MM-DD_HH-MM-SS.zip", so they are ordered by
+     * the timestamp after the OS prefix; otherwise a backup from Windows would always
+     * sort ahead of a newer one from macOS or Linux.
      */
     fun listBackups(): List<String> {
         val body = PROPFIND_BODY.toRequestBody("application/xml".toMediaType())
@@ -48,7 +49,7 @@ class WebDavClient(
         client.newCall(request).execute().use { resp ->
             // Directory missing yet -> no backups instead of a hard failure.
             if (resp.code == 404) return emptyList()
-            if (!resp.isSuccessful && resp.code != HTTP_MULTI_STATUS) {
+            if (!resp.isSuccessful) {
                 throw WebDavException("PROPFIND failed: HTTP ${resp.code}", resp.code)
             }
             return parseZipHrefs(resp.body?.string().orEmpty())
@@ -77,7 +78,7 @@ class WebDavClient(
             .map { decode(it) }
             .filter { it.endsWith(".zip", ignoreCase = true) }
             .distinct()
-            .sortedDescending()
+            .sortedWith(compareByDescending<String> { it.substringAfter(BACKUP_INFIX) }.thenByDescending { it })
             .toList()
     }
 
@@ -91,8 +92,8 @@ class WebDavClient(
         // Keep in sync with clash-verge-rev `BACKUP_DIR`.
         const val BACKUP_DIR = "clash-verge-rev-backup"
 
+        private const val BACKUP_INFIX = "-backup-"
         private const val TIMEOUT_SECONDS = 300L
-        private const val HTTP_MULTI_STATUS = 207
         private const val USER_AGENT = "ClashMetaForAndroid WebDAV-Client"
 
         // <d:href>, <D:href> or <href> — capture the inner path, namespace prefix optional.

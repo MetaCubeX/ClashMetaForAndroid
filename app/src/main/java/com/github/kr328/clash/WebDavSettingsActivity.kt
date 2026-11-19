@@ -263,22 +263,28 @@ class WebDavSettingsActivity : BaseActivity<WebDavSettingsDesign>() {
             progress(index, remotes.size)
 
             val target = match(remote)
-            val uuid = if (target != null) {
-                log(getString(R.string.webdav_log_updating, remote.name))
-                profiles.patch(target.uuid, remote.name, remote.url, target.interval, target.ageSecretKey)
-                target.uuid
-            } else {
-                log(getString(R.string.webdav_log_adding, remote.name))
-                profiles.create(Profile.Type.Url, remote.name, remote.url)
-            }
+            var uuid = target?.uuid
 
-            claimed.add(uuid)
+            // An existing profile is claimed up front, so a failed update never gets it deleted.
+            if (uuid != null) claimed.add(uuid)
             done.add(remote.uid)
 
             try {
-                profiles.commit(uuid)
+                val committed = if (target != null) {
+                    log(getString(R.string.webdav_log_updating, remote.name))
+                    profiles.patch(target.uuid, remote.name, remote.url, target.interval, target.ageSecretKey)
+                    target.uuid
+                } else {
+                    log(getString(R.string.webdav_log_adding, remote.name))
+                    val created = profiles.create(Profile.Type.Url, remote.name, remote.url)
+                    uuid = created
+                    claimed.add(created)
+                    created
+                }
 
-                synced[remote.uid] = uuid
+                profiles.commit(committed)
+
+                synced[remote.uid] = committed
 
                 if (target != null) {
                     updated++
@@ -290,12 +296,15 @@ class WebDavSettingsActivity : BaseActivity<WebDavSettingsDesign>() {
             } catch (e: Exception) {
                 // Fetch/validation failed — drop the pending change; an existing profile
                 // keeps its last good config and stays synced.
-                try {
-                    profiles.release(uuid)
-                } catch (_: Exception) {
+                val pending = uuid
+                if (pending != null) {
+                    try {
+                        profiles.release(pending)
+                    } catch (_: Exception) {
+                    }
                 }
 
-                if (target != null) synced[remote.uid] = uuid else synced.remove(remote.uid)
+                if (target != null) synced[remote.uid] = target.uuid else synced.remove(remote.uid)
 
                 failed.add(remote)
                 log(getString(R.string.webdav_log_item_failed, remote.name, describe(e)))
