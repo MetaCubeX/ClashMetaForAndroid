@@ -306,6 +306,8 @@
     <string name="webdav_log_item_failed">✗「%1$s」失败：%2$s</string>
     <string name="webdav_log_removed">− 已删除「%1$s」（备份中没有）</string>
     <string name="webdav_log_activated">已切换到「%1$s」（桌面端当前使用）</string>
+    <string name="webdav_log_activated_fallback">已切换到「%1$s」（原配置不在备份中）</string>
+    <string name="webdav_log_kept_active">保留当前配置「%1$s」（没有可切换的订阅）</string>
     <string name="webdav_log_done">完成 · 更新 %1$d，新增 %2$d，删除 %3$d，失败 %4$d</string>
     <string name="webdav_log_cancelled">已取消 · 备份中没有的本地配置已保留，未切换配置</string>
     <string name="webdav_log_retrying">正在重试 %1$d 个失败的订阅…</string>

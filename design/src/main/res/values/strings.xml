@@ -397,6 +397,8 @@
     <string name="webdav_log_item_failed">✗ \"%1$s\" failed: %2$s</string>
     <string name="webdav_log_removed">− Removed \"%1$s\" (not in the backup)</string>
     <string name="webdav_log_activated">Switched to \"%1$s\" (selected on the desktop)</string>
+    <string name="webdav_log_activated_fallback">Switched to \"%1$s\" (the previous profile is not in the backup)</string>
+    <string name="webdav_log_kept_active">Kept \"%1$s\" active (no synced subscription to switch to)</string>
     <string name="webdav_log_done">Done · updated %1$d, added %2$d, removed %3$d, failed %4$d</string>
     <string name="webdav_log_cancelled">Cancelled · local profiles not in the backup were kept, nothing was switched</string>
     <string name="webdav_log_retrying">Retrying %1$d failed subscription(s)…</string>

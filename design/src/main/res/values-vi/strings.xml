@@ -251,4 +251,45 @@
     <string name="import_from_qr">Nhập từ Mã QR</string>
     <string name="import_from_qr_no_permission">Quyền truy cập camera bị hạn chế. Vui lòng bật trong Cài đặt.</string>
     <string name="import_from_qr_exception">Đã xảy ra ngoại lệ hệ thống không xử lý được.</string>
+
+    <!-- WebDAV cloud sync -->
+    <string name="webdav_sync">Đồng bộ WebDAV</string>
+    <string name="webdav_server">Máy chủ WebDAV</string>
+    <string name="webdav_actions">Đồng bộ</string>
+    <string name="webdav_server_url">URL máy chủ</string>
+    <string name="webdav_username">Tên người dùng</string>
+    <string name="webdav_password">Mật khẩu</string>
+    <string name="webdav_not_configured">Chưa đặt</string>
+    <string name="webdav_pull_sync">Tải về và đồng bộ ngay</string>
+    <string name="webdav_pull_sync_summary">Tải bản sao lưu Clash Verge mới nhất và thay toàn bộ cấu hình cục bộ bằng các gói đăng ký trong đó</string>
+    <string name="webdav_tips">Đồng bộ các gói đăng ký từ bản sao lưu WebDAV của Clash Verge. Hãy nhập cùng URL máy chủ, tên người dùng và mật khẩu như trong Clash Verge. Hoạt động giống thao tác khôi phục của Clash Verge: toàn bộ cấu hình cục bộ được thay bằng các gói đăng ký trong bản sao lưu (cấu hình không có trong bản sao lưu, kể cả tệp cục bộ, sẽ bị xóa) và cấu hình đang chọn trên máy tính sẽ được kích hoạt. Cấu hình cục bộ và cấu hình mở rộng của Clash Verge không được nhập.</string>
+    <string name="webdav_missing_credentials">Vui lòng nhập URL máy chủ, tên người dùng và mật khẩu trước</string>
+    <string name="webdav_no_backup_found">Không tìm thấy bản sao lưu trên máy chủ WebDAV</string>
+    <string name="webdav_sync_failed">Đồng bộ thất bại: %1$s</string>
+    <string name="webdav_log_connecting">Đang kết nối tới %1$s…</string>
+    <string name="webdav_log_found_backup">Bản sao lưu mới nhất: %1$s</string>
+    <string name="webdav_log_parsed">Có %1$d gói đăng ký trong bản sao lưu, bỏ qua %2$d cấu hình cục bộ</string>
+    <string name="webdav_log_empty_backup">Bản sao lưu không có gói đăng ký nào; giữ nguyên cấu hình cục bộ</string>
+    <string name="webdav_log_updating">Đang cập nhật “%1$s”…</string>
+    <string name="webdav_log_adding">Đang thêm “%1$s”…</string>
+    <string name="webdav_log_updated">✓ Đã cập nhật “%1$s”</string>
+    <string name="webdav_log_added">✓ Đã thêm “%1$s”</string>
+    <string name="webdav_log_item_failed">✗ “%1$s” thất bại: %2$s</string>
+    <string name="webdav_log_removed">− Đã xóa “%1$s” (không có trong bản sao lưu)</string>
+    <string name="webdav_log_activated">Đã chuyển sang “%1$s” (đang chọn trên máy tính)</string>
+    <string name="webdav_log_activated_fallback">Đã chuyển sang “%1$s” (cấu hình trước không có trong bản sao lưu)</string>
+    <string name="webdav_log_kept_active">Giữ “%1$s” làm cấu hình đang dùng (không có gói đăng ký nào để chuyển sang)</string>
+    <string name="webdav_log_done">Xong · cập nhật %1$d, thêm %2$d, xóa %3$d, thất bại %4$d</string>
+    <string name="webdav_log_cancelled">Đã hủy · giữ lại các cấu hình cục bộ không có trong bản sao lưu, không chuyển cấu hình</string>
+    <string name="webdav_log_retrying">Đang thử lại %1$d gói đăng ký thất bại…</string>
+    <string name="webdav_log_retry_done">Thử lại xong · thành công %1$d, thất bại %2$d</string>
+    <string name="webdav_retry_failed">Thử lại mục thất bại (%1$d)</string>
+    <string name="webdav_test_connection">Kiểm tra kết nối</string>
+    <string name="webdav_test_connection_summary">Kiểm tra địa chỉ máy chủ, thông tin đăng nhập và tìm bản sao lưu Clash Verge</string>
+    <string name="webdav_testing_connection">Đang kiểm tra kết nối…</string>
+    <string name="webdav_test_success">Kết nối thành công · %1$d bản sao lưu, mới nhất: %2$s</string>
+    <string name="webdav_test_no_backup">Kết nối thành công nhưng máy chủ chưa có bản sao lưu Clash Verge nào</string>
+    <string name="webdav_test_failed">Kết nối thất bại: %1$s</string>
+    <string name="webdav_unauthorized">xác thực thất bại, hãy kiểm tra tên người dùng và mật khẩu</string>
+    <string name="sync_log_stopping">Sẽ dừng sau khi xong mục hiện tại…</string>
 </resources>

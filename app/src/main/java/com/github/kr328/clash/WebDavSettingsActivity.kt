@@ -117,7 +117,9 @@ class WebDavSettingsActivity : BaseActivity<WebDavSettingsDesign>() {
      * afterwards the local list holds exactly the backup's subscriptions, and the one Verge had
      * selected becomes active. Subscriptions that already exist locally (matched by Verge uid,
      * then URL, then name) are updated in place rather than recreated, so their uuid and proxy
-     * selections survive; every other local profile, of any type, is deleted.
+     * selections survive; every other local profile, of any type, is deleted. If the desktop's
+ * selection could not be synced, another synced subscription is made active instead, and
+ * failing that the active profile is kept, so a sync never leaves the phone with none.
      *
      * Subscriptions are applied one at a time and the deletion only runs once all of them have
      * been processed, so a cancelled sync stops after the current subscription and leaves every
@@ -136,8 +138,25 @@ class WebDavSettingsActivity : BaseActivity<WebDavSettingsDesign>() {
 
             if (applied.cancelled) return@withProfile applied
 
+            // Settle what ends up active before deleting anything, so the phone is never left
+            // without an active profile: the desktop's selection if it synced, else, when the
+            // active profile is about to go, the first subscription that did.
+            val active = queryActive()
+            val desktop = importedOrNull(this, parsed.current?.let { synced[it] })
+            val fallback = if (desktop == null && (active == null || active.uuid !in claimed)) {
+                synced.values.firstNotNullOfOrNull { importedOrNull(this, it) }
+            } else {
+                null
+            }
+
             for (profile in existing) {
                 if (profile.uuid in claimed) continue
+
+                // Nothing to switch to: keep the active profile rather than leave none.
+                if (desktop == null && fallback == null && profile.uuid == active?.uuid) {
+                    log(getString(R.string.webdav_log_kept_active, profile.name))
+                    continue
+                }
 
                 try {
                     delete(profile.uuid)
@@ -148,7 +167,13 @@ class WebDavSettingsActivity : BaseActivity<WebDavSettingsDesign>() {
                 }
             }
 
-            activateCurrent(this, parsed, synced)
+            if (desktop != null) {
+                setActive(desktop)
+                log(getString(R.string.webdav_log_activated, desktop.name))
+            } else if (fallback != null) {
+                setActive(fallback)
+                log(getString(R.string.webdav_log_activated_fallback, fallback.name))
+            }
 
             applied
         }
@@ -321,11 +346,15 @@ class WebDavSettingsActivity : BaseActivity<WebDavSettingsDesign>() {
         parsed: ParsedBackup,
         synced: Map<String, UUID>,
     ) {
-        val current = parsed.current?.let { synced[it] }?.let { profiles.queryByUUID(it) }
-        if (current != null && current.imported) {
-            profiles.setActive(current)
-            log(getString(R.string.webdav_log_activated, current.name))
-        }
+        val current = importedOrNull(profiles, parsed.current?.let { synced[it] }) ?: return
+
+        profiles.setActive(current)
+        log(getString(R.string.webdav_log_activated, current.name))
+    }
+
+    /** The profile behind [uuid] if it has a usable config, i.e. it can be made active. */
+    private suspend fun importedOrNull(profiles: IProfileManager, uuid: UUID?): Profile? {
+        return uuid?.let { profiles.queryByUUID(it) }?.takeIf { it.imported }
     }
 
     private fun describe(e: Exception): String {
