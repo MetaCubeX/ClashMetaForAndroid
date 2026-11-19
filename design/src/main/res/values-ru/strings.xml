@@ -330,4 +330,45 @@
     <string name="override_destination">Override Destination</string>
     <string name="import_from_qr_no_permission">Доступ к камере ограничен. Разрешите его в настройках.</string>
     <string name="import_from_qr_exception">Произошла не обрабатываемая системная ошибка.</string>
+
+    <!-- WebDAV cloud sync -->
+    <string name="webdav_sync">Синхронизация WebDAV</string>
+    <string name="webdav_server">Сервер WebDAV</string>
+    <string name="webdav_actions">Синхронизация</string>
+    <string name="webdav_server_url">URL сервера</string>
+    <string name="webdav_username">Имя пользователя</string>
+    <string name="webdav_password">Пароль</string>
+    <string name="webdav_not_configured">Не задано</string>
+    <string name="webdav_pull_sync">Загрузить и синхронизировать</string>
+    <string name="webdav_pull_sync_summary">Скачать последнюю резервную копию Clash Verge и заменить локальные профили её подписками</string>
+    <string name="webdav_tips">Синхронизирует подписки из резервной копии Clash Verge на WebDAV. Укажите тот же URL сервера, имя пользователя и пароль, что и в Clash Verge. Работает как восстановление в Clash Verge: все локальные профили заменяются подписками из резервной копии (профили, которых в ней нет, включая локальные файлы, удаляются), а профиль, выбранный на компьютере, становится активным. Локальные профили и профили расширений Clash Verge не импортируются.</string>
+    <string name="webdav_missing_credentials">Сначала укажите URL сервера, имя пользователя и пароль</string>
+    <string name="webdav_no_backup_found">На сервере WebDAV резервные копии не найдены</string>
+    <string name="webdav_sync_failed">Ошибка синхронизации: %1$s</string>
+    <string name="webdav_log_connecting">Подключение к %1$s…</string>
+    <string name="webdav_log_found_backup">Последняя резервная копия: %1$s</string>
+    <string name="webdav_log_parsed">Подписок в резервной копии: %1$d, пропущено локальных профилей: %2$d</string>
+    <string name="webdav_log_empty_backup">В резервной копии нет подписок, локальные профили не изменены</string>
+    <string name="webdav_log_updating">Обновление «%1$s»…</string>
+    <string name="webdav_log_adding">Добавление «%1$s»…</string>
+    <string name="webdav_log_updated">✓ Обновлено: «%1$s»</string>
+    <string name="webdav_log_added">✓ Добавлено: «%1$s»</string>
+    <string name="webdav_log_item_failed">✗ «%1$s» — ошибка: %2$s</string>
+    <string name="webdav_log_removed">− Удалено: «%1$s» (нет в резервной копии)</string>
+    <string name="webdav_log_activated">Выбран профиль «%1$s» (активен на компьютере)</string>
+    <string name="webdav_log_activated_fallback">Выбран профиль «%1$s» (прежнего нет в резервной копии)</string>
+    <string name="webdav_log_kept_active">Профиль «%1$s» оставлен активным (нет подписки для переключения)</string>
+    <string name="webdav_log_done">Готово · обновлено %1$d, добавлено %2$d, удалено %3$d, ошибок %4$d</string>
+    <string name="webdav_log_cancelled">Отменено · локальные профили, которых нет в резервной копии, сохранены, профиль не переключён</string>
+    <string name="webdav_log_retrying">Повтор для неудавшихся подписок: %1$d…</string>
+    <string name="webdav_log_retry_done">Повтор завершён · успешно %1$d, ошибок %2$d</string>
+    <string name="webdav_retry_failed">Повторить неудавшиеся (%1$d)</string>
+    <string name="webdav_test_connection">Проверить подключение</string>
+    <string name="webdav_test_connection_summary">Проверить адрес сервера и учётные данные и найти резервные копии Clash Verge</string>
+    <string name="webdav_testing_connection">Проверка подключения…</string>
+    <string name="webdav_test_success">Подключено · резервных копий: %1$d, последняя: %2$s</string>
+    <string name="webdav_test_no_backup">Подключено, но на сервере ещё нет резервных копий Clash Verge</string>
+    <string name="webdav_test_failed">Не удалось подключиться: %1$s</string>
+    <string name="webdav_unauthorized">ошибка авторизации, проверьте имя пользователя и пароль</string>
+    <string name="sync_log_stopping">Остановка после текущего элемента…</string>
 </resources>

@@ -266,4 +266,45 @@
     <string name="override_destination">Override Destination</string>
     <string name="import_from_qr_no_permission">カメラのアクセスが制限されています。設定から有効にしてください。</string>
     <string name="import_from_qr_exception">システムで予期しない例外が発生しました。</string>
+
+    <!-- WebDAV cloud sync -->
+    <string name="webdav_sync">WebDAV 同期</string>
+    <string name="webdav_server">WebDAV サーバー</string>
+    <string name="webdav_actions">同期</string>
+    <string name="webdav_server_url">サーバー URL</string>
+    <string name="webdav_username">ユーザー名</string>
+    <string name="webdav_password">パスワード</string>
+    <string name="webdav_not_configured">未設定</string>
+    <string name="webdav_pull_sync">今すぐ取得して同期</string>
+    <string name="webdav_pull_sync_summary">最新の Clash Verge バックアップをダウンロードし、ローカルのプロファイルをすべてそのサブスクリプションに置き換えます</string>
+    <string name="webdav_tips">Clash Verge の WebDAV バックアップからサブスクリプションを同期します。Clash Verge と同じサーバー URL、ユーザー名、パスワードを入力してください。Clash Verge の復元と同じ動作です：ローカルのプロファイルはすべてバックアップ内のサブスクリプションに置き換えられ（ローカルファイルを含め、バックアップにないプロファイルは削除されます）、デスクトップで選択中のプロファイルが有効になります。Clash Verge のローカルプロファイルと拡張プロファイルはインポートされません。</string>
+    <string name="webdav_missing_credentials">先にサーバー URL、ユーザー名、パスワードを入力してください</string>
+    <string name="webdav_no_backup_found">WebDAV サーバーにバックアップが見つかりません</string>
+    <string name="webdav_sync_failed">同期に失敗しました：%1$s</string>
+    <string name="webdav_log_connecting">%1$s に接続中…</string>
+    <string name="webdav_log_found_backup">最新のバックアップ：%1$s</string>
+    <string name="webdav_log_parsed">バックアップ内のサブスクリプション %1$d 件、ローカルプロファイル %2$d 件をスキップ</string>
+    <string name="webdav_log_empty_backup">バックアップにサブスクリプションがないため、ローカルのプロファイルは変更していません</string>
+    <string name="webdav_log_updating">「%1$s」を更新中…</string>
+    <string name="webdav_log_adding">「%1$s」を追加中…</string>
+    <string name="webdav_log_updated">✓「%1$s」を更新しました</string>
+    <string name="webdav_log_added">✓「%1$s」を追加しました</string>
+    <string name="webdav_log_item_failed">✗「%1$s」失敗：%2$s</string>
+    <string name="webdav_log_removed">−「%1$s」を削除しました（バックアップにありません）</string>
+    <string name="webdav_log_activated">「%1$s」に切り替えました（デスクトップで選択中）</string>
+    <string name="webdav_log_activated_fallback">「%1$s」に切り替えました（以前のプロファイルはバックアップにありません）</string>
+    <string name="webdav_log_kept_active">「%1$s」を有効のまま残しました（切り替え先のサブスクリプションがありません）</string>
+    <string name="webdav_log_done">完了 · 更新 %1$d、追加 %2$d、削除 %3$d、失敗 %4$d</string>
+    <string name="webdav_log_cancelled">キャンセルしました · バックアップにないローカルプロファイルは残し、切り替えは行っていません</string>
+    <string name="webdav_log_retrying">失敗したサブスクリプション %1$d 件を再試行中…</string>
+    <string name="webdav_log_retry_done">再試行完了 · 成功 %1$d、失敗 %2$d</string>
+    <string name="webdav_retry_failed">失敗分を再試行（%1$d）</string>
+    <string name="webdav_test_connection">接続テスト</string>
+    <string name="webdav_test_connection_summary">サーバー URL と認証情報を確認し、Clash Verge のバックアップを探します</string>
+    <string name="webdav_testing_connection">接続をテスト中…</string>
+    <string name="webdav_test_success">接続成功 · バックアップ %1$d 件、最新：%2$s</string>
+    <string name="webdav_test_no_backup">接続できましたが、サーバーに Clash Verge のバックアップがまだありません</string>
+    <string name="webdav_test_failed">接続に失敗しました：%1$s</string>
+    <string name="webdav_unauthorized">認証に失敗しました。ユーザー名とパスワードを確認してください</string>
+    <string name="sync_log_stopping">現在の項目が終わり次第停止します…</string>
 </resources>

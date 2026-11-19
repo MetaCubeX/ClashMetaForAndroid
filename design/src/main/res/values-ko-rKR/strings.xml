@@ -266,4 +266,45 @@
     <string name="override_destination">Override Destination</string>
     <string name="import_from_qr_no_permission">카메라 접근이 제한되었습니다. 설정에서 허용해 주세요.</string>
     <string name="import_from_qr_exception">처리되지 않은 시스템 예외가 발생했습니다.</string>
+
+    <!-- WebDAV cloud sync -->
+    <string name="webdav_sync">WebDAV 동기화</string>
+    <string name="webdav_server">WebDAV 서버</string>
+    <string name="webdav_actions">동기화</string>
+    <string name="webdav_server_url">서버 URL</string>
+    <string name="webdav_username">사용자 이름</string>
+    <string name="webdav_password">비밀번호</string>
+    <string name="webdav_not_configured">설정 안 됨</string>
+    <string name="webdav_pull_sync">지금 가져와 동기화</string>
+    <string name="webdav_pull_sync_summary">최신 Clash Verge 백업을 내려받아 로컬 프로필을 모두 백업의 구독으로 교체합니다</string>
+    <string name="webdav_tips">Clash Verge의 WebDAV 백업에서 구독을 동기화합니다. Clash Verge와 같은 서버 URL, 사용자 이름, 비밀번호를 입력하세요. Clash Verge의 복원과 동일하게 동작합니다: 로컬 프로필은 모두 백업의 구독으로 교체되고(로컬 파일을 포함해 백업에 없는 프로필은 삭제됨), 데스크톱에서 선택한 프로필이 활성화됩니다. Clash Verge의 로컬 프로필과 확장 프로필은 가져오지 않습니다.</string>
+    <string name="webdav_missing_credentials">먼저 서버 URL, 사용자 이름, 비밀번호를 입력하세요</string>
+    <string name="webdav_no_backup_found">WebDAV 서버에서 백업을 찾을 수 없습니다</string>
+    <string name="webdav_sync_failed">동기화 실패: %1$s</string>
+    <string name="webdav_log_connecting">%1$s에 연결 중…</string>
+    <string name="webdav_log_found_backup">최신 백업: %1$s</string>
+    <string name="webdav_log_parsed">백업에 구독 %1$d개, 로컬 프로필 %2$d개 건너뜀</string>
+    <string name="webdav_log_empty_backup">백업에 구독이 없어 로컬 프로필을 그대로 두었습니다</string>
+    <string name="webdav_log_updating">「%1$s」 업데이트 중…</string>
+    <string name="webdav_log_adding">「%1$s」 추가 중…</string>
+    <string name="webdav_log_updated">✓ 「%1$s」 업데이트됨</string>
+    <string name="webdav_log_added">✓ 「%1$s」 추가됨</string>
+    <string name="webdav_log_item_failed">✗ 「%1$s」 실패: %2$s</string>
+    <string name="webdav_log_removed">− 「%1$s」 삭제됨(백업에 없음)</string>
+    <string name="webdav_log_activated">「%1$s」(으)로 전환됨(데스크톱에서 선택됨)</string>
+    <string name="webdav_log_activated_fallback">「%1$s」(으)로 전환됨(이전 프로필이 백업에 없음)</string>
+    <string name="webdav_log_kept_active">「%1$s」을(를) 활성 상태로 유지함(전환할 구독 없음)</string>
+    <string name="webdav_log_done">완료 · 업데이트 %1$d, 추가 %2$d, 삭제 %3$d, 실패 %4$d</string>
+    <string name="webdav_log_cancelled">취소됨 · 백업에 없는 로컬 프로필은 유지했고 프로필을 전환하지 않았습니다</string>
+    <string name="webdav_log_retrying">실패한 구독 %1$d개 재시도 중…</string>
+    <string name="webdav_log_retry_done">재시도 완료 · 성공 %1$d, 실패 %2$d</string>
+    <string name="webdav_retry_failed">실패 항목 재시도(%1$d)</string>
+    <string name="webdav_test_connection">연결 테스트</string>
+    <string name="webdav_test_connection_summary">서버 주소와 계정 정보를 확인하고 Clash Verge 백업을 찾습니다</string>
+    <string name="webdav_testing_connection">연결 테스트 중…</string>
+    <string name="webdav_test_success">연결 성공 · 백업 %1$d개, 최신: %2$s</string>
+    <string name="webdav_test_no_backup">연결되었지만 서버에 아직 Clash Verge 백업이 없습니다</string>
+    <string name="webdav_test_failed">연결 실패: %1$s</string>
+    <string name="webdav_unauthorized">인증에 실패했습니다. 사용자 이름과 비밀번호를 확인하세요</string>
+    <string name="sync_log_stopping">현재 항목이 끝나면 중지합니다…</string>
 </resources>

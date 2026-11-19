@@ -263,4 +263,45 @@
     <string name="override_destination">Override Destination</string>
     <string name="import_from_qr_no_permission">相機權限受限，請前往設定開啟。</string>
     <string name="import_from_qr_exception">發生系統未知異常，操作失敗。</string>
+
+    <!-- WebDAV cloud sync -->
+    <string name="webdav_sync">WebDAV 同步</string>
+    <string name="webdav_server">WebDAV 伺服器</string>
+    <string name="webdav_actions">同步</string>
+    <string name="webdav_server_url">伺服器位址</string>
+    <string name="webdav_username">使用者名稱</string>
+    <string name="webdav_password">密碼</string>
+    <string name="webdav_not_configured">未設定</string>
+    <string name="webdav_pull_sync">立即拉取同步</string>
+    <string name="webdav_pull_sync_summary">下載最新的 Clash Verge 備份，用其中的訂閱取代本機全部設定檔</string>
+    <string name="webdav_tips">從 Clash Verge 的 WebDAV 備份同步訂閱設定檔。請填入與 Clash Verge 相同的伺服器位址、使用者名稱和密碼。與 Clash Verge 的還原一致：本機設定檔會被備份中的訂閱整體取代（備份裡沒有的設定檔，包括本機檔案設定檔，都會被刪除），並切換到桌面端目前使用的設定檔。Clash Verge 的本機設定檔與增強設定檔不會被匯入。</string>
+    <string name="webdav_missing_credentials">請先填寫伺服器位址、使用者名稱和密碼</string>
+    <string name="webdav_no_backup_found">WebDAV 伺服器上未找到備份</string>
+    <string name="webdav_sync_failed">同步失敗：%1$s</string>
+    <string name="webdav_log_connecting">正在連線 %1$s…</string>
+    <string name="webdav_log_found_backup">最新備份：%1$s</string>
+    <string name="webdav_log_parsed">備份中有 %1$d 個訂閱，略過 %2$d 個本機設定檔</string>
+    <string name="webdav_log_empty_backup">備份中沒有訂閱，本機設定檔保持不變</string>
+    <string name="webdav_log_updating">正在更新「%1$s」…</string>
+    <string name="webdav_log_adding">正在新增「%1$s」…</string>
+    <string name="webdav_log_updated">✓ 已更新「%1$s」</string>
+    <string name="webdav_log_added">✓ 已新增「%1$s」</string>
+    <string name="webdav_log_item_failed">✗「%1$s」失敗：%2$s</string>
+    <string name="webdav_log_removed">− 已刪除「%1$s」（備份中沒有）</string>
+    <string name="webdav_log_activated">已切換到「%1$s」（桌面端目前使用）</string>
+    <string name="webdav_log_activated_fallback">已切換到「%1$s」（原設定檔不在備份中）</string>
+    <string name="webdav_log_kept_active">保留目前設定檔「%1$s」（沒有可切換的訂閱）</string>
+    <string name="webdav_log_done">完成 · 更新 %1$d，新增 %2$d，刪除 %3$d，失敗 %4$d</string>
+    <string name="webdav_log_cancelled">已取消 · 備份中沒有的本機設定檔已保留，未切換設定檔</string>
+    <string name="webdav_log_retrying">正在重試 %1$d 個失敗的訂閱…</string>
+    <string name="webdav_log_retry_done">重試完成 · 成功 %1$d，失敗 %2$d</string>
+    <string name="webdav_retry_failed">重試失敗項（%1$d）</string>
+    <string name="webdav_test_connection">測試連線</string>
+    <string name="webdav_test_connection_summary">檢查伺服器位址和帳號密碼，並尋找 Clash Verge 備份</string>
+    <string name="webdav_testing_connection">正在測試連線…</string>
+    <string name="webdav_test_success">連線成功 · 共 %1$d 個備份，最新：%2$s</string>
+    <string name="webdav_test_no_backup">連線成功，但伺服器上還沒有 Clash Verge 備份</string>
+    <string name="webdav_test_failed">連線失敗：%1$s</string>
+    <string name="webdav_unauthorized">驗證失敗，請檢查使用者名稱和密碼</string>
+    <string name="sync_log_stopping">正在停止，目前項目完成後結束…</string>
 </resources>
