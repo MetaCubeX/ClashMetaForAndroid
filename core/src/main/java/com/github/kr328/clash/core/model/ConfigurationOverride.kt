@@ -56,6 +56,9 @@ data class ConfigurationOverride(
     @SerialName("hosts")
     var hosts: Map<String, String>? = null,
 
+    @SerialName("tailscale")
+    var tailscale: Tailscale = Tailscale(),
+
     @SerialName("unified-delay")
     var unifiedDelay: Boolean? = null,
 
@@ -247,6 +250,31 @@ data class ConfigurationOverride(
 
         @SerialName("override-destination")
         var overrideDestination: Boolean? = null,
+    )
+
+    /**
+     * UI-facing flat representation of the tailscale override (single node +
+     * routing). Serialized as a plain `tailscale` object in the override JSON;
+     * the kernel-side patchTailscale processor (see
+     * core/.../config/process.go) expands it into proxies / proxy-groups /
+     * rules. Kept as a plain @Serializable so it rides through the Android
+     * Parcel (IPC) path correctly.
+     *
+     * The proxy/group names are fixed constants on the kernel side
+     * ("Tailscale" / "Tailscale-Group"); there is no user-configurable name.
+     * A single `enabled` toggle controls creation — this lets the user keep a
+     * fully-default node (e.g. after clearing a one-time auth-key, or relying
+     * on tsnet interactive login with no options at all).
+     */
+    @Serializable
+    data class Tailscale(
+        var enabled: Boolean = false,
+        var hostname: String? = null,
+        var authKey: String? = null,
+        var controlUrl: String? = null,
+        var stateDir: String? = null,
+        var exitNode: String? = null,
+        var ipCidrs: List<String>? = null,
     )
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
