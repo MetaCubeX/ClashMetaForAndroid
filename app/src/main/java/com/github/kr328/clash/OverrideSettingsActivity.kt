@@ -1,9 +1,11 @@
 package com.github.kr328.clash
 
 import android.content.pm.PackageManager
+import android.os.Bundle
 import com.github.kr328.clash.common.compat.getDrawableCompat
 import com.github.kr328.clash.common.constants.Metadata
 import com.github.kr328.clash.core.Clash
+import com.github.kr328.clash.core.model.ConfigurationOverride
 import com.github.kr328.clash.design.OverrideSettingsDesign
 import com.github.kr328.clash.design.model.AppInfo
 import com.github.kr328.clash.design.util.toAppInfo
@@ -15,8 +17,22 @@ import kotlinx.coroutines.selects.select
 import kotlinx.coroutines.withContext
 
 class OverrideSettingsActivity : BaseActivity<OverrideSettingsDesign>() {
+    private var configuration: ConfigurationOverride? = null
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        configuration = savedInstanceState?.readPersistOverride(PERSIST_OVERRIDE_STATE)
+        super.onCreate(savedInstanceState)
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        configuration?.let { outState.putParcelable(PERSIST_OVERRIDE_STATE, it) }
+    }
+
     override suspend fun main() {
-        val configuration = withClash { queryOverride(Clash.OverrideSlot.Persist) }
+        val configuration = this.configuration ?: withClash {
+            queryOverride(Clash.OverrideSlot.Persist)
+        }.also { this.configuration = it }
         val service = ServiceStore(this)
 
         defer {

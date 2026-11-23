@@ -22,21 +22,44 @@ import androidx.compose.ui.graphics.drawOutline
  * The library reads this from `LocalShellTheme`. This module supplies the tint
  * through [LocalShellPressTint] so screens can follow `UiStore.darkMode`.
  */
-val LocalShellPressTint = staticCompositionLocalOf { Color(0x14000000) }
+val LocalShellPressTint = staticCompositionLocalOf { Color(0x1A767680) }
 
-private val PressEasing = CubicBezierEasing(0.2f, 0f, 0f, 1f)
-private const val PressDurationMs = 80
-private const val ReleaseDurationMs = 160
+private val PressEasing = CubicBezierEasing(0.4f, 0f, 0.58f, 1f)
+private const val PressDurationMs = 100
+private const val ReleaseDurationMs = 300
+private const val ForegroundPressMs = 80
+private const val ForegroundReleaseMs = 150
+
+/**
+ * Foreground press for tabs and icon toggles: the glyph fades to 40% and does not gain a plate.
+ */
+@Composable
+fun rememberShellPressAlpha(
+    interactionSource: MutableInteractionSource,
+    pressedAlpha: Float = 0.4f,
+): Float {
+    val pressed by interactionSource.collectIsPressedAsState()
+    val progress by animateFloatAsState(
+        targetValue = if (pressed) 1f else 0f,
+        animationSpec = tween(
+            durationMillis = if (pressed) ForegroundPressMs else ForegroundReleaseMs,
+            easing = PressEasing,
+        ),
+        label = "shellPressForeground",
+    )
+    return 1f - (1f - pressedAlpha) * progress
+}
 
 @Composable
 fun Modifier.shellPressBackground(
     shape: Shape = RectangleShape,
     enabled: Boolean = true,
     interactionSource: MutableInteractionSource? = null,
+    tint: Color? = null,
 ): Modifier {
     if (!enabled) return this
 
-    val tint = LocalShellPressTint.current
+    val resolved = tint ?: LocalShellPressTint.current
     val source = interactionSource ?: remember { MutableInteractionSource() }
     val pressed by source.collectIsPressedAsState()
     val progress by animateFloatAsState(
@@ -52,7 +75,7 @@ fun Modifier.shellPressBackground(
         if (progress <= 0f) return@drawBehind
         drawOutline(
             outline = shape.createOutline(size, layoutDirection, this),
-            color = tint.copy(alpha = tint.alpha * progress),
+            color = resolved.copy(alpha = resolved.alpha * progress),
         )
     }
 }

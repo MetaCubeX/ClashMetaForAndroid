@@ -89,6 +89,12 @@ data class PreferenceItemSpec(
     val groupPaddingOuterWithSummary: Float = 24f,
     /** ref: layout-v24/immersive_mz_preference_middle padding — summary variant */
     val groupPaddingInnerWithSummary: Float = 16f,
+    /**
+     * Hairline between the rows of one grouped card. Not from the Flyme layouts, which draw none.
+     * The row draws it on its own bottom edge, inside the card's fill, from the text column to the
+     * card's far edge. 0 draws none.
+     */
+    val groupedDividerThickness: Float = 0f,
 )
 
 /** Vertical content padding for one preference row edge (top or bottom). */

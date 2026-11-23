@@ -38,8 +38,8 @@ fun resolveThumbGeometry(
 }
 
 /**
- * Control box (dp). Flyme measures the switch at `mSwitchWidth × mSwitchHeight` = 40 × 22
- * (`Switch.java:481-483`); [SwitchTrackSpec.minTouchTarget] expands it on both axes.
+ * Hit box (dp), centered on the track. The control still measures at the track size.
+ * [SwitchTrackSpec.minTouchTarget] must not stretch the row that hosts the switch.
  */
 fun switchTouchTargetWidth(spec: SwitchTrackSpec = SwitchTrackSpec()): Float =
     maxOf(spec.minTouchTarget, spec.trackWidth)

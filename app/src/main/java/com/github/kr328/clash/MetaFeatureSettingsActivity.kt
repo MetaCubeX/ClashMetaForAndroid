@@ -2,12 +2,16 @@ package com.github.kr328.clash
 
 import android.database.Cursor
 import android.net.Uri
+import android.os.Bundle
 import android.provider.OpenableColumns
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import com.github.kr328.clash.core.Clash
+import com.github.kr328.clash.core.model.ConfigurationOverride
 import com.github.kr328.clash.design.MetaFeatureSettingsDesign
+import com.github.kr328.clash.util.GeoFileImport
 import com.github.kr328.clash.util.clashDir
+import com.github.kr328.clash.util.geoImportOutputName
 import com.github.kr328.clash.util.importReplacingGeoFile
 import com.github.kr328.clash.util.withClash
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -21,8 +25,26 @@ import com.github.kr328.clash.design.R
 
 
 class MetaFeatureSettingsActivity : BaseActivity<MetaFeatureSettingsDesign>() {
+    private var configuration: ConfigurationOverride? = null
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        configuration = savedInstanceState?.readPersistOverride(PERSIST_OVERRIDE_STATE)
+        super.onCreate(savedInstanceState)
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        configuration?.let { outState.putParcelable(PERSIST_OVERRIDE_STATE, it) }
+    }
+
+    companion object {
+        const val EXTRA_FOCUS_GEO = "focus_geo"
+    }
+
     override suspend fun main() {
-        val configuration = withClash { queryOverride(Clash.OverrideSlot.Persist) }
+        val configuration = this.configuration ?: withClash {
+            queryOverride(Clash.OverrideSlot.Persist)
+        }.also { this.configuration = it }
 
         defer {
             withClash {
@@ -32,7 +54,8 @@ class MetaFeatureSettingsActivity : BaseActivity<MetaFeatureSettingsDesign>() {
 
         val design = MetaFeatureSettingsDesign(
             this,
-            configuration
+            configuration,
+            intent.getBooleanExtra(EXTRA_FOCUS_GEO, false),
         )
 
         setContentDesign(design)
@@ -108,16 +131,17 @@ class MetaFeatureSettingsActivity : BaseActivity<MetaFeatureSettingsDesign>() {
                         .show()
                     return
                 }
-                val outputFileName = when (importType) {
-                    MetaFeatureSettingsDesign.Request.ImportGeoIp ->
-                        "geoip$ext"
-                    MetaFeatureSettingsDesign.Request.ImportGeoSite ->
-                        "geosite$ext"
-                    MetaFeatureSettingsDesign.Request.ImportCountry ->
-                        "country$ext"
-                    MetaFeatureSettingsDesign.Request.ImportASN ->
-                        "ASN$ext"
-                    else -> ""
+                val kind = when (importType) {
+                    MetaFeatureSettingsDesign.Request.ImportGeoIp -> GeoFileImport.GeoIp
+                    MetaFeatureSettingsDesign.Request.ImportGeoSite -> GeoFileImport.GeoSite
+                    MetaFeatureSettingsDesign.Request.ImportCountry -> GeoFileImport.Country
+                    MetaFeatureSettingsDesign.Request.ImportASN -> GeoFileImport.Asn
+                    MetaFeatureSettingsDesign.Request.ResetOverride -> null
+                }
+                val outputFileName = kind?.let { geoImportOutputName(it, ext) }
+                if (outputFileName == null) {
+                    Toast.makeText(this, R.string.geofile_import_failed, Toast.LENGTH_LONG).show()
+                    return
                 }
 
                 try {

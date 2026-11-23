@@ -13,9 +13,9 @@ import com.github.kr328.clash.core.model.FetchStatus
 import com.github.kr328.clash.design.dialog.ModelProgressBarConfigure
 import com.github.kr328.clash.design.dialog.requestModelTextInput
 import com.github.kr328.clash.design.dialog.withModelProgressBar
-import com.github.kr328.clash.design.ios.ClashMetaXTheme
-import com.github.kr328.clash.design.ios.PropertiesScreen
-import com.github.kr328.clash.design.ios.iosConfirm
+import universe.agentic.clash.AgenticClashTheme
+import universe.agentic.clash.PropertiesScreen
+import universe.agentic.clash.iosConfirm
 import com.github.kr328.clash.design.ui.Insets
 import com.github.kr328.clash.design.util.ValidatorAgeSecretKey
 import com.github.kr328.clash.design.util.ValidatorAutoUpdateInterval
@@ -54,7 +54,7 @@ class PropertiesDesign(context: Context) : Design<PropertiesDesign.Request>(cont
         val title = (context as? Activity)?.title?.toString()?.ifBlank { null }
             ?: context.getString(R.string.profile)
         setContent {
-            ClashMetaXTheme {
+            AgenticClashTheme {
                 PropertiesScreen(
                     insets = insets,
                     title = title,
@@ -64,7 +64,8 @@ class PropertiesDesign(context: Context) : Design<PropertiesDesign.Request>(cont
                     onSave = { requestCommit() },
                     onName = { inputName() },
                     onUrl = { inputUrl() },
-                    onInterval = { inputInterval() },
+                    onIntervalPreset = { setIntervalPreset(it) },
+                    onIntervalCustom = { inputInterval() },
                     onAgeKey = { inputAgeSecretKey() },
                     onShare = { shareSubscriptionQr() },
                     onBrowse = { requestBrowseFiles() },
@@ -183,6 +184,14 @@ class PropertiesDesign(context: Context) : Design<PropertiesDesign.Request>(cont
             if (interval != profile.interval) {
                 profile = profile.copy(interval = interval)
             }
+        }
+    }
+
+    private fun setIntervalPreset(minutes: Long) {
+        val interval = TimeUnit.MINUTES.toMillis(minutes)
+
+        if (interval != profile.interval) {
+            profile = profile.copy(interval = interval)
         }
     }
 

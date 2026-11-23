@@ -10,9 +10,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import com.github.kr328.clash.design.dialog.requestModelTextInput
-import com.github.kr328.clash.design.ios.ClashMetaXTheme
-import com.github.kr328.clash.design.ios.FilesScreen
-import com.github.kr328.clash.design.ios.iosConfirm
+import universe.agentic.clash.AgenticClashTheme
+import universe.agentic.clash.FilesScreen
+import universe.agentic.clash.iosConfirm
 import com.github.kr328.clash.design.model.File
 import com.github.kr328.clash.design.ui.Insets
 import com.github.kr328.clash.design.util.ValidatorFileName
@@ -43,7 +43,7 @@ class FilesDesign(context: Context) : Design<FilesDesign.Request>(context) {
     override val root: View = ComposeView(context).apply {
         setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
         setContent {
-            ClashMetaXTheme {
+            AgenticClashTheme {
                 FilesScreen(
                     insets = insets,
                     title = context.getString(R.string.files),

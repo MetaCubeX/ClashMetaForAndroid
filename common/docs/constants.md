@@ -48,6 +48,7 @@ Extra 键是 `const`，不加包名前缀：
 | `EXTRA_APP_LANGUAGE` | `app_language` |
 | `EXTRA_UUID` | `uuid` |
 | `EXTRA_FAIL_REASON` | `fail_reason` |
+| `EXTRA_PROFILE_UPDATE_NOTIFY` | `profile_update_notify` |
 
 ## Components
 

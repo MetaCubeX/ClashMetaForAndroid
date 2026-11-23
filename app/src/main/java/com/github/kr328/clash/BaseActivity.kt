@@ -44,6 +44,14 @@ abstract class BaseActivity<D : Design<*>> : AppCompatActivity(),
     protected var activityStarted: Boolean = false
     protected val clashRunning: Boolean
         get() = Remote.broadcasts.clashRunning
+
+    internal fun shellEvents() = events
+
+    internal fun shellStarted() = activityStarted
+
+    internal fun shellClashRunning() = clashRunning
+
+    internal fun shellUiStore() = uiStore
     protected var design: D? = null
         set(value) {
             field = value

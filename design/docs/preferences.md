@@ -3,8 +3,8 @@ title: "设置项控件"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-10-16
-summary: "preference 包仍提供文本、列表和映射编辑器。设置子页已改成 Compose，不再调用 preferenceScreen"
+updated: 2026-10-24
+summary: "preference 包仍提供文本、列表和映射编辑器。设置子页已改成 Compose，不再调用 preferenceScreen；短选项选择已迁到 Compose 弹层"
 ---
 
 # 设置项控件
@@ -27,7 +27,7 @@ summary: "preference 包仍提供文本、列表和映射编辑器。设置子�
 
 `switch` 绑定 `KMutableProperty0<Boolean>`，可选图标、标题、摘要。先在 `Dispatchers.IO` 读初值，再在主线程勾上开关并装点击。点击会翻转勾选，在 IO 写回属性，然后调用 `listener`。点击监听在初值读完之后才装上。
 
-`selectableList` 建在 `clickable` 上，绑定一个属性、取值数组和字符串资源数组。摘要是当前下标对应的文案。点击后弹出模态 `ListPopupWindow`，选中一项就关掉弹层，在 IO 写入 `values[position]`，更新下标并调用 `listener`。初值同样先在 IO 读取，下标是 `values.indexOf` 的结果。
+短选项选择不再走这里。设置页用 Compose 的 `IosPopupMenu`：整行做锚点，右侧显示当前值，当前项打勾，选中即写入。旧 `selectableList` 和它的 `ListPopupWindow` 没有调用方，已删除。
 
 `editableText` 也建在 `clickable` 上，用 `NullableTextAdapter` 做转换。摘要：值为 `null` 时用 `placeholder`，空字符串用 `empty`，否则显示文本。点击打开 `requestModelTextInput`，并带上「重置」。确定且校验通过时返回输入；校验失败、取消或对话框关闭时返回打开前的文本；重置返回 `null`。返回值经 `adapter.to` 后在 IO 写回属性，再用 `adapter.from` 刷新摘要。取消也会走这次写回。
 

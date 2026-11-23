@@ -24,14 +24,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.disabled
 import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
@@ -82,6 +85,7 @@ fun ShellListRow(
     modifier: Modifier = Modifier,
     summary: String? = null,
     summaryAnnotated: AnnotatedString? = null,
+    spokenDescription: String? = null,
     variant: ListRowVariant =
         if (summary.isNullOrEmpty() && summaryAnnotated.isNullOrEmpty()) {
             ListRowVariant.SingleLine
@@ -96,6 +100,8 @@ fun ShellListRow(
     trailing: @Composable (() -> Unit)? = null,
     spec: ListRowSpec = ListRowSpec(),
     colors: ListRowColors = ListRowDefaults.colors(),
+    emphasized: Boolean = false,
+    highlight: Boolean = emphasized,
 ) {
     val effectiveVariant =
         when {
@@ -116,11 +122,14 @@ fun ShellListRow(
         variant = effectiveVariant,
         enabled = enabled,
         showDivider = showDivider,
+        spokenDescription = spokenDescription,
         onLongClick = onLongClick,
         leading = leading,
         trailing = effectiveTrailing,
         spec = spec,
         colors = colors,
+        emphasized = emphasized,
+        highlight = highlight,
     ) {
         ListRowTitleSummaryContent(
             title = title,
@@ -129,6 +138,7 @@ fun ShellListRow(
             spec = spec,
             colors = colors,
             enabled = enabled,
+            emphasized = emphasized,
             useDoubleLineLayout = variant == ListRowVariant.DoubleLine,
         )
     }
@@ -141,11 +151,14 @@ private fun ShellListRowImpl(
     variant: ListRowVariant,
     enabled: Boolean,
     showDivider: Boolean,
+    spokenDescription: String? = null,
     onLongClick: (() -> Unit)?,
     leading: @Composable (() -> Unit)?,
     trailing: @Composable (() -> Unit)?,
     spec: ListRowSpec,
     colors: ListRowColors,
+    emphasized: Boolean = false,
+    highlight: Boolean = emphasized,
     content: @Composable RowScope.() -> Unit,
 ) {
     val verticalPadding = resolveListRowVerticalPaddingForVariant(variant, spec)
@@ -164,7 +177,16 @@ private fun ShellListRowImpl(
         modifier =
             modifier
                 .fillMaxWidth()
-                .background(colors.containerColor),
+                .background(colors.containerColor)
+                .then(
+                    if (highlight) {
+                        Modifier.drawBehind {
+                            drawRect(colors.titleColor.copy(alpha = 0.12f))
+                        }
+                    } else {
+                        Modifier
+                    },
+                ),
     ) {
         Row(
             modifier =
@@ -186,8 +208,10 @@ private fun ShellListRowImpl(
                         vertical = verticalPadding.dp,
                     )
                     .semantics {
+                        if (spokenDescription != null) contentDescription = spokenDescription
                         if (!enabled) disabled()
                         if (isInteractive) role = Role.Button
+                        if (emphasized) selected = true
                     },
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -229,6 +253,7 @@ private fun RowScope.ListRowTitleSummaryContent(
     spec: ListRowSpec,
     colors: ListRowColors,
     enabled: Boolean,
+    emphasized: Boolean,
     useDoubleLineLayout: Boolean,
 ) {
     val titleColor = if (enabled) colors.titleColor else colors.disabledTitleColor
@@ -238,6 +263,7 @@ private fun RowScope.ListRowTitleSummaryContent(
 
     val titleLineHeight = spec.titleTextSize * SHELL_LINE_HEIGHT_RATIO
     val summaryLineHeight = spec.summaryTextSize * SHELL_LINE_HEIGHT_RATIO
+    val titleWeight = if (emphasized) FontWeight.SemiBold else FontWeight.Medium
 
     if (useDoubleLineLayout) {
         Column(modifier = Modifier.weight(1f)) {
@@ -247,7 +273,7 @@ private fun RowScope.ListRowTitleSummaryContent(
                     TextStyle(
                         color = titleColor,
                         fontSize = spec.titleTextSize.sp,
-                        fontWeight = FontWeight.Medium,
+                        fontWeight = titleWeight,
                         lineHeight = titleLineHeight.sp,
                     ),
             )
@@ -274,7 +300,7 @@ private fun RowScope.ListRowTitleSummaryContent(
                 TextStyle(
                     color = titleColor,
                     fontSize = spec.titleTextSize.sp,
-                    fontWeight = FontWeight.Medium,
+                    fontWeight = titleWeight,
                     lineHeight = titleLineHeight.sp,
                 ),
         )

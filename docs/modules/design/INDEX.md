@@ -3,7 +3,7 @@ title: "design 模块导航"
 type: index
 status: accepted
 phase: N/A
-updated: 2026-10-16
+updated: 2026-10-21
 summary: "Compose 屏幕、复制进来的 iOS 控件，以及留给编辑器的布局"
 ---
 
@@ -14,7 +14,7 @@ summary: "Compose 屏幕、复制进来的 iOS 控件，以及留给编辑器的
 | 入口 | 路径 |
 |:-----|:-----|
 | 屏幕 | `design/src/main/java/com/github/kr328/clash/design/` |
-| Compose 屏幕 | `design/src/main/java/com/github/kr328/clash/design/ios/` |
+| Compose 屏幕 | `design/src/main/java/universe/agentic/clash/` |
 | 复制的列表、偏好行、开关、搜索 | `design/src/main/java/nota/ui/`、`design/src/main/java/universe/agentic/ui/search/` |
 | 仍在使用的对话框和编辑器布局 | `design/src/main/res/layout/` |
 | 应用集合 | `model/AppSet.kt` |

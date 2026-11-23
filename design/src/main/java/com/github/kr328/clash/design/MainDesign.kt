@@ -3,7 +3,6 @@ package com.github.kr328.clash.design
 import android.content.Context
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.app.AlertDialog
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -15,14 +14,15 @@ import com.github.kr328.clash.core.util.trafficDownload
 import com.github.kr328.clash.core.util.trafficTotal
 import com.github.kr328.clash.core.util.trafficUpload
 import com.github.kr328.clash.core.util.uploadBytes
-import com.github.kr328.clash.design.databinding.DesignAboutBinding
-import com.github.kr328.clash.design.ios.ClashMetaXTheme
-import com.github.kr328.clash.design.ios.HomeScreen
-import com.github.kr328.clash.design.ios.HomeUiState
-import com.github.kr328.clash.design.ios.TrafficRates
-import com.github.kr328.clash.design.ios.TrafficSample
+import universe.agentic.clash.AgenticClashTheme
+import universe.agentic.clash.HomeScreen
+import universe.agentic.clash.ShellPages
+import universe.agentic.clash.ShellTab
+import universe.agentic.clash.HomeUiState
+import universe.agentic.clash.QuickNodeUi
+import universe.agentic.clash.TrafficRates
+import universe.agentic.clash.TrafficSample
 import com.github.kr328.clash.design.ui.Insets
-import com.github.kr328.clash.design.util.layoutInflater
 import com.github.kr328.clash.design.util.setOnInsertsChangedListener
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -31,37 +31,62 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
     sealed interface Request {
         data object ToggleStatus : Request
         data class OpenProxy(val group: String?) : Request
+        data class SelectNode(val group: String, val name: String) : Request
         data object OpenProfiles : Request
         data object OpenProviders : Request
         data object OpenAppsStrategy : Request
         data object OpenLogs : Request
-        data object OpenSettings : Request
-        data object OpenHelp : Request
-        data object OpenAbout : Request
+        data object ReloadKernel : Request
+        data object OpenWebdav : Request
+        data object OpenFiles : Request
         data class SetMode(val mode: TunnelState.Mode) : Request
     }
 
     private var state by mutableStateOf(HomeUiState())
     private var insets by mutableStateOf(Insets.EMPTY)
+    var tab by mutableStateOf(ShellTab.Dashboard)
+    var proxyRoot by mutableStateOf<View?>(null)
+    var profilesRoot by mutableStateOf<View?>(null)
+    var appsRoot by mutableStateOf<View?>(null)
+    var settingsRoot by mutableStateOf<View?>(null)
+
+    fun showTab(next: ShellTab) {
+        tab = next
+    }
+
+    fun openProfilesTab() {
+        requests.trySend(Request.OpenProfiles)
+    }
 
     override val root: View = ComposeView(context).apply {
         setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
         setContent {
-            ClashMetaXTheme {
-                HomeScreen(
+            AgenticClashTheme {
+                ShellPages(
                     insets = insets,
-                    state = state,
-                    onToggle = { request(Request.ToggleStatus) },
-                    onMode = { request(Request.SetMode(it)) },
-                    onProfiles = { request(Request.OpenProfiles) },
-                    onApps = { request(Request.OpenAppsStrategy) },
-                    onProxy = { group -> request(Request.OpenProxy(group)) },
-                    onProviders = { request(Request.OpenProviders) },
-                    onLogs = { request(Request.OpenLogs) },
-                    onSettings = { request(Request.OpenSettings) },
-                    onHelp = { request(Request.OpenHelp) },
-                    onAbout = { request(Request.OpenAbout) },
-                )
+                    tab = tab,
+                    onTab = { tab = it },
+                    proxy = proxyRoot,
+                    profiles = profilesRoot,
+                    apps = appsRoot,
+                    settings = settingsRoot,
+                ) {
+                    HomeScreen(
+                        insets = insets,
+                        state = state,
+                        onToggle = { request(Request.ToggleStatus) },
+                        onMode = { request(Request.SetMode(it)) },
+                        onProfiles = { request(Request.OpenProfiles) },
+                        onApps = { request(Request.OpenAppsStrategy) },
+                        onProxy = { group -> request(Request.OpenProxy(group)) },
+                        onSelectNode = { group, name -> request(Request.SelectNode(group, name)) },
+                        onProviders = { request(Request.OpenProviders) },
+                        onLogs = { request(Request.OpenLogs) },
+                        onReload = { request(Request.ReloadKernel) },
+                        onWebdav = { request(Request.OpenWebdav) },
+                        onFiles = { request(Request.OpenFiles) },
+                    )
+                }
             }
         }
     }
@@ -72,18 +97,23 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         }
     }
 
-    suspend fun setAppsStrategyName(name: String?) {
-        withContext(Dispatchers.Main) {
-            state = state.copy(appsStrategyName = name)
-        }
-    }
-
     suspend fun setClashRunning(running: Boolean) {
         withContext(Dispatchers.Main) {
             state = if (running) {
                 state.copy(running = true)
             } else {
-                state.copy(running = false, currentNode = null, currentGroup = null, traffic = TrafficRates())
+                state.copy(
+                    running = false,
+                    currentNode = null,
+                    currentGroup = null,
+                    currentDelay = -1,
+                    nodeSelectable = false,
+                    quickNodes = emptyList(),
+                    traffic = TrafficRates(),
+                    forwarded = "",
+                    uptime = "",
+                    providerCount = -1,
+                )
             }
         }
     }
@@ -107,9 +137,21 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         }
     }
 
-    suspend fun setCurrentNode(name: String?, group: String?) {
+    suspend fun setOutbound(
+        name: String?,
+        group: String?,
+        delay: Int,
+        selectable: Boolean,
+        nodes: List<QuickNodeUi>,
+    ) {
         withContext(Dispatchers.Main) {
-            state = state.copy(currentNode = name, currentGroup = group)
+            state = state.copy(
+                currentNode = name,
+                currentGroup = group,
+                currentDelay = delay,
+                nodeSelectable = selectable,
+                quickNodes = nodes,
+            )
         }
     }
 
@@ -119,22 +161,25 @@ class MainDesign(context: Context) : Design<MainDesign.Request>(context) {
         }
     }
 
-    suspend fun setHasProviders(has: Boolean) {
+    suspend fun setUptime(uptime: String) {
         withContext(Dispatchers.Main) {
-            state = state.copy(hasProviders = has)
+            state = state.copy(uptime = uptime)
         }
     }
 
-    suspend fun showAbout(versionName: String) {
+    suspend fun setAside(
+        strategy: String?,
+        webdav: String,
+        files: String,
+        providerCount: Int,
+    ) {
         withContext(Dispatchers.Main) {
-            val binding = DesignAboutBinding.inflate(context.layoutInflater).apply {
-                this.versionName = versionName
-            }
-
-            AlertDialog.Builder(context)
-                .setView(binding.root)
-                .setPositiveButton(context.getString(R.string.ok), null)
-                .show()
+            state = state.copy(
+                appsStrategyName = strategy,
+                webdavDetail = webdav,
+                filesDetail = files,
+                providerCount = providerCount,
+            )
         }
     }
 

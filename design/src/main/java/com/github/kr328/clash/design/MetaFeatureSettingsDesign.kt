@@ -19,13 +19,16 @@ import com.github.kr328.clash.core.model.ConfigurationOverride
 import com.github.kr328.clash.design.adapter.EditableTextListAdapter
 import com.github.kr328.clash.design.databinding.DialogAgeKeyHelperBinding
 import com.github.kr328.clash.design.dialog.requestModelTextInput
-import com.github.kr328.clash.design.ios.ClashMetaXTheme
-import com.github.kr328.clash.design.ios.MetaFeatureSettingsScreen
-import com.github.kr328.clash.design.ios.SettingGroup
-import com.github.kr328.clash.design.ios.SettingRow
-import com.github.kr328.clash.design.ios.iosConfirm
+import universe.agentic.clash.AgenticClashTheme
+import universe.agentic.clash.MetaFeatureSettingsScreen
+import universe.agentic.clash.SettingGroup
+import universe.agentic.clash.SettingRow
+import universe.agentic.clash.iosConfirm
+import com.github.kr328.clash.design.preference.EditCommit
 import com.github.kr328.clash.design.preference.EditableListOverlayResult
+import com.github.kr328.clash.design.preference.FieldEditSessions
 import com.github.kr328.clash.design.preference.TextAdapter
+import com.github.kr328.clash.design.preference.commitIfChanged
 import com.github.kr328.clash.design.preference.requestEditableListOverlay
 import com.github.kr328.clash.design.ui.Insets
 import com.github.kr328.clash.design.ui.ToastDuration
@@ -40,6 +43,7 @@ import kotlinx.coroutines.withContext
 class MetaFeatureSettingsDesign(
     context: Context,
     private val configuration: ConfigurationOverride,
+    private val scrollToGeo: Boolean = false,
 ) : Design<MetaFeatureSettingsDesign.Request>(context) {
     enum class Request {
         ResetOverride, ImportGeoIp, ImportGeoSite, ImportCountry, ImportASN
@@ -74,13 +78,15 @@ class MetaFeatureSettingsDesign(
 
     private var insets by mutableStateOf(Insets.EMPTY)
     private var groups by mutableStateOf<List<SettingGroup>>(emptyList())
+    private val editSessions = FieldEditSessions()
 
     override val root: View = ComposeView(context).apply {
         setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
         setContent {
             val title = (context as? Activity)?.title?.toString()?.ifBlank { null }
                 ?: context.getString(R.string.meta_features)
-            ClashMetaXTheme {
+            val scrollAnchor = if (scrollToGeo) context.getString(R.string.geox_files) else null
+            AgenticClashTheme {
                 MetaFeatureSettingsScreen(
                     insets = insets,
                     title = title,
@@ -89,6 +95,7 @@ class MetaFeatureSettingsDesign(
                         (context as? AppCompatActivity)?.onBackPressedDispatcher?.onBackPressed()
                     },
                     onReset = { requestClear() },
+                    scrollAnchor = scrollAnchor,
                 )
             }
         }
@@ -317,7 +324,7 @@ class MetaFeatureSettingsDesign(
         read: () -> List<String>?,
         write: (List<String>?) -> Unit,
         enabled: Boolean = true,
-    ) = valueRow(title, elements(read()?.size), enabled) {
+    ) = valueRow(title, elements(read()?.size), enabled, opensPage = true) {
         editList(title, read, write)
     }
 
@@ -325,11 +332,13 @@ class MetaFeatureSettingsDesign(
         @StringRes title: Int,
         summary: String,
         enabled: Boolean = true,
+        opensPage: Boolean = false,
         onClick: () -> Unit,
     ) = SettingRow(
         title = text(title),
         summary = summary,
         enabled = enabled,
+        opensPage = opensPage,
         onClick = onClick,
     )
 
@@ -341,16 +350,31 @@ class MetaFeatureSettingsDesign(
 
     private fun text(@StringRes id: Int): String = context.getString(id)
 
+    // 占住要在 launch 返回之前，否则第二次点击会在第一次 withContext(IO) 读初值之前再进一层。
+    private fun launchEdit(field: Int, block: suspend () -> Unit) {
+        if (!editSessions.tryEnter(field)) return
+        launch(Dispatchers.Main) {
+            try {
+                block()
+            } finally {
+                editSessions.exit(field)
+            }
+        }
+    }
+
     private fun editList(
         @StringRes titleRes: Int,
         read: () -> List<String>?,
         write: (List<String>?) -> Unit,
     ) {
-        launch(Dispatchers.Main) {
+        launchEdit(titleRes) {
             val title = context.getText(titleRes)
             val initial = withContext(Dispatchers.IO) { read() }
             val updated = requestTextList(initial, title)
-            withContext(Dispatchers.IO) { write(updated) }
+            when (val commit = commitIfChanged(initial, updated)) {
+                EditCommit.Skip -> Unit
+                is EditCommit.Write -> withContext(Dispatchers.IO) { write(commit.value) }
+            }
             publish()
         }
     }

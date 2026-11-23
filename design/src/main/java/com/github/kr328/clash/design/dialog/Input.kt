@@ -39,14 +39,14 @@ suspend fun Context.requestModelTextInput(
             .setCancelable(true)
             .setPositiveButton(R.string.ok) { _, _ ->
                 val text = binding.textField.text?.toString() ?: ""
-                val edited = text != (initial ?: "")
-
-                if (!validator(text))
-                    it.resume(initial)
-                else if (preserveUnedited && !edited)
-                    it.resume(initial)
-                else
-                    it.resume(text)
+                it.resume(
+                    confirmedModelText(
+                        initial = initial,
+                        text = text,
+                        accepted = validator(text),
+                        preserveUnedited = preserveUnedited,
+                    ),
+                )
             }
             .setNegativeButton(R.string.cancel) { _, _ -> }
             .setOnDismissListener { _ ->

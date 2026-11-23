@@ -16,7 +16,6 @@
 
     <string name="logs">Логи</string>
     <string name="settings">Настройки</string>
-    <string name="help">Помощь</string>
     <string name="about">О программе</string>
 
     <string name="copied">Скопировано</string>
@@ -24,6 +23,7 @@
     <string name="recently">Недавно</string>
 
     <string name="format_minutes">%d мин.</string>
+    <string name="format_hours">%d ч.</string>
     <string name="format_elements">%d элементов</string>
 
     <string name="format_minutes_ago">%d мин. назад</string>
@@ -57,6 +57,14 @@
     <string name="profile_name">Название профиля</string>
     <string name="profile_url">URL профиля</string>
     <string name="auto_update">Автообновление</string>
+    <string name="auto_update_custom">Другое…</string>
+    <string name="preview_outbounds">Просмотр исходящих</string>
+    <string name="preview_groups">Группы</string>
+    <string name="preview_nodes">Узлы</string>
+    <string name="preview_providers">Провайдеры</string>
+    <string name="preview_empty">В этом профиле нет исходящих</string>
+    <string name="preview_failed">Не удалось показать</string>
+    <string name="preview_include_all">Включает все прокси</string>
     <string name="auto_update_minutes">Автообновление (минут)</string>
 
     <string name="accept_http_content">Принимать только http(s)</string>
@@ -143,8 +151,21 @@
     <string name="access_control_packages_summary">Настройте доступ для приложения</string>
     <string name="app_sets">Наборы приложений</string>
     <string name="app_set_domestic">Популярные китайские приложения</string>
+    <string name="app_set_browsers">Браузеры</string>
     <string name="app_set_summary">Установлено %1$d · Выбрано %2$d</string>
     <string name="app_set_summary_empty">Не установлено</string>
+    <string name="app_set_name_required">Введите название</string>
+    <string name="select_all_shown">Выбрать показанные</string>
+    <string name="select_none_shown">Снять показанные</string>
+    <string name="select_invert_shown">Инвертировать показанные</string>
+    <string name="discard_app_set_edits">Отменить изменения</string>
+    <string name="discard_app_set_edits_message">Изменённые имя, описание и состав не будут сохранены.</string>
+    <string name="discard">Отменить</string>
+    <string name="freeze_app_set_members">Зафиксировать состав</string>
+    <string name="freeze_app_set_members_message">Этот встроенный набор перестанет добавлять новые установленные приложения. Автоматический состав можно вернуть позже.</string>
+    <string name="freeze_app_set">Зафиксировать</string>
+    <string name="restore_app_set_members">Вернуть автоматический состав</string>
+    <string name="app_set_members_frozen">Состав зафиксирован и больше не следует за новыми установками.</string>
 
     <string name="options_unavailable">Настройки недоступны, пока Clash не будет остановлен</string>
 
@@ -213,7 +234,8 @@
     <string name="import_from_clipboard">Импорт из буфера обмена</string>
     <string name="export_to_clipboard">Экспорт в буфер обмена</string>
 
-    <string name="clash_meta_for_android">ClashMetaX</string>
+    <string name="clash_meta_for_android">AgenticClash</string>
+    <string name="upstream_android">ClashMetaForAndroid (вышестоящий проект)</string>
     <string name="document">Документ</string>
     <string name="feedback">Обратная связь</string>
     <string name="sources">Исходный код</string>
@@ -223,18 +245,18 @@
     <string name="google_play">Google Play</string>
     <string name="clash_meta_core">Ядро Clash Meta</string>
     <string name="clash_wiki_url" translatable="false">https://github.com/Dreamacro/clash/wiki</string>
-    <string name="meta_github_url" translatable="false">https://github.com/MetaCubeX/ClashMetaForAndroid</string>
+    <string name="meta_github_url" translatable="false">https://github.com/TIIEHenry/AgenticClash</string>
     <string name="clash_meta_core_url" translatable="false">https://github.com/MetaCubeX/Clash.Meta</string>
 
     <string name="tips_properties"><![CDATA[Принимается только <strong>конфиг Clash</strong> (включая <strong>Прокси</strong>/<strong>Правила</strong>)]]></string>
-    <string name="tips_help"><![CDATA[ClashMetaX — <strong>бесплатен</strong> и мы <strong>НЕ</strong> предоставляем по нему поддержку]]></string>
+    <string name="tips_help"><![CDATA[AgenticClash — <strong>бесплатен</strong> и мы <strong>НЕ</strong> предоставляем по нему поддержку]]></string>
     <string name="google_play_url" translatable="false">https://play.google.com/store/apps/details?id=com.github.kr328.clash</string>
 
     <string name="app">Приложение</string>
     <string name="service">Сервис</string>
 
-    <string name="app_language">Язык</string>
     <string name="dark_mode">Тёмный режим</string>
+    <string name="app_language">Язык</string>
 
     <string name="show_traffic">Показывать трафик</string>
     <string name="show_traffic_summary">Автоматически обновлять счётчик трафика в уведомлении</string>
@@ -341,19 +363,22 @@
     <string name="config_name">Название конфигурации</string>
     <string name="edit_config_name">Изменить название конфигурации</string>
     <string name="webdav_sync">Синхронизация WebDAV</string>
-    <string name="webdav_tips">Синхронизируются сохранённые подписки и имена пакетов в каждой группе. Адрес по умолчанию должен быть https. Если указан адрес LAN, он проверяется первым при Wi-Fi, в том числе без доступа в интернет. Пустой адрес LAN не используется. Мобильная сеть использует только адрес по умолчанию. Синхронизация сначала объединяет данные и не удаляет подписки или группы, которые есть только на другом устройстве. Ещё не сохранённые профили не отправляются. «Только отправка» не меняет профили на этом телефоне.</string>
+    <string name="webdav_tips">Синхронизируются сохранённые подписки и имена пакетов в каждой группе. Публичный адрес должен быть https. Если указан адрес LAN, он проверяется первым при Wi-Fi, в том числе без доступа в интернет. Пустой адрес LAN не используется. Мобильная сеть использует только публичный адрес. Синхронизация сначала объединяет данные и не удаляет подписки или группы, которые есть только на другом устройстве. Ещё не сохранённые профили не отправляются. «Только отправка» не меняет профили на этом телефоне.</string>
     <string name="webdav_status_empty">Ещё не синхронизировано</string>
     <string name="webdav_server">Сервер</string>
     <string name="webdav_url">Адрес</string>
-    <string name="webdav_url_placeholder">https://alist.taokdao.com/dav</string>
+    <string name="webdav_url_placeholder">https://example.com/dav</string>
     <string name="webdav_lan_url">Адрес LAN</string>
-    <string name="webdav_lan_hint">Используется только в Wi-Fi, в том числе без интернета. Оставьте поле пустым, чтобы отключить LAN. Если адрес не отвечает как WebDAV, используется адрес по умолчанию. В частной сети можно указать http, например http://192.168.1.69:5244/dav.</string>
+    <string name="webdav_lan_hint">Используется только в Wi-Fi, в том числе без интернета. Оставьте поле пустым, чтобы отключить LAN. Если адрес не отвечает как WebDAV, используется публичный адрес. В частной сети можно указать http, например http://192.168.1.100:5244/dav.</string>
     <string name="webdav_username">Имя пользователя</string>
     <string name="webdav_password">Пароль</string>
     <string name="webdav_password_set">Задан</string>
+    <string name="webdav_password_unreadable">Не удаётся прочитать, введите заново</string>
+    <string name="webdav_password_clear">Очистить</string>
+    <string name="webdav_password_hint">Оставьте пустым, чтобы сохранить текущий пароль</string>
     <string name="webdav_unset">Не задан</string>
     <string name="webdav_remote_path">Удалённая папка</string>
-    <string name="webdav_remote_path_default">/sync/Configs/clash-meta</string>
+    <string name="webdav_remote_path_default">/clash-meta</string>
     <string name="webdav_auto_sync">Автосинхронизация</string>
     <string name="webdav_auto_sync_summary">Синхронизировать после запуска и после изменения подписок или пакетов в группах</string>
     <string name="webdav_test">Проверить соединение</string>

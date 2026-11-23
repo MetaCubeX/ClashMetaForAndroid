@@ -11,6 +11,31 @@ internal val userGeoFileNames: Set<String> = setOf(
     "ASN.mmdb",
 )
 
+internal enum class GeoFileImport {
+    GeoIp,
+    GeoSite,
+    Country,
+    Asn,
+}
+
+/**
+ * GeoIP, GeoSite, and ASN write only their canonical name from [userGeoFileNames].
+ * Any other extension is rejected and must not be written. Country keeps the
+ * chosen extension and is outside that success rule.
+ */
+internal fun geoImportOutputName(import: GeoFileImport, extension: String): String? {
+    val name = when (import) {
+        GeoFileImport.GeoIp -> "geoip.metadb"
+        GeoFileImport.GeoSite -> "geosite.dat"
+        GeoFileImport.Asn -> "ASN.mmdb"
+        GeoFileImport.Country -> return "country$extension"
+    }
+    if (name !in userGeoFileNames) return null
+    val dot = name.lastIndexOf('.')
+    if (dot < 0 || name.substring(dot) != extension) return null
+    return name
+}
+
 internal fun shouldInstallGeoAsset(
     exists: Boolean,
     lastModified: Long,

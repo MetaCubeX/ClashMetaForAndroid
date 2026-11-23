@@ -28,6 +28,7 @@
         android:name=".MainApplication"
         android:allowBackup="true"
         android:banner="@mipmap/ic_banner"
+        android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/full_backup_content"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/application_name"
@@ -89,15 +90,15 @@
                 <data android:host="install-config"/>
             </intent-filter>
             <intent-filter>
-                <action android:name="com.github.metacubex.clash.meta.action.START_CLASH" />
+                <action android:name="universe.agentic.device.clash.action.START_CLASH" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
             <intent-filter>
-                <action android:name="com.github.metacubex.clash.meta.action.STOP_CLASH" />
+                <action android:name="universe.agentic.device.clash.action.STOP_CLASH" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
             <intent-filter>
-                <action android:name="com.github.metacubex.clash.meta.action.TOGGLE_CLASH" />
+                <action android:name="universe.agentic.device.clash.action.TOGGLE_CLASH" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
@@ -122,11 +123,6 @@
             android:configChanges="uiMode"
             android:exported="false"
             android:label="@string/profiles" />
-        <activity
-            android:name=".NewProfileActivity"
-            android:configChanges="uiMode"
-            android:exported="false"
-            android:label="@string/create_profile" />
         <activity
             android:name=".PropertiesActivity"
             android:configChanges="uiMode"
@@ -183,6 +179,11 @@
             android:exported="false"
             android:label="@string/webdav_sync" />
         <activity
+            android:name=".McpSettingsActivity"
+            android:configChanges="uiMode"
+            android:exported="false"
+            android:label="@string/mcp_service" />
+        <activity
             android:name=".AccessControlActivity"
             android:configChanges="uiMode"
             android:exported="false"
@@ -193,10 +194,10 @@
             android:exported="false"
             android:label="@string/apps_strategy" />
         <activity
-            android:name=".HelpActivity"
+            android:name=".AboutActivity"
             android:configChanges="uiMode"
             android:exported="false"
-            android:label="@string/help" />
+            android:label="@string/about" />
         <activity
             android:name=".FilesActivity"
             android:configChanges="uiMode"
@@ -215,7 +216,7 @@
             android:name=".TileService"
             android:exported="true"
             android:icon="@drawable/ic_logo_service"
-            android:label="@string/launch_name"
+            android:label="@string/tile_name"
             android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
             <intent-filter>
                 <action android:name="android.service.quicksettings.action.QS_TILE" />

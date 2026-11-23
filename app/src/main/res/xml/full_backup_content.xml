@@ -2,17 +2,11 @@
 <full-backup-content>
     <include
         domain="sharedpref"
-        path="." />
+        path="app.xml" />
     <include
-        domain="database"
-        path="." />
+        domain="sharedpref"
+        path="tips.xml" />
     <include
-        domain="file"
-        path="imported" />
-    <include
-        domain="file"
-        path="pending" />
-    <include
-        domain="file"
-        path="clash/override.json" />
+        domain="sharedpref"
+        path="ui.xml" />
 </full-backup-content>

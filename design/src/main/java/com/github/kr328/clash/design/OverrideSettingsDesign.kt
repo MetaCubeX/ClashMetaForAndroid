@@ -18,16 +18,22 @@ import com.github.kr328.clash.design.adapter.EditableTextListAdapter
 import com.github.kr328.clash.design.adapter.EditableTextMapAdapter
 import com.github.kr328.clash.design.databinding.DialogEditableMapTextFieldBinding
 import com.github.kr328.clash.design.dialog.requestModelTextInput
-import com.github.kr328.clash.design.ios.ClashMetaXTheme
-import com.github.kr328.clash.design.ios.OverrideSettingsScreen
-import com.github.kr328.clash.design.ios.SettingGroup
-import com.github.kr328.clash.design.ios.SettingRow
-import com.github.kr328.clash.design.ios.iosConfirm
+import universe.agentic.clash.AgenticClashTheme
+import universe.agentic.clash.OverrideSettingsScreen
+import universe.agentic.clash.SettingGroup
+import universe.agentic.clash.SettingRow
+import universe.agentic.clash.iosConfirm
+import com.github.kr328.clash.design.preference.EditCommit
 import com.github.kr328.clash.design.preference.EditableListOverlayResult
+import com.github.kr328.clash.design.preference.FieldEditSessions
 import com.github.kr328.clash.design.preference.NullableTextAdapter
 import com.github.kr328.clash.design.preference.TextAdapter
+import com.github.kr328.clash.design.preference.acceptsEmptyOrInt
+import com.github.kr328.clash.design.preference.commitIfChanged
+import com.github.kr328.clash.design.preference.commitNullableText
 import com.github.kr328.clash.design.preference.requestEditableListOverlay
 import com.github.kr328.clash.design.ui.Insets
+import com.github.kr328.clash.design.util.ValidatorAcceptAll
 import com.github.kr328.clash.design.util.layoutInflater
 import com.github.kr328.clash.design.util.root
 import com.github.kr328.clash.design.util.setOnInsertsChangedListener
@@ -118,13 +124,14 @@ class OverrideSettingsDesign(
 
     private var insets by mutableStateOf(Insets.EMPTY)
     private var groups by mutableStateOf<List<SettingGroup>>(emptyList())
+    private val editSessions = FieldEditSessions()
 
     override val root: View = ComposeView(context).apply {
         setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
         setContent {
             val title = (context as? Activity)?.title?.toString()?.ifBlank { null }
                 ?: context.getString(R.string.override)
-            ClashMetaXTheme {
+            AgenticClashTheme {
                 OverrideSettingsScreen(
                     insets = insets,
                     title = title,
@@ -433,7 +440,7 @@ class OverrideSettingsDesign(
         read: () -> List<String>?,
         write: (List<String>?) -> Unit,
         enabled: Boolean = true,
-    ) = valueRow(title, elements(read()?.size), enabled) {
+    ) = valueRow(title, elements(read()?.size), enabled, opensPage = true) {
         editList(title, read, write)
     }
 
@@ -442,7 +449,7 @@ class OverrideSettingsDesign(
         read: () -> Map<String, String>?,
         write: (Map<String, String>?) -> Unit,
         enabled: Boolean = true,
-    ) = valueRow(title, elements(read()?.size), enabled) {
+    ) = valueRow(title, elements(read()?.size), enabled, opensPage = true) {
         editMap(title, read, write)
     }
 
@@ -450,11 +457,13 @@ class OverrideSettingsDesign(
         @StringRes title: Int,
         summary: String,
         enabled: Boolean = true,
+        opensPage: Boolean = false,
         onClick: () -> Unit,
     ) = SettingRow(
         title = text(title),
         summary = summary,
         enabled = enabled,
+        opensPage = opensPage,
         onClick = onClick,
     )
 
@@ -492,13 +501,25 @@ class OverrideSettingsDesign(
 
     private fun text(@StringRes id: Int): String = context.getString(id)
 
+    // 占住要在 launch 返回之前，否则第二次点击会在第一次 withContext(IO) 读初值之前再进一层。
+    private fun launchEdit(field: Int, block: suspend () -> Unit) {
+        if (!editSessions.tryEnter(field)) return
+        launch(Dispatchers.Main) {
+            try {
+                block()
+            } finally {
+                editSessions.exit(field)
+            }
+        }
+    }
+
     private fun <T> editNullable(
         @StringRes titleRes: Int,
         adapter: NullableTextAdapter<T>,
         read: () -> T,
         write: (T) -> Unit,
     ) {
-        launch(Dispatchers.Main) {
+        launchEdit(titleRes) {
             val title = context.getText(titleRes)
             val initial = withContext(Dispatchers.IO) { adapter.from(read()) }
             val entered = context.requestModelTextInput(
@@ -506,10 +527,18 @@ class OverrideSettingsDesign(
                 title = title,
                 reset = context.getText(R.string.reset),
                 hint = title,
+                validator = if (adapter === NullableTextAdapter.Port) {
+                    ::acceptsEmptyOrInt
+                } else {
+                    ValidatorAcceptAll
+                },
                 preserveUnedited = true,
             )
-            withContext(Dispatchers.IO) {
-                write(adapter.to(entered))
+            when (val commit = commitNullableText(initial, entered, adapter)) {
+                EditCommit.Skip -> Unit
+                is EditCommit.Write -> withContext(Dispatchers.IO) {
+                    write(commit.value)
+                }
             }
             publish()
         }
@@ -520,11 +549,14 @@ class OverrideSettingsDesign(
         read: () -> List<String>?,
         write: (List<String>?) -> Unit,
     ) {
-        launch(Dispatchers.Main) {
+        launchEdit(titleRes) {
             val title = context.getText(titleRes)
             val initial = withContext(Dispatchers.IO) { read() }
             val updated = requestTextList(initial, title)
-            withContext(Dispatchers.IO) { write(updated) }
+            when (val commit = commitIfChanged(initial, updated)) {
+                EditCommit.Skip -> Unit
+                is EditCommit.Write -> withContext(Dispatchers.IO) { write(commit.value) }
+            }
             publish()
         }
     }
@@ -534,11 +566,14 @@ class OverrideSettingsDesign(
         read: () -> Map<String, String>?,
         write: (Map<String, String>?) -> Unit,
     ) {
-        launch(Dispatchers.Main) {
+        launchEdit(titleRes) {
             val title = context.getText(titleRes)
             val initial = withContext(Dispatchers.IO) { read() }
             val updated = requestTextMap(initial, title)
-            withContext(Dispatchers.IO) { write(updated) }
+            when (val commit = commitIfChanged(initial, updated)) {
+                EditCommit.Skip -> Unit
+                is EditCommit.Write -> withContext(Dispatchers.IO) { write(commit.value) }
+            }
             publish()
         }
     }

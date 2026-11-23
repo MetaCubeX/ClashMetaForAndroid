@@ -2,6 +2,8 @@ package com.github.kr328.clash.design.dialog
 
 import android.app.Dialog
 import android.content.Context
+import android.graphics.Color
+import android.os.Build
 import android.os.Bundle
 import android.view.ViewGroup
 import android.view.WindowManager
@@ -30,6 +32,7 @@ class AppBottomSheetDialog(context: Context) : BottomSheetDialog(context) {
         window!!.apply {
             isSystemBarsTranslucentCompat = true
             isAllowForceDarkCompat = false
+            clearSheetContrast()
         }
 
         findViewById<ViewGroup>(com.google.android.material.R.id.container)?.apply {
@@ -63,6 +66,7 @@ class AppBottomSheetDialog(context: Context) : BottomSheetDialog(context) {
         }
 
         setOnShowListener {
+            window?.clearSheetContrast()
             behavior.halfExpandedRatio = 0.99f
             behavior.state = BottomSheetBehavior.STATE_EXPANDED
         }
@@ -79,6 +83,7 @@ class FullScreenDialog(
 
         window!!.apply {
             isSystemBarsTranslucentCompat = true
+            clearSheetContrast()
 
             setLayout(
                 WindowManager.LayoutParams.MATCH_PARENT,
@@ -90,5 +95,16 @@ class FullScreenDialog(
                     surface.insets = it
             }
         }
+        setOnShowListener { window?.clearSheetContrast() }
+    }
+}
+
+private fun android.view.Window.clearSheetContrast() {
+    addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
+    statusBarColor = Color.TRANSPARENT
+    navigationBarColor = Color.TRANSPARENT
+    if (Build.VERSION.SDK_INT >= 29) {
+        isStatusBarContrastEnforced = false
+        isNavigationBarContrastEnforced = false
     }
 }

@@ -9,9 +9,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
-import com.github.kr328.clash.design.ios.AppSettingsScreen
-import com.github.kr328.clash.design.ios.AppSettingsUiState
-import com.github.kr328.clash.design.ios.ClashMetaXTheme
+import universe.agentic.clash.AppSettingsScreen
+import universe.agentic.clash.AppSettingsUiState
+import universe.agentic.clash.AgenticClashTheme
 import com.github.kr328.clash.common.AppLanguages
 import com.github.kr328.clash.design.model.Behavior
 import com.github.kr328.clash.design.model.DarkMode
@@ -54,7 +54,7 @@ class AppSettingsDesign(
             ?.ifBlank { null }
             ?: context.getString(R.string.app)
         setContent {
-            ClashMetaXTheme {
+            AgenticClashTheme {
                 AppSettingsScreen(
                     insets = insets,
                     title = title,

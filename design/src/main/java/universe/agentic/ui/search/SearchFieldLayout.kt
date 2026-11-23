@@ -42,7 +42,7 @@ fun resolveClearLayoutSize(
 fun resolveClearLayoutHeight(
     dimens: SearchFieldDimens,
     rowHeight: Float? = null,
-): Float = resolveClearLayoutSize(dimens, rowHeight)
+): Float = rowHeight ?: dimens.barHeightDefault
 
 fun resolveClearLayoutWidth(dimens: SearchFieldDimens): Float = resolveClearTouchSize(dimens)
 

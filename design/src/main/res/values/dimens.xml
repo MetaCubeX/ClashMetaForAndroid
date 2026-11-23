@@ -6,7 +6,6 @@
     <!-- Dialog -->
     <dimen name="dialog_padding">20dp</dimen>
     <dimen name="dialog_button_margin">5dp</dimen>
-    <dimen name="dialog_menu_min_width">150dp</dimen>
 
     <!-- Surface -->
     <dimen name="surface_landscape_min_width">500dp</dimen>

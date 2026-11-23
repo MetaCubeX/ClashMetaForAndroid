@@ -1,13 +1,16 @@
 ---
 title: "其余屏幕的 iOS 分组交互方案"
 type: plan
-status: implemented
+status: completed
 phase: N/A
-updated: 2026-10-20
+updated: 2026-11-04
 summary: "把仍使用 XML 和 RecyclerView 的用户可见屏幕换成与首页相同的分组列表。不改隧道、配置和访问控制的业务规则，不新增连接或规则查询。"
 ---
 
 # 其余屏幕的 iOS 分组交互方案
+
+状态：已完成。
+
 
 > 作者：待定
 > 制定日期：2026-10-15
@@ -16,15 +19,15 @@ summary: "把仍使用 XML 和 RecyclerView 的用户可见屏幕换成与首页
 
 ## 概述
 
-首页和设置顶层已经是 Jetpack Compose，视觉按 Apple HIG 做在 `design/src/main/java/com/github/kr328/clash/design/ios/`。代理、配置、提供者、日志、访问控制、分流策略，以及应用、网络、覆写、Meta、WebDAV 的具体设置，仍是 XML、RecyclerView 或 `preferenceScreen`。本方案只替换这些用户会看到的屏幕，让它们使用同一套分组列表、44dp 点按、按压闪一下（`indication = null`）和 `ClashMetaXTheme`。
+首页和设置顶层已经是 Jetpack Compose，视觉按 Apple HIG 做在 `design/src/main/java/com/github/kr328/clash/design/ios/`。代理、配置、提供者、日志、访问控制、分流策略，以及应用、网络、覆写、Meta、WebDAV 的具体设置，仍是 XML、RecyclerView 或 `preferenceScreen`。本方案只替换这些用户会看到的屏幕，让它们使用同一套分组列表、44dp 点按、按压闪一下（`indication = null`）和 `AgenticClashTheme`。
 
-交互按手机上的任务频率来排，不把 [Clash Verge Rev](https://github.com/clash-verge-rev/clash-verge-rev) 的桌面页面缩小。可迁移的是信息架构：一次看一个代理组、配置卡片上的更新和更多、日志的过滤和搜索、设置按分组。不迁移侧边栏、窗口装饰、系统代理和 TUN 两张卡片、首页卡片显隐、链式代理、配置拖拽排序。Android 仍只有一条 VPN。连接按钮留在首页，本方案不设计第二套开关，停止隧道继续不确认。
+交互按手机上的任务频率来排，不把 [Clash Verge Rev](https://github.com/clash-verge-rev/clash-verge-rev) 的桌面页面缩小。可迁移的是信息架构：一次看一个代理组、配置卡片上的更新和更多、日志的过滤和搜索、设置按分组。不迁移侧边栏、窗口装饰、系统代理和 TUN 两张卡片、首页卡片显隐、链式代理。配置列表可以在本机拖动排序。Android 仍只有一条 VPN。连接按钮留在首页，本方案不设计第二套开关，停止隧道继续不确认。
 
 Activity 继续拥有请求和业务。`*Design` 持有界面状态，通过现有的无界 `requests` 通道把请求交给 Activity。Composable 不调用 `IClashManager`、`IProfileManager`、`PackageManager` 或 WebDAV。
 
 ## 背景与动机
 
-现在的分叉点记在 [界面](docs/systems/ui/INDEX.md) 和 [ADR-002](dev/decisions/002-compose-ios-home.md)。首页已经把模式、速率和当前节点放在连接下面。用户点进代理、配置或设置子页时，仍回到 Material 列表、ViewPager 标签和弹出菜单，两套语言接在一起。
+现在的分叉点记在 [界面](../../docs/systems/ui/INDEX.md) 和 [ADR-002](../../docs/decisions/compose-ios-home.md)。首页已经把模式、速率和当前节点放在连接下面。用户点进代理、配置或设置子页时，仍回到 Material 列表、ViewPager 标签和弹出菜单，两套语言接在一起。
 
 和任务频率不匹配的地方：
 
@@ -49,11 +52,11 @@ Verge 的导航是 `src/pages/_navigation-meta.ts` 里的 home、proxies、profi
 
 - 不改首页的信息架构，不改设置顶层的两个分组，不改 `applicationId`、`clash://`、`clashmeta://` 和外部控制 action。
 - 不把 VPN、配置提交、代理选择、访问控制持久化或 WebDAV 搬进 Composable。
-- 不改访问控制的点选语义、保存目标和重载条件。规则仍以 [访问控制](docs/systems/access-control/INDEX.md) 为准。
-- 不改配置的导入、更新、提交和文件 Provider 的可见性规则。见 [配置](docs/systems/profiles/INDEX.md)。
-- 不改 WebDAV 的合并、局域网探测和默认常量。见 [WebDAV](docs/systems/webdav/INDEX.md)。
+- 不改访问控制的点选语义、保存目标和重载条件。规则仍以 [访问控制](../../docs/systems/access-control/INDEX.md) 为准。
+- 不改配置的导入、更新、提交和文件 Provider 的可见性规则。见 [配置](../../docs/systems/profiles/INDEX.md)。
+- 不改 WebDAV 的合并、局域网探测和默认常量。见 [WebDAV](../../docs/systems/webdav/INDEX.md)。
 - 不新增 `IClashManager` 方法。`Clash.healthCheckAll()` 没有进 Binder，本期不暴露，界面只对当前组调用已有的 `healthCheck(group)`。
-- 不做连接列表、规则全文、链式代理、配置拖拽排序、Verge 的 Unlock、首页卡片显隐、系统代理和 TUN 双卡片。
+- 不做连接列表、规则全文、链式代理、Verge 的 Unlock、首页卡片显隐、系统代理和 TUN 双卡片。配置列表可以在本机拖动排序。
 - 不引入 `compose-cupertino`、SF Symbols 或 Material 3。继续 `androidx.compose.material`。Compose 依赖只留在 `design`。`minSdk` 仍是 21。
 - 不改根 `README.md`。关于页不新开 Activity。
 
@@ -64,7 +67,7 @@ Verge 的导航是 `src/pages/_navigation-meta.ts` 里的 home、proxies、profi
 | 约束 | 落点 |
 |:-----|:-----|
 | 显示名 ClashMetaX | `application_name` / `launch_name`。内核名仍是 Clash Meta Core |
-| 暗色 | `ClashMetaXTheme` 读 `UiStore.darkMode`，不是只看 `configuration.uiMode` |
+| 暗色 | `AgenticClashTheme` 读 `UiStore.darkMode`，不是只看 `configuration.uiMode` |
 | insets | `Design` 的像素监听写入 `Insets`，Compose 用 `LocalDensity.toDp()`。禁止再叠 `WindowInsets.safeDrawing` |
 | 按压 | `MutableInteractionSource`，背景用 `IosColors.pressed`，`indication = null` |
 | 图标 | 已有的 `androidx.compose.material.icons`，例如返回和行尾箭头 |
@@ -231,7 +234,7 @@ sequenceDiagram
 
 | 请求 | 行为，保持不变 |
 |:-----|:---------------|
-| `Create` | 打开 `NewProfileActivity` |
+| `Create(provider)` | 按来源创建配置。文件、URL、二维码和外部提供者都在配置页加号旁的菜单里选 |
 | `UpdateAll` | 对已导入且类型不是 `File` 的配置调用 `update` |
 | `Update` | `update(uuid)` |
 | `Delete` | 先经 `IosConfirmDialog` 确认，再 `delete(uuid)`。现在底部表点删除没有第二步确认，这是本方案新增的确认，业务调用不变 |
@@ -243,19 +246,19 @@ sequenceDiagram
 
 前台每分钟 `updateElapsed()` 保持。
 
-**不改的规则。** 没有重排接口，不做拖拽排序。未导入的配置不能直接设为当前。`File` 不参与单次更新和全部更新。
+**不改的规则。** 未导入的配置不能直接设为当前。`File` 不参与单次更新和全部更新。配置列表可以长按握把拖动排序，顺序写在本机 `profile-order.txt`。
 
 ### 新建配置
 
-**任务和入口。** 从配置页 `Create` 进入。主任务是选一种来源并创建，然后打开属性页。
+**任务和入口。** 从配置页加号旁的菜单进入。主任务是选一种来源并创建，然后打开属性页。菜单从加号旁弹出，不再打开二级页。
 
-**信息层级。** 第一个分组是文件、URL、二维码，各一行，副文字用现有的 `import_from_*`。第二个分组只在 `queryProfileProviders()` 找到 `ACTION_PROVIDE_URL` 的外部 Activity 时出现。外部行的主文字、副文字和图标来自那个 Activity。行尾提供「详情」，发 `OpenDetail`，Activity 打开该包的应用详情设置。点行本身发 `Create` 或 `LaunchScanner`。
+**信息层级。** 第一个分组是文件、URL、二维码。第二个分组只在 `queryProfileProviders()` 找到 `ACTION_PROVIDE_URL` 的外部 Activity 时出现，动作名来自那个 Activity，没有外部 Activity 时不显示这一组。外部提供者的应用详情不再从菜单进入。
 
-**状态。** 现在的 `NewProfileActivity` 先 `await queryProfileProviders()`，再 `patchProviders`，然后才 `setContentDesign`。窗口在查询期间还不存在，所以 Compose 树里的全屏进度用户看不到。新顺序是先 `setContentDesign`：文件、URL、二维码三行立刻出现，不用空态或全屏进度替换它们。包管理器查询进行时，只在第二个分组里显示进度。查询结束后，没有外部 Activity 就不显示第二个分组，也不用空态。二维码取消不做任何事。没有相机权限和扫描失败继续 `showExceptionToast`，字符串仍是 `import_from_qr_no_permission` 和 `import_from_qr_exception`，Snackbar 上仍有「详情」。不要收成不带详情的普通 toast。成功则 `create(Url, 新配置名, 扫到的字符串)` 并打开属性页。属性页 `RESULT_OK` 时新建页 `finish()`。
+**状态。** 每次打开菜单都重新查询外部提供者。包管理器查询失败时只当作没有外部提供者，配置页照常可用。二维码取消不做任何事。没有相机权限和扫描失败继续 `showExceptionToast`，字符串仍是 `import_from_qr_no_permission` 和 `import_from_qr_exception`，Snackbar 上仍有「详情」。不要收成不带详情的普通 toast。成功则 `create(Url, 新配置名, 扫到的字符串)` 并打开属性页。属性页返回后刷新配置列表。
 
-**Request。** `Create`、`OpenDetail`、`LaunchScanner`。QR 不走 `Create`，这是 `NewProfileDesign.requestCreate` 已经分开的。文件和 URL 用 `Profile.Type.File` 和 `Url`，名称是 `R.string.new_profile`，源为空。外部提供者用返回的 URI 和可选名称，类型是 `External`。
+**Request。** `Create(provider)`。文件和 URL 用 `Profile.Type.File` 和 `Url`，名称是 `R.string.new_profile`，源为空。二维码由 `ProfilesShell` 调 `ScanQRCode`，成功按 URL 类型创建。外部提供者用返回的 URI 和可选名称，类型是 `External`。
 
-**不改的规则。** 不在新建页编辑名称、间隔或密钥。那些在属性页。
+**不改的规则。** 不在菜单里编辑名称、间隔或密钥。那些在属性页。
 
 ### 属性
 
@@ -375,7 +378,7 @@ sequenceDiagram
 
 **Request。** `ReloadApps`、`SelectAll`、`SelectNone`、`SelectInvert`、`Import`、`Export`。不新增。集合点选和单行点选直接改构造时传入的 `MutableSet`，今天也是这样，不经过 Request。
 
-**不改的规则。** 见 [访问控制](docs/systems/access-control/INDEX.md)。后来安装的应用不会自动被选中。
+**不改的规则。** 见 [访问控制](../../docs/systems/access-control/INDEX.md)。后来安装的应用不会自动被选中。
 
 ### 设置子页
 
@@ -477,7 +480,7 @@ sequenceDiagram
 | Connections | `Bridge` 没有查询连接的 JNI，`IClashManager` 也没有。Go 的 `hub/route/connections.go` 未接到界面进程 | 不做，不新增 Binder |
 | 关闭全部连接 | `Clash` 对象没有对应的已暴露方法。`native` 里的 `CloseAllConnections` 只在重置路径内部使用 | 不做 |
 | Rules 全文 | 没有 `queryRules` | 不做。访问控制不是规则全文 |
-| 配置拖拽排序、mixin、增强 | `IProfileManager` 没有 reorder 或 enhance | 不做 |
+| 配置拖拽排序 | `IProfileManager.setProfileOrder` 把顺序写在本机 `profile-order.txt` | 做。mixin 和增强仍不做 |
 | 代理链、自定义测速 URL | 没有链配置接口。测速就是 `healthCheck(group)` | 不做 |
 | Unlock、侧边栏、系统代理和 TUN 卡片 | 与 ADR-002 已拒绝的范围相同 | 不做 |
 
@@ -485,7 +488,7 @@ sequenceDiagram
 
 ### 保持不变的通道
 
-各屏 Request 的成员见 [屏幕与请求通道](design/docs/screens.md)。本方案除了下面这一处首页请求形状，不增加 Request 成员，不改变 Activity 里 `withClash`、`withProfile`、`FilesClient` 和 `ServiceStore` 的调用顺序。
+各屏 Request 的成员见 [屏幕与请求通道](../../design/docs/screens.md)。本方案除了下面这一处首页请求形状，不增加 Request 成员，不改变 Activity 里 `withClash`、`withProfile`、`FilesClient` 和 `ServiceStore` 的调用顺序。
 
 确认是 Design 上的挂起函数，不是新的 Request。日志全部删除、属性页放弃修改、覆写和 Meta 的重置已经由 Activity 在分支里调用。配置删除、文件删除、文件覆盖导入、策略删除、单份日志删除补上同样的调用。WebDAV 的手动同步、拉取和推送是例外：在 Design 里确认后再 `trySend`，Activity 分支不再确认。对其余点击，Composable 只负责变成现有 Request。
 
@@ -598,7 +601,7 @@ data class OpenProxy(val group: String?) : Request
 
 仓库没有 feature flag 框架，本方案不添加。发布单位是一个屏幕族的 PR。每个 PR 只把对应 `*Design` 的 `root` 换成 `ComposeView`，Request 类型和 Activity 的 `when` 留在原处。旧的布局 XML 在该 PR 里不再被引用，但先不删除。回退就是 revert 这一个 PR，XML 还在，旧 Design 能编过。
 
-全部屏幕 PR 合并之后，另有一个清理 PR 删除已经没有引用的布局、菜单和只为这些布局服务的 Adapter。`design_about.xml` 仍由 `showAbout` inflate，不删。清理 PR 不改行为。若清理之后要回退某一屏，先 revert 清理 PR 里属于那一屏的文件，或直接 revert 清理 PR，再 revert 那一屏。不要在运行时保留两套 Design 用布尔开关切换。
+全部屏幕 PR 合并之后，另有一个清理 PR 删除已经没有引用的布局、菜单和只为这些布局服务的 Adapter。关于已改成 Compose 卡片，`design_about.xml` 不再 inflate。清理 PR 不改行为。若清理之后要回退某一屏，先 revert 清理 PR 里属于那一屏的文件，或直接 revert 清理 PR，再 revert 那一屏。不要在运行时保留两套 Design 用布尔开关切换。
 
 建议合并顺序：共享控件先合并。其后代理、配置、日志、访问控制、三条设置 PR、低频页可以并行。清理最后。不需要按用户百分比灰度。这些是本地 UI，覆盖安装后下次进入该屏即生效。暗色、语言和 insets 沿用现有设置，不需要数据迁移。
 
@@ -627,15 +630,15 @@ data class OpenProxy(val group: String?) : Request
 
 ## 参考
 
-- [界面](docs/systems/ui/INDEX.md)
-- [ADR-002](dev/decisions/002-compose-ios-home.md)
-- [屏幕与请求通道](design/docs/screens.md)
-- [设置项控件](design/docs/preferences.md)
-- [app 的 Activity](app/docs/activities.md)
-- [日志捕获](app/docs/logcat.md)
-- [访问控制](docs/systems/access-control/INDEX.md)
-- [配置](docs/systems/profiles/INDEX.md)
-- [WebDAV](docs/systems/webdav/INDEX.md)
+- [界面](../../docs/systems/ui/INDEX.md)
+- [ADR-002](../../docs/decisions/compose-ios-home.md)
+- [屏幕与请求通道](../../design/docs/screens.md)
+- [设置项控件](../../design/docs/preferences.md)
+- [app 的 Activity](../../app/docs/activities.md)
+- [日志捕获](../../app/docs/logcat.md)
+- [访问控制](../../docs/systems/access-control/INDEX.md)
+- [配置](../../docs/systems/profiles/INDEX.md)
+- [WebDAV](../../docs/systems/webdav/INDEX.md)
 - 现有控件：`design/src/main/java/com/github/kr328/clash/design/ios/`
 - 桌面信息架构：[clash-verge-rev 的 navigation](https://github.com/clash-verge-rev/clash-verge-rev/blob/dev/src/pages/_navigation-meta.ts)、[代理页](https://github.com/clash-verge-rev/clash-verge-rev/blob/dev/src/pages/proxies.tsx)、[配置页](https://github.com/clash-verge-rev/clash-verge-rev/blob/dev/src/pages/profiles.tsx)、[日志页](https://github.com/clash-verge-rev/clash-verge-rev/blob/dev/src/pages/logs.tsx)
 - `IClashManager`：`service/src/main/java/com/github/kr328/clash/service/remote/IClashManager.kt`
@@ -650,7 +653,7 @@ data class OpenProxy(val group: String?) : Request
 5. 多个次操作用行尾按钮和动作表，不用左滑当作唯一入口。多数破坏性确认是 Activity 在现有 Request 分支里调用的挂起函数。WebDAV 的手动同步、拉取和推送在 Design 里确认后再发送，因为 `Sync` 和自动同步开关共用。停止 VPN 继续不确认。
 6. 设置子页仍由 Design 写原来的属性对象。Composable 不接触 Store。不为每个开关新增 Request。单行文本和列表编辑器继续用现有对话框和 `Validator*`，避免重写「重置为 null、取消写回原值」。
 7. 访问控制的点选和隐藏系统应用的布尔含义保持。`SelectAll` 是先清空再写入 `design.apps`，会去掉已选中但被隐藏的系统包，不是并集。全不选和反选同样会动到这些包。关键字过滤只影响显示，不替换 `design.apps`。空关键字显示 `loadAccessControlApps` 的全表。
-8. 连接列表、规则全文、关闭全部连接、配置排序和 `healthCheckAll` 本期不做，因为界面进程没有这些方法。不新增 Binder。
+8. 连接列表、规则全文、关闭全部连接和 `healthCheckAll` 本期不做，因为界面进程没有这些方法。不新增 Binder。配置排序后来补上，只写本机顺序文件。
 9. 没有 feature flag。一屏一个 PR，旧 XML 先留着，靠 revert 回到旧 Design。清理未引用布局的 PR 放在最后。
 10. 关于保持 `showAbout` 对话框。帮助、安装包损坏和崩溃页纳入本期，因为用户会看到，而且它们没有业务请求要改。
 
@@ -670,14 +673,14 @@ data class OpenProxy(val group: String?) : Request
 ### PR 2
 
 - PR title: 代理页改为单组列表，并换掉提供者列表
-- Files/components affected: `design/.../ProxyDesign.kt`、`design/.../ProvidersDesign.kt`、新建 `ios/ProxyScreen.kt` 和 `ios/ProvidersScreen.kt`、`app/.../ProxyActivity.kt`、`app/.../ProvidersActivity.kt`、`design/.../MainDesign.kt`、`design/.../ios/HomeScreen.kt`、`app/.../MainActivity.kt`。同一 PR 改文档，不留到清理 PR：`design/docs/screens.md`（`OpenProxy` 的形状，以及 `ProxyActivity` 不再在启动时发送 `ReloadAll`）、`design/docs/compose.md`（`HomeUiState.currentGroup`、`setCurrentNode` 的两个参数、`onProxy` 如何带组名）、`app/docs/activities.md`（当前节点一段写明组名如何返回、`OpenProxy` 一行、代理页只重载可见组）、`docs/systems/ui/INDEX.md`（模式不再由代理页菜单写入；点当前节点打开这一次的启发式组）。在 `dev/decisions/002-compose-ios-home.md` 的「后续」里加一句：代理页菜单不再和首页共用 Session 写入，首页是唯一入口。不改写 ADR 原来的 Decision 段落。不改 `service` 和 `core`。`design_about.xml` 不在这个 PR 里动。
+- Files/components affected: `design/.../ProxyDesign.kt`、`design/.../ProvidersDesign.kt`、新建 `ios/ProxyScreen.kt` 和 `ios/ProvidersScreen.kt`、`app/.../ProxyActivity.kt`、`app/.../ProvidersActivity.kt`、`design/.../MainDesign.kt`、`design/.../ios/HomeScreen.kt`、`app/.../MainActivity.kt`。同一 PR 改文档，不留到清理 PR：`design/docs/screens.md`（`OpenProxy` 的形状，以及 `ProxyActivity` 不再在启动时发送 `ReloadAll`）、`design/docs/compose.md`（`HomeUiState.currentGroup`、`setCurrentNode` 的两个参数、`onProxy` 如何带组名）、`app/docs/activities.md`（当前节点一段写明组名如何返回、`OpenProxy` 一行、代理页只重载可见组）、`docs/systems/ui/INDEX.md`（模式不再由代理页菜单写入；点当前节点打开这一次的启发式组）。在 `docs/decisions/compose-ios-home.md` 的「后续」里加一句：代理页菜单不再和首页共用 Session 写入，首页是唯一入口。不改写 ADR 原来的 Decision 段落。不改 `service` 和 `core`。`design_about.xml` 不在这个 PR 里动。
 - Dependencies on other PRs: PR 1
 - Brief description of changes: `ProxyDesign` 的根改为 Compose。节点文字按 `ProxyViewState`：非组用 `title` / `subtitle`，组用 `name`，嵌套 `now` 只在该组已经查询之后显示，不用 `"?"`。点击仍只看父组是不是 `Selector`。一次显示一个组，测速放在导航栏。整个模式子菜单和列数子菜单都去掉。Activity 去掉启动时的 `ReloadAll`，排序和切组只 `Reload` 可见下标。名单为空时不选下标、不发 `Reload`。`OpenProxy` 改为携带可选组名。组名不在列表里就回退，并且这次打开不写 `proxyLastGroup`。用户点选组之后清掉 Intent extra。`ReLaunch` 带上当前组名。提供者按 `Proxy` 和 `Rule` 分组，副标题继续用 `format_provider_type` 的整句。全部更新走原始下标，Inline 不标成更新中。保留现有 Request 成员。`PatchMode` 和 `ReloadAll` 的处理分支留在 Activity，新界面不发出它们。
 
 ### PR 3
 
 - PR title: 配置、新建、属性和文件页换成分组列表
-- Files/components affected: `ProfilesDesign`、`NewProfileDesign`、`PropertiesDesign`、`FilesDesign` 及对应的四个 Activity，新建这四屏的 Compose 文件。二维码仍用 `design/.../util/SubscriptionQr.kt`。不改 `IProfileManager` 和 `FilesClient`。
+- Files/components affected: `ProfilesDesign`、`PropertiesDesign`、`FilesDesign` 及对应的 Activity，新建这几屏的 Compose 文件。`NewProfileDesign` 后来并入配置页加号菜单并删除。二维码仍用 `design/.../util/SubscriptionQr.kt`。不改 `IProfileManager` 和 `FilesClient`。
 - Dependencies on other PRs: PR 1
 - Brief description of changes: 配置行点击仍是设为当前，更多动作放进动作表，删除和覆盖导入先确认。流量行按 `adapter_profile.xml` 的可见性：已用是 `download + upload`，`download >= 2` 才显示；用量条看 `total >= 2`，进度用现有的千分比除法，除数为 0 时不画条。新建页先 `setContentDesign`，文件、URL、二维码三行始终在，进度只出现在外部提供者分组。扫码失败继续 `showExceptionToast`。属性页 age 密钥改成新的已设置或未设置遮罩，编辑器仍预填。File 的来源和间隔显示不可用，可编辑间隔为 0 时显示已禁用。`ActivityStop` 的 patch 条件是 `!canceled && profile != original`。文件页标题保持 `files`。新建只在子目录，根上不发 `ImportFile(null)`。返回仍发 `PopStack`。旧布局 XML 保留。
 

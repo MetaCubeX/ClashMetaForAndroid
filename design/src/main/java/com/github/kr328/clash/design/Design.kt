@@ -46,9 +46,9 @@ abstract class Design<R>(val context: Context) :
                 }
             ).apply(configure).apply {
                 val dark = isDarkMode()
-                setBackgroundTint(if (dark) 0xFF1C1C1E.toInt() else 0xFFFFFFFF.toInt())
-                setTextColor(if (dark) 0xFFFFFFFF.toInt() else 0xFF000000.toInt())
-                setActionTextColor(if (dark) 0xFF0A84FF.toInt() else 0xFF007AFF.toInt())
+                setBackgroundTint(if (dark) 0xFF1E1E1E.toInt() else 0xFFFFFFFF.toInt())
+                setTextColor(if (dark) 0xFFF5F5F5.toInt() else 0xFF1A1A1A.toInt())
+                setActionTextColor(if (dark) 0xFF5B8CFF.toInt() else 0xFF2B6CFF.toInt())
             }.show()
         }
     }

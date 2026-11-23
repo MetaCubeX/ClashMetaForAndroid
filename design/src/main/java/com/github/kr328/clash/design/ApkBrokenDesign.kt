@@ -9,8 +9,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
-import com.github.kr328.clash.design.ios.ApkBrokenScreen
-import com.github.kr328.clash.design.ios.ClashMetaXTheme
+import universe.agentic.clash.ApkBrokenScreen
+import universe.agentic.clash.AgenticClashTheme
 import com.github.kr328.clash.design.ui.Insets
 import com.github.kr328.clash.design.util.setOnInsertsChangedListener
 
@@ -22,7 +22,7 @@ class ApkBrokenDesign(context: Context) : Design<ApkBrokenDesign.Request>(contex
     override val root: View = ComposeView(context).apply {
         setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
         setContent {
-            ClashMetaXTheme {
+            AgenticClashTheme {
                 ApkBrokenScreen(
                     insets = insets,
                     title = context.pushedTitle(R.string.application_broken),

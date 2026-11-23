@@ -12,8 +12,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.core.content.getSystemService
-import com.github.kr328.clash.design.ios.AppCrashedScreen
-import com.github.kr328.clash.design.ios.ClashMetaXTheme
+import universe.agentic.clash.AppCrashedScreen
+import universe.agentic.clash.AgenticClashTheme
 import com.github.kr328.clash.design.ui.Insets
 import com.github.kr328.clash.design.ui.ToastDuration
 import com.github.kr328.clash.design.util.setOnInsertsChangedListener
@@ -26,7 +26,7 @@ class AppCrashedDesign(context: Context) : Design<Unit>(context) {
     override val root: View = ComposeView(context).apply {
         setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
         setContent {
-            ClashMetaXTheme {
+            AgenticClashTheme {
                 AppCrashedScreen(
                     insets = insets,
                     title = context.pushedTitle(R.string.application_crashed),

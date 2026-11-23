@@ -1,0 +1,114 @@
+# Web browsers, both Chinese-store apps and browsers from elsewhere.
+# The browser app set matches these names against apps installed on the device.
+# A match is not also a member of the system set or the domestic set.
+# Lines are `package # name`.
+acr.browser.barebones # Lightning
+acr.browser.lightning # Lightning+
+com.UCMobile # UC浏览器
+com.UCMobile.intl # UC浏览器
+com.aloha.browser # Aloha
+com.amazon.cloud9 # Silk
+com.android.browser # 系统浏览器
+com.android.chrome # Chrome
+com.asus.browser # 华硕浏览器
+com.baidu.browser.apps # 百度浏览器
+com.baidu.browser.inter # 百度浏览器国际版
+com.baidu.browserhd.inter # 百度浏览器 HD
+com.brave.browser # Brave
+com.brave.browser_beta # Brave Beta
+com.brave.browser_dev # Brave Dev
+com.brave.browser_nightly # Brave Nightly
+com.browser2345 # 2345浏览器
+com.cat.readall # 悟空浏览器
+com.chrome.beta # Chrome Beta
+com.chrome.canary # Chrome Canary
+com.chrome.dev # Chrome Dev
+com.cloudmosa.puffin # Puffin
+com.cloudmosa.puffinFree # Puffin
+com.coloros.browser # ColorOS 浏览器
+com.dolphin.browser # 海豚浏览器
+com.duckduckgo.mobile.android # DuckDuckGo
+com.ecosia.android # Ecosia
+com.ghostery.android.ghostery # Ghostery
+com.google.android.apps.chrome # Chrome
+com.heytap.browser # 欢太浏览器
+com.hihonor.browser # 荣耀浏览器
+com.htc.sense.browser # HTC 浏览器
+com.huawei.browser # 华为浏览器
+com.ijinshan.browser_fast # 猎豹浏览器
+com.ilegendsoft.mercury # Mercury
+com.kiwibrowser.browser # Kiwi
+com.ksmobile.cb # CM 浏览器
+com.lemurbrowser.exts # Lemur
+com.mi.globalbrowser # 小米浏览器
+com.mi.globalbrowser.mini # 小米浏览器
+com.microsoft.emmx # Edge
+com.microsoft.emmx.beta # Edge Beta
+com.microsoft.emmx.canary # Edge Canary
+com.microsoft.emmx.dev # Edge Dev
+com.miui.browser # 小米浏览器
+com.mmbox.xbrowser # X浏览器
+com.mmbox.xbrowser.pro # X浏览器
+com.mx.browser # 傲游浏览器
+com.mx.browser.tablet # 傲游浏览器
+com.naver.whale # Whale
+com.opera.browser # Opera
+com.opera.browser.beta # Opera Beta
+com.opera.gx # Opera GX
+com.opera.mini.android # Opera Mini
+com.opera.mini.native # Opera Mini
+com.opera.mini.native.beta # Opera Mini Beta
+com.opera.touch # Opera Touch
+com.oupeng.browser # 欧朋浏览器极速版
+com.oupeng.mini.android # 欧朋浏览器
+com.qihoo.browser # 360浏览器
+com.quark.browser # 夸克
+com.sec.android.app.sbrowser # 三星浏览器
+com.sec.android.app.sbrowser.beta # 三星浏览器 Beta
+com.stoutner.privacybrowser.free # Privacy Browser
+com.stoutner.privacybrowser.standard # Privacy Browser
+com.tencent.ibibo.mtt # QQ浏览器
+com.tencent.mtt # QQ浏览器
+com.transsion.phoenix # Phoenix
+com.uc.browser.en # UC浏览器
+com.uc.browser.hd # UC浏览器 HD
+com.ucmobile.lite # UC浏览器极速版
+com.ume.browser # 微米浏览器
+com.vivaldi.browser # Vivaldi
+com.vivaldi.browser.snapshot # Vivaldi Snapshot
+com.vivo.browser # vivo浏览器
+com.xbrowser.play # X浏览器
+com.yandex.browser # Yandex
+com.yandex.browser.alpha # Yandex Alpha
+com.yandex.browser.beta # Yandex Beta
+com.yandex.browser.lite # Yandex Lite
+info.guardianproject.orfox # Orfox
+io.github.forkmaintainers.iceraven # Iceraven
+jp.co.fenrir.android.sleipnir # Sleipnir
+jp.hazuki.yuzubrowser # Yuzu
+mark.via # Via
+mark.via.gp # Via
+mobi.mgeek.TunnyBrowser # Dolphin
+net.slions.fulguris.full.fdroid # Fulguris
+net.slions.fulguris.full.playstore # Fulguris
+org.adblockplus.browser # Adblock Browser
+org.bromite.bromite # Bromite
+org.chromium.chrome # Chromium
+org.cromite.cromite # Cromite
+org.gnu.icecat # IceCat
+org.iron.srware # SRWare Iron
+org.mozilla.fenix # Firefox Nightly
+org.mozilla.fennec # Firefox
+org.mozilla.fennec_aurora # Firefox
+org.mozilla.fennec_fdroid # Fennec
+org.mozilla.fennec_mylinux # 蚂蚁浏览器
+org.mozilla.firefox # Firefox
+org.mozilla.firefox_beta # Firefox Beta
+org.mozilla.focus # Firefox Focus
+org.mozilla.klar # Firefox Klar
+org.mozilla.reference.browser # Reference Browser
+org.mozilla.rocket # Firefox Lite
+org.torproject.torbrowser # Tor Browser
+org.torproject.torbrowser_alpha # Tor Browser Alpha
+sogou.mobile.explorer # 搜狗浏览器极速版
+us.spotco.mulch # Mull

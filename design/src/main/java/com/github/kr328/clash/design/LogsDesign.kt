@@ -9,9 +9,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
-import com.github.kr328.clash.design.ios.ClashMetaXTheme
-import com.github.kr328.clash.design.ios.LogsScreen
-import com.github.kr328.clash.design.ios.iosConfirm
+import universe.agentic.clash.AgenticClashTheme
+import universe.agentic.clash.LogsScreen
+import universe.agentic.clash.iosConfirm
 import com.github.kr328.clash.design.model.LogFile
 import com.github.kr328.clash.design.ui.Insets
 import com.github.kr328.clash.design.util.setOnInsertsChangedListener
@@ -35,7 +35,7 @@ class LogsDesign(context: Context) : Design<LogsDesign.Request>(context) {
             ?.ifBlank { null }
             ?: context.getString(R.string.logs)
         setContent {
-            ClashMetaXTheme {
+            AgenticClashTheme {
                 LogsScreen(
                     insets = insets,
                     title = title,

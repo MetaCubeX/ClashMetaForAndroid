@@ -21,7 +21,6 @@ import com.github.kr328.clash.service.R
 
 @RequiresApi(Build.VERSION_CODES.N)
 class TileService : TileService() {
-    private var currentProfile = ""
     private var clashRunning = false
 
     override fun onClick() {
@@ -75,7 +74,6 @@ class TileService : TileService() {
         val name = StatusClient(this).currentProfile()
 
         clashRunning = name != null
-        currentProfile = name ?: ""
 
         updateTile()
     }
@@ -94,10 +92,7 @@ class TileService : TileService() {
         else
             Tile.STATE_INACTIVE
 
-        tile.label = if (currentProfile.isEmpty())
-            getText(R.string.launch_name)
-        else
-            currentProfile
+        tile.label = getText(R.string.tile_name)
 
         tile.icon = Icon.createWithResource(this, R.drawable.ic_logo_service)
 
@@ -109,16 +104,9 @@ class TileService : TileService() {
             when (intent?.action) {
                 Intents.ACTION_CLASH_STARTED -> {
                     clashRunning = true
-
-                    currentProfile = ""
                 }
                 Intents.ACTION_CLASH_STOPPED, Intents.ACTION_SERVICE_RECREATED -> {
                     clashRunning = false
-
-                    currentProfile = ""
-                }
-                Intents.ACTION_PROFILE_LOADED -> {
-                    currentProfile = StatusClient(this@TileService).currentProfile() ?: ""
                 }
             }
 

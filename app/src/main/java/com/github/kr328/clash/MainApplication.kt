@@ -8,14 +8,17 @@ import android.content.IntentFilter
 import com.github.kr328.clash.common.AppLanguages
 import com.github.kr328.clash.common.Global
 import com.github.kr328.clash.common.compat.registerReceiverCompat
+import com.github.kr328.clash.common.compat.startForegroundServiceCompat
 import com.github.kr328.clash.common.compat.currentProcessName
 import com.github.kr328.clash.common.constants.Intents
 import com.github.kr328.clash.common.constants.Permissions
 import com.github.kr328.clash.common.log.Log
 import com.github.kr328.clash.remote.Remote
+import com.github.kr328.clash.service.store.ServiceStore
 import com.github.kr328.clash.service.util.sendServiceRecreated
 import com.github.kr328.clash.util.clashDir
 import com.github.kr328.clash.util.installBundledGeoFile
+import universe.agentic.device.clash.McpService
 
 @Suppress("unused")
 class MainApplication : Application() {
@@ -43,6 +46,9 @@ class MainApplication : Application() {
 
         if (processName == packageName) {
             Remote.launch()
+            if (ServiceStore(this).mcpEnabled) {
+                runCatching { startForegroundServiceCompat(Intent(this, McpService::class.java)) }
+            }
         } else {
             sendServiceRecreated()
         }

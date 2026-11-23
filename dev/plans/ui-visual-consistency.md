@@ -1,13 +1,16 @@
 ---
 title: "界面视觉收口"
 type: plan
-status: implemented
+status: completed
 phase: N/A
-updated: 2026-10-16
+updated: 2026-11-04
 summary: "分组行、弹层、空态和对话框主题已收成一套。编辑器保持现有校验。没有装到手机上"
 ---
 
 # 界面视觉收口
+
+状态：已完成。
+
 
 > 制定日期：2026-10-16
 > 状态：已落地
@@ -26,7 +29,7 @@ summary: "分组行、弹层、空态和对话框主题已收成一套。编辑�
 - 首页、设置顶层和设置子页使用同一套分组行。
 - 长列表保持通栏。一行一个节点、一份配置或一个应用，左右不再套一层分组卡片。
 - 底部弹层避开导航栏，动作之间有分隔线。含破坏性动作的表下面有单独的取消。
-- 简单是否确认都走 `iosConfirm`。红色跟随 `UiStore.darkMode`，与 `ClashMetaXTheme` 同一套判断。
+- 简单是否确认都走 `iosConfirm`。红色跟随 `UiStore.darkMode`，与 `AgenticClashTheme` 同一套判断。
 - 空列表和搜索无结果显示专门的句子。`empty` 维持「置空」，不拿来当空态。
 - 选中、半选、反序用标记，不再插入零宽空格或在文案前加「✓」。
 - 导航栏末端用已有的 24dp 矢量图标，点击区域 44dp，带内容描述。
@@ -160,6 +163,6 @@ T1 与 T6 没有共同文件，可以同时做。T2 到 T5 等 T1 合并进工�
 
 ## 参考
 
-- 决定：[ADR-002](../decisions/002-compose-ios-home.md)
+- 决定：[ADR-002](../../docs/decisions/compose-ios-home.md)
 - 已落地的屏幕规格：[其余屏幕的分组交互](compose-remaining-screens.md)
 - 行为说明：[界面](../../docs/systems/ui/INDEX.md)

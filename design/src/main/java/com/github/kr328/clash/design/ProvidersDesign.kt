@@ -10,9 +10,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import com.github.kr328.clash.core.model.Provider
-import com.github.kr328.clash.design.ios.ClashMetaXTheme
-import com.github.kr328.clash.design.ios.ProviderRowUi
-import com.github.kr328.clash.design.ios.ProvidersScreen
+import universe.agentic.clash.AgenticClashTheme
+import universe.agentic.clash.ProviderRowUi
+import universe.agentic.clash.ProvidersScreen
 import com.github.kr328.clash.design.ui.Insets
 import com.github.kr328.clash.design.util.setOnInsertsChangedListener
 import kotlinx.coroutines.Dispatchers
@@ -47,7 +47,7 @@ class ProvidersDesign(
             ?.ifBlank { null }
             ?: context.getString(R.string.providers)
         setContent {
-            ClashMetaXTheme {
+            AgenticClashTheme {
                 ProvidersScreen(
                     insets = insets,
                     title = title,

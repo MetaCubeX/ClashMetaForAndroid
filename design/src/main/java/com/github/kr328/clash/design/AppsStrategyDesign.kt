@@ -11,8 +11,9 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.core.widget.doOnTextChanged
 import com.github.kr328.clash.design.databinding.DialogAppsStrategyConfigEditBinding
-import com.github.kr328.clash.design.ios.AppsStrategyScreen
-import com.github.kr328.clash.design.ios.ClashMetaXTheme
+import universe.agentic.clash.AppSetCardUi
+import universe.agentic.clash.AppsStrategyScreen
+import universe.agentic.clash.AgenticClashTheme
 import com.github.kr328.clash.design.ui.Insets
 import com.github.kr328.clash.design.util.Validator
 import com.github.kr328.clash.design.util.ValidatorAcceptAll
@@ -29,13 +30,20 @@ import kotlinx.coroutines.withContext
 import java.util.UUID
 import kotlin.coroutines.resume
 
-class AppsStrategyDesign(context: Context) : Design<AppsStrategyDesign.Request>(context) {
+class AppsStrategyDesign(
+    context: Context,
+    private val embedded: Boolean = false,
+) : Design<AppsStrategyDesign.Request>(context) {
 
     sealed class Request {
         object Create : Request()
         data class Edit(val config: AppsStrategyConfig) : Request()
-        data class Active(val config: AppsStrategyConfig) : Request()
-        data class Choose(val config: AppsStrategyConfig) : Request()
+        data class Active(val uuid: UUID?) : Request()
+        data class Choose(val uuid: UUID) : Request()
+        data object CreateSet : Request()
+        data class EditSet(val id: String) : Request()
+        data class DeleteSet(val id: String) : Request()
+        data class OpenAccess(val uuid: UUID) : Request()
     }
 
     var configs by mutableStateOf<List<AppsStrategyConfig>>(emptyList())
@@ -44,17 +52,31 @@ class AppsStrategyDesign(context: Context) : Design<AppsStrategyDesign.Request>(
     var activeUuid by mutableStateOf<UUID?>(null)
         private set
 
+    private var sets by mutableStateOf<List<AppSetCardUi>>(emptyList())
+
+    private var covered by mutableStateOf<Map<UUID, String>>(emptyMap())
+
     private var insets by mutableStateOf(Insets.EMPTY)
 
     override val root: View = ComposeView(context).apply {
-        setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+        setViewCompositionStrategy(
+            if (embedded) ViewCompositionStrategy.DisposeOnDetachedFromWindow
+            else ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed,
+        )
+        val title = if (embedded) {
+            context.getString(R.string.page_apps)
+        } else {
+            context.getString(R.string.apps_strategy)
+        }
         setContent {
-            ClashMetaXTheme {
+            AgenticClashTheme {
                 AppsStrategyScreen(
                     insets = insets,
-                    title = context.getString(R.string.apps_strategy),
+                    title = title,
                     configs = configs,
                     activeUuid = activeUuid,
+                    sets = sets,
+                    covered = covered,
                     onBack = {
                         (context as? AppCompatActivity)?.onBackPressedDispatcher?.onBackPressed()
                     },
@@ -62,15 +84,27 @@ class AppsStrategyDesign(context: Context) : Design<AppsStrategyDesign.Request>(
                     onActive = { request(Request.Active(it)) },
                     onChoose = { request(Request.Choose(it)) },
                     onEdit = { request(Request.Edit(it)) },
+                    onCreateSet = { request(Request.CreateSet) },
+                    onEditSet = { request(Request.EditSet(it)) },
+                    onDeleteSet = { request(Request.DeleteSet(it)) },
+                    onOpenAccess = { request(Request.OpenAccess(it)) },
+                    embedded = embedded,
                 )
             }
         }
     }
 
-    suspend fun patchConfigs(configs: List<AppsStrategyConfig>, activeUuid: UUID?) {
+    suspend fun patchConfigs(
+        configs: List<AppsStrategyConfig>,
+        activeUuid: UUID?,
+        sets: List<AppSetCardUi> = emptyList(),
+        covered: Map<UUID, String> = emptyMap(),
+    ) {
         withContext(Dispatchers.Main) {
             this@AppsStrategyDesign.configs = configs
             this@AppsStrategyDesign.activeUuid = activeUuid
+            this@AppsStrategyDesign.sets = sets
+            this@AppsStrategyDesign.covered = covered
         }
     }
 

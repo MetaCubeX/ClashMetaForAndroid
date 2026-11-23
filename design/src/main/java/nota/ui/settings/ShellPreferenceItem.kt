@@ -24,20 +24,27 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.disabled
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import nota.ui.theme.SHELL_LINE_HEIGHT_RATIO
 import nota.ui.theme.shellPressBackground
+import kotlin.math.roundToInt
 
 /**
  * Settings preference row — title + optional summary + trailing widget + divider.
@@ -52,6 +59,7 @@ fun ShellPreferenceItem(
     onClick: (() -> Unit)?,
     modifier: Modifier = Modifier,
     summary: String? = null,
+    spokenDescription: String? = null,
     enabled: Boolean = true,
     showDivider: Boolean? = null,
     showArrow: Boolean = true,
@@ -68,6 +76,13 @@ fun ShellPreferenceItem(
     val widgetGap = resolvePreferenceWidgetGap(spec = spec, groupPosition = groupPosition)
     val minHeight = resolvePreferenceMinHeight(hasSummary = hasSummary, spec = spec)
     val effectiveShowDivider = showDivider ?: (groupPosition == null)
+    // Inside a grouped card the row draws the line itself: a strip below the row would lie outside
+    // the card's fill and show the page through it.
+    val groupedDividerThickness =
+        if (groupPosition != null && effectiveShowDivider) spec.groupedDividerThickness else 0f
+    val leadingSlot = if (hasSummary) spec.iconSize else spec.iconSizeSingleline
+    val groupedDividerStart = horizontalPadding + if (leading != null) leadingSlot + spec.leadingGap else 0f
+    val rightToLeft = LocalLayoutDirection.current == LayoutDirection.Rtl
 
     val titleColor = if (enabled) colors.titleColor else colors.disabledTitleColor
     val summaryColor = if (enabled) colors.summaryColor else colors.disabledSummaryColor
@@ -92,6 +107,23 @@ fun ShellPreferenceItem(
             Modifier
                 .fillMaxWidth()
                 .then(rowBackground)
+                .then(
+                    if (groupedDividerThickness > 0f) {
+                        Modifier.drawWithContent {
+                            drawContent()
+                            // Whole pixels: a line of a fractional thickness is drawn blurred.
+                            val thickness = groupedDividerThickness.dp.toPx().roundToInt().coerceAtLeast(1).toFloat()
+                            val start = groupedDividerStart.dp.toPx()
+                            drawRect(
+                                color = colors.dividerColor,
+                                topLeft = Offset(if (rightToLeft) 0f else start, size.height - thickness),
+                                size = Size(size.width - start, thickness),
+                            )
+                        }
+                    } else {
+                        Modifier
+                    },
+                )
                 .shellPressBackground(
                     shape = groupShape,
                     enabled = onClick != null && enabled,
@@ -116,6 +148,7 @@ fun ShellPreferenceItem(
                     bottom = paddingBottom.dp,
                 )
                 .semantics(mergeDescendants = true) {
+                    if (spokenDescription != null) contentDescription = spokenDescription
                     if (onClick != null) role = Role.Button
                     if (!enabled) disabled()
                 }

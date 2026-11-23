@@ -31,4 +31,5 @@ object Intents {
     const val EXTRA_APP_LANGUAGE = "app_language"
     const val EXTRA_UUID = "uuid"
     const val EXTRA_FAIL_REASON = "fail_reason"
+    const val EXTRA_PROFILE_UPDATE_NOTIFY = "profile_update_notify"
 }

@@ -9,34 +9,53 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
-import com.github.kr328.clash.design.ios.ClashMetaXTheme
-import com.github.kr328.clash.design.ios.SettingsScreen
+import universe.agentic.clash.AgenticClashTheme
+import universe.agentic.clash.SettingsRootStatus
+import universe.agentic.clash.SettingsScreen
 import com.github.kr328.clash.design.ui.Insets
 import com.github.kr328.clash.design.util.setOnInsertsChangedListener
 
-class SettingsDesign(context: Context) : Design<SettingsDesign.Request>(context) {
+class SettingsDesign(
+    context: Context,
+    private val embedded: Boolean = false,
+) : Design<SettingsDesign.Request>(context) {
     enum class Request {
-        StartApp, StartNetwork, StartOverride, StartMetaFeature, StartWebdav,
+        StartApp, StartNetwork, StartOverride, StartMetaFeature, StartWebdav, StartMcp, StartAbout,
     }
 
     private var insets by mutableStateOf(Insets.EMPTY)
+    private var status by mutableStateOf(SettingsRootStatus())
+
+    fun showStatus(next: SettingsRootStatus) {
+        status = next
+    }
 
     override val root: View = ComposeView(context).apply {
-        setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-        val title = (context as? Activity)?.title?.toString()
-            ?.ifBlank { null }
-            ?: context.getString(R.string.settings)
+        setViewCompositionStrategy(
+            if (embedded) ViewCompositionStrategy.DisposeOnDetachedFromWindow
+            else ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed,
+        )
+        val title = if (embedded) {
+            context.getString(R.string.page_settings)
+        } else {
+            (context as? Activity)?.title?.toString()?.ifBlank { null }
+                ?: context.getString(R.string.settings)
+        }
         setContent {
-            ClashMetaXTheme {
+            AgenticClashTheme {
                 SettingsScreen(
                     insets = insets,
                     title = title,
+                    status = status,
                     onBack = { (context as? AppCompatActivity)?.onBackPressedDispatcher?.onBackPressed() },
                     onApp = { request(Request.StartApp) },
                     onNetwork = { request(Request.StartNetwork) },
                     onOverride = { request(Request.StartOverride) },
                     onMeta = { request(Request.StartMetaFeature) },
                     onWebdav = { request(Request.StartWebdav) },
+                    onMcp = { request(Request.StartMcp) },
+                    onAbout = { request(Request.StartAbout) },
+                    embedded = embedded,
                 )
             }
         }

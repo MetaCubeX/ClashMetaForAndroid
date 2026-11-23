@@ -9,8 +9,8 @@ import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -47,6 +47,7 @@ fun ShellSwitch(
     colors: SwitchColors = SwitchDefaults.colors(),
     spec: SwitchTrackSpec = SwitchTrackSpec(),
     interactionSource: MutableInteractionSource? = null,
+    toggleOnClick: Boolean = true,
 ) {
     BindSwitchHaptic()
 
@@ -107,44 +108,39 @@ fun ShellSwitch(
             scope.launch { progress.snapTo(next) }
         }
 
-    val switchModifier =
-        modifier
-            .semantics(mergeDescendants = false) {
-                role = Role.Switch
-                toggleableState = if (checked) ToggleableState.On else ToggleableState.Off
-                if (!enabled) disabled()
-            }
-            .then(
-                if (onCheckedChange != null && enabled) {
-                    Modifier
-                        .draggable(
-                            state = draggableState,
-                            orientation = Orientation.Horizontal,
-                            enabled = true,
-                            interactionSource = actualInteractionSource,
-                            startDragImmediately = false,
-                            onDragStarted = { dragging = true },
-                            onDragStopped = { velocity ->
-                                val target =
-                                    checkedAfterRelease(
-                                        progress = progress.value,
-                                        velocityPxPerSec = velocity,
-                                        minFlingVelocityPxPerSec = minFling,
-                                        rtl = rtl,
-                                    )
-                                scope.launch {
-                                    // Meizu stopDrag → setChecked(..., useAnim=false): snap to edge.
-                                    progress.snapTo(if (target) 1f else 0f)
-                                    dragging = false
-                                    val callback = currentOnCheckedChange
-                                    if (callback != null && target != currentChecked) {
-                                        performSwitchHaptic()
-                                        callback(target)
-                                    }
-                                }
-                            },
-                        )
-                        .clickable(
+    val gestureModifier =
+        if (onCheckedChange != null && enabled) {
+            Modifier
+                .draggable(
+                    state = draggableState,
+                    orientation = Orientation.Horizontal,
+                    enabled = true,
+                    interactionSource = actualInteractionSource,
+                    startDragImmediately = false,
+                    onDragStarted = { dragging = true },
+                    onDragStopped = { velocity ->
+                        val target =
+                            checkedAfterRelease(
+                                progress = progress.value,
+                                velocityPxPerSec = velocity,
+                                minFlingVelocityPxPerSec = minFling,
+                                rtl = rtl,
+                            )
+                        scope.launch {
+                            // Meizu stopDrag → setChecked(..., useAnim=false): snap to edge.
+                            progress.snapTo(if (target) 1f else 0f)
+                            dragging = false
+                            val callback = currentOnCheckedChange
+                            if (callback != null && target != currentChecked) {
+                                performSwitchHaptic()
+                                callback(target)
+                            }
+                        }
+                    },
+                )
+                .then(
+                    if (toggleOnClick) {
+                        Modifier.clickable(
                             interactionSource = actualInteractionSource,
                             indication = null,
                             role = Role.Switch,
@@ -153,14 +149,27 @@ fun ShellSwitch(
                                 currentOnCheckedChange?.invoke(!currentChecked)
                             },
                         )
-                } else {
-                    Modifier
-                },
-            )
-            .size(width = touchTargetWidth.dp, height = touchTargetHeight.dp)
-            .wrapContentSize(Alignment.Center)
+                    } else {
+                        Modifier
+                    },
+                )
+        } else {
+            Modifier
+        }
 
-    Box(modifier = switchModifier) {
+    Box(modifier.size(width = spec.trackWidth.dp, height = spec.trackHeight.dp)) {
+        Box(
+            Modifier
+                .align(Alignment.Center)
+                .requiredSize(width = touchTargetWidth.dp, height = touchTargetHeight.dp)
+                .semantics(mergeDescendants = false) {
+                    role = Role.Switch
+                    toggleableState = if (checked) ToggleableState.On else ToggleableState.Off
+                    if (!enabled) disabled()
+                }
+                .then(gestureModifier),
+            contentAlignment = Alignment.Center,
+        ) {
         Canvas(Modifier.size(spec.trackWidth.dp, spec.trackHeight.dp)) {
             val p = progress.value
             val geometry = resolveThumbGeometry(checked = checked, progress = p, spec = spec)
@@ -188,6 +197,7 @@ fun ShellSwitch(
                 size = Size(thumbWidthPx, thumbHeightPx),
                 cornerRadius = CornerRadius(thumbCornerPx),
             )
+        }
         }
     }
 }

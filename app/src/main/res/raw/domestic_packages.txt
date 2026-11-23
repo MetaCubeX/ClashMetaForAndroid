@@ -1,7 +1,10 @@
 # Domestic apps commonly distributed on Chinese app stores.
 # Package names are a snapshot of mnixry/direct-android-ruleset
 # rules/@Merged/APP on 2026-10-01, plus a few widely used packages
-# that snapshot did not include. Lines are `package # name`.
+# that snapshot did not include. Web browsers are listed in
+# browser_packages.txt and are not members of this set.
+# Content apps and file managers stay even if the package name contains
+# "browser". Lines are `package # name`.
 # The app set matches these names against apps installed on the device.
 ai.zuoye.app # 爱作业
 aihuishou.aihuishouapp # 爱回收
@@ -211,7 +214,6 @@ com.babytree.apps.pregnancy # 宝宝树孕育
 com.baidu.appsearch # 百度手机助手
 com.baidu.BaiduMap # 百度地图
 com.baidu.baidutranslate # 百度翻译
-com.baidu.browser.apps # 百度浏览器
 com.baidu.haokan # 好看视频
 com.baidu.hi # 如流
 com.baidu.homework # 作业帮
@@ -266,7 +268,6 @@ com.boohee.one # 薄荷健康
 com.booking # Booking.com缤客
 com.bowerswilkins.splice # Music Bowers and Wilkins
 com.brains.byzmnew # 益智脑筋急转弯大全
-com.browser2345 # 2345浏览器
 com.btime.bjtime # 北京时间
 com.budejie.www # 百思漂流瓶
 com.businessvalue.android.app # 钛媒体
@@ -283,7 +284,6 @@ com.caishi.cronus # 唔哩头条
 com.call.myyb # 满意网络电话
 com.campmobile.snowcamera # B612咔叽
 com.capelabs.leyou # 乐友
-com.cat.readall # 悟空浏览器
 com.cbnweekly # 第一财经杂志
 com.ccb.longjiLife # 建行生活
 com.ccgs.sms # 短信群发助手
@@ -924,7 +924,6 @@ com.minitools.miniwidget # 心动主题壁纸
 com.mishangwo # 迷上我
 com.mistong.ewt360 # 升学e网通
 com.mm.android.lc # 乐橙
-com.mmbox.xbrowser.pro # X浏览器
 com.mmote.play # 买萌陪玩
 com.mobile.myeye # 监控眼
 com.MobileTicket # 铁路12306
@@ -945,7 +944,6 @@ com.msxf.ayh # 安逸花
 com.mt.mtxx.mtxx # 美图秀秀-视频/图片/Live人像精修工具
 com.mtime # 时光网
 com.music.qishui # 汽水铃声
-com.mx.browser # 傲游浏览器
 com.my.peiyin # 配音文字转语音
 com.mybank.android.phone # 网商银行
 com.mygolbs.mybus # 掌上公交
@@ -1015,8 +1013,6 @@ com.ophone.reader.ui # 咪咕悦看
 com.oppo.market # OPPO应用商店
 com.oppo.store # OPPO商城
 com.oray.sunlogin # 向日葵远程控制
-com.oupeng.browser # 欧朋浏览器极速版
-com.oupeng.mini.android # 欧朋浏览器
 com.ovital.ovitalMap # 奥维互动地图
 com.owqsic.dwtihfwexq # pubg tool
 com.p1.mobile.putong # 探探
@@ -1060,7 +1056,6 @@ com.qicai.contacts # 西瓜通讯录
 com.qicai.translate # 出国翻译官
 com.qidian.QDReader # 起点读书
 com.qihoo.appstore # 360手机助手
-com.qihoo.browser # 360浏览器
 com.qihoo.camera # 360摄像机
 com.qihoo.cleandroid_cn # 360清理大师
 com.qihoo.dr # 360行车助手
@@ -1094,7 +1089,6 @@ com.qq.reader # QQ阅读
 com.qsmy.walkmonkey # 步多多
 com.qtx.qtxty # 球天下体育
 com.quanleimu.activity # 百姓网
-com.quark.browser # 夸克
 com.Qunar # 去哪儿旅行
 com.quvideo.slideplus # 小影记
 com.quvideo.xiaoying # 小影
@@ -1326,7 +1320,6 @@ com.tencent.karaoke # 全民K歌
 com.tencent.map # 腾讯地图
 com.tencent.mm # 微信
 com.tencent.mobileqq # QQ
-com.tencent.mtt # QQ浏览器
 com.tencent.news # 腾讯新闻
 com.tencent.portfolio # 腾讯自选股
 com.tencent.qqgame # QQ游戏
@@ -1399,11 +1392,8 @@ com.twentyfirstcbh.epaper # 21财经
 com.ubestkid.beilehu.android # 贝乐虎儿歌
 com.ubestkid.collection.a # 贝乐虎启蒙
 com.ucar.app # 淘车车
-com.UCMobile # UC浏览器
-com.ucmobile.lite # UC浏览器极速版
 com.ujigu.ytb # 优题宝
 com.umaman.laiyifen # 来伊份社区购
-com.ume.browser # 微米浏览器
 com.umetrip.android.msky.app # 航旅纵横
 com.unicom.wopay # 沃钱包
 com.unicom.zworeader.ui # 联通爱看
@@ -1422,7 +1412,6 @@ com.video.link.heart # 心心相印
 com.videogo # 萤石云视频
 com.vistastory.news # 看天下
 com.vivo.appstore # vivo应用商店
-com.vivo.browser # vivo浏览器
 com.vivo.easyshare # 互传
 com.vivo.health # vivo健康
 com.vivo.space # vivo 官网
@@ -1689,7 +1678,6 @@ llbt.ccb.lnga # 辽事通
 long.xian.wallpaper # 免费主题商店
 longbin.helloworld # 计算管家
 mall.dfs168.com.mall # 大丰收农服
-mark.via # Via
 me.chunyu.ChunyuDoctor # 春雨医生
 me.ele # 饿了么
 me.ele.napos # 淘宝闪购商家版
@@ -1719,7 +1707,6 @@ oms.mmc.fortunetelling # 灵机
 one.hh.oneclient # 一个
 org.fungo.fungolive # 天天电视直播
 org.moegirl.moegirlview # 萌娘百科
-org.mozilla.fennec_mylinux # 蚂蚁浏览器
 org.sojex.finance # 口袋贵金属
 org.thinkinbunny.autoanswer # 自动应答
 org.zywx.wbpalmstar.widgetone.uex10075364 # 经管之家
@@ -1738,7 +1725,6 @@ sina.mobile.tianqitong # 天气通
 sl.mySms # Q信
 smskb.com # 盛名时刻表
 software.ecenter.study # 状元共享课堂
-sogou.mobile.explorer # 搜狗浏览器极速版
 sr.daiv.alls.ja # 基础日语口语
 sr.daiv.alls.ko # 基础韩语口语
 ts.NetTraffic # 网速流量监测

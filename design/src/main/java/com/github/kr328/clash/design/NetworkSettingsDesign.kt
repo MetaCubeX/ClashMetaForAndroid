@@ -10,14 +10,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
-import com.github.kr328.clash.design.ios.ClashMetaXTheme
-import com.github.kr328.clash.design.ios.NetworkSettingsScreen
-import com.github.kr328.clash.design.ios.NetworkSettingsUiState
+import universe.agentic.clash.AgenticClashTheme
+import universe.agentic.clash.NetworkSettingsScreen
+import universe.agentic.clash.NetworkSettingsUiState
 import com.github.kr328.clash.design.store.UiStore
 import com.github.kr328.clash.design.ui.Insets
 import com.github.kr328.clash.design.ui.ToastDuration
 import com.github.kr328.clash.design.util.setOnInsertsChangedListener
-import com.github.kr328.clash.service.model.AccessControlMode
 import com.github.kr328.clash.service.store.ServiceStore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -29,12 +28,7 @@ class NetworkSettingsDesign(
     private val uiStore: UiStore,
     private val srvStore: ServiceStore,
     running: Boolean,
-) : Design<NetworkSettingsDesign.Request>(context) {
-    enum class Request {
-        StartAccessControlList,
-        AccessControlChanged,
-    }
-
+) : Design<Unit>(context) {
     private var insets by mutableStateOf(Insets.EMPTY)
     private var state by mutableStateOf(
         NetworkSettingsUiState(
@@ -46,19 +40,9 @@ class NetworkSettingsDesign(
             systemProxy = srvStore.systemProxy,
             showSystemProxy = Build.VERSION.SDK_INT >= 29,
             tunStackMode = srvStore.tunStackMode,
-            accessControlMode = srvStore.accessControlMode,
             running = running,
-            activeStrategyName = readActiveStrategyName(),
         )
     )
-
-    private fun readActiveStrategyName(): String? {
-        val uuid = srvStore.activeAppsStrategyConfigUuid ?: return null
-        return srvStore.appsStrategyConfigs
-            .find { it.uuid == uuid }
-            ?.name
-            ?.takeIf { it.isNotBlank() }
-    }
 
     override val root: View = ComposeView(context).apply {
         setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
@@ -66,7 +50,7 @@ class NetworkSettingsDesign(
             ?.ifBlank { null }
             ?: context.getString(R.string.network)
         setContent {
-            ClashMetaXTheme {
+            AgenticClashTheme {
                 NetworkSettingsScreen(
                     insets = insets,
                     title = title,
@@ -80,8 +64,6 @@ class NetworkSettingsDesign(
                     onAllowIpv6 = ::setAllowIpv6,
                     onSystemProxy = ::setSystemProxy,
                     onTunStack = ::setTunStack,
-                    onAccessControlMode = ::setAccessControlMode,
-                    onAccessControlList = ::openAccessControlList,
                 )
             }
         }
@@ -141,22 +123,6 @@ class NetworkSettingsDesign(
             }
             state = state.copy(tunStackMode = stored)
         }
-    }
-
-    private fun setAccessControlMode(value: AccessControlMode) {
-        if (!state.vpnDependenciesEnabled) return
-        launch(Dispatchers.Main) {
-            val stored = withContext(Dispatchers.IO) {
-                srvStore.accessControlMode = value
-                srvStore.accessControlMode
-            }
-            state = state.copy(accessControlMode = stored)
-            requests.trySend(Request.AccessControlChanged)
-        }
-    }
-
-    private fun openAccessControlList() {
-        requests.trySend(Request.StartAccessControlList)
     }
 
     private fun editVpnBoolean(

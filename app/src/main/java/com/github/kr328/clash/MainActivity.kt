@@ -4,6 +4,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.result.contract.ActivityResultContracts.RequestPermission
 import androidx.core.content.ContextCompat
@@ -12,10 +13,19 @@ import androidx.core.content.pm.ShortcutManagerCompat
 import androidx.core.graphics.drawable.IconCompat
 import com.github.kr328.clash.common.constants.Intents
 import com.github.kr328.clash.common.util.intent
+import com.github.kr328.clash.common.util.setUUID
 import com.github.kr328.clash.common.util.ticker
 import com.github.kr328.clash.design.MainDesign
+import universe.agentic.clash.QuickNodeUi
+import universe.agentic.clash.ShellTab
 import com.github.kr328.clash.design.ui.ToastDuration
+import com.github.kr328.clash.service.model.AccessControlMode
+import com.github.kr328.clash.service.model.resolveAccessControl
+import com.github.kr328.clash.service.model.Profile
 import com.github.kr328.clash.service.store.ServiceStore
+import com.github.kr328.clash.service.util.TunnelClock
+import com.github.kr328.clash.util.clashDir
+import com.github.kr328.clash.util.requestClashReload
 import com.github.kr328.clash.util.startClashService
 import com.github.kr328.clash.util.stopClashService
 import com.github.kr328.clash.util.withClash
@@ -24,82 +34,140 @@ import com.github.kr328.clash.core.Clash
 import com.github.kr328.clash.core.bridge.*
 import com.github.kr328.clash.core.model.ProxySort
 import com.github.kr328.clash.core.model.TunnelState
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.select
 import kotlinx.coroutines.withContext
+import java.util.UUID
 import java.util.concurrent.TimeUnit
 import com.github.kr328.clash.design.R as DesignR
 
 class MainActivity : BaseActivity<MainDesign>() {
+    private var observedSince: Long? = null
+    private var proxyShell: ProxyShell? = null
+    private var profilesShell: ProfilesShell? = null
+    private var appsShell: AppsStrategyShell? = null
+    private var settingsShell: SettingsShell? = null
+
     override suspend fun main() {
         val design = MainDesign(this)
+        val proxy = ProxyShell(
+            this,
+            embedded = true,
+            onMounted = { design.proxyRoot = it.root },
+        )
+        val profiles = ProfilesShell(this, embedded = true) { design.profilesRoot = it.root }
+        val apps = AppsStrategyShell(this, embedded = true) { design.appsRoot = it.root }
+        val settings = SettingsShell(this, embedded = true) { design.settingsRoot = it.root }
+        proxyShell = proxy
+        profilesShell = profiles
+        appsShell = apps
+        settingsShell = settings
 
         setContentDesign(design)
 
-        design.fetch()
+        coroutineScope {
+            launch { proxy.run() }
+            launch { profiles.run() }
+            launch { apps.run() }
+            launch { settings.run() }
 
-        val ticker = ticker(TimeUnit.SECONDS.toMillis(1))
+            design.fetch()
 
-        while (isActive) {
-            select<Unit> {
-                events.onReceive {
-                    when (it) {
-                        Event.ActivityStart,
-                        Event.ServiceRecreated,
-                        Event.ClashStop, Event.ClashStart,
-                        Event.ProfileLoaded, Event.ProfileChanged -> design.fetch()
-                        else -> Unit
-                    }
-                }
-                design.requests.onReceive {
-                    when (it) {
-                        MainDesign.Request.ToggleStatus -> {
-                            if (clashRunning)
-                                stopClashService()
-                            else
-                                design.startClash()
-                        }
-                        is MainDesign.Request.OpenProxy -> {
-                            val open = ProxyActivity::class.intent
-                            if (!it.group.isNullOrEmpty()) {
-                                open.putExtra(ProxyActivity.EXTRA_PROXY_GROUP, it.group)
+            val ticker = ticker(TimeUnit.SECONDS.toMillis(1))
+
+            while (isActive) {
+                select<Unit> {
+                    events.onReceive {
+                        when (it) {
+                            Event.ActivityStart,
+                            Event.ProfileChanged -> {
+                                design.fetch()
+                                profiles.poke()
+                                apps.poke()
+                                settingsShell?.poke()
                             }
-                            startActivity(open)
-                        }
-                        MainDesign.Request.OpenProfiles ->
-                            startActivity(ProfilesActivity::class.intent)
-                        MainDesign.Request.OpenProviders ->
-                            startActivity(ProvidersActivity::class.intent)
-                        MainDesign.Request.OpenAppsStrategy ->
-                            startActivity(AppsStrategyActivity::class.intent)
-                        MainDesign.Request.OpenLogs -> {
-                            if (LogcatService.running) {
-                                startActivity(LogcatActivity::class.intent)
-                            } else {
-                                startActivity(LogsActivity::class.intent)
+                            Event.ServiceRecreated,
+                            Event.ClashStart,
+                            Event.ProfileLoaded -> {
+                                design.fetch()
+                                proxy.onProfileLoaded()
+                                proxy.refreshProviders()
                             }
-                        }
-                        MainDesign.Request.OpenSettings ->
-                            startActivity(SettingsActivity::class.intent)
-                        MainDesign.Request.OpenHelp ->
-                            startActivity(HelpActivity::class.intent)
-                        MainDesign.Request.OpenAbout ->
-                            design.showAbout(queryAppVersionName())
-                        is MainDesign.Request.SetMode -> {
-                            design.showToast(DesignR.string.mode_switch_tips, ToastDuration.Long)
-                            withClash {
-                                val override = queryOverride(Clash.OverrideSlot.Session)
-                                override.mode = it.mode
-                                patchOverride(Clash.OverrideSlot.Session, override)
+                            Event.ClashStop -> {
+                                design.fetch()
+                                proxy.refreshProviders()
                             }
-                            design.fetch()
+                            else -> Unit
                         }
                     }
-                }
-                if (clashRunning) {
-                    ticker.onReceive {
-                        design.fetchTraffic()
+                    design.requests.onReceive {
+                        when (it) {
+                            MainDesign.Request.ToggleStatus -> {
+                                if (clashRunning)
+                                    stopClashService()
+                                else
+                                    design.startClash()
+                            }
+                            is MainDesign.Request.SelectNode -> {
+                                withClash { patchSelector(it.group, it.name) }
+                                proxy.reloadGroup(it.group)
+                                design.fetch()
+                            }
+                            is MainDesign.Request.OpenProxy -> {
+                                design.showTab(ShellTab.Proxies)
+                                val group = it.group
+                                if (!group.isNullOrEmpty()) proxy.showGroup(group)
+                            }
+                            MainDesign.Request.OpenProfiles ->
+                                design.showTab(ShellTab.Profiles)
+                            MainDesign.Request.OpenProviders -> {
+                                if (clashRunning) {
+                                    design.showTab(ShellTab.Proxies)
+                                    proxy.showSection(1)
+                                } else {
+                                    design.showToast(DesignR.string.proxy_after_connect, ToastDuration.Long)
+                                }
+                            }
+                            MainDesign.Request.OpenAppsStrategy ->
+                                design.showTab(ShellTab.Apps)
+                            MainDesign.Request.OpenLogs -> {
+                                if (LogcatService.running) {
+                                    startActivity(LogcatActivity::class.intent)
+                                } else {
+                                    startActivity(LogsActivity::class.intent)
+                                }
+                            }
+                            MainDesign.Request.ReloadKernel -> {
+                                if (clashRunning) {
+                                    applicationContext.requestClashReload()
+                                } else {
+                                    design.showToast(DesignR.string.kernel_reload_stopped, ToastDuration.Long)
+                                }
+                            }
+                            MainDesign.Request.OpenWebdav ->
+                                startActivity(WebdavSettingsActivity::class.intent)
+                            MainDesign.Request.OpenFiles ->
+                                openFiles()
+                            is MainDesign.Request.SetMode -> {
+                                design.showToast(DesignR.string.mode_switch_tips, ToastDuration.Long)
+                                withClash {
+                                    val override = queryOverride(Clash.OverrideSlot.Session)
+                                    override.mode = it.mode
+                                    patchOverride(Clash.OverrideSlot.Session, override)
+                                }
+                                design.fetch()
+                            }
+                        }
+                    }
+                    if (clashRunning) {
+                        ticker.onReceive {
+                            design.fetchTraffic()
+                            design.setUptime(currentUptime())
+                        }
                     }
                 }
             }
@@ -112,24 +180,115 @@ class MainActivity : BaseActivity<MainDesign>() {
         val mode = withClash {
             queryOverride(Clash.OverrideSlot.Session).mode ?: queryTunnelState().mode
         }
-        val providers = withClash {
-            queryProviders()
+        val providers = if (clashRunning) {
+            try {
+                withClash { queryProviders() }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (_: Exception) {
+                emptyList()
+            }
+        } else {
+            emptyList()
         }
 
         setMode(mode)
-        setHasProviders(providers.isNotEmpty())
-        val (node, group) = if (clashRunning) queryCurrentNode(mode) else null to null
-        setCurrentNode(node, group)
+        val outbound = if (clashRunning) {
+            queryOutbound(mode)
+        } else {
+            OutboundSnapshot(null, null, -1, false, emptyList())
+        }
+        setOutbound(outbound.node, outbound.group, outbound.delay, outbound.selectable, outbound.nodes)
 
         if (clashRunning) {
             fetchTraffic()
+            setUptime(currentUptime())
         }
 
-        withProfile {
-            setProfileName(queryActive()?.name)
-        }
+        val profile = withProfile { queryActive() }
+        setProfileName(profile?.name)
+        val aside = queryAside(
+            profile = profile,
+            providerCount = if (clashRunning) providers.size else -1,
+        )
+        setAside(aside.strategy, aside.webdav, aside.files, aside.providers)
+    }
 
-        setAppsStrategyName(queryActiveAppsStrategyName())
+    private suspend fun openFiles() {
+        val active = withProfile { queryActive() }
+        if (active != null && active.imported) {
+            startActivity(FilesActivity::class.intent.setUUID(active.uuid))
+        } else {
+            startActivity(MetaFeatureSettingsActivity::class.intent)
+        }
+    }
+
+    private fun currentUptime(): String {
+        if (!clashRunning) {
+            observedSince = null
+            return ""
+        }
+        val stamped = TunnelClock.startedAt(this)
+        val since = stamped ?: observedSince ?: System.currentTimeMillis().also { observedSince = it }
+        if (stamped != null) observedSince = null
+        val elapsed = (System.currentTimeMillis() - since).coerceAtLeast(0L) / 1000L
+        val hours = elapsed / 3600
+        val minutes = (elapsed % 3600) / 60
+        val seconds = elapsed % 60
+        return "%d:%02d:%02d".format(hours, minutes, seconds)
+    }
+
+    private data class Aside(
+        val strategy: String,
+        val webdav: String,
+        val files: String,
+        val providers: Int,
+    )
+
+    private suspend fun queryAside(profile: Profile?, providerCount: Int): Aside {
+        return withContext(Dispatchers.IO) {
+            val service = ServiceStore(this@MainActivity)
+            val config = service.activeAppsStrategyConfigUuid?.let { id ->
+                service.appsStrategyConfigs.find { it.uuid == id }
+            }
+            val effective = resolveAccessControl(
+                activeStrategy = config,
+            )
+            val mode = effective.mode
+            val count = effective.packages.size
+            val name = config?.name?.takeIf { it.isNotBlank() }
+                ?: getString(DesignR.string.not_selected)
+            val modeLabel = getString(
+                when (mode) {
+                    AccessControlMode.AcceptSelected -> DesignR.string.strategy_mode_allow_selected
+                    AccessControlMode.DenySelected -> DesignR.string.strategy_mode_deny_selected
+                    AccessControlMode.AcceptAll -> DesignR.string.strategy_mode_allow_all
+                },
+            )
+            val countLabel = if (mode == AccessControlMode.AcceptAll) {
+                getString(DesignR.string.allow_all_apps)
+            } else {
+                resources.getQuantityString(DesignR.plurals.selected_apps_count, count, count)
+            }
+            val webdav = this@MainActivity.webdavHomeLabel()
+            val present = listOf("geoip.metadb", "geosite.dat", "ASN.mmdb")
+                .filter { clashDir.resolve(it).isFile }
+            val ageLabel = getString(
+                if (profile?.ageSecretKey.isNullOrBlank()) {
+                    DesignR.string.webdav_unset
+                } else {
+                    DesignR.string.webdav_password_set
+                },
+            )
+            val files = buildList {
+                profile?.name?.takeIf { it.isNotBlank() }?.let { add(it) }
+                addAll(present)
+                if (profile != null) {
+                    add("${getString(DesignR.string.age_secret_key)} $ageLabel")
+                }
+            }.joinToString(" · ").ifEmpty { getString(DesignR.string.not_selected) }
+            Aside("$name · $modeLabel · $countLabel", webdav, files, providerCount)
+        }
     }
 
     private suspend fun MainDesign.fetchTraffic() {
@@ -138,8 +297,18 @@ class MainActivity : BaseActivity<MainDesign>() {
         }
     }
 
-    private suspend fun queryCurrentNode(mode: TunnelState.Mode): Pair<String?, String?> {
-        if (mode == TunnelState.Mode.Direct) return null to null
+    private data class OutboundSnapshot(
+        val node: String?,
+        val group: String?,
+        val delay: Int,
+        val selectable: Boolean,
+        val nodes: List<QuickNodeUi>,
+    )
+
+    private suspend fun queryOutbound(mode: TunnelState.Mode): OutboundSnapshot {
+        if (mode == TunnelState.Mode.Direct) {
+            return OutboundSnapshot(null, null, -1, false, emptyList())
+        }
         return withClash {
             val names = queryProxyGroupNames(true)
             val group = when (mode) {
@@ -147,9 +316,18 @@ class MainActivity : BaseActivity<MainDesign>() {
                     names.firstOrNull { it.equals("GLOBAL", ignoreCase = true) } ?: names.firstOrNull()
                 else ->
                     names.firstOrNull { !it.equals("GLOBAL", ignoreCase = true) } ?: names.firstOrNull()
-            } ?: return@withClash null to null
-            val now = queryProxyGroup(group, ProxySort.Default).now.takeIf { it.isNotBlank() }
-            now to group
+            } ?: return@withClash OutboundSnapshot(null, null, -1, false, emptyList())
+            val state = queryProxyGroup(group, ProxySort.Default)
+            val now = state.now.takeIf { it.isNotBlank() }
+            val delay = state.proxies.firstOrNull { it.name == now }?.delay ?: -1
+            val nodes = state.proxies.map { proxy ->
+                QuickNodeUi(
+                    name = proxy.name,
+                    type = proxy.type.ifBlank { proxy.subtitle },
+                    delay = proxy.delay,
+                )
+            }
+            OutboundSnapshot(now, group, delay, state.type == "Selector", nodes)
         }
     }
 
@@ -159,7 +337,7 @@ class MainActivity : BaseActivity<MainDesign>() {
         if (active == null || !active.imported) {
             showToast(DesignR.string.no_profile_selected, ToastDuration.Long) {
                 setAction(DesignR.string.profiles) {
-                    startActivity(ProfilesActivity::class.intent)
+                    this@startClash.showTab(ShellTab.Profiles)
                 }
             }
 
@@ -183,26 +361,54 @@ class MainActivity : BaseActivity<MainDesign>() {
         }
     }
 
-    private suspend fun queryAppVersionName(): String {
-        return withContext(Dispatchers.IO) {
-            packageManager.getPackageInfo(packageName, 0).versionName + "\n" + Bridge.nativeCoreVersion().replace("_", "-")
+    override fun onProfileUpdateCompleted(uuid: UUID?) {
+        super.onProfileUpdateCompleted(uuid)
+        if (uuid == null) return
+        launch {
+            profilesShell?.finishUpdate(uuid)
+            profilesShell?.poke()
+            var name: String? = null
+            withProfile { name = queryByUUID(uuid)?.name }
+            design?.showToast(
+                getString(DesignR.string.toast_profile_updated_complete, name),
+                ToastDuration.Long,
+            )
         }
     }
 
-    private suspend fun queryActiveAppsStrategyName(): String? {
-        return withContext(Dispatchers.IO) {
-            val service = ServiceStore(this@MainActivity)
-            val activeUuid = service.activeAppsStrategyConfigUuid
-            if (activeUuid != null) {
-                service.appsStrategyConfigs.find { it.uuid == activeUuid }?.name
-            } else {
-                null
+    override fun onProfileUpdateFailed(uuid: UUID?, reason: String?) {
+        super.onProfileUpdateFailed(uuid, reason)
+        if (uuid == null) return
+        launch {
+            profilesShell?.finishUpdate(uuid)
+            profilesShell?.poke()
+            var name: String? = null
+            withProfile { name = queryByUUID(uuid)?.name }
+            design?.showToast(
+                getString(DesignR.string.toast_profile_updated_failed, name, reason),
+                ToastDuration.Long,
+            ) {
+                setAction(DesignR.string.edit) {
+                    startActivity(PropertiesActivity::class.intent.setUUID(uuid))
+                }
             }
         }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                val current = design?.tab
+                if (current != null && current != ShellTab.Dashboard) {
+                    design?.showTab(ShellTab.Dashboard)
+                } else {
+                    isEnabled = false
+                    onBackPressedDispatcher.onBackPressed()
+                    isEnabled = true
+                }
+            }
+        })
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             val requestPermissionLauncher =
                 registerForActivityResult(RequestPermission()

@@ -12,11 +12,14 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import com.github.kr328.clash.design.dialog.requestModelTextInput
 import com.github.kr328.clash.design.dialog.withModelProgressBar
-import com.github.kr328.clash.design.ios.ClashMetaXTheme
-import com.github.kr328.clash.design.ios.WebdavSettingsScreen
-import com.github.kr328.clash.design.ios.WebdavSettingsUiState
-import com.github.kr328.clash.design.ios.iosConfirm
+import universe.agentic.clash.AgenticClashTheme
+import universe.agentic.clash.WebdavSettingsScreen
+import universe.agentic.clash.WebdavSettingsUiState
+import universe.agentic.clash.iosConfirm
+import com.github.kr328.clash.design.preference.EditCommit
+import com.github.kr328.clash.design.preference.FieldEditSessions
 import com.github.kr328.clash.design.preference.NullableTextAdapter
+import com.github.kr328.clash.design.preference.commitNullableText
 import com.github.kr328.clash.design.ui.Insets
 import com.github.kr328.clash.design.util.setOnInsertsChangedListener
 import com.github.kr328.clash.service.webdav.WebdavSettingsStore
@@ -41,19 +44,21 @@ class WebdavSettingsDesign(
     private var lanText by mutableStateOf(store.lanUrl)
     private var usernameText by mutableStateOf(store.username)
     private var passwordEmpty by mutableStateOf(store.password.isEmpty())
+    private var passwordUnreadable by mutableStateOf(store.passwordUnreadable)
     private var remoteText by mutableStateOf(store.remotePath)
     private var autoSync by mutableStateOf(store.autoSync)
     private var statusText by mutableStateOf(
         status.ifBlank { context.getString(R.string.webdav_status_empty) },
     )
     private var busy = false
+    private val editSessions = FieldEditSessions()
     private val autoSyncMutex = Mutex()
     private val autoSyncGeneration = AtomicLong()
 
     override val root: View = ComposeView(context).apply {
         setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
         setContent {
-            ClashMetaXTheme {
+            AgenticClashTheme {
                 WebdavSettingsScreen(
                     insets = insets,
                     title = context.pushedTitle(R.string.webdav_sync),
@@ -62,6 +67,7 @@ class WebdavSettingsDesign(
                         lanUrl = lanText,
                         username = usernameText,
                         passwordEmpty = passwordEmpty,
+                        passwordUnreadable = passwordUnreadable,
                         remotePath = remoteText,
                         autoSync = autoSync,
                         status = statusText,
@@ -132,21 +138,32 @@ class WebdavSettingsDesign(
     }
 
     private fun onPassword() {
-        launch(Dispatchers.Main) {
-            val initial = withContext(Dispatchers.IO) { store.password }
+        launchEdit(R.string.webdav_password) {
+            // 已存的密码不回填。null 是清除，空串是保持原值。
             val entered = context.requestModelTextInput(
-                initial = initial,
+                initial = "",
                 title = context.getText(R.string.webdav_password),
-                hint = context.getText(R.string.webdav_password),
+                reset = context.getText(R.string.webdav_password_clear),
+                hint = context.getText(
+                    if (passwordUnreadable) R.string.webdav_password_unreadable else R.string.webdav_password_hint,
+                ),
             )
-            passwordEmpty = withContext(Dispatchers.IO) {
-                store.password = entered
+            if (entered != null && entered.isEmpty()) return@launchEdit
+            val empty = withContext(Dispatchers.IO) {
+                store.password = entered.orEmpty()
                 store.password.isEmpty()
             }
+            passwordEmpty = empty
+            passwordUnreadable = false
         }
     }
 
     private fun onAutoSync(enabled: Boolean) {
+        // A sync or test already owns the page. Turning auto-sync on must not stick or queue another run.
+        if (enabled && busy) {
+            autoSync = false
+            return
+        }
         val generation = autoSyncGeneration.incrementAndGet()
         autoSync = enabled
         launch(Dispatchers.Main) {
@@ -187,26 +204,44 @@ class WebdavSettingsDesign(
         if (!requests.trySend(request).isSuccess) busy = false
     }
 
+    // 占住要在 launch 返回之前，否则第二次点击会在第一次 withContext(IO) 读初值之前再进一层。
+    private fun launchEdit(field: Int, block: suspend () -> Unit) {
+        if (!editSessions.tryEnter(field)) return
+        launch(Dispatchers.Main) {
+            try {
+                block()
+            } finally {
+                editSessions.exit(field)
+            }
+        }
+    }
+
     private fun edit(
         @StringRes titleRes: Int,
         read: () -> String?,
         write: (String?) -> Unit,
         show: (String?) -> Unit,
     ) {
-        launch(Dispatchers.Main) {
+        launchEdit(titleRes) {
             val initial = withContext(Dispatchers.IO) { read() }
             val text = context.requestModelTextInput(
                 initial = initial,
                 title = context.getText(titleRes),
                 reset = context.getText(R.string.reset),
                 hint = context.getText(titleRes),
+                preserveUnedited = true,
             )
-            val shown = withContext(Dispatchers.IO) {
-                val newValue = NullableTextAdapter.String.to(text)
-                write(newValue)
-                NullableTextAdapter.String.from(newValue)
+            when (val commit = commitNullableText(initial, text, NullableTextAdapter.String)) {
+                EditCommit.Skip -> Unit
+                is EditCommit.Write -> {
+                    val shown = withContext(Dispatchers.IO) {
+                        val newValue = NullableTextAdapter.String.to(commit.value)
+                        write(newValue)
+                        NullableTextAdapter.String.from(newValue)
+                    }
+                    show(shown)
+                }
             }
-            show(shown)
         }
     }
 

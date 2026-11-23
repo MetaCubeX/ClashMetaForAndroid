@@ -13,9 +13,9 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.core.content.getSystemService
 import com.github.kr328.clash.core.model.LogMessage
-import com.github.kr328.clash.design.ios.ClashMetaXTheme
-import com.github.kr328.clash.design.ios.LogcatScreen
-import com.github.kr328.clash.design.ios.iosConfirm
+import universe.agentic.clash.AgenticClashTheme
+import universe.agentic.clash.LogcatScreen
+import universe.agentic.clash.iosConfirm
 import com.github.kr328.clash.design.ui.Insets
 import com.github.kr328.clash.design.ui.ToastDuration
 import com.github.kr328.clash.design.util.setOnInsertsChangedListener
@@ -44,7 +44,7 @@ class LogcatDesign(
             ?.ifBlank { null }
             ?: context.getString(R.string.logcat)
         setContent {
-            ClashMetaXTheme {
+            AgenticClashTheme {
                 LogcatScreen(
                     insets = insets,
                     title = title,

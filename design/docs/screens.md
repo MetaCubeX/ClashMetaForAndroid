@@ -3,7 +3,7 @@ title: "屏幕与请求通道"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-10-16
+updated: 2026-10-24
 summary: "Design 用无界 Channel 把请求交给 Activity。每个 *Design 的根视图是 ComposeView，由对应 Activity 构造并 setContentDesign"
 ---
 
@@ -28,38 +28,38 @@ Activity 不靠回调注册。`BaseActivity.setContentDesign` 在 `decorView` �
 
 通道也可以由 Activity 写入。已看到的有：`AccessControlActivity` 发送 `ReloadApps`，`ProxyActivity` 在组下标有效时发送一次 `Reload`，`FilesActivity.onBackPressed` 发送 `PopStack`。`ProxyDesign.Request.ReloadAll` 和 `PatchMode` 仍留在类型里，界面不再发送它们。
 
-`HelpDesign` 和 `AppCrashedDesign` 是 `Design<Unit>`。对应 Activity 只循环接收 `events`，不读 `design.requests`。`HelpDesign` 的链接点击直接调用构造时传入的 `openLink`。
+`AppCrashedDesign` 是 `Design<Unit>`。对应 Activity 只循环接收 `events`，不读 `design.requests`。
 
 设置项控件写的是绑定的属性，不是这条 `requests` 通道。需要 Activity 接着做事时，控件的 `OnChangedListener` 再 `trySend`。
 
 ## 屏幕与 Activity
 
-下表每一行都能在 `app` 里看到构造该 `Design` 并调用 `setContentDesign`。请求成员是 `*Design` 里声明的类型，不是 Activity 的处理分支。
+下表每一行都能在 `app` 里看到构造该 `Design` 并调用 `setContentDesign`。请求成员是 `*Design` 里声明的类型，不是 Activity 的处理分支。`MainActivity` 另外把节点、配置、应用分流和设置嵌在同一页的底栏里，这时不调用 `setContentDesign`，根视图交给 `ShellPages`。单独打开对应 Activity 时才铺满窗口，有返回，没有底栏。
 
 | Design | Activity | 请求 |
 |:-------|:---------|:-----|
+| `AboutDesign` | `AboutActivity` | `Open(url)`、`Copy(text)`。引用开源二级页在同一个 Design 内切换 |
 | `AccessControlDesign` | `AccessControlActivity` | `ReloadApps`、`SelectAll`、`SelectNone`、`SelectInvert`、`Import`、`Export` |
 | `ApkBrokenDesign` | `ApkBrokenActivity` | `Request(url)` |
 | `AppCrashedDesign` | `AppCrashedActivity` | 无。类型参数是 `Unit` |
 | `AppSettingsDesign` | `AppSettingsActivity` | `ReCreateAllActivities` |
-| `AppsStrategyDesign` | `AppsStrategyActivity` | `Create`、`Edit`、`Active`、`Choose` |
+| `AppsStrategyDesign` | `AppsStrategyActivity` | `Create`、`Edit`、`Active`、`Choose`、`CreateSet`、`EditSet`、`DeleteSet`、`OpenAccess`、`GlobalMode` |
 | `FilesDesign` | `FilesActivity` | `OpenFile`、`OpenDirectory`、`RenameFile`、`DeleteFile`、`ImportFile`、`ExportFile`、`PopStack` |
-| `HelpDesign` | `HelpActivity` | 无。类型参数是 `Unit` |
 | `LogcatDesign` | `LogcatActivity` | `Close`、`Delete`、`Export`。同一 Activity 构造两次：本地文件传 `streaming = false`，实时日志传 `true` |
 | `LogsDesign` | `LogsActivity` | `StartLogcat`、`DeleteAll`、`OpenFile` |
-| `MainDesign` | `MainActivity` | `ToggleStatus`、`OpenProxy`、`OpenProfiles`、`OpenProviders`、`OpenAppsStrategy`、`OpenLogs`、`OpenSettings`、`OpenHelp`、`OpenAbout`、`SetMode` |
+| `MainDesign` | `MainActivity` | `ToggleStatus`、`OpenProxy`、`SelectNode`、`OpenProfiles`、`OpenProviders`、`OpenAppsStrategy`、`OpenLogs`、`ReloadKernel`、`OpenWebdav`、`OpenFiles`、`SetMode` |
+| `McpSettingsDesign` | `McpSettingsActivity` | `Enabled(on)`、`CopyEndpoint`、`CopyToken` |
 | `MetaFeatureSettingsDesign` | `MetaFeatureSettingsActivity` | `ResetOverride`、`ImportGeoIp`、`ImportGeoSite`、`ImportCountry`、`ImportASN` |
-| `NetworkSettingsDesign` | `NetworkSettingsActivity` | `StartAccessControlList`、`AccessControlChanged` |
-| `NewProfileDesign` | `NewProfileActivity` | `Create`、`OpenDetail`、`LaunchScanner` |
+| `NetworkSettingsDesign` | `NetworkSettingsActivity` | 无。类型参数是 `Unit` |
 | `OverrideSettingsDesign` | `OverrideSettingsActivity` | `ResetOverride` |
-| `ProfilesDesign` | `ProfilesActivity` | `UpdateAll`、`Create`、`Active`、`Update`、`Edit`、`Duplicate`、`Delete` |
+| `ProfilesDesign` | `ProfilesActivity` | `UpdateAll`、`RefreshProviders`、`Create(provider)`、`Active`、`Update`、`Edit`、`Duplicate`、`Delete`、`OpenFiles`、`OpenGeo`、`Reorder` |
 | `PropertiesDesign` | `PropertiesActivity` | `Commit`、`BrowseFiles` |
 | `ProvidersDesign` | `ProvidersActivity` | `Update(index, provider)` |
-| `ProxyDesign` | `ProxyActivity` | `ReloadAll`、`ReLaunch`、`PatchMode`、`Reload`、`Select`、`UrlTest` |
-| `SettingsDesign` | `SettingsActivity` | `StartApp`、`StartNetwork`、`StartOverride`、`StartMetaFeature`、`StartWebdav` |
+| `ProxyDesign` | `ProxyActivity` | `ReloadAll`、`ReLaunch`、`PatchMode`、`Reload`、`Select`、`UrlTest`、`UpdateProvider` |
+| `SettingsDesign` | `SettingsActivity` | `StartApp`、`StartNetwork`、`StartOverride`、`StartMetaFeature`、`StartWebdav`、`StartMcp`、`StartAbout` |
 | `WebdavSettingsDesign` | `WebdavSettingsActivity` | `Test`、`Sync`、`Pull`、`Push` |
 
-上表每个 `*Design` 的根视图都是 `ComposeView`，组合策略是 `DisposeOnViewTreeLifecycleDestroyed`，内容包在 `ClashMetaXTheme` 里。屏幕文件在 `design/.../ios/`。关于对话框仍 inflate `design_about.xml`。单行文本、列表、映射、age 密钥、订阅二维码、拉取进度和策略编辑对话框仍用原来的布局。设置子页不再调用 `preferenceScreen`；覆写和 Meta 的列表编辑器仍用 `preference` 包。
+上表每个 `*Design` 的根视图都是 `ComposeView`，内容包在 `AgenticClashTheme` 里。单独铺满窗口时组合策略是 `DisposeOnViewTreeLifecycleDestroyed`。嵌在底栏里时是 `DisposeOnDetachedFromWindow`，切到别的 Tab 只是把视图设成不可见，组合还留着。屏幕文件在 `design/src/main/java/universe/agentic/clash/`。关于页和确认是 Compose。单行文本、列表、映射、age 密钥、订阅二维码、拉取进度和策略编辑对话框仍用原来的布局。设置子页不再调用 `preferenceScreen`；覆写和 Meta 的列表编辑器仍用 `preference` 包。
 
 ## model
 
@@ -73,7 +73,7 @@ Activity 不靠回调注册。`BaseActivity.setContentDesign` 在 `decorView` �
 | `DarkMode` | `Auto`、`ForceLight`、`ForceDark`。存在 `UiStore.darkMode`。`BaseActivity` 用它选择日间或夜间主题 |
 | `File` | `id`、`name`、`size`、`lastModified`、`isDirectory`。`FilesDesign` 的列表项 |
 | `LogFile` | `fileName` 与 `date`。`parseFromFileName` 用正则 `clash-(\d+).log` 做整段匹配，时间取第一个捕获组。`generate` 用格式 `clash-%d.log` 和当前时间 |
-| `ProfileProvider` | `File`、`Url`、`QR`，以及带 `name`、`summary`、`icon`、`intent` 的 `External`。`NewProfileDesign` 的列表 |
+| `ProfileProvider` | `File`、`Url`、`QR`，以及带 `name`、`summary`、`icon`、`intent` 的 `External`。配置页加号菜单的来源 |
 | `ProxyState` | `now`。`ProxyActivity` 为每个代理组建一个，再交给 `ProxyDesign` |
 
 `AppSet.kt` 里的集合类型和 `applyAppSetToggle` 不在这里写。点选规则见 [访问控制](../../docs/systems/access-control/INDEX.md)。

@@ -8,7 +8,7 @@ import nota.ui.settings.PreferenceItemColors
 import nota.ui.switch.SwitchColors
 
 /**
- * Set by ClashMetaXTheme from `UiStore.darkMode`.
+ * Set by AgenticClashTheme from `UiStore.darkMode`.
  * The library used `isSystemInDarkTheme()`, which ignores the in-app override.
  */
 val LocalShellIosDark = staticCompositionLocalOf { false }
@@ -18,7 +18,7 @@ internal fun iosColor(argb: Long): Color = Color(argb)
 @Composable
 fun shellIosSwitchColors(tint: Color? = null): SwitchColors {
     val dark = LocalShellIosDark.current
-    val onTrack = tint ?: iosColor(if (dark) ShellIosPalette.GreenDark else ShellIosPalette.Green)
+    val onTrack = tint ?: iosColor(if (dark) ShellIosPalette.BlueDark else ShellIosPalette.Blue)
     val offTrack = iosColor(if (dark) ShellIosPalette.SwitchOffDark else ShellIosPalette.SwitchOff)
     val thumb = iosColor(ShellIosPalette.Card)
     return SwitchColors(

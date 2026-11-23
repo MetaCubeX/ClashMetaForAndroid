@@ -3,11 +3,16 @@ title: "UI 2.0 重构方案与交互式 Web 原型"
 type: plan
 status: proposed
 phase: N/A
-updated: 2026-10-20
+updated: 2026-10-30
 summary: "网络感知优先、Bento 仪表盘、极速切节点与 5 Tab 架构方案，附带本地可运行 Web Demo"
 ---
 
 # UI 2.0 重构方案与交互式 Web 原型
+
+状态：草案。
+
+覆盖需求：无（界面方案，尚未立为产品需求）。
+
 
 ## 1. 痛点分析与重构动机
 

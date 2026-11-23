@@ -3,11 +3,15 @@
         <item quantity="one">%d app selected</item>
         <item quantity="other">%d apps selected</item>
     </plurals>
+    <plurals name="profile_files_summary">
+        <item quantity="one">%1$d file · %2$s</item>
+        <item quantity="other">%1$d files · %2$s</item>
+    </plurals>
 
-    <string name="launch_name_meta">ClashMetaX</string>
-    <string name="launch_name_alpha">ClashMetaX Alpha</string>
-    <string name="application_name_meta">ClashMetaX</string>
-    <string name="application_name_alpha">ClashMetaX Alpha</string>
+    <string name="launch_name_meta">AgenticClash</string>
+    <string name="launch_name_alpha">AgenticClash Alpha</string>
+    <string name="application_name_meta">AgenticClash</string>
+    <string name="application_name_alpha">AgenticClash Alpha</string>
     <string name="stopped">Stopped</string>
     <string name="tap_to_start">Tap to start</string>
     <string name="running">Running</string>
@@ -25,14 +29,40 @@
 
     <string name="logs">Logs</string>
     <string name="settings">Settings</string>
-    <string name="help">Help</string>
     <string name="about">About</string>
+    <string name="about_section_developer">Developer</string>
+    <string name="about_section_community">Community</string>
+    <string name="about_section_app_info">App info</string>
+    <string name="about_tagline">mihomo client for Android</string>
+    <string name="about_open_source">Open source</string>
+    <string name="about_license">License</string>
+    <string name="about_notices">Open-source notices</string>
+    <string name="about_notices_components">Components</string>
+    <string name="about_notices_hint">Names, authors and licenses of third-party components bundled with this app.</string>
+    <string name="author_tagline">Independent developer · Android / Desktop</string>
+    <string name="author_email">Email</string>
+    <string name="author_coolapk">Coolapk</string>
+    <string name="author_wechat">WeChat Official Account</string>
+    <string name="author_telegram">Telegram channel</string>
+    <string name="author_tencent">QQ channel</string>
+    <string name="author_copy">Copy</string>
+    <string name="author_show_qr">Show QR code</string>
+    <string name="author_qr_description">%1$s QR code for %2$s</string>
+    <string name="author_wechat_qr_hint">Scan to follow the WeChat account</string>
+    <string name="author_qq_channel_qr_hint">Scan to join the QQ channel</string>
+    <string name="author_spoken_separator">, </string>
+    <string name="opens_in_browser">Opens in browser</string>
+    <string name="opens_in_mail">Opens in mail app</string>
+    <string name="author_mail_failed">No mail app found. You can copy the address.</string>
+    <string name="author_browser_failed">Could not open the browser. You can copy the address.</string>
+    <string name="author_copy_failed">Could not copy</string>
 
     <string name="copied">Copied</string>
 
     <string name="recently">Recently</string>
 
     <string name="format_minutes">%d min</string>
+    <string name="format_hours">%d hr</string>
     <string name="format_elements">%d elements</string>
 
     <string name="format_minutes_ago">%d min ago</string>
@@ -50,6 +80,13 @@
     <string name="import_from_qr">Import from QR Code</string>
     <string name="share_subscription_qr">Share Subscription QR</string>
     <string name="share_subscription_qr_tips">Another device can scan this with Import from QR Code.</string>
+    <string name="preview_outbounds">Preview outbounds</string>
+    <string name="preview_groups">Groups</string>
+    <string name="preview_nodes">Nodes</string>
+    <string name="preview_providers">Providers</string>
+    <string name="preview_empty">No outbounds in this profile</string>
+    <string name="preview_failed">Preview failed</string>
+    <string name="preview_include_all">Includes all proxies</string>
     <string name="copy_link">Copy Link</string>
     <string name="share_link">Share Link</string>
     <string name="subscription_qr_too_long">This subscription URL is too long to encode as a QR code.</string>
@@ -69,6 +106,7 @@
     <string name="profile_name">Profile Name</string>
     <string name="profile_url">Profile URL</string>
     <string name="auto_update">Auto Update</string>
+    <string name="auto_update_custom">Custom…</string>
     <string name="auto_update_minutes">Auto Update (Minutes)</string>
 
     <string name="accept_http_content">Accept only http(s)</string>
@@ -162,11 +200,67 @@
     <string name="apps_strategy">App Routing</string>
     <string name="choose_apps">Choose Apps</string>
     <string name="global_app_list">Global App List</string>
-    <string name="access_control_idle">\"%1$s\" is active. This edits the global list used when no strategy is selected.</string>
+    <string name="global_fallback_inactive">Used only when no routing strategy is selected.</string>
     <string name="app_sets">App sets</string>
+    <string name="new_app_set">New App Set</string>
+    <string name="edit_app_set">Edit App Set</string>
+    <string name="delete_app_set">Delete App Set</string>
+    <string name="app_set_name">App Set Name</string>
+    <string name="app_set_section_basic">Details</string>
+    <string name="app_set_section_members">Member apps</string>
+    <string name="default_fallback">Default Fallback</string>
+    <string name="default_fallback_active">Default Fallback · Active</string>
+    <string name="split_strategies">Routing Strategies</string>
+    <string name="confirm_delete_app_set">Are you sure you want to delete this app set?</string>
+    <string name="member_apps_count">Included apps: %1$d / %2$d</string>
+
     <string name="app_set_domestic">Common Chinese apps</string>
+    <string name="app_set_browsers">Browsers</string>
     <string name="app_set_summary">Installed %1$d · Selected %2$d</string>
     <string name="app_set_summary_empty">None installed</string>
+    <string name="app_set_builtin">Built-in</string>
+    <string name="app_set_custom">Custom</string>
+    <string name="quick_switch_node">Quick Switch</string>
+    <string name="open_all_nodes">All nodes</string>
+    <string name="proxy_grid_view">Grid</string>
+    <string name="proxy_list_view">List</string>
+    <string name="kernel_reload">Reload</string>
+    <string name="kernel_reload_stopped">Connect before reloading the kernel</string>
+    <string name="tab_dashboard">Dashboard</string>
+    <string name="tab_proxies">Nodes</string>
+    <string name="tab_profiles">Profiles</string>
+    <string name="tab_apps">Routing</string>
+    <string name="tab_settings">Settings</string>
+    <string name="page_proxies">Nodes and Providers</string>
+    <string name="select_proxy_group">Select group</string>
+    <string name="page_profiles">Profiles and Files</string>
+    <string name="page_apps">Routing and Lists</string>
+    <string name="page_settings">System and Advanced</string>
+    <string name="outbound_label">Outbound</string>
+    <string name="home_files_geo">Files &amp; Geo</string>
+    <string name="webdav_home_auto">Auto sync</string>
+    <string name="webdav_home_ready">Configured</string>
+    <string name="proxy_section_nodes">Nodes</string>
+    <string name="strategy_section_list">Strategies</string>
+    <string name="strategy_section_sets">App sets</string>
+    <string name="strategy_section_access">Access list</string>
+    <string name="strategy_covered_sets">Covers %1$s</string>
+    <string name="list_joiner">, </string>
+    <string name="app_set_description">Description</string>
+    <string name="app_set_name_required">Enter a name</string>
+    <string name="select_all_shown">Select shown</string>
+    <string name="select_none_shown">Clear shown</string>
+    <string name="select_invert_shown">Invert shown</string>
+    <string name="discard_app_set_edits">Discard changes</string>
+    <string name="discard_app_set_edits_message">The name, description, and members you changed will not be saved.</string>
+    <string name="discard">Discard</string>
+    <string name="freeze_app_set_members">Keep this member list</string>
+    <string name="freeze_app_set_members_message">This built-in set will stop adding newly installed apps. You can restore automatic membership later.</string>
+    <string name="freeze_app_set">Keep list</string>
+    <string name="restore_app_set_members">Restore automatic membership</string>
+    <string name="app_set_members_frozen">Members are fixed and no longer follow new installs.</string>
+    <string name="open_access_list">Open access list</string>
+    <string name="geo_files">Geo files</string>
 
     <string name="options_unavailable">Options Unavailable until Clash Stopped</string>
 
@@ -247,7 +341,8 @@
     <string name="import_from_clipboard">Import from Clipboard</string>
     <string name="export_to_clipboard">Export to Clipboard</string>
 
-    <string name="clash_meta_for_android">ClashMetaX</string>
+    <string name="clash_meta_for_android">AgenticClash</string>
+    <string name="upstream_android">ClashMetaForAndroid (upstream)</string>
     <string name="document">Document</string>
     <string name="feedback">Feedback</string>
     <string name="sources">Sources</string>
@@ -257,18 +352,19 @@
     <string name="google_play">Google Play</string>
     <string name="clash_meta_core">Clash Meta Core</string>
     <string name="clash_wiki_url" translatable="false">https://github.com/Dreamacro/clash/wiki</string>
-    <string name="meta_github_url" translatable="false">https://github.com/MetaCubeX/ClashMetaForAndroid</string>
+    <string name="meta_github_url" translatable="false">https://github.com/TIIEHenry/AgenticClash</string>
+    <string name="upstream_android_url" translatable="false">https://github.com/MetaCubeX/ClashMetaForAndroid</string>
     <string name="clash_meta_core_url" translatable="false">https://github.com/MetaCubeX/Clash.Meta</string>
 
     <string name="tips_properties"><![CDATA[Accept Only <strong>Clash Config</strong>(including <strong>Proxy</strong>/<strong>Rules</strong>)]]></string>
-    <string name="tips_help"><![CDATA[ClashMetaX is a <strong>freeware</strong> and we do <strong>NOT</strong> provide any service for it]]></string>
+    <string name="tips_help"><![CDATA[AgenticClash is a <strong>freeware</strong> and we do <strong>NOT</strong> provide any service for it]]></string>
     <string name="google_play_url" translatable="false">https://play.google.com/store/apps/details?id=com.github.kr328.clash</string>
 
     <string name="app">App</string>
     <string name="service">Service</string>
 
-    <string name="app_language">Language</string>
     <string name="dark_mode">Dark Mode</string>
+    <string name="app_language">Language</string>
 
     <string name="show_traffic">Show Traffic</string>
     <string name="show_traffic_summary">Auto refresh traffic in notification</string>
@@ -311,6 +407,7 @@
 
     <string name="use_built_in">Use Built-in</string>
     <string name="more">More</string>
+    <string name="reorder_profile">Hold and drag to reorder</string>
     <string name="save">Save</string>
     <string name="delay_test">Delay Test</string>
 
@@ -398,19 +495,22 @@
     <string name="shortcut_stop_long">Stop Clash service</string>
 
     <string name="webdav_sync">WebDAV Sync</string>
-    <string name="webdav_tips">Sync saved subscriptions and the package names in each app group. The default address must be https. On Wi-Fi, a LAN address is tried first when one is set, including Wi-Fi without internet access. An empty LAN address is skipped. Mobile data uses only the default address. A sync merges first and will not remove subscriptions or groups that exist only on another device. Profiles that are still being edited are not uploaded. Upload only does not change profiles on this phone.</string>
+    <string name="webdav_tips">Sync saved subscriptions and the package names in each app group. The public address must be https. On Wi-Fi, a LAN address is tried first when one is set, including Wi-Fi without internet access. An empty LAN address is skipped. Mobile data uses only the public address. A sync merges first and will not remove subscriptions or groups that exist only on another device. Profiles that are still being edited are not uploaded. Upload only does not change profiles on this phone.</string>
     <string name="webdav_status_empty">Not synced yet</string>
     <string name="webdav_server">Server</string>
     <string name="webdav_url">Address</string>
-    <string name="webdav_url_placeholder">https://alist.taokdao.com/dav</string>
+    <string name="webdav_url_placeholder">https://example.com/dav</string>
     <string name="webdav_lan_url">LAN address</string>
-    <string name="webdav_lan_hint">Used only on Wi-Fi, including a network with no internet access. Leave it empty to turn LAN off. If the address does not answer as WebDAV, the default address is used. Private networks may use http, for example http://192.168.1.69:5244/dav.</string>
+    <string name="webdav_lan_hint">Used only on Wi-Fi, including a network with no internet access. Leave it empty to turn LAN off. If the address does not answer as WebDAV, the public address is used. Private networks may use http, for example http://192.168.1.100:5244/dav.</string>
     <string name="webdav_username">Username</string>
     <string name="webdav_password">Password</string>
     <string name="webdav_password_set">Set</string>
+    <string name="webdav_password_unreadable">Cannot read, enter again</string>
+    <string name="webdav_password_clear">Clear</string>
+    <string name="webdav_password_hint">Leave empty to keep the saved password</string>
     <string name="webdav_unset">Not set</string>
     <string name="webdav_remote_path">Remote folder</string>
-    <string name="webdav_remote_path_default">/sync/Configs/clash-meta</string>
+    <string name="webdav_remote_path_default">/clash-meta</string>
     <string name="webdav_auto_sync">Auto sync</string>
     <string name="webdav_auto_sync_summary">Sync after startup and after subscriptions or app groups change</string>
     <string name="webdav_test">Test connection</string>
@@ -456,8 +556,33 @@
     <string name="list_empty">Nothing here</string>
     <string name="search_clear">Clear</string>
     <string name="settings_app_summary">Appearance, behavior, and notifications</string>
-    <string name="settings_network_summary">Routing, stack, and access control</string>
+    <string name="settings_network_summary">Routing and stack</string>
     <string name="settings_override_summary">Fields written over the profile</string>
     <string name="settings_meta_summary">Sniffing, Geo data, and kernel options</string>
     <string name="settings_webdav_summary">Sync subscriptions and app routing</string>
+    <string name="mcp_service">Local MCP</string>
+    <string name="settings_mcp_summary">Loopback tools for an agent on this phone</string>
+    <string name="mcp_enable">Listen</string>
+    <string name="mcp_enable_summary">The server runs only while this is on.</string>
+    <string name="mcp_status_off">Off</string>
+    <string name="mcp_endpoint">Endpoint</string>
+    <string name="mcp_token">Token</string>
+    <string name="mcp_token_empty">Generated when listening starts</string>
+    <string name="mcp_status_listening">Listening on this phone</string>
+    <string name="mcp_status_stopped">Not listening</string>
+    <string name="mcp_intro">A local MCP server lets an agent on this phone read the tunnel and change the selected node or profile. It is not mihomo\'s external controller and never listens on the LAN.</string>
+    <string name="mcp_features">What it can do</string>
+    <string name="mcp_tool_status">Report whether the tunnel is running, its mode, and current upload and download rates.</string>
+    <string name="mcp_tool_list_proxies">List proxy groups and the node selected in each group.</string>
+    <string name="mcp_tool_select_proxy">Switch the selected node in a proxy group.</string>
+    <string name="mcp_tool_list_profiles">List saved profiles by UUID, name, and type. Subscription URLs stay hidden.</string>
+    <string name="mcp_tool_set_profile">Make a saved profile active, even while the tunnel is stopped.</string>
+    <string name="mcp_tool_reload">Reload the running tunnel after a config change.</string>
+    <string name="mcp_tool_start">Start the tunnel. VPN consent must already be granted once in the app.</string>
+    <string name="mcp_tool_stop">Stop the tunnel.</string>
+    <string name="mcp_tips">Only 127.0.0.1 accepts connections. Send Authorization: Bearer and the token. From a computer, use adb reverse to this port. Starting the tunnel still needs VPN consent granted once inside AgenticClash.</string>
+    <string name="strategy_active_pill">Active</string>
+    <string name="strategy_mode_allow_selected">Allow Selected</string>
+    <string name="strategy_mode_deny_selected">Deny Selected</string>
+    <string name="strategy_mode_allow_all">Allow All</string>
 </resources>

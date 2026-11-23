@@ -12,7 +12,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
+import nota.ui.theme.ShellShapes
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
@@ -61,14 +61,14 @@ fun SearchField(
     containerColor: Color = Color(0xFFE5E5EA),
     contentColor: Color = Color.Black,
     placeholderColor: Color = Color(0x993C3C43),
-    cursorColor: Color = Color(0xFF007AFF),
+    cursorColor: Color = Color(0xFF587894),
     clearTint: Color = Color(0x993C3C43),
     clearContentDescription: String = "Clear",
     testTag: String? = null,
     onFocusChanged: ((Boolean) -> Unit)? = null,
 ) {
     val resolvedTextStyle = textStyle ?: TextStyle(fontSize = 17.sp, lineHeight = 22.sp)
-    val fieldShape = RoundedCornerShape(dimens.cornerPopup.dp)
+    val fieldShape = ShellShapes.Pill
     val showClear = showClearButton && value.isNotEmpty()
     val minHeight = rowHeight ?: dimens.barHeightDefault.dp
 

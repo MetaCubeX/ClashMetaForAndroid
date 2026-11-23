@@ -3,7 +3,7 @@ title: "app 怎样调用 :background"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-10-15
+updated: 2026-10-24
 summary: "界面进程绑定 RemoteService；启停、状态、文件和偏好各自另有一条路"
 ---
 
@@ -53,7 +53,7 @@ summary: "界面进程绑定 RemoteService；启停、状态、文件和偏好�
 
 `IClashManager` 上界面会用到的方法：`queryTunnelState`、`queryTrafficNow`、`queryTrafficTotal`、`queryProxyGroupNames`、`queryProxyGroup`、`queryProviders`、`patchSelector`、`healthCheck`、`updateProvider`、`queryOverride`、`patchOverride`、`clearOverride`、`setLogObserver`。`queryConfiguration` 在接口上，当前 `app` 源码没有调用。
 
-`IProfileManager` 上的方法：`create`、`clone`、`commit`、`release`、`delete`、`patch`、`update`、`queryByUUID`、`queryAll`、`queryActive`、`setActive`、`webdavPerform`。配置和同步的语义见 [配置](../../docs/systems/profiles/INDEX.md) 与 [WebDAV](../../docs/systems/webdav/INDEX.md)。
+`IProfileManager` 上的方法：`create`、`clone`、`commit`、`release`、`delete`、`patch`、`update`、`queryByUUID`、`queryAll`、`queryActive`、`setActive`、`webdavPerform`。`update(uuid, notify)` 的 `notify` 决定后台是否发系统通知；配置页手动更新传假。配置和同步的语义见 [配置](../../docs/systems/profiles/INDEX.md) 与 [WebDAV](../../docs/systems/webdav/INDEX.md)。
 
 调用方：主界面、代理、提供者、覆盖设置、Meta 功能设置走 `withClash`。主界面、外部导入、配置列表、配置属性、新建配置、网络设置、分流策略、WebDAV 设置、访问控制离开后的同步走 `withProfile`。`LogcatService` 不走 `withClash`，它自己 `unwrap` 之后调用 `clash().setLogObserver`。
 

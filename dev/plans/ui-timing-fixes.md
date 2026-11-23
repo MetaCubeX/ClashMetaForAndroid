@@ -1,13 +1,16 @@
 ---
 title: "四处时序修复"
 type: plan
-status: implemented
+status: completed
 phase: N/A
-updated: 2026-10-16
+updated: 2026-11-04
 summary: "代理旧查询、测速标记、文件根目录空栈和 WebDAV 忙时的自动同步已按方案落地。meta release 已覆盖安装到当前连上的手机。还没在设备上核对"
 ---
 
 # 四处时序修复
+
+状态：已完成。
+
 
 > 制定日期：2026-10-16
 > 状态：已落地。`:app:assembleMetaRelease` 已通过，并用 `adb install -r` 覆盖安装到当前连上的手机。四处时序还没在设备上核对

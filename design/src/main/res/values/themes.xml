@@ -114,20 +114,20 @@
 
     <style name="ShapeAppearance.App.MaterialAlertDialog" parent="">
         <item name="cornerFamily">rounded</item>
-        <item name="cornerSize">14dp</item>
+        <item name="cornerSize">16dp</item>
     </style>
 
     <!-- 暗色海拔叠色会把卡片提亮，关掉后填充才是 colorSurface。 -->
     <style name="AppMaterialAlertDialogLight" parent="ThemeOverlay.MaterialComponents.MaterialAlertDialog">
         <item name="colorSurface">#FFFFFF</item>
-        <item name="colorPrimary">#007AFF</item>
+        <item name="colorPrimary">#587894</item>
         <item name="elevationOverlayEnabled">false</item>
         <item name="shapeAppearanceMediumComponent">@style/ShapeAppearance.App.MaterialAlertDialog</item>
     </style>
 
     <style name="AppMaterialAlertDialogDark" parent="ThemeOverlay.MaterialComponents.MaterialAlertDialog">
         <item name="colorSurface">#1C1C1E</item>
-        <item name="colorPrimary">#0A84FF</item>
+        <item name="colorPrimary">#6A87A1</item>
         <item name="elevationOverlayEnabled">false</item>
         <item name="shapeAppearanceMediumComponent">@style/ShapeAppearance.App.MaterialAlertDialog</item>
     </style>
