@@ -7,7 +7,11 @@ updated: YYYY-MM-DD
 summary: "一句话描述这个决策"
 ---
 
-# NNN. [决策标题]
+# [决策标题]
+
+状态：草案。
+
+复制到 `docs/decisions/<主题>.md`。文件名用主题，不要加全局序号。采用后不改决定正文；要推翻时新建一篇。
 
 ## Context
 

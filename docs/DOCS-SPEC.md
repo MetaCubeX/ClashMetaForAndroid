@@ -3,19 +3,19 @@ title: "文档系统设计规范"
 type: concept
 status: accepted
 phase: N/A
-updated: 2026-10-15
-summary: "本仓库的 Git + Markdown 文档结构：产品、架构、系统、模块导航、行动层与健康检查"
+updated: 2026-11-04
+summary: "本仓库的 Git + Markdown 文档结构：产品、架构、系统、模块导航、行动层"
 ---
 
 # 文档系统设计规范
 
-> **来源**：目录职责、frontmatter 和只读健康检查移植自 UniverseAgent 的文档系统，并按本仓库的 Android 模块改写。
-> **维护行为**（提交门禁、ADR、归档）：[DOCUMENTATION.md](DOCUMENTATION.md)。本文件只写结构。
+> **来源**：目录职责和只读健康检查移植自 UniverseAgent 的文档系统，并按本仓库的 Android 模块改写。
+> **流程**：[scripts/wiki/workflow.md](../scripts/wiki/workflow.md)。本仓库仍保留的约定见 [DOCUMENTATION.md](DOCUMENTATION.md)。本文件只写结构。
 
 ## 1. 原则
 
 - **单一事实源**：每个行为、接口和构建约束只在一份文件里定义，其他地方用链接。
-- **文档与代码同库**：Markdown 随 Git 评审。本地用 `python3 scripts/check-docs-health.py` 做只读检查，脚本不改写索引。
+- **文档与代码同库**：Markdown 随 Git 评审。`python3 scripts/check-docs-health.py` 管 frontmatter、模块索引和 `status.md` 行数；`python3 scripts/wiki/wiki.py check --root .` 管链接、状态和需求编号。两项输入不同，都要通过。目录职责以本文件为准，路径和预算以 [wiki.json](wiki.json) 为准。
 - **内容就近，索引导航**：模块内部设计放 `<module>/docs/`；跨模块行为放 `docs/systems/`；`docs/modules/` 只做导航。
 - **稳定与行动分开**：`docs/` 是知识层。`dev/` 是行动层（计划、ADR、当前快照）。
 
@@ -32,7 +32,7 @@ summary: "本仓库的 Git + Markdown 文档结构：产品、架构、系统、
 | 指南 | `docs/guides/` | 构建、配置、测试 |
 | 行动层 | `dev/` | plan、ADR、roadmap、status |
 
-根 `README.md` 保持上游英文项目介绍。Fork 的说明进 `docs/`。
+根 `README.md` 是英文项目介绍，写本 fork 的名称、构建入口和社区链接。详细构建约束与 fork 行为进 `docs/`。
 
 ## 3. 目录
 
@@ -40,14 +40,15 @@ summary: "本仓库的 Git + Markdown 文档结构：产品、架构、系统、
 AGENTS.md                          # 开发向导（无 frontmatter）
 CLAUDE.md                          # 指向 AGENTS.md（无 frontmatter）
 DESIGN.md                          # 高层设计
-README.md                          # 上游介绍（无 frontmatter）
+README.md                          # 英文项目介绍（无 frontmatter）
 
 docs/
 ├── README.md                      # 文档总览
 ├── INDEX.md                       # 全局索引，含「模块列表」表
 ├── DOCS-SPEC.md                   # 本文件
-├── DOCUMENTATION.md               # 维护规则
+├── DOCUMENTATION.md               # 共享流程之外的项目约定
 ├── glossary.md
+├── decisions/                     # 仍约束行为的 ADR，文件名用主题
 ├── product/
 │   ├── INDEX.md
 │   ├── vision.md
@@ -66,13 +67,15 @@ docs/
 ├── modules/
 │   └── <gradle-module>/INDEX.md   # 与 settings.gradle.kts 一一对应
 ├── guides/getting-started/
+├── standards/                     # 开发规范（验证入口）
+├── wiki.json                      # ProjectWiki 检查配置
 └── templates/
 
 dev/
 ├── README.md
-├── progress/status.md             # ≤200 行当前快照
-├── decisions/                     # ADR：NNN-short-name.md
-├── plans/
+├── progress/status.md             # 跨计划协调快照，≤200 行
+├── decisions/INDEX.md             # 指针，正文在 docs/decisions/
+├── plans/                         # 标题下状态行是进度；frontmatter 不另记一套
 ├── roadmap/
 ├── iterations/
 ├── parallel/
@@ -88,11 +91,13 @@ Gradle 模块现为：`app`、`core`、`service`、`design`、`common`、`hideap
 
 新计划、ADR、进度和看板从 [templates/](templates/) 复制。frontmatter 字段定义见 [DOCUMENTATION.md](DOCUMENTATION.md)。
 
-健康检查：
+健康检查的入口是 `python3 scripts/wiki/wiki.py verify --root .`。它运行 `docs/wiki.json` 里登记的两条命令：`check-docs-health.py` 看 frontmatter、模块索引和快照行数，`wiki.py check` 看链接、状态和需求编号。下面的命令和 `verify` 是同一组检查：
 
 ```bash
 python3 scripts/check-docs-health.py
 python3 scripts/check-docs-health.py --format json
+python3 scripts/wiki/wiki.py check --root .
+python3 scripts/wiki/wiki.py doctor --root .
 ```
 
 默认缺 frontmatter 和断链是 warning。`--strict-frontmatter` 与 `--strict-links` 把它们升为 error。必须存在的入口缺失、`status.md` 超过 200 行或没有快照正文、Gradle 模块没有 `docs/modules/<name>/INDEX.md`、模块不在 `docs/INDEX.md` 的「模块列表」表里，都是 error。

@@ -1,0 +1,20 @@
+name: Docs
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  DocsCheck:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v6
+
+      - name: Check documentation
+        run: |
+          python3 scripts/check-docs-health.py
+          python3 scripts/wiki/wiki.py check --root .

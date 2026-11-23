@@ -1,0 +1,8 @@
+#!/bin/sh
+# ProjectWiki: print documentation reminders for this commit.
+# It fails only when a watched area exceeds remind.block_at and this commit
+# adds more code without updating or reviewing its documents.
+# A "Docs-Reviewed: <name> <reason>" trailer in the message resets the count.
+hook_dir=$(cd "$(dirname "$0")" && pwd)
+top=$(git rev-parse --show-toplevel) || exit 1
+exec "${PYTHON:-python3}" "$hook_dir/../wiki.py" remind --staged --message-file "$1" --root "${WIKI_ROOT:-$top}"

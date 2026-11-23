@@ -1,0 +1,244 @@
+{
+  "version": 1,
+  "project_name": "AgenticClash",
+  "roots": [
+    {
+      "path": "docs",
+      "role": "knowledge"
+    },
+    {
+      "path": "dev",
+      "role": "process"
+    },
+    {
+      "path": "dev/archive",
+      "role": "archive"
+    }
+  ],
+  "archive_root": "dev/archive",
+  "modules": [
+    {
+      "name": "app",
+      "path": "app",
+      "entry": "app/README.md",
+      "docs": "app/docs"
+    },
+    {
+      "name": "core",
+      "path": "core",
+      "entry": "core/README.md",
+      "docs": "core/docs"
+    },
+    {
+      "name": "service",
+      "path": "service",
+      "entry": "service/README.md",
+      "docs": "service/docs"
+    },
+    {
+      "name": "design",
+      "path": "design",
+      "entry": "design/README.md",
+      "docs": "design/docs"
+    },
+    {
+      "name": "common",
+      "path": "common",
+      "entry": "common/README.md",
+      "docs": "common/docs"
+    },
+    {
+      "name": "hideapi",
+      "path": "hideapi",
+      "entry": "hideapi/README.md",
+      "docs": "hideapi/docs"
+    }
+  ],
+  "entrypoints": [
+    "README.md",
+    "AGENTS.md",
+    "CLAUDE.md",
+    "CONTRIBUTING.md",
+    "DESIGN.md",
+    "PRIVACY_POLICY.md",
+    "SECURITY.md",
+    "docs/INDEX.md",
+    "dev/INDEX.md"
+  ],
+  "pages": [
+    {
+      "path": "AGENTS.md",
+      "role": "entry",
+      "max_chars": 12000
+    },
+    {
+      "path": "docs/INDEX.md",
+      "role": "entry",
+      "max_chars": 8000
+    },
+    {
+      "path": "docs/DOCUMENTATION.md",
+      "role": "reference",
+      "max_chars": 28000
+    },
+    {
+      "path": "dev/progress/status.md",
+      "role": "reference",
+      "max_chars": 12000
+    }
+  ],
+  "exclude": [
+    ".git/**",
+    "**/__pycache__/**",
+    "core/src/foss/golang/clash/**",
+    "dev/iterations/**",
+    "scripts/wiki/**",
+    "ui-web-demo/**"
+  ],
+  "orphan_ignore": [
+    "docs/templates/**",
+    "docs/wiki-baseline.json"
+  ],
+  "status_frontmatter": "status",
+  "status_values": {
+    "accepted": "current",
+    "implemented": "current",
+    "archived": "retired",
+    "completed": "finished",
+    "in_progress": "active",
+    "proposed": "draft",
+    "review": "draft",
+    "partially_completed": "active",
+    "deprecated": "retired",
+    "paused": "blocked",
+    "ready": "active"
+  },
+  "dir_budgets": {
+    "dev/plans": 65,
+    "dev/parallel/active": 10,
+    "dev/parallel/archive": 30,
+    "dev/decisions": 30
+  },
+  "baseline": "docs/wiki-baseline.json",
+  "requirements": {
+    "files": [
+      "docs/product/requirements/PRD-*.md"
+    ],
+    "id_pattern": "PRD-\\d+",
+    "tests": [
+      "common/src/test/**",
+      "design/src/test/**",
+      "service/src/test/**"
+    ]
+  },
+  "verify": {
+    "commands": [
+      {
+        "name": "docs-health",
+        "run": [
+          "python3",
+          "scripts/check-docs-health.py"
+        ],
+        "summary_lines": 3,
+        "summary_from": "end"
+      },
+      {
+        "name": "wiki-check",
+        "run": [
+          "python3",
+          "scripts/wiki/wiki.py",
+          "check",
+          "--root",
+          "."
+        ],
+        "summary_lines": 8,
+        "summary_from": "start"
+      }
+    ],
+    "files": [
+      "docs/wiki.json",
+      "scripts/check-docs-health.py",
+      "scripts/wiki/wiki.py"
+    ]
+  },
+  "remind": {
+    "watch": [
+      {
+        "name": "app",
+        "code": [
+          "app/src/**"
+        ],
+        "docs": [
+          "app/docs/**",
+          "app/README.md",
+          "docs/modules/app/**"
+        ]
+      },
+      {
+        "name": "core",
+        "code": [
+          "core/src/main/**"
+        ],
+        "docs": [
+          "core/docs/**",
+          "core/README.md",
+          "docs/modules/core/**",
+          "docs/systems/runtime/**"
+        ]
+      },
+      {
+        "name": "service",
+        "code": [
+          "service/src/main/**"
+        ],
+        "docs": [
+          "service/docs/**",
+          "service/README.md",
+          "docs/systems/webdav/**",
+          "docs/systems/profiles/**",
+          "docs/modules/service/**"
+        ]
+      },
+      {
+        "name": "design",
+        "code": [
+          "design/src/**"
+        ],
+        "docs": [
+          "design/docs/**",
+          "design/README.md",
+          "docs/systems/ui/**",
+          "docs/modules/design/**"
+        ]
+      },
+      {
+        "name": "common",
+        "code": [
+          "common/src/**"
+        ],
+        "docs": [
+          "common/docs/**",
+          "common/README.md",
+          "docs/modules/common/**"
+        ]
+      }
+    ],
+    "threshold": {
+      "commits": 10,
+      "lines": 300
+    },
+    "block_at": {
+      "commits": 30
+    },
+    "ask_user": [
+      "docs/product/requirements/**",
+      "docs/product/vision.md",
+      "docs/decisions/**"
+    ],
+    "plans": [
+      "dev/plans/*-*.md",
+      "dev/parallel/active/*"
+    ]
+  },
+  "reviews": []
+}

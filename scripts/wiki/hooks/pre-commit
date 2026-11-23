@@ -1,0 +1,8 @@
+#!/bin/sh
+# ProjectWiki: stop the commit when staged documents fail deterministic checks.
+# Works with any Git client or agent harness that runs Git hooks.
+# WIKI_ROOT selects a project root other than the repository top level.
+# Use the same interpreter variable name as the commit-msg hook.
+hook_dir=$(cd "$(dirname "$0")" && pwd)
+top=$(git rev-parse --show-toplevel) || exit 1
+exec "${PYTHON:-python3}" "$hook_dir/../wiki.py" check --staged --root "${WIKI_ROOT:-$top}"

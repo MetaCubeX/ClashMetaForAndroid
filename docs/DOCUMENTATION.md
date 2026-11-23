@@ -1,41 +1,30 @@
 ---
-title: "文档系统维护规则"
+title: "文档系统的项目适配"
 type: concept
 status: accepted
 phase: N/A
-updated: 2026-10-15
-summary: "frontmatter、提交前文档门禁、ADR 与阶段日志、产品需求更新顺序"
+updated: 2026-11-04
+summary: "共享流程未覆盖、本仓库仍然执行的文档约定"
 ---
 
-# 文档系统维护规则
+# 文档系统的项目适配
 
-> **受众**：在本仓库里改代码的人和代理。
-> **结构**：目录树和健康检查见 [DOCS-SPEC.md](DOCS-SPEC.md)。本文件只写维护行为。
+状态：当前有效。
 
-## 1. 目录职责
+目录树见 [DOCS-SPEC.md](DOCS-SPEC.md)。检查范围和预算见 [wiki.json](wiki.json)。需求到验证的顺序、决定变化时同步哪些文档、审查分工和归档时机，以 [scripts/wiki/workflow.md](../scripts/wiki/workflow.md) 为准。本文件只写共享流程没有覆盖、本仓库仍然要执行的约定。
 
-| 区域 | 路径 | 职责 |
-|:-----|:-----|:-----|
-| 知识库 | `docs/`、`<module>/docs/` | 相对稳定的行为与设计 |
-| 产品需求 | `docs/product/` | 用户可观察的承诺 |
-| 行动层 | `dev/` | 计划、ADR、当前快照 |
-| 归档 | `dev/archive/` | 过时文档只移入，不删除 |
-| 根向导 | `AGENTS.md`、`CLAUDE.md` | 豁免 frontmatter |
+## 不再执行的旧要求
 
-五类职责见 [DOCS-SPEC §3](DOCS-SPEC.md#3-目录)。
+这些要求曾经写在本文，并和共享流程重复或冲突。不要再执行：
 
-| 原则 | 说明 |
-|:-----|:-----|
-| 稳定与动态分离 | `docs/` 少改，`dev/progress/status.md` 随实施更新 |
-| 单一事实源 | 用链接，不复制正文 |
-| 决策可追溯 | 架构取舍写 ADR，与阶段日志分开 |
-| 只归档，不删除 | 过时文件移入 `dev/archive/` |
-| 快照不是流水账 | `status.md` ≤200 行，且必须有快照正文 |
-| 向导最高 | 文档与 `AGENTS.md` 冲突时改文档。`CLAUDE.md` 只是指针 |
+- 不要再把每次新会话的必读顺序写成向导、本文和 `dev/progress/status.md`。
+- 不要再在每次实施结束或每次提交时改写 `status.md`。
+- 不要再把「先交方案、再交实现」当成固定手续。
+- 不要再把「提交前先更新行动层」当成每次行为变更的固定步骤。行为变化在同一次改动里更新已经失实的现行知识；需要多步骤协作、交接或交代重要风险时才写计划。
 
-新会话阅读顺序：`AGENTS.md` → 本文件 → `dev/progress/status.md`。
+## Frontmatter
 
-## 2. Frontmatter
+共享流程不要求 frontmatter。本仓库仍要求，因为 [scripts/check-docs-health.py](../scripts/check-docs-health.py) 用它检查字段是否齐全，并同时检查 Gradle 模块索引和 `status.md` 行数。`wiki check` 不读 `settings.gradle.kts`，也不读这 200 行上限。两项检查的输入不同，所以都要通过，不能互相替代。
 
 除豁免文件外，每个 `.md` 以 YAML frontmatter 开头：
 
@@ -50,153 +39,61 @@ summary: "一行摘要"
 ---
 ```
 
-可选 `created: YYYY-MM-DD`。
+可选 `created: YYYY-MM-DD`。`phase` 填 `N/A`，除非文档确实对应一个编号阶段。
 
-豁免：`AGENTS.md`、`CLAUDE.md`、根 `README.md`。`dev/archive/` 下的存量文件不强制补 frontmatter。
+豁免：`AGENTS.md`、`CLAUDE.md`、根 `README.md`，以及 `SKILL.md`。`dev/archive/` 下的存量文件不强制补 frontmatter。
 
-`type: decision` 用于 ADR。不要新增 `adr` 或 `parallel`。看板文件使用 `roadmap`。
+`docs/wiki.json` 把 `status_frontmatter` 登记为 `status`。计划和决策没有状态行时，工具从这里取状态；两处都写时以标题下的状态行为准。取值和类别的对应关系写在 `status_values`，不在正文再维护一份。
 
-`phase` 填 `N/A`，除非文档确实对应一个编号阶段。
+新建或改过的知识层、行动层文档要更新 `updated`。
 
-状态常用路径：`draft` → `review` → `accepted` → `implemented` → `completed`，过时则为 `archived`。
+## 计划目录里的两份目录页
 
-## 3. 维护规则
+`dev/plans/INDEX.md` 和 `dev/plans/overview.md` 是目录，不是一份会结束的计划。`remind.plans` 因此写成 `dev/plans/*-*.md`，只匹配带连字符的主题文件。新计划沿用这种文件名，例如 `webdav-cross-client-sync.md`，不要写成 `dev/plans/sync.md`。
 
-### 规则 1：新会话三步走
+`ui-web-demo/` 是界面原型，不在知识根里。`docs/wiki.json` 的 `exclude` 排除了它，检查不读那里的链接。原型结论要写回 `docs/` 或 `dev/plans/` 才算现行说明。
 
-按顺序读 `AGENTS.md`、本文件、`dev/progress/status.md`。
+## 归档根
 
-### 规则 2：编码前查阅
+主归档根是 `dev/archive/`，已在 `wiki.json` 的 `archive_root` 登记。这是目录配置，不是另一套归档流程。新归档不要放到仓库根的 `archive/`。移动和改链接只用 `wiki.py archive` 预览后再 `--apply`。
 
-看对应 `docs/systems/` 或 `docs/modules/`，看 `status.md`，并搜索 `dev/decisions/` 里是否已有 ADR。
+## 协调快照
 
-### 规则 3：编码后更新快照
+`dev/progress/status.md` 继续保留，上限 200 行，且必须有快照正文。行数由 `check-docs-health.py` 检查。
 
-实施会话结束时，把本次结果写入 `status.md` 的当前快照。有 roadmap 时勾选对应项。
+共享流程只在已有计划承担不了全局协调时保留短状态页。本仓库同时有多条跨会话轨道，这份快照还承担「现在哪几件事在进行」的协调，所以保留。只有跨计划的协调事实变了才改它。任务步骤、验证命令和完成情况留在对应计划或 `dev/parallel/active/` 看板里。
 
-### 规则 3a：提交前文档门禁
+溢出后注用 `bash scripts/archive-status-overflow.sh` 滚入归档。
 
-代码与文档在同一次主题提交里对齐。不要先合并代码、以后再补文档。
+## 产品需求的文件布局
 
-| 层级 | 位置 | 何时更新 |
-|:-----|:-----|:---------|
-| 行动层 | `dev/` | 有行为变化的实施提交之前 |
-| 知识层 | `docs/`、`<module>/docs/` | 用户可见行为、契约或构建方式变了 |
+一条需求一个文件，编号 `PRD-NNN`，放在 `docs/product/requirements/`。`wiki.json` 的 `requirements.id_pattern` 登记的就是这个格式，不要为了迎合默认的 `APP-01` 改号。
 
-```
-问：本次提交包含代码吗？
-├── 否 → 更新改过文件的 updated；动了目录就更新索引并跑健康检查
-└── 是
-    ├── 无行为变化的单行修正？ → 可以只提交代码
-    └── 否 → 更新行动层，再判断知识层
-        ├── 用户可见行为或对外承诺变了？ → 按规则 10a
-        ├── 跨模块接口变了？ → 更新系统文档或模块索引，必要时 ADR
-        ├── 只是内部整理或测试？ → 行动层通常够了
-        └── 文档目录有增删移动？ → 更新索引并跑健康检查
-```
-
-实施提交的最小清单：
-
-- [ ] `dev/progress/status.md` 写了本次结果，总行数 ≤ 200，且有快照正文
-- [ ] 活跃 roadmap 的对应项已勾选（若有）
-- [ ] 改过的规格 `updated` 与 `status` 与实现一致
-- [ ] 动过索引或目录后已运行 `python3 scripts/check-docs-health.py`
-
-### 规则 3b：提交时保留其他未提交改动
-
-只 `git add` 本次主题的路径。提交前用 `git status` 和 `git diff --cached` 核对暂存范围。工作区里其他改动留在原地。
-
-不要为了得到干净工作区而对未纳入本次提交的文件执行 `git restore`、`git reset --hard`、`git clean` 或 `git stash`。存在无关改动时不要 `git add -A`。同一文件里两套改动冲突时，不要静默还原。
-
-### 规则 4：ADR 与阶段日志
-
-写入 `dev/decisions/` 的条件：新的架构概念、两个方案里选一个、跨模块契约、推翻已有 ADR。
-
-写入 `dev/iterations/<subsystem>/` 的条件：一次实现的过程、踩坑、测试或构建脚本变更，且不构成上面的决策。
-
-### 规则 5：ADR 写法
-
-文件名 `dev/decisions/NNN-short-name.md`。正文用 [决策模板](templates/decision-template.md)。`accepted` 之后不改原文。要推翻时新建 ADR，并在后果里指向旧编号。
-
-### 规则 6：阶段日志
-
-文件名 `dev/iterations/<subsystem>/phase-NNN-topic.md`。不要把阶段日志放进 `dev/decisions/`。
-
-### 规则 7：归档
-
-过时文档移入 `dev/archive/`，`status` 改为 `archived`，并更新受影响的索引。
-
-### 规则 8：向导优先
-
-文档与 [AGENTS.md](../AGENTS.md) 冲突时，改文档。要改变向导里的项目约束，先跟用户确认。`CLAUDE.md` 不是第二份向导。
-
-### 规则 9：Frontmatter 随改随新
-
-新建文件带齐必填字段。每次编辑知识层或行动层文档，更新 `updated`。状态变了就改 `status`。
-
-### 规则 10：不重复
-
-新建文档前先搜索。构建命令、WebDAV 默认值和模块职责只在权威文件里写一次。
-
-不要把设备序列号、证书指纹、密钥口令写进仓库。
-
-### 规则 10a：产品需求与设计
-
-`DESIGN.md` 与 `docs/systems/` 描述系统怎样工作。`docs/product/` 只记录用户能观察到的承诺。
-
-行为变更的顺序：
-
-1. 更新 `DESIGN.md`、系统文档或 ADR。
-2. 实现与文档一致。
-3. 对外承诺变了，再改 `docs/product/requirements/PRD-NNN.md` 和 `traceability.md`。一条需求一个文件，并更新 `requirements/INDEX.md`。
-
-需求编号 `PRD-NNN`。状态用 `proposed`、`accepted`、`implemented`、`blocked`。没有一次对照运行或测试的记录，不要标 `implemented`。源码里已经有的行为先标 `accepted`，追踪表指向体现它的代码。
+用户能观察到的承诺变了，在同一次改动里更新对应 PRD。系统怎样工作的变化，更新 `DESIGN.md` 或 `docs/systems/`。`dev/demand/` 只放调研，不升级成产品承诺。根 `README.md` 不是验收标准。
 
 产品文件的 `type`：`INDEX.md` 用 `index`，`vision.md` 用 `concept`，`requirements/PRD-NNN.md` 用 `demand`，`traceability.md` 用 `reference`。
 
-`dev/demand/` 只放调研，不升级成产品承诺。根 `README.md` 不是验收标准。
+## 入口与模板
 
-### 规则 11：索引随结构变更
+系统规定的入口可以有 README：根 `README.md`、`docs/README.md`、`dev/README.md`，以及每个 Gradle 模块根上的 `README.md`。除此之外不新建 README，除非用户明确要求。这条约束防止索引入口随轮次增加；共享流程没有等价检查。
 
-新增、移动或删除文档后，更新受影响的 `INDEX.md`，并运行：
+模板仍放在 [docs/templates/](templates/)。`orphan_ignore` 排除了这个目录，避免把模板当成现行知识。本次不把它们搬出 `docs/`：工作区里还有无关的未提交改动，批量改链接会卷进去。新模板继续放在这里，等单独一次只做搬家的改动再用 `wiki.py move`。
 
-```bash
-python3 scripts/check-docs-health.py
-```
+## 提交范围
 
-不要运行 `scripts/generate-docs-index.sh` 来生成索引。该脚本会直接退出。
+只 `git add` 本次主题的路径。提交前用 `git status` 和 `git diff --cached` 核对暂存范围。不要为了得到干净工作区而对未纳入本次提交的文件执行 `git restore`、`git reset --hard`、`git clean` 或 `git stash`。存在无关改动时不要 `git add -A`。
 
-### 规则 12：不要额外制造 README
+不要把设备序列号、证书指纹、密钥口令写进仓库。构建命令、WebDAV 默认值和模块职责只在权威文件里写一次。
 
-系统规定的入口可以有 README：根 `README.md`、`docs/README.md`、`dev/README.md`，以及每个 Gradle 模块根上的 `README.md`。除此之外不新建 README，除非用户明确要求。
-
-### 规则 13：方案与实施分开
-
-方案提交与实现提交分开。两类提交都遵守规则 3a 和 3b。无行为变化的小修正可以跳过方案。
-
-### 规则 14：会话结束自检
-
-- [ ] `status.md` 反映本次结果，并且不超过 200 行
-- [ ] 改过的 Markdown 已更新 `updated`
-- [ ] 新文件有 frontmatter（豁免文件除外）
-- [ ] 动过结构或索引时跑过健康检查
-- [ ] 没有把其他主题的未提交改动卷进本次提交
-
-### 规则 15：并行看板
-
-同时改很多文件、多个代理分工，或工作要跨会话接着做时，在 `dev/parallel/active/<topic>.md` 建看板，用 [并行模板](templates/parallel-template.md)。全部完成后移入 `dev/parallel/archive/`，并更新 [parallel/INDEX.md](../dev/parallel/INDEX.md)。
-
-Roadmap 是事先拆好的阶段清单。看板是执行中的任务状态。
-
-## 4. 检索
+## 检索
 
 | 我想... | 去哪里 |
 |:--------|:------|
-| 看产品承诺 | `docs/product/INDEX.md` |
+| 看开发流程 | `scripts/wiki/workflow.md` |
 | 看项目约束 | `AGENTS.md` |
-| 看当前在做什么 | `dev/progress/status.md` |
+| 看目录结构 | `docs/DOCS-SPEC.md` |
+| 看产品承诺 | `docs/product/INDEX.md` |
+| 看正在做的任务 | `dev/INDEX.md` |
 | 看一个跨模块行为 | `docs/systems/<system>/INDEX.md` |
-| 看一个模块从哪读 | `docs/modules/<module>/INDEX.md` |
-| 看为什么这样选 | `dev/decisions/INDEX.md` |
-| 看怎样构建 | `docs/guides/getting-started/build.md` |
-| 检查文档 | `python3 scripts/check-docs-health.py` |
+| 看为什么这样选 | `docs/decisions/INDEX.md` |
+| 检查文档 | `python3 scripts/wiki/wiki.py verify --root .` |
