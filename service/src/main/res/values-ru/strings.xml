@@ -12,7 +12,7 @@
     <string name="format_update_failure">Обновление %1$s: %2$s</string>
     <string name="running">Работает</string>
     <string name="loading">Загружается</string>
-    <string name="clash_meta_for_android">ClashMetaX</string>
+    <string name="clash_meta_for_android">AgenticClash</string>
     <string name="profiles_and_providers">Профили и провайдеры</string>
     <string name="configuration_yaml">Configuration.yaml</string>
     <string name="provider_files">Файлы провайдера</string>

@@ -3,7 +3,7 @@ title: "启停与重载"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-10-17
+updated: 2026-10-24
 summary: "按是否开启 VPN 启动 :background 里的 TunService 或 ClashService；停止和重载只发本包广播。"
 ---
 
@@ -57,12 +57,12 @@ summary: "按是否开启 VPN 启动 :background 里的 TunService 或 ClashServ
 
 `TunService` 在 `NonCancellable` 里调用 `reloadTun`。它再执行一次 `tun.open()`。`VpnEstablishException` 时保留当前接口并返回真。其他异常再试一次 `open()`。仍失败则返回假。返回假时把 `reason` 设为 `Reload tun failed`，`select` 退出，然后走上一节的 `finally` 和 `onDestroy`。返回真则循环继续，服务不销毁。
 
-访问控制保存后，只有这份名单正在驱动已运行的隧道才调用 `requestClashReload()`，不先停服务再等待。见 [访问控制](../access-control/INDEX.md)。
+访问控制名单或全局回退模式保存后，只有这份名单正在驱动已运行的隧道才调用 `requestClashReload()`，不先停服务再等待。见 [访问控制](../access-control/INDEX.md)。
 
 ## 外部动作
 
-`ExternalControlActivity` 在清单里导出。写死的动作是 `com.github.metacubex.clash.meta.action.START_CLASH`、`STOP_CLASH`、`TOGGLE_CLASH`。
+`ExternalControlActivity` 在清单里导出。写死的动作是 `universe.agentic.device.clash.action.START_CLASH`、`STOP_CLASH`、`TOGGLE_CLASH`。
 
-活动分支比较的是运行时常量 `Intents.ACTION_START_CLASH`、`ACTION_STOP_CLASH`、`ACTION_TOGGLE_CLASH`。它们是 `Global.application.packageName` 加上 `.action.` 和对应后缀。meta flavor 在未设置 `remove.suffix` 时加上 `applicationIdSuffix` `.meta`。默认 applicationId 因此是 `com.github.metacubex.clash.meta`，与清单字面量一致。
+活动分支比较的是运行时常量 `Intents.ACTION_START_CLASH`、`ACTION_STOP_CLASH`、`ACTION_TOGGLE_CLASH`。它们是 `Global.application.packageName` 加上 `.action.` 和对应后缀。两个 flavor 的 applicationId 都是 `universe.agentic.device.clash`，与清单字面量一致。
 
 分支里怎样启动或停止，见 [app 的 Activity](../../../app/docs/activities.md)。

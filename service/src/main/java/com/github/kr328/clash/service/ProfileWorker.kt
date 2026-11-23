@@ -63,8 +63,12 @@ class ProfileWorker : BaseService() {
         when (intent?.action) {
             Intents.ACTION_PROFILE_REQUEST_UPDATE -> {
                 intent.uuid?.also {
+                    val notify = intent.getBooleanExtra(
+                        Intents.EXTRA_PROFILE_UPDATE_NOTIFY,
+                        true,
+                    )
                     val job = launch {
-                        run(it)
+                        run(it, notify)
                     }
 
                     jobs.add(job)
@@ -84,19 +88,19 @@ class ProfileWorker : BaseService() {
         return START_NOT_STICKY
     }
 
-    private suspend fun run(uuid: UUID) {
+    private suspend fun run(uuid: UUID, notify: Boolean) {
         val imported = ImportedDao().queryByUUID(uuid) ?: return
 
         try {
-            processing(imported.name) {
+            processing(imported.name, notify) {
                 ProfileProcessor.update(this, imported.uuid, null)
             }
 
-            completed(imported.uuid, imported.name)
+            completed(imported.uuid, imported.name, notify)
 
             ProfileReceiver.scheduleNext(this, imported)
         } catch (e: Exception) {
-            failed(imported.uuid, imported.name, e.message ?: "Unknown")
+            failed(imported.uuid, imported.name, e.message ?: "Unknown", notify)
             scheduleAfterFailure(imported)
         }
     }
@@ -157,7 +161,12 @@ class ProfileWorker : BaseService() {
         startForegroundCompat(R.id.nf_profile_worker, notification)
     }
 
-    private suspend inline fun processing(name: String, block: () -> Unit) {
+    private suspend inline fun processing(name: String, notify: Boolean, block: () -> Unit) {
+        if (!notify) {
+            block()
+            return
+        }
+
         val id = UndefinedIds.next()
 
         val notification = NotificationCompat.Builder(this, STATUS_CHANNEL)
@@ -199,33 +208,37 @@ class ProfileWorker : BaseService() {
             .setGroup(RESULT_CHANNEL)
     }
 
-    private fun completed(uuid: UUID, name: String) {
-        val id = UndefinedIds.next()
+    private fun completed(uuid: UUID, name: String, notify: Boolean) {
+        if (notify) {
+            val id = UndefinedIds.next()
 
-        val notification = resultBuilder(id, uuid)
-            .setContentTitle(getString(R.string.update_successfully))
-            .setContentText(getString(R.string.format_update_complete, name))
-            .build()
+            val notification = resultBuilder(id, uuid)
+                .setContentTitle(getString(R.string.update_successfully))
+                .setContentText(getString(R.string.format_update_complete, name))
+                .build()
 
-        NotificationManagerCompat.from(this)
-            .notify(id, notification)
+            NotificationManagerCompat.from(this)
+                .notify(id, notification)
+        }
 
         sendProfileUpdateCompleted(uuid)
     }
 
-    private fun failed(uuid: UUID, name: String, reason: String) {
-        val id = UndefinedIds.next()
+    private fun failed(uuid: UUID, name: String, reason: String, notify: Boolean) {
+        if (notify) {
+            val id = UndefinedIds.next()
 
-        val content = getString(R.string.format_update_failure, name, reason)
+            val content = getString(R.string.format_update_failure, name, reason)
 
-        val notification = resultBuilder(id, uuid)
-            .setContentTitle(getString(R.string.update_failure))
-            .setContentText(content)
-            .setStyle(NotificationCompat.BigTextStyle().bigText(content))
-            .build()
+            val notification = resultBuilder(id, uuid)
+                .setContentTitle(getString(R.string.update_failure))
+                .setContentText(content)
+                .setStyle(NotificationCompat.BigTextStyle().bigText(content))
+                .build()
 
-        NotificationManagerCompat.from(this)
-            .notify(id, notification)
+            NotificationManagerCompat.from(this)
+                .notify(id, notification)
+        }
 
         sendProfileUpdateFailed(uuid, reason)
     }

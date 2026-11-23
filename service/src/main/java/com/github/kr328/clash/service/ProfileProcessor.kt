@@ -37,6 +37,7 @@ object ProfileProcessor {
 
                     pending.enforceFieldValid()
 
+                    recoverImportedDirectory(context.importedDir.resolve(pending.uuid.toString()))
                     context.processingDir.deleteRecursively()
                     context.processingDir.mkdirs()
 
@@ -52,9 +53,10 @@ object ProfileProcessor {
                 val subscriptionInfo = fetchProfile(context, snapshot.source, force, callback)
 
                 profileLock.withLock {
+                    val imported = context.importedDir.resolve(snapshot.uuid.toString())
+                    recoverImportedDirectory(imported)
                     if (PendingDao().queryByUUID(snapshot.uuid) == snapshot) {
-                        context.importedDir.resolve(snapshot.uuid.toString()).deleteRecursively()
-                        context.processingDir.copyRecursively(context.importedDir.resolve(snapshot.uuid.toString()))
+                        commitProfileDirectory(context.processingDir, imported)
 
                         val old = ImportedDao().queryByUUID(snapshot.uuid)
                         val updateInterval = subscriptionInfo?.subUpdateInterval
@@ -105,6 +107,7 @@ object ProfileProcessor {
 
                         context.pendingDir.resolve(snapshot.uuid.toString()).deleteRecursively()
 
+                        WebdavAutoSync.noteProfile(context, snapshot.uuid)
                         context.sendProfileChanged(snapshot.uuid)
                     }
                 }
@@ -119,6 +122,7 @@ object ProfileProcessor {
                     val imported =
                         ImportedDao().queryByUUID(uuid) ?: throw IllegalArgumentException("profile $uuid not found")
 
+                    recoverImportedDirectory(context.importedDir.resolve(imported.uuid.toString()))
                     context.processingDir.deleteRecursively()
                     context.processingDir.mkdirs()
 
@@ -135,8 +139,10 @@ object ProfileProcessor {
                 profileLock.withLock {
                     val imported = ImportedDao().queryByUUID(snapshot.uuid)
                     if (imported != null) {
-                        context.importedDir.resolve(snapshot.uuid.toString()).deleteRecursively()
-                        context.processingDir.copyRecursively(context.importedDir.resolve(snapshot.uuid.toString()))
+                        commitProfileDirectory(
+                            context.processingDir,
+                            context.importedDir.resolve(snapshot.uuid.toString()),
+                        )
 
                         val upload = subscriptionInfo?.subUpload
                         if (upload != null) {
@@ -150,12 +156,14 @@ object ProfileProcessor {
                             )
                         }
 
+                        if (WebdavAutoSync.noteProfile(context, snapshot.uuid, onlyManaged = true)) {
+                            WebdavAutoSync.enqueue(context)
+                        }
                         context.sendProfileChanged(snapshot.uuid)
                     }
                 }
             }
         }
-        WebdavAutoSync.enqueue(context)
     }
 
     suspend fun <T> guardImported(block: suspend () -> T): T {
@@ -196,24 +204,37 @@ object ProfileProcessor {
     }
 
     suspend fun delete(context: Context, uuid: UUID) {
-        withContext(NonCancellable) {
+        deleteIf(context, uuid)
+    }
+
+    /** Runs the final deletion check under the same lock as profile commits. */
+    suspend fun deleteIf(
+        context: Context,
+        uuid: UUID,
+        shouldDelete: suspend () -> Boolean = { true },
+        afterDelete: suspend () -> Unit = {},
+    ): Boolean {
+        return withContext(NonCancellable) {
             processLock.withLock {
-                profileLock.withLock {
+                profileLock.withLock check@ {
+                    if (!shouldDelete()) return@check false
                     ImportedDao().remove(uuid)
                     PendingDao().remove(uuid)
 
                     val pending = context.pendingDir.resolve(uuid.toString())
                     val imported = context.importedDir.resolve(uuid.toString())
 
-                    pending.deleteRecursively()
-                    imported.deleteRecursively()
+                    if (!pending.deleteRecursively()) throw java.io.IOException("Cannot delete pending profile")
+                    if (!imported.deleteRecursively()) throw java.io.IOException("Cannot delete imported profile")
 
                     val store = ServiceStore(context)
                     if (store.activeProfile == uuid) {
                         store.activeProfile = null
                     }
 
+                    afterDelete()
                     context.sendProfileChanged(uuid)
+                    true
                 }
             }
         }

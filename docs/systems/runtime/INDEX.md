@@ -3,15 +3,19 @@ title: "运行时"
 type: index
 status: accepted
 phase: N/A
-updated: 2026-10-15
+updated: 2026-10-30
 summary: ":background 进程中的 Clash 服务、VpnService 和 libclash.so。启停与重载顺序见专页。"
 ---
 
 # 运行时
 
+对应需求：PRD-001、PRD-006。
+
 `service` 把隧道放在 `:background`。`ClashService` 管核心生命周期，`TunService` 实现 `android.net.VpnService`。界面进程通过远程接口观察状态和下发重载，不自己持有 VPN。
 
 `core` 提供桥接模型（代理、流量、隧道状态、配置覆盖）和 `libclash.so`。Go 侧入口在 `core/src/main/golang/native`，内核来自子模块。构建约束见 [构建指南](../../guides/getting-started/build.md)。
+
+本地 MCP 是 `:background` 里另一个前台服务，只听本机回环。行为见 [本地 MCP](../mcp/INDEX.md)。
 
 ## 启停
 

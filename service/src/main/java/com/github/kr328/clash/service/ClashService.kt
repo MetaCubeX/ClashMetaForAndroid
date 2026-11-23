@@ -7,6 +7,7 @@ import com.github.kr328.clash.common.log.Log
 import com.github.kr328.clash.service.clash.clashRuntime
 import com.github.kr328.clash.service.clash.module.*
 import com.github.kr328.clash.service.store.ServiceStore
+import com.github.kr328.clash.service.util.TunnelClock
 import com.github.kr328.clash.service.util.cancelAndJoinBlocking
 import com.github.kr328.clash.service.util.sendClashStarted
 import com.github.kr328.clash.service.util.sendClashStopped
@@ -20,6 +21,8 @@ class ClashService : BaseService() {
         get() = this
 
     private var reason: String? = null
+
+    private var ownsClock = false
 
     private val runtime = clashRuntime {
         val store = ServiceStore(self)
@@ -73,6 +76,8 @@ class ClashService : BaseService() {
             return stopSelf()
 
         StatusProvider.serviceRunning = true
+        TunnelClock.markStarted(this)
+        ownsClock = true
 
         StaticNotificationModule.createNotificationChannel(this)
         StaticNotificationModule.notifyLoadingNotification(this)
@@ -91,6 +96,9 @@ class ClashService : BaseService() {
     }
 
     override fun onDestroy() {
+        if (ownsClock) {
+            TunnelClock.clear(this)
+        }
         StatusProvider.serviceRunning = false
 
         sendClashStopped(reason)

@@ -7,8 +7,17 @@ import okhttp3.OkHttpClient
 import okhttp3.Protocol
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
+import java.io.StringReader
 import java.net.SocketTimeoutException
+import java.security.MessageDigest
+import java.text.SimpleDateFormat
+import java.util.Locale
+import java.util.TimeZone
+import java.util.UUID
 import java.util.concurrent.TimeUnit
+import javax.xml.parsers.DocumentBuilderFactory
+import org.xml.sax.InputSource
+import org.xml.sax.SAXException
 
 data class WebdavConfig(
     val url: String,
@@ -44,6 +53,12 @@ data class HttpResponse(
     }
 }
 
+internal data class WebdavReadSnapshot(
+    val root: List<WebdavListEntry>,
+    val profiles: List<WebdavListEntry>,
+    val meta: WebdavGetResult,
+)
+
 class OkHttpTransport(
     private val client: OkHttpClient = OkHttpClient.Builder()
         .followRedirects(false)
@@ -59,7 +74,7 @@ class OkHttpTransport(
         val builder = Request.Builder().url(request.url)
         for ((key, value) in request.headers) builder.header(key, value)
         val body = when (request.method) {
-            "GET", "DELETE", "UNLOCK", "MOVE" -> null
+            "GET", "DELETE" -> null
             "MKCOL" -> ByteArray(0).toRequestBody(null)
             "PROPFIND" -> (request.body ?: "").toRequestBody("application/xml; charset=utf-8".toMediaType())
             else -> request.body?.toRequestBody("application/json; charset=utf-8".toMediaType())
@@ -131,11 +146,69 @@ class WebdavClient(
             extra = mapOf("Depth" to "1", "Content-Type" to "application/xml; charset=utf-8"),
         )
         if (response.status == 404) return emptyList()
-        if (response.status != 207 && !response.ok) {
+        if (response.status != 207) {
             throw WebdavException(statusCode(response, "propfind"), response.status, statusMessage(response, "propfind"))
         }
+        validateWebdavListing(response.body)
         return parsePropfindEntries(response.body, url)
     }
+
+    internal fun readSnapshot(config: WebdavConfig): WebdavReadSnapshot {
+        return WebdavReadSnapshot(
+            root = list(config),
+            profiles = list(config, WEBDAV_PROFILES_DIR),
+            meta = get(config, WEBDAV_META_FILE),
+        )
+    }
+
+    /** Uses only an exclusively named probe before trusting conditions on user data. */
+    internal fun verifyConditionalRequests(config: WebdavConfig) {
+        val nonce = UUID.randomUUID().toString()
+        val name = ".agenticclash-$nonce.probe.tmp"
+        val original = """{"probe":"$nonce","value":"original"}"""
+        val changed = """{"probe":"$nonce","value":"changed"}"""
+        var created = false
+        try {
+            put(config, name, original, createOnly = true)
+            created = true
+            val first = get(config, name)
+            if (!first.found || first.body != original) throw conditionalRequestsUnsupported()
+            requireStrongWebdavEtag(first.etag)
+            val wrongEtag = "\"agenticclash-$nonce-never-written\""
+            expectPreconditionFailure { put(config, name, changed, ifMatch = wrongEtag) }
+            expectPreconditionFailure { put(config, name, changed, createOnly = true) }
+            expectPreconditionFailure { delete(config, name, ifMatch = wrongEtag) }
+            val checked = get(config, name)
+            if (!checked.found || checked.body != original || checked.etag != first.etag) {
+                throw conditionalRequestsUnsupported()
+            }
+            requireStrongWebdavEtag(checked.etag)
+            delete(config, name, ifMatch = checked.etag)
+            created = false
+        } finally {
+            if (created) {
+                // Even a failed capability check never uses unconditional cleanup.
+                runCatching {
+                    val leftover = get(config, name)
+                    if (leftover.found) delete(config, name, ifMatch = leftover.etag)
+                }
+            }
+        }
+    }
+
+    private fun expectPreconditionFailure(block: () -> Unit) {
+        try {
+            block()
+        } catch (_: WebdavConflictException) {
+            return
+        }
+        throw conditionalRequestsUnsupported()
+    }
+
+    private fun conditionalRequestsUnsupported() = WebdavException(
+        "conditional_unsupported",
+        detail = "The server did not enforce conditional requests; profile and metadata changes were not sent.",
+    )
 
     fun put(
         config: WebdavConfig,
@@ -144,37 +217,20 @@ class WebdavClient(
         ifMatch: String? = null,
         createOnly: Boolean = false,
     ): WebdavPutResult {
-        val tempName = webdavTempFileName(fileName, config.clientId)
-        val staged = putDirect(config, tempName, body)
-        val destUrl = href(config, fileName)
-        val extra = linkedMapOf(
-            "Destination" to destUrl,
-            "Overwrite" to if (createOnly) "F" else "T",
-        )
-        if (!ifMatch.isNullOrEmpty()) {
-            extra["If-Match"] = ifMatch
-            extra["If"] = "<$destUrl> ($ifMatch)"
-        }
-        return when (val moved = tryMove(config, tempName, extra)) {
-            is MoveAttempt.Ok -> moved.result
-            MoveAttempt.Unsupported -> {
-                val written = putDirect(config, fileName, body, ifMatch, createOnly)
-                deleteQuiet(config, tempName)
-                written
-            }
-            MoveAttempt.Conflict -> {
-                recoverFalseMoveConflict(config, tempName, fileName, body, ifMatch, staged.etag)
-                    ?: run {
-                        deleteQuiet(config, tempName)
-                        throw WebdavConflictException()
-                    }
-            }
-        }
+        if (createOnly && ifMatch != null) throw WebdavException("conflict")
+        if (!createOnly) requireStrongWebdavEtag(ifMatch)
+        val extra = linkedMapOf("Content-Type" to "application/json; charset=utf-8")
+        if (createOnly) extra["If-None-Match"] = "*" else extra["If-Match"] = ifMatch!!
+        // A MOVE condition may protect the temporary source instead of the destination.
+        val response = request("PUT", href(config, fileName), config, body, extra)
+        if (response.status == 412) throw WebdavConflictException()
+        if (response.ok) return WebdavPutResult(etag = response.header("etag"))
+        throw WebdavException(statusCode(response, "put"), response.status, statusMessage(response, "put"))
     }
 
     fun delete(config: WebdavConfig, fileName: String, ifMatch: String? = null) {
-        val extra = linkedMapOf<String, String>()
-        if (!ifMatch.isNullOrEmpty()) extra["If-Match"] = ifMatch
+        requireStrongWebdavEtag(ifMatch)
+        val extra = mapOf("If-Match" to ifMatch!!)
         val response = request("DELETE", href(config, fileName), config, extra = extra)
         if (response.status == 404 || response.status == 204 || response.ok) return
         if (response.status == 412) throw WebdavConflictException()
@@ -187,144 +243,10 @@ class WebdavClient(
         for (collection in collectionUrlsBetween(root, target)) {
             val colUrl = if (collection.endsWith("/")) collection else "$collection/"
             val response = request("MKCOL", colUrl, config)
-            if (response.status == 201 || response.status == 405 || response.status == 409 || response.status == 301 || response.ok) {
+            if (response.status == 405 || response.ok) {
                 continue
             }
             throw WebdavException(statusCode(response, "mkcol"), response.status, statusMessage(response, "mkcol"))
-        }
-    }
-
-    private fun putDirect(
-        config: WebdavConfig,
-        fileName: String,
-        body: String,
-        ifMatch: String? = null,
-        createOnly: Boolean = false,
-        unlockTried: Boolean = false,
-    ): WebdavPutResult {
-        val url = href(config, fileName)
-        val extra = linkedMapOf("Content-Type" to "application/json; charset=utf-8")
-        if (!ifMatch.isNullOrEmpty()) extra["If-Match"] = ifMatch
-        else if (createOnly) extra["If-None-Match"] = "*"
-        val response = request("PUT", url, config, body, extra)
-        if (response.status == 412) throw WebdavConflictException()
-        if (response.status == 423 && !unlockTried) {
-            val tokens = (extractLockTokens(response.body) + discoverLockTokens(config, fileName)).distinct()
-            for (token in tokens) unlock(config, fileName, token)
-            return putDirect(config, fileName, body, ifMatch, createOnly, unlockTried = true)
-        }
-        if (response.status == 201 || response.status == 204 || response.ok) {
-            return WebdavPutResult(etag = response.header("etag"))
-        }
-        throw WebdavException(statusCode(response, "put"), response.status, statusMessage(response, "put"))
-    }
-
-    /**
-     * MOVE applies If-Match to the temporary source, so a server can return 412
-     * even when the destination etag is unchanged. Re-read that etag: if it is
-     * the same, overwrite without the condition; if it changed, this is a real conflict.
-     */
-    private fun recoverFalseMoveConflict(
-        config: WebdavConfig,
-        tempName: String,
-        fileName: String,
-        body: String,
-        ifMatch: String?,
-        stagedEtag: String?,
-    ): WebdavPutResult? {
-        if (ifMatch.isNullOrEmpty()) return null
-        val current = readResourceEtag(config, fileName) ?: return null
-        if (!webdavEtagsMatch(current, ifMatch)) return null
-        val destUrl = href(config, fileName)
-        when (
-            val plain = tryMove(
-                config,
-                tempName,
-                mapOf("Destination" to destUrl, "Overwrite" to "T"),
-            )
-        ) {
-            is MoveAttempt.Ok -> return WebdavPutResult(plain.result.etag ?: stagedEtag)
-            MoveAttempt.Unsupported, MoveAttempt.Conflict -> Unit
-        }
-        return try {
-            putDirect(config, fileName, body, ifMatch = current, createOnly = false)
-        } finally {
-            deleteQuiet(config, tempName)
-        }
-    }
-
-    private fun readResourceEtag(config: WebdavConfig, fileName: String): String? {
-        return try {
-            val response = request(
-                "PROPFIND",
-                href(config, fileName),
-                config,
-                body = """<?xml version="1.0" encoding="utf-8"?><D:propfind xmlns:D="DAV:"><D:prop><D:getetag/></D:prop></D:propfind>""",
-                extra = mapOf("Depth" to "0", "Content-Type" to "application/xml; charset=utf-8"),
-            )
-            if (response.status != 207 && !response.ok) null else firstGetEtag(response.body)
-        } catch (_: Exception) {
-            null
-        }
-    }
-
-    private fun deleteQuiet(config: WebdavConfig, fileName: String) {
-        try {
-            delete(config, fileName)
-        } catch (_: Exception) {
-        }
-    }
-
-    private sealed class MoveAttempt {
-        data class Ok(val result: WebdavPutResult) : MoveAttempt()
-        data object Unsupported : MoveAttempt()
-        data object Conflict : MoveAttempt()
-    }
-
-    private fun tryMove(
-        config: WebdavConfig,
-        tempName: String,
-        extra: Map<String, String>,
-        unlockTried: Boolean = false,
-    ): MoveAttempt {
-        val response = request("MOVE", href(config, tempName), config, extra = extra)
-        if (response.status == 405 || response.status == 501) return MoveAttempt.Unsupported
-        if (response.status == 412) return MoveAttempt.Conflict
-        if (response.status == 423 && !unlockTried) {
-            val tokens = (extractLockTokens(response.body) + discoverLockTokens(config, tempName)).distinct()
-            for (token in tokens) unlock(config, tempName, token)
-            return tryMove(config, tempName, extra, unlockTried = true)
-        }
-        if (response.status == 201 || response.status == 204 || response.ok) {
-            return MoveAttempt.Ok(WebdavPutResult(etag = response.header("etag")))
-        }
-        throw WebdavException(statusCode(response, "move"), response.status, statusMessage(response, "move"))
-    }
-
-    private fun discoverLockTokens(config: WebdavConfig, fileName: String): List<String> {
-        return try {
-            val response = request(
-                "PROPFIND",
-                href(config, fileName),
-                config,
-                body = """<?xml version="1.0" encoding="utf-8"?><D:propfind xmlns:D="DAV:"><D:prop><D:lockdiscovery/></D:prop></D:propfind>""",
-                extra = mapOf("Depth" to "0", "Content-Type" to "application/xml; charset=utf-8"),
-            )
-            if (response.status != 207 && !response.ok) emptyList() else extractLockTokens(response.body)
-        } catch (_: Exception) {
-            emptyList()
-        }
-    }
-
-    private fun unlock(config: WebdavConfig, fileName: String, token: String) {
-        try {
-            request(
-                "UNLOCK",
-                href(config, fileName),
-                config,
-                extra = mapOf("Lock-Token" to "<${token.trim('<', '>')}>"),
-            )
-        } catch (_: Exception) {
         }
     }
 
@@ -341,6 +263,17 @@ class WebdavClient(
     ): HttpResponse {
         if (config.username.trim().isEmpty()) throw WebdavException("empty_user")
         if (config.password.isEmpty()) throw WebdavException("empty_password")
+        val rateKey = MessageDigest.getInstance("SHA-256")
+            .digest(listOf(config.url, config.username, config.remotePath).joinToString("\u0000").toByteArray(Charsets.UTF_8))
+            .joinToString("") { "%02x".format(it) }
+        val now = System.currentTimeMillis()
+        synchronized(retryAfterByEndpoint) {
+            val deadline = retryAfterByEndpoint[rateKey]
+            if (deadline != null && deadline > now) {
+                throw WebdavException("http", 429, "WebDAV retry is delayed by the server")
+            }
+            retryAfterByEndpoint.remove(rateKey)
+        }
         val auth = Base64.encodeToString(
             "${config.username}:${config.password}".toByteArray(Charsets.UTF_8),
             Base64.NO_WRAP,
@@ -354,6 +287,13 @@ class WebdavClient(
             val response = transport.execute(HttpRequest(method, url, headers, body))
             Log.i("WebDAV $method ${response.status}")
             if (response.status in 300..399) throw WebdavException("redirect", response.status)
+            if (response.status == 429) {
+                webdavRetryAfterDeadline(response.header("Retry-After"), System.currentTimeMillis())?.let { deadline ->
+                    synchronized(retryAfterByEndpoint) {
+                        retryAfterByEndpoint[rateKey] = maxOf(retryAfterByEndpoint[rateKey] ?: 0, deadline)
+                    }
+                }
+            }
             response
         } catch (err: WebdavException) {
             throw err
@@ -382,5 +322,67 @@ class WebdavClient(
         return listOf(context, response.status.toString(), response.statusText, snippet)
             .filter { it.isNotBlank() }
             .joinToString(" ")
+    }
+
+    companion object {
+        private val retryAfterByEndpoint = mutableMapOf<String, Long>()
+    }
+}
+
+internal fun webdavRetryAfterDeadline(value: String?, now: Long): Long? {
+    val raw = value?.trim()?.takeIf { it.isNotEmpty() } ?: return null
+    raw.toLongOrNull()?.let { seconds ->
+        if (seconds < 0) return null
+        val delay = if (seconds > Long.MAX_VALUE / 1_000) Long.MAX_VALUE else seconds * 1_000
+        return if (now > Long.MAX_VALUE - delay) Long.MAX_VALUE else now + delay
+    }
+    return try {
+        SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.US).apply {
+            isLenient = false
+            timeZone = TimeZone.getTimeZone("GMT")
+        }.parse(raw)?.time?.takeIf { it > now }
+    } catch (_: Exception) {
+        null
+    }
+}
+
+internal fun requireStrongWebdavEtag(etag: String?) {
+    if (etag == null || !Regex("\"[\u0021\u0023-\u007e\u0080-\u00ff]*\"").matches(etag)) {
+        throw WebdavException("unsafe_etag", detail = "The server did not provide a strong ETag; remote changes were not sent.")
+    }
+}
+
+private fun validateWebdavListing(body: String) {
+    try {
+        // Android's XML provider does not implement every Xerces feature. Reject
+        // declarations before parsing and refuse every external resolution.
+        if (Regex("<!\\s*(?:DOCTYPE|ENTITY)", RegexOption.IGNORE_CASE).containsMatchIn(body)) {
+            throw WebdavException("broken_list")
+        }
+        val factory = DocumentBuilderFactory.newInstance().apply {
+            isNamespaceAware = true
+            isValidating = false
+        }
+        val builder = factory.newDocumentBuilder().apply {
+            setEntityResolver { _, _ -> throw SAXException("External entities are not allowed") }
+        }
+        val root = builder.parse(InputSource(StringReader(body))).documentElement
+        if (root.namespaceURI != "DAV:" || root.localName != "multistatus") throw WebdavException("broken_list")
+        val entries = root.getElementsByTagNameNS("DAV:", "response")
+        if (entries.length == 0) throw WebdavException("broken_list")
+        for (index in 0 until entries.length) {
+            val entry = entries.item(index) as org.w3c.dom.Element
+            val hrefs = entry.getElementsByTagNameNS("DAV:", "href")
+            if (hrefs.length != 1 || hrefs.item(0).textContent.isBlank()) throw WebdavException("broken_list")
+            val statuses = entry.getElementsByTagNameNS("DAV:", "status")
+            val readable = (0 until statuses.length).any { statusIndex ->
+                Regex("^HTTP/\\S+\\s+2\\d\\d(?:\\s|$)").containsMatchIn(statuses.item(statusIndex).textContent.trim())
+            }
+            if (!readable) throw WebdavException("broken_list")
+        }
+    } catch (err: WebdavException) {
+        throw err
+    } catch (_: Exception) {
+        throw WebdavException("broken_list")
     }
 }

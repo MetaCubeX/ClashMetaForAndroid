@@ -2,6 +2,7 @@ package com.github.kr328.clash.service.webdav
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.InputStream
@@ -13,52 +14,33 @@ class WebdavClientTest {
         url = "https://example.com/dav",
         username = "user",
         password = "secret",
-        remotePath = "/sync/Configs/clash-meta",
+        remotePath = "/clash-meta",
         clientId = "abcd1234",
     )
 
     @Test
-    fun unchangedDestinationSurvivesMoveIfMatchOnTheTempFile() {
+    fun updateUsesOneConditionalPutOnTheDestination() {
         val calls = mutableListOf<HttpRequest>()
         val client = client { request ->
             calls += request
-            when (calls.size) {
-                1 -> HttpResponse(201, "Created", "", emptyMap())
-                2 -> {
-                    assertEquals("MOVE", request.method)
-                    assertEquals("\"abc\"", request.headers["If-Match"])
-                    HttpResponse(412, "Precondition Failed", "", emptyMap())
-                }
-                3 -> HttpResponse(207, "Multi-Status", """<D:getetag>"abc"</D:getetag>""", emptyMap())
-                4 -> {
-                    assertEquals("MOVE", request.method)
-                    assertFalse(request.headers.keys.any { it.equals("If-Match", ignoreCase = true) })
-                    HttpResponse(204, "No Content", "", mapOf("ETag" to "\"def\""))
-                }
-                else -> throw AssertionError("unexpected ${request.method}")
-            }
+            HttpResponse(204, "No Content", "", mapOf("ETag" to "\"def\""))
         }
         val written = client.put(config, "_sync.json", "{}", ifMatch = "\"abc\"")
         assertEquals("\"def\"", written.etag)
-        assertEquals(4, calls.size)
+        val request = calls.single()
+        assertEquals("PUT", request.method)
+        assertTrue(request.url.endsWith("/_sync.json"))
+        assertEquals("\"abc\"", request.headers["If-Match"])
+        assertEquals("{}", request.body)
+        assertFalse(request.headers.containsKey("If-None-Match"))
     }
 
     @Test
-    fun changedDestinationIsAConflict() {
+    fun conflictNeverRetriesWithoutItsCondition() {
         val calls = mutableListOf<HttpRequest>()
         val client = client { request ->
             calls += request
-            when (calls.size) {
-                1 -> HttpResponse(201, "Created", "", emptyMap())
-                2 -> HttpResponse(412, "Precondition Failed", "", emptyMap())
-                3 -> HttpResponse(207, "Multi-Status", """<D:getetag>"other"</D:getetag>""", emptyMap())
-                4 -> {
-                    assertEquals("DELETE", request.method)
-                    assertTrue(request.url.endsWith(".tmp"))
-                    HttpResponse(204, "No Content", "", emptyMap())
-                }
-                else -> throw AssertionError("unexpected ${request.method}")
-            }
+            HttpResponse(412, "Precondition Failed", "", emptyMap())
         }
         try {
             client.put(config, "_sync.json", "{}", ifMatch = "\"abc\"")
@@ -66,7 +48,145 @@ class WebdavClientTest {
         } catch (err: WebdavConflictException) {
             assertEquals(412, err.status)
         }
-        assertEquals("DELETE", calls.last().method)
+        assertEquals("PUT", calls.single().method)
+        assertEquals("\"abc\"", calls.single().headers["If-Match"])
+    }
+
+    @Test
+    fun createUsesIfNoneMatch() {
+        val calls = mutableListOf<HttpRequest>()
+        val client = client { request ->
+            calls += request
+            HttpResponse(201, "Created", "", emptyMap())
+        }
+        client.put(config, "profiles/new.json", "{}", createOnly = true)
+        assertEquals("PUT", calls.single().method)
+        assertEquals("*", calls.single().headers["If-None-Match"])
+        assertFalse(calls.single().headers.containsKey("If-Match"))
+    }
+
+    @Test
+    fun unsafeEtagsRejectUpdatesAndDeletesBeforeSending() {
+        val calls = mutableListOf<HttpRequest>()
+        val client = client { request ->
+            calls += request
+            throw AssertionError("unsafe request ${request.method}")
+        }
+        for (etag in listOf(null, "", "abc", "*", "W/\"abc\"", "\"abc\", \"other\"", "\"bad\nvalue\"")) {
+            assertWebdavError("unsafe_etag") { client.put(config, "profiles/id.json", "{}", ifMatch = etag) }
+            assertWebdavError("unsafe_etag") { client.delete(config, "profiles/id.json", ifMatch = etag) }
+        }
+        assertTrue(calls.isEmpty())
+    }
+
+    @Test
+    fun lockedDestinationIsNotUnlockedOrRetried() {
+        val calls = mutableListOf<HttpRequest>()
+        val client = client { request ->
+            calls += request
+            HttpResponse(423, "Locked", "", emptyMap())
+        }
+        assertWebdavError("locked") { client.put(config, "_sync.json", "{}", ifMatch = "\"abc\"") }
+        assertEquals("PUT", calls.single().method)
+    }
+
+    @Test
+    fun retryAfterStopsSubsequentRequestsAcrossClientInstances() {
+        val limited = config.copy(remotePath = "/retry-after-test")
+        val calls = mutableListOf<HttpRequest>()
+        val handler: (HttpRequest) -> HttpResponse = { request ->
+            calls += request
+            HttpResponse(429, "Too Many Requests", "", mapOf("Retry-After" to "120"))
+        }
+        assertWebdavError("http") { client(handler).get(limited, WEBDAV_META_FILE) }
+        assertWebdavError("http") { client(handler).get(limited, WEBDAV_META_FILE) }
+        assertEquals(1, calls.size)
+    }
+
+    @Test
+    fun retryAfterParsesSecondsAndHttpDate() {
+        assertEquals(125_000L, webdavRetryAfterDeadline("120", 5_000))
+        assertEquals(784_111_777_000L, webdavRetryAfterDeadline("Sun, 06 Nov 1994 08:49:37 GMT", 5_000))
+        assertNull(webdavRetryAfterDeadline("-1", 5_000))
+        assertNull(webdavRetryAfterDeadline("invalid", 5_000))
+        assertNull(webdavRetryAfterDeadline("Sun, 06 Nov 1994 08:49:37 GMT", 784_111_777_001L))
+    }
+
+    @Test
+    fun snapshotOnlyReadsBothCollectionsAndMeta() {
+        val calls = mutableListOf<HttpRequest>()
+        val client = client { request ->
+            calls += request
+            if (request.method == "GET") HttpResponse(404, "Not Found", "", emptyMap())
+            else HttpResponse(207, "Multi-Status", listing(request.url), emptyMap())
+        }
+        val snapshot = client.readSnapshot(config)
+        assertEquals(listOf("PROPFIND", "PROPFIND", "GET"), calls.map { it.method })
+        assertTrue(snapshot.root.isEmpty())
+        assertTrue(snapshot.profiles.isEmpty())
+        assertFalse(snapshot.meta.found)
+    }
+
+    @Test
+    fun missingCollectionsAreReadWithoutCreatingThem() {
+        val calls = mutableListOf<HttpRequest>()
+        val client = client { request ->
+            calls += request
+            HttpResponse(404, "Not Found", "", emptyMap())
+        }
+        val snapshot = client.readSnapshot(config)
+        assertEquals(listOf("PROPFIND", "PROPFIND", "GET"), calls.map { it.method })
+        assertTrue(snapshot.profiles.isEmpty())
+        assertFalse(snapshot.meta.found)
+    }
+
+    @Test
+    fun invalidListingStopsSnapshotBeforeAnyWrites() {
+        for (body in listOf(
+            "<html/>",
+            """<D:multistatus xmlns:D="DAV:"/>""",
+            """<D:multistatus xmlns:D="DAV:"><D:response><D:href>/dav/""",
+            """<D:multistatus xmlns:D="DAV:"><D:response/></D:multistatus>""",
+            """<D:multistatus xmlns:D="DAV:"><D:response><D:href>/dav/file.json</D:href><D:status>HTTP/1.1 403 Forbidden</D:status></D:response></D:multistatus>""",
+            """<!DOCTYPE x [<!ENTITY e SYSTEM "file:///etc/passwd">]><D:multistatus xmlns:D="DAV:"/>""",
+        )) {
+            val calls = mutableListOf<HttpRequest>()
+            val client = client { request ->
+                calls += request
+                HttpResponse(207, "Multi-Status", body, emptyMap())
+            }
+            assertWebdavError("broken_list") { client.readSnapshot(config) }
+            assertEquals(listOf("PROPFIND"), calls.map { it.method })
+        }
+    }
+
+    @Test
+    fun successfulNonDavResponseIsNotAnEmptyListing() {
+        val client = client { HttpResponse(200, "OK", "<html/>", emptyMap()) }
+        assertWebdavError("http") { client.list(config) }
+    }
+
+    @Test
+    fun conditionProbeVerifiesAllConditionsAndCleansItsOwnObject() {
+        val server = ConditionalServer()
+        WebdavClient(server, server).verifyConditionalRequests(config)
+        assertTrue(server.objects.isEmpty())
+        assertEquals(listOf("PUT", "GET", "PUT", "PUT", "DELETE", "GET", "DELETE"), server.calls.map { it.method })
+        assertTrue(server.calls.all { it.url.endsWith(".probe.tmp") })
+    }
+
+    @Test
+    fun ignoredConditionsOnlyAffectTheProbeAndBlockRealPublication() {
+        for (ignored in listOf("put", "create", "delete")) {
+            val server = ConditionalServer(ignored)
+            val client = WebdavClient(server, server)
+            assertWebdavError("conditional_unsupported") {
+                client.verifyConditionalRequests(config)
+                client.put(config, "profiles/real.json", "user data", createOnly = true)
+            }
+            assertTrue(server.calls.all { it.url.endsWith(".probe.tmp") })
+            assertTrue(server.objects.isEmpty())
+        }
     }
 
     @Test
@@ -206,5 +326,56 @@ class WebdavClientTest {
             override fun execute(request: HttpRequest): HttpResponse = handler(request)
         }
         return WebdavClient(transport, transport)
+    }
+
+    private fun listing(url: String): String = """<D:multistatus xmlns:D="DAV:"><D:response><D:href>$url</D:href><D:propstat><D:prop><D:resourcetype><D:collection/></D:resourcetype></D:prop><D:status>HTTP/1.1 200 OK</D:status></D:propstat></D:response></D:multistatus>"""
+
+    private fun assertWebdavError(code: String, block: () -> Unit) {
+        try {
+            block()
+            throw AssertionError("expected WebdavException($code)")
+        } catch (err: WebdavException) {
+            assertEquals(code, err.code)
+        }
+    }
+
+    private class ConditionalServer(private val ignored: String = "") : HttpTransport {
+        val calls = mutableListOf<HttpRequest>()
+        val objects = mutableMapOf<String, Pair<String, String>>()
+        private var revision = 0
+
+        override fun execute(request: HttpRequest): HttpResponse {
+            calls.add(request)
+            val previous = objects[request.url]
+            return when (request.method) {
+                "GET" -> if (previous == null) response(404) else response(200, previous.first, previous.second)
+                "PUT" -> {
+                    val mustCreate = request.headers["If-None-Match"] == "*"
+                    val condition = request.headers["If-Match"]
+                    when {
+                        mustCreate && previous != null && ignored != "create" -> response(412)
+                        condition != null && condition != previous?.second && ignored != "put" -> response(412)
+                        else -> {
+                            val etag = "\"${++revision}\""
+                            objects[request.url] = request.body.orEmpty() to etag
+                            response(201, etag = etag)
+                        }
+                    }
+                }
+                "DELETE" -> when {
+                    previous == null -> response(404)
+                    request.headers["If-Match"] != previous.second && ignored != "delete" -> response(412)
+                    else -> {
+                        objects.remove(request.url)
+                        response(204)
+                    }
+                }
+                else -> throw AssertionError("unexpected ${request.method}")
+            }
+        }
+
+        private fun response(status: Int, body: String = "", etag: String? = null) = HttpResponse(
+            status, "test", body, etag?.let { mapOf("ETag" to it) }.orEmpty(),
+        )
     }
 }

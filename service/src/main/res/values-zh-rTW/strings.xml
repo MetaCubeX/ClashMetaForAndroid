@@ -4,7 +4,7 @@
     <string name="running">正在運作</string>
     <string name="format_update_complete">更新 %s 成功</string>
     <string name="format_update_failure">"更新 %1$s: %2$s "</string>
-    <string name="clash_meta_for_android">ClashMetaX</string>
+    <string name="clash_meta_for_android">AgenticClash</string>
     <string name="profiles_and_providers">設定檔和外部資源</string>
     <string name="configuration_yaml">設定檔.yaml</string>
     <string name="provider_files">外部資源文件列表</string>
@@ -17,4 +17,6 @@
     <string name="profile_updating">設定檔更新中</string>
     <string name="profile_service_status">設定檔服務狀態</string>
     <string name="profile_process_result">設定檔處理結果</string>
+    <string name="mcp_channel">本地 MCP</string>
+    <string name="mcp_notification">本地 MCP 正在監聽</string>
 </resources>

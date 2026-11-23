@@ -4,7 +4,7 @@
     <string name="running">正在运行</string>
     <string name="format_update_complete">更新 %s 成功</string>
     <string name="format_update_failure">"更新 %1$s: %2$s "</string>
-    <string name="clash_meta_for_android">ClashMetaX</string>
+    <string name="clash_meta_for_android">AgenticClash</string>
     <string name="profiles_and_providers">配置文件和外部资源</string>
     <string name="configuration_yaml">配置文件.yaml</string>
     <string name="provider_files">外部资源文件列表</string>
@@ -19,6 +19,7 @@
     <string name="webdav_connected">连接成功</string>
     <string name="webdav_sync_idle">已经是最新</string>
     <string name="webdav_sync_done">已同步：下载 %1$d，上传 %2$d，删除 %3$d</string>
+    <string name="webdav_sync_deferred">有 %1$d 个配置暂未应用，请结束编辑或检查配置内容与同步关联。</string>
     <string name="webdav_error_empty_url">请先填写 WebDAV 地址</string>
     <string name="webdav_error_bad_url">WebDAV 地址无效</string>
     <string name="webdav_error_https">WebDAV 地址必须是 https</string>
@@ -39,4 +40,7 @@
     <string name="webdav_error_too_large">%1$s 太大，无法同步</string>
     <string name="webdav_error_generic">WebDAV 失败：%1$s</string>
     <string name="profile_process_result">配置文件处理结果</string>
+    <string name="mcp_channel">本地 MCP</string>
+    <string name="mcp_notification">本地 MCP 正在监听</string>
+    <string name="legacy_access_control_name">默认</string>
 </resources>

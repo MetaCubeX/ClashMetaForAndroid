@@ -12,7 +12,8 @@
     <string name="format_update_failure">Update %1$s: %2$s</string>
     <string name="running">Running</string>
     <string name="loading">Loading</string>
-    <string name="clash_meta_for_android">ClashMetaX</string>
+    <string name="clash_meta_for_android">AgenticClash</string>
+    <string name="tile_name" translatable="false">Clash</string>
     <string name="profiles_and_providers">Profiles and Providers</string>
     <string name="configuration_yaml">Configuration.yaml</string>
     <string name="provider_files">Provider Files</string>
@@ -22,6 +23,7 @@
     <string name="webdav_connected">Connected</string>
     <string name="webdav_sync_idle">Already up to date</string>
     <string name="webdav_sync_done">Synced. Downloaded %1$d, uploaded %2$d, removed %3$d.</string>
+    <string name="webdav_sync_deferred">%1$d profiles were deferred. Finish editing or check their content and sync association.</string>
     <string name="webdav_error_empty_url">Enter the WebDAV address</string>
     <string name="webdav_error_bad_url">Invalid WebDAV address</string>
     <string name="webdav_error_https">WebDAV address must use https</string>
@@ -41,4 +43,7 @@
     <string name="webdav_error_broken">The remote sync file is incomplete</string>
     <string name="webdav_error_too_large">%1$s is too large to sync</string>
     <string name="webdav_error_generic">WebDAV failed: %1$s</string>
+    <string name="mcp_channel">Local MCP</string>
+    <string name="mcp_notification">Local MCP is listening</string>
+    <string name="legacy_access_control_name">Default</string>
 </resources>

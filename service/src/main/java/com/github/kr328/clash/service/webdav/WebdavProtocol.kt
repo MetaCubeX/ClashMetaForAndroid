@@ -13,14 +13,17 @@ const val WEBDAV_PROFILE_KIND = "clash-meta-profile"
 const val WEBDAV_SYNC_VERSION = 1
 const val WEBDAV_META_FILE = "_sync.json"
 const val WEBDAV_PROFILES_DIR = "profiles"
-const val WEBDAV_DEFAULT_URL = "https://alist.taokdao.com/dav"
-const val WEBDAV_DEFAULT_LAN_URL = "http://192.168.1.69:5244/dav"
+const val WEBDAV_DEFAULT_URL = ""
+const val WEBDAV_DEFAULT_LAN_URL = ""
 const val WEBDAV_LAN_PROBE_MS = 2_500L
-const val WEBDAV_DEFAULT_USERNAME = "clarence"
-const val WEBDAV_DEFAULT_REMOTE_PATH = "/sync/Configs/clash-meta"
-const val WEBDAV_LEGACY_MISREAD_URL = "https://alist.taokodao.com/dav"
-const val WEBDAV_LEGACY_REMOTE_PATH = "/clash-meta"
-const val WEBDAV_USER_AGENT = "ClashMetaForAndroid/1.0"
+const val WEBDAV_ROUTE_MEMO_MS = 15_000L
+const val WEBDAV_HTTP_CONCURRENCY = 5
+const val WEBDAV_HTTP_CONCURRENCY_THROTTLED = 2
+const val WEBDAV_PUSH_DEBOUNCE_MS = 8_000L
+const val WEBDAV_PULL_INTERVAL_MS = 15L * 60L * 1000L
+const val WEBDAV_DEFAULT_USERNAME = ""
+const val WEBDAV_DEFAULT_REMOTE_PATH = "/clash-meta"
+const val WEBDAV_USER_AGENT = "AgenticClash/1.0"
 const val WEBDAV_TMP_SUFFIX = ".tmp"
 const val WEBDAV_TMP_MAX_AGE_MS = 3L * 24 * 60 * 60 * 1000
 const val WEBDAV_TOMBSTONE_TTL_MS = 60L * 24 * 60 * 60 * 1000
@@ -55,11 +58,11 @@ data class WebdavListEntry(
 
 fun normalizeWebdavUrl(raw: String): String {
     val url = raw.trim().trimEnd('/')
-    if (url.isEmpty() || url == WEBDAV_LEGACY_MISREAD_URL) return WEBDAV_DEFAULT_URL
+    if (url.isEmpty()) return WEBDAV_DEFAULT_URL
     return url
 }
 
-/** Blank stays blank so a cleared LAN address stays off. The first-run default is applied by [StoredWebdavSettings]. */
+/** Blank stays blank so a cleared LAN address stays off. */
 fun normalizeWebdavLanUrl(raw: String?): String {
     return raw?.trim()?.trimEnd('/').orEmpty()
 }
@@ -152,9 +155,7 @@ fun requirePublicWebdavUrl(url: String): String {
 
 fun normalizeWebdavRemotePath(raw: String): String {
     val path = raw.trim().trimEnd('/')
-    if (path.isEmpty() || path == WEBDAV_LEGACY_REMOTE_PATH || path == "/cursor-manager" || path == "/sync/Configs/cursor-manager") {
-        return WEBDAV_DEFAULT_REMOTE_PATH
-    }
+    if (path.isEmpty()) return WEBDAV_DEFAULT_REMOTE_PATH
     return resolveWebdavRemoteFolder(path)
 }
 
@@ -228,11 +229,6 @@ private fun defaultWebdavPort(scheme: String?): Int {
 fun normalizeWebdavEtag(etag: String?): String? {
     if (etag.isNullOrBlank()) return null
     var value = etag.trim()
-        .replace("&amp;", "&", ignoreCase = true)
-        .replace("&quot;", "\"", ignoreCase = true)
-        .replace("&apos;", "'", ignoreCase = true)
-        .replace("&lt;", "<", ignoreCase = true)
-        .replace("&gt;", ">", ignoreCase = true)
     if (value.length >= 2 && value.startsWith("W/", ignoreCase = true)) {
         value = value.substring(2).trim()
     }
@@ -250,7 +246,29 @@ fun webdavEtagsMatch(left: String?, right: String?): Boolean {
 
 fun firstGetEtag(xml: String): String? {
     return Regex("<(?:[\\w.-]+:)?getetag\\b[^>]*>\\s*([^<]*)", RegexOption.IGNORE_CASE)
-        .find(xml)?.groupValues?.getOrNull(1)?.trim()?.ifEmpty { null }
+        .find(xml)?.groupValues?.getOrNull(1)?.trim()?.let(::decodeWebdavXmlText)?.ifEmpty { null }
+}
+
+private fun decodeWebdavXmlText(text: String): String {
+    // Resolve XML text once. Repeated replacement would turn a literal &quot; opaque
+    // ETag component encoded as &amp;quot; into a second, different validator.
+    return Regex("&(?:quot|apos|lt|gt|amp|#[0-9]+|#x[0-9A-Fa-f]+);").replace(text) { match ->
+        when (match.value) {
+            "&quot;" -> "\""
+            "&apos;" -> "'"
+            "&lt;" -> "<"
+            "&gt;" -> ">"
+            "&amp;" -> "&"
+            else -> {
+                val entity = match.value.substring(2, match.value.length - 1)
+                val code = if (entity.startsWith('x')) entity.drop(1).toIntOrNull(16) else entity.toIntOrNull()
+                if (code != null && (code == 9 || code == 10 || code == 13 ||
+                        code in 0x20..0xD7FF || code in 0xE000..0xFFFD || code in 0x10000..0x10FFFF)) {
+                    String(Character.toChars(code))
+                } else match.value
+            }
+        }
+    }
 }
 
 fun folderUrl(base: String, remotePath: String, allowPrivateHttp: Boolean = false): String {
@@ -382,7 +400,7 @@ fun parsePropfindEntries(xml: String, baseUrl: String): List<WebdavListEntry> {
             rawName
         }
         val etag = Regex("<(?:[\\w.-]+:)?getetag\\b[^>]*>\\s*([^<]*)", RegexOption.IGNORE_CASE)
-            .find(block)?.groupValues?.getOrNull(1)?.trim()?.ifEmpty { null }
+            .find(block)?.groupValues?.getOrNull(1)?.trim()?.let(::decodeWebdavXmlText)?.ifEmpty { null }
         val lastModified = Regex("<(?:[\\w.-]+:)?getlastmodified\\b[^>]*>\\s*([^<]*)", RegexOption.IGNORE_CASE)
             .find(block)?.groupValues?.getOrNull(1)?.trim()?.ifEmpty { null }
         val collection = Regex(

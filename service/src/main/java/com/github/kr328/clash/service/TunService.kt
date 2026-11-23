@@ -12,6 +12,7 @@ import com.github.kr328.clash.common.log.Log
 import com.github.kr328.clash.service.clash.clashRuntime
 import com.github.kr328.clash.service.clash.module.*
 import com.github.kr328.clash.service.model.AccessControlMode
+import com.github.kr328.clash.service.model.resolveAccessControl
 import com.github.kr328.clash.service.store.ServiceStore
 import com.github.kr328.clash.service.util.cancelAndJoinBlocking
 import com.github.kr328.clash.service.util.parseCIDR
@@ -172,9 +173,11 @@ class TunService : VpnService(), CoroutineScope by CoroutineScope(Dispatchers.De
             val activeConfig = store.activeAppsStrategyConfigUuid?.let { uuid ->
                 store.appsStrategyConfigs.find { it.uuid == uuid }
             }
-
-            val mode = activeConfig?.mode ?: store.accessControlMode
-            val packages = activeConfig?.packages ?: store.accessControlPackages.toList()
+            val effective = resolveAccessControl(
+                activeStrategy = activeConfig,
+            )
+            val mode = effective.mode
+            val packages = effective.packages
 
             when (mode) {
                 AccessControlMode.AcceptAll -> Unit

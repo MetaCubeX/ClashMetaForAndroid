@@ -1,0 +1,640 @@
+{
+  "formatVersion": 1,
+  "hashes": [
+    {
+      "name": "empty-file",
+      "profile": {
+        "kind": "clash-meta-profile",
+        "version": 1,
+        "uuid": "00000000-0000-0000-0000-000000000001",
+        "name": "File",
+        "type": "File",
+        "source": "",
+        "interval": 0,
+        "upload": 0,
+        "download": 0,
+        "total": 0,
+        "expire": 0,
+        "createdAt": 0,
+        "updatedAt": 0,
+        "ageSecretKey": null,
+        "files": [],
+        "syncRev": 0,
+        "writerId": ""
+      },
+      "filesFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "contentHash": "6c43069af933bf5ac5ab0d605133fbaa9eba5f3c0d9bf5997b7ed89de4ef6721",
+      "bodyFingerprint": "a37ef473e3606644c091ffce9d43d2c87f0c98e739c944c71d5bc338c5ea14ca"
+    },
+    {
+      "name": "utf16-path-order",
+      "profile": {
+        "kind": "clash-meta-profile",
+        "version": 1,
+        "uuid": "00000000-0000-0000-0000-000000000001",
+        "name": "跨端配置",
+        "type": "Url",
+        "source": "https://example.com/sub/?token=sample/",
+        "interval": 900000,
+        "upload": 0,
+        "download": 0,
+        "total": 0,
+        "expire": 0,
+        "createdAt": 0,
+        "updatedAt": 9007199254740993,
+        "ageSecretKey": null,
+        "files": [
+          {
+            "path": "providers/.yaml",
+            "contentBase64": "Yg=="
+          },
+          {
+            "path": "config.yaml",
+            "contentBase64": "cHJveGllczogW10K"
+          },
+          {
+            "path": "providers/𐀀.yaml",
+            "contentBase64": "YQ=="
+          }
+        ],
+        "syncRev": 7,
+        "writerId": "abcd1234"
+      },
+      "filesFingerprint": "bf0b023f94e8ff7f3d4ba3ddcf95541c94a804469222ab729fb5472b709ee4fe",
+      "contentHash": "983369e0abce5598c376736e1558c3196cb59b5e1f89e2d917a270553347906c",
+      "bodyFingerprint": "275222f2aaf8b1f331c3889d4ab447fe19a09c6d79b5c05868919eeb7a3925ed"
+    }
+  ],
+  "merges": [
+    {
+      "name": "representative-body-and-usage-come-from-three-aliases",
+      "now": 2000,
+      "localProfiles": [
+        {
+          "kind": "clash-meta-profile",
+          "version": 1,
+          "uuid": "00000000-0000-0000-0000-000000000001",
+          "name": "Local",
+          "type": "Url",
+          "source": "https://example.com/sub",
+          "interval": 0,
+          "upload": 7,
+          "download": 0,
+          "total": 0,
+          "expire": 0,
+          "createdAt": 10,
+          "updatedAt": 300,
+          "ageSecretKey": null,
+          "files": [
+            {
+              "path": "config.yaml",
+              "contentBase64": "e30="
+            }
+          ],
+          "syncRev": 2,
+          "writerId": "local"
+        }
+      ],
+      "remoteProfiles": [
+        {
+          "kind": "clash-meta-profile",
+          "version": 1,
+          "uuid": "00000000-0000-0000-0000-000000000002",
+          "name": "Representative",
+          "type": "Url",
+          "source": "https://example.com/sub",
+          "interval": 0,
+          "upload": 8,
+          "download": 0,
+          "total": 0,
+          "expire": 0,
+          "createdAt": 10,
+          "updatedAt": 500,
+          "ageSecretKey": null,
+          "files": [
+            {
+              "path": "config.yaml",
+              "contentBase64": "e30="
+            }
+          ],
+          "syncRev": 1,
+          "writerId": "representative"
+        },
+        {
+          "kind": "clash-meta-profile",
+          "version": 1,
+          "uuid": "00000000-0000-0000-0000-000000000003",
+          "name": "High revision",
+          "type": "Url",
+          "source": "https://example.com/sub",
+          "interval": 0,
+          "upload": 9,
+          "download": 0,
+          "total": 0,
+          "expire": 0,
+          "createdAt": 10,
+          "updatedAt": 100,
+          "ageSecretKey": null,
+          "files": [
+            {
+              "path": "config.yaml",
+              "contentBase64": "e30="
+            }
+          ],
+          "syncRev": 9,
+          "writerId": "body"
+        },
+        {
+          "kind": "clash-meta-profile",
+          "version": 1,
+          "uuid": "00000000-0000-0000-0000-000000000004",
+          "name": "Usage alias",
+          "type": "Url",
+          "source": "https://example.com/sub",
+          "interval": 0,
+          "upload": 3,
+          "download": 0,
+          "total": 0,
+          "expire": 0,
+          "createdAt": 10,
+          "updatedAt": 200,
+          "ageSecretKey": null,
+          "files": [
+            {
+              "path": "config.yaml",
+              "contentBase64": "e30="
+            }
+          ],
+          "syncRev": 1,
+          "writerId": "usage-alias"
+        }
+      ],
+      "localUsage": [],
+      "remoteUsage": [
+        {
+          "uuid": "00000000-0000-0000-0000-000000000004",
+          "upload": 42,
+          "download": 0,
+          "total": 0,
+          "expire": 0,
+          "updatedAt": 900,
+          "writerId": "usage"
+        }
+      ],
+      "localTombstones": [],
+      "remoteTombstones": [],
+      "expectedProfiles": [
+        {
+          "kind": "clash-meta-profile",
+          "version": 1,
+          "uuid": "00000000-0000-0000-0000-000000000002",
+          "name": "High revision",
+          "type": "Url",
+          "source": "https://example.com/sub",
+          "interval": 0,
+          "upload": 42,
+          "download": 0,
+          "total": 0,
+          "expire": 0,
+          "createdAt": 10,
+          "updatedAt": 100,
+          "ageSecretKey": null,
+          "files": [
+            {
+              "path": "config.yaml",
+              "contentBase64": "e30="
+            }
+          ],
+          "syncRev": 9,
+          "writerId": "body"
+        }
+      ],
+      "expectedUsage": [
+        {
+          "uuid": "00000000-0000-0000-0000-000000000002",
+          "upload": 42,
+          "download": 0,
+          "total": 0,
+          "expire": 0,
+          "updatedAt": 900,
+          "writerId": "usage"
+        }
+      ],
+      "expectedTombstones": []
+    },
+    {
+      "name": "explicit-usage-on-one-alias-does-not-suppress-another-fallback",
+      "now": 2000,
+      "localProfiles": [],
+      "remoteProfiles": [
+        {
+          "kind": "clash-meta-profile",
+          "version": 1,
+          "uuid": "00000000-0000-0000-0000-000000000002",
+          "name": "Legacy counters",
+          "type": "Url",
+          "source": "https://example.com/sub",
+          "interval": 0,
+          "upload": 10,
+          "download": 0,
+          "total": 0,
+          "expire": 0,
+          "createdAt": 10,
+          "updatedAt": 500,
+          "ageSecretKey": null,
+          "files": [
+            {
+              "path": "config.yaml",
+              "contentBase64": "e30="
+            }
+          ],
+          "syncRev": 1,
+          "writerId": "legacy"
+        },
+        {
+          "kind": "clash-meta-profile",
+          "version": 1,
+          "uuid": "00000000-0000-0000-0000-000000000003",
+          "name": "High revision",
+          "type": "Url",
+          "source": "https://example.com/sub",
+          "interval": 0,
+          "upload": 20,
+          "download": 0,
+          "total": 0,
+          "expire": 0,
+          "createdAt": 10,
+          "updatedAt": 100,
+          "ageSecretKey": null,
+          "files": [
+            {
+              "path": "config.yaml",
+              "contentBase64": "e30="
+            }
+          ],
+          "syncRev": 9,
+          "writerId": "body"
+        }
+      ],
+      "localUsage": [],
+      "remoteUsage": [
+        {
+          "uuid": "00000000-0000-0000-0000-000000000003",
+          "upload": 2,
+          "download": 0,
+          "total": 0,
+          "expire": 0,
+          "updatedAt": 50,
+          "writerId": "explicit"
+        }
+      ],
+      "localTombstones": [],
+      "remoteTombstones": [],
+      "expectedProfiles": [
+        {
+          "kind": "clash-meta-profile",
+          "version": 1,
+          "uuid": "00000000-0000-0000-0000-000000000002",
+          "name": "High revision",
+          "type": "Url",
+          "source": "https://example.com/sub",
+          "interval": 0,
+          "upload": 10,
+          "download": 0,
+          "total": 0,
+          "expire": 0,
+          "createdAt": 10,
+          "updatedAt": 100,
+          "ageSecretKey": null,
+          "files": [
+            {
+              "path": "config.yaml",
+              "contentBase64": "e30="
+            }
+          ],
+          "syncRev": 9,
+          "writerId": "body"
+        }
+      ],
+      "expectedUsage": [
+        {
+          "uuid": "00000000-0000-0000-0000-000000000002",
+          "upload": 10,
+          "download": 0,
+          "total": 0,
+          "expire": 0,
+          "updatedAt": 500,
+          "writerId": "legacy"
+        }
+      ],
+      "expectedTombstones": []
+    },
+    {
+      "name": "equal-revision-tombstone-wins-at-equal-body-time",
+      "now": 2000,
+      "localProfiles": [
+        {
+          "kind": "clash-meta-profile",
+          "version": 1,
+          "uuid": "00000000-0000-0000-0000-000000000001",
+          "name": "Profile",
+          "type": "File",
+          "source": "",
+          "interval": 0,
+          "upload": 0,
+          "download": 0,
+          "total": 0,
+          "expire": 0,
+          "createdAt": 10,
+          "updatedAt": 1000,
+          "ageSecretKey": null,
+          "files": [
+            {
+              "path": "config.yaml",
+              "contentBase64": "e30="
+            }
+          ],
+          "syncRev": 2,
+          "writerId": ""
+        }
+      ],
+      "remoteProfiles": [
+        {
+          "kind": "clash-meta-profile",
+          "version": 1,
+          "uuid": "00000000-0000-0000-0000-000000000001",
+          "name": "Profile",
+          "type": "File",
+          "source": "",
+          "interval": 0,
+          "upload": 0,
+          "download": 0,
+          "total": 0,
+          "expire": 0,
+          "createdAt": 10,
+          "updatedAt": 1,
+          "ageSecretKey": null,
+          "files": [
+            {
+              "path": "config.yaml",
+              "contentBase64": "e30="
+            }
+          ],
+          "syncRev": 3,
+          "writerId": ""
+        }
+      ],
+      "localUsage": [],
+      "remoteUsage": [],
+      "localTombstones": [],
+      "remoteTombstones": [
+        {
+          "uuid": "00000000-0000-0000-0000-000000000001",
+          "source": "",
+          "type": "",
+          "deletedAt": 1,
+          "rev": 3,
+          "writerId": "delete"
+        }
+      ],
+      "expectedProfiles": [],
+      "expectedUsage": [],
+      "expectedTombstones": [
+        {
+          "uuid": "00000000-0000-0000-0000-000000000001",
+          "source": "",
+          "type": "",
+          "deletedAt": 1,
+          "rev": 3,
+          "writerId": "delete"
+        }
+      ]
+    },
+    {
+      "name": "higher-revision-body-survives-a-newer-wall-clock-tombstone",
+      "now": 2000,
+      "localProfiles": [
+        {
+          "kind": "clash-meta-profile",
+          "version": 1,
+          "uuid": "00000000-0000-0000-0000-000000000001",
+          "name": "Profile",
+          "type": "File",
+          "source": "",
+          "interval": 0,
+          "upload": 0,
+          "download": 0,
+          "total": 0,
+          "expire": 0,
+          "createdAt": 10,
+          "updatedAt": 1,
+          "ageSecretKey": null,
+          "files": [
+            {
+              "path": "config.yaml",
+              "contentBase64": "e30="
+            }
+          ],
+          "syncRev": 4,
+          "writerId": "revive"
+        }
+      ],
+      "remoteProfiles": [],
+      "localUsage": [],
+      "remoteUsage": [],
+      "localTombstones": [],
+      "remoteTombstones": [
+        {
+          "uuid": "00000000-0000-0000-0000-000000000001",
+          "source": "",
+          "type": "",
+          "deletedAt": 999,
+          "rev": 3,
+          "writerId": "delete"
+        }
+      ],
+      "expectedProfiles": [
+        {
+          "kind": "clash-meta-profile",
+          "version": 1,
+          "uuid": "00000000-0000-0000-0000-000000000001",
+          "name": "Profile",
+          "type": "File",
+          "source": "",
+          "interval": 0,
+          "upload": 0,
+          "download": 0,
+          "total": 0,
+          "expire": 0,
+          "createdAt": 10,
+          "updatedAt": 1,
+          "ageSecretKey": null,
+          "files": [
+            {
+              "path": "config.yaml",
+              "contentBase64": "e30="
+            }
+          ],
+          "syncRev": 4,
+          "writerId": "revive"
+        }
+      ],
+      "expectedUsage": [
+        {
+          "uuid": "00000000-0000-0000-0000-000000000001",
+          "upload": 0,
+          "download": 0,
+          "total": 0,
+          "expire": 0,
+          "updatedAt": 1,
+          "writerId": "revive"
+        }
+      ],
+      "expectedTombstones": []
+    }
+  ],
+  "identityChanges": [
+    {
+      "name": "source-change-gets-new-shared-uuid",
+      "previous": {
+        "kind": "clash-meta-profile",
+        "version": 1,
+        "uuid": "00000000-0000-0000-0000-000000000001",
+        "name": "Profile",
+        "type": "Url",
+        "source": "https://example.com/old",
+        "interval": 0,
+        "upload": 0,
+        "download": 0,
+        "total": 0,
+        "expire": 0,
+        "createdAt": 10,
+        "updatedAt": 300,
+        "ageSecretKey": null,
+        "files": [
+          {
+            "path": "config.yaml",
+            "contentBase64": "e30="
+          }
+        ],
+        "syncRev": 7,
+        "writerId": "old"
+      },
+      "next": {
+        "kind": "clash-meta-profile",
+        "version": 1,
+        "uuid": "00000000-0000-0000-0000-000000000001",
+        "name": "Profile",
+        "type": "Url",
+        "source": "https://example.com/new",
+        "interval": 0,
+        "upload": 0,
+        "download": 0,
+        "total": 0,
+        "expire": 0,
+        "createdAt": 10,
+        "updatedAt": 250,
+        "ageSecretKey": null,
+        "files": [
+          {
+            "path": "config.yaml",
+            "contentBase64": "e30="
+          }
+        ],
+        "syncRev": 8,
+        "writerId": "old"
+      },
+      "newUuid": "00000000-0000-0000-0000-000000000002",
+      "writerId": "new-writer",
+      "now": 100,
+      "expectedProfile": {
+        "kind": "clash-meta-profile",
+        "version": 1,
+        "uuid": "00000000-0000-0000-0000-000000000002",
+        "name": "Profile",
+        "type": "Url",
+        "source": "https://example.com/new",
+        "interval": 0,
+        "upload": 0,
+        "download": 0,
+        "total": 0,
+        "expire": 0,
+        "createdAt": 10,
+        "updatedAt": 300,
+        "ageSecretKey": null,
+        "files": [
+          {
+            "path": "config.yaml",
+            "contentBase64": "e30="
+          }
+        ],
+        "syncRev": 9,
+        "writerId": "new-writer"
+      },
+      "expectedTombstone": {
+        "uuid": "00000000-0000-0000-0000-000000000001",
+        "source": "https://example.com/old",
+        "type": "Url",
+        "deletedAt": 300,
+        "rev": 7,
+        "writerId": "new-writer"
+      }
+    },
+    {
+      "name": "url-external-switch-keeps-the-same-source-identity",
+      "previous": {
+        "kind": "clash-meta-profile",
+        "version": 1,
+        "uuid": "00000000-0000-0000-0000-000000000001",
+        "name": "Profile",
+        "type": "Url",
+        "source": "https://example.com/old",
+        "interval": 0,
+        "upload": 0,
+        "download": 0,
+        "total": 0,
+        "expire": 0,
+        "createdAt": 10,
+        "updatedAt": 300,
+        "ageSecretKey": null,
+        "files": [
+          {
+            "path": "config.yaml",
+            "contentBase64": "e30="
+          }
+        ],
+        "syncRev": 7,
+        "writerId": "old"
+      },
+      "next": {
+        "kind": "clash-meta-profile",
+        "version": 1,
+        "uuid": "00000000-0000-0000-0000-000000000001",
+        "name": "Profile",
+        "type": "External",
+        "source": "https://example.com/old",
+        "interval": 0,
+        "upload": 0,
+        "download": 0,
+        "total": 0,
+        "expire": 0,
+        "createdAt": 10,
+        "updatedAt": 300,
+        "ageSecretKey": null,
+        "files": [
+          {
+            "path": "config.yaml",
+            "contentBase64": "e30="
+          }
+        ],
+        "syncRev": 7,
+        "writerId": "old"
+      },
+      "newUuid": "00000000-0000-0000-0000-000000000002",
+      "writerId": "new-writer",
+      "now": 400,
+      "expectedProfile": null,
+      "expectedTombstone": null
+    }
+  ]
+}

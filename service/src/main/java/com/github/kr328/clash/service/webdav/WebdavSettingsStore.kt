@@ -31,7 +31,11 @@ class WebdavSettingsStore(context: Context) {
 
     var password: String
         get() = read().password
-        set(value) = update { it.copy(password = value) }
+        set(value) = update(passwordTouched = true) { it.copy(password = value) }
+
+    /** 密文存在但读不出来时，界面要提示重新输入，不能当成未设置。 */
+    val passwordUnreadable: Boolean
+        get() = read().passwordUnreadable
 
     var remotePath: String?
         get() = read().remotePath.ifBlank { null }
@@ -48,20 +52,27 @@ class WebdavSettingsStore(context: Context) {
         return current.hasEndpoint() && current.username.isNotBlank() && current.password.isNotEmpty()
     }
 
-    private fun update(block: (StoredWebdavSettings) -> StoredWebdavSettings) {
-        write(block(read()))
+    private fun update(
+        passwordTouched: Boolean = false,
+        block: (StoredWebdavSettings) -> StoredWebdavSettings,
+    ) {
+        val current = read()
+        write(block(current), current, passwordTouched)
     }
 
     private fun read(): StoredWebdavSettings {
         if (!file.exists()) return StoredWebdavSettings()
         return try {
             val stored = webdavJson.decodeFromString(SettingsFile.serializer(), file.readText())
+            val plain = WebdavCipher.open(stored.passwordSealed)
             seedWebdavSettings(
                 StoredWebdavSettings(
                     url = stored.url.trim(),
                     lanUrl = stored.lanUrl.trim(),
                     username = stored.username.trim(),
-                    password = WebdavCipher.open(stored.passwordSealed),
+                    password = plain.orEmpty(),
+                    passwordSealed = stored.passwordSealed,
+                    passwordUnreadable = plain == null,
                     remotePath = stored.remotePath.trim(),
                     autoSync = stored.autoSync,
                 ),
@@ -71,13 +82,17 @@ class WebdavSettingsStore(context: Context) {
         }
     }
 
-    private fun write(settings: StoredWebdavSettings) {
+    private fun write(
+        settings: StoredWebdavSettings,
+        previous: StoredWebdavSettings,
+        passwordTouched: Boolean,
+    ) {
         file.parentFile?.mkdirs()
         val payload = SettingsFile(
             url = normalizeWebdavUrl(settings.url),
             lanUrl = normalizeWebdavLanUrl(settings.lanUrl),
             username = settings.username.trim().ifBlank { WEBDAV_DEFAULT_USERNAME },
-            passwordSealed = WebdavCipher.seal(settings.password),
+            passwordSealed = sealedForWrite(settings, previous, passwordTouched),
             remotePath = normalizeWebdavRemotePath(settings.remotePath),
             autoSync = settings.autoSync,
         )
@@ -90,31 +105,52 @@ class WebdavSettingsStore(context: Context) {
     }
 }
 
+/**
+ * 密码没被显式改写时沿用原密文。解密失败也保留，避免一次无关写入把它抹掉。
+ */
+internal fun sealedForWrite(
+    settings: StoredWebdavSettings,
+    previous: StoredWebdavSettings,
+    passwordTouched: Boolean,
+): String {
+    if (!passwordTouched && settings.password == previous.password) {
+        return previous.passwordSealed
+    }
+    return WebdavCipher.seal(settings.password)
+}
+
 data class StoredWebdavSettings(
     val url: String = WEBDAV_DEFAULT_URL,
     val lanUrl: String = WEBDAV_DEFAULT_LAN_URL,
     val username: String = WEBDAV_DEFAULT_USERNAME,
     val password: String = "",
+    val passwordSealed: String = "",
+    val passwordUnreadable: Boolean = false,
     val remotePath: String = WEBDAV_DEFAULT_REMOTE_PATH,
     val autoSync: Boolean = false,
 ) {
     fun hasEndpoint(): Boolean = url.isNotBlank() || lanUrl.isNotBlank()
 }
 
+internal fun sameWebdavConnection(left: StoredWebdavSettings, right: StoredWebdavSettings): Boolean {
+    return left.url.trim().trimEnd('/') == right.url.trim().trimEnd('/') &&
+        normalizeWebdavLanUrl(left.lanUrl) == normalizeWebdavLanUrl(right.lanUrl) &&
+        left.username.trim() == right.username.trim() &&
+        left.password == right.password &&
+        normalizeWebdavRemotePath(left.remotePath) == normalizeWebdavRemotePath(right.remotePath)
+}
+
 internal fun seedWebdavSettings(settings: StoredWebdavSettings): StoredWebdavSettings {
-    val configured = settings.password.isNotEmpty() || settings.autoSync
+    // 密文读不出来时仍算已配置，否则地址、用户名和远端路径会被一起重置成默认值。
+    val configured = settings.password.isNotEmpty() ||
+        settings.passwordSealed.isNotEmpty() ||
+        settings.autoSync
     if (configured) {
         return settings.copy(
-            url = settings.url.trim().trimEnd('/').let { url ->
-                if (url == WEBDAV_LEGACY_MISREAD_URL) WEBDAV_DEFAULT_URL else url
-            },
+            url = settings.url.trim().trimEnd('/'),
             lanUrl = normalizeWebdavLanUrl(settings.lanUrl),
             username = settings.username.trim(),
-            remotePath = if (settings.remotePath.trim().trimEnd('/') == WEBDAV_LEGACY_REMOTE_PATH) {
-                WEBDAV_DEFAULT_REMOTE_PATH
-            } else {
-                resolveWebdavRemoteFolder(settings.remotePath)
-            },
+            remotePath = resolveWebdavRemoteFolder(settings.remotePath),
         )
     }
     return settings.copy(

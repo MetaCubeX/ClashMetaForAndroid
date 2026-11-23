@@ -38,6 +38,16 @@
             android:exported="false"
             android:process=":background" />
         <service
+            android:name="universe.agentic.device.clash.McpService"
+            android:exported="false"
+            android:label="@string/mcp_notification"
+            android:process=":background"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="local MCP server on loopback" />
+        </service>
+        <service
             android:name=".ProfileWorker"
             android:exported="false"
             android:process=":background"

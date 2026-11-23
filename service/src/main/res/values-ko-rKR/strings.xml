@@ -10,7 +10,7 @@
     <string name="format_update_failure">업데이트 %1$s: %2$s</string>
     <string name="running">연결됨</string>
     <string name="loading">로딩중</string>
-    <string name="clash_meta_for_android">ClashMetaX</string>
+    <string name="clash_meta_for_android">AgenticClash</string>
     <string name="profiles_and_providers">구성 파일과 외부 리소스</string>
     <string name="configuration_yaml">구성 파일.yaml</string>
     <string name="provider_files">외부 리소스 파일</string>

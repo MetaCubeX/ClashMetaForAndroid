@@ -31,7 +31,11 @@ internal object WebdavCipher {
         return "v1:" + Base64.encodeToString(packed.array(), Base64.NO_WRAP)
     }
 
-    fun open(sealed: String): String {
+    /**
+     * 返回 null 表示密文存在但读不出来，例如 Keystore 密钥已失效。
+     * 空串只表示本来就没有密码。调用方不能把两者当成同一件事。
+     */
+    fun open(sealed: String): String? {
         if (sealed.isEmpty()) return ""
         return try {
             when {
@@ -50,10 +54,10 @@ internal object WebdavCipher {
                     cipher.init(Cipher.DECRYPT_MODE, key(), GCMParameterSpec(128, iv))
                     String(cipher.doFinal(body), Charsets.UTF_8)
                 }
-                else -> ""
+                else -> null
             }
         } catch (_: Exception) {
-            ""
+            null
         }
     }
 

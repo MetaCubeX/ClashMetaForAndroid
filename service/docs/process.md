@@ -3,15 +3,15 @@ title: "service 进程与远程接口"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-10-15
-summary: ":background 中的服务与 Provider，以及 RemoteService 暴露的 Binder"
+updated: 2026-10-24
+summary: ":background 中的服务与 Provider，包括本地 MCP，以及 RemoteService 暴露的 Binder"
 ---
 
 # 进程与远程接口
 
 `service/src/main/AndroidManifest.xml` 把下面的组件都放在 `:background`。界面进程不持有 VPN，也不直接调用 `Clash`。跨进程入口是 `RemoteService` 和三个 Provider。隧道在运行时系统里的角色见 [运行时](../../docs/systems/runtime/INDEX.md)。
 
-`BaseService` 是 `Service`，同时是 `Dispatchers.Default` 上的 `CoroutineScope`。`onDestroy` 里 `cancelAndJoinBlocking()`。`ClashService`、`RemoteService`、`ProfileWorker` 继承它。`TunService` 继承 `VpnService`，自己实现同一套作用域，不继承 `BaseService`。
+`BaseService` 是 `Service`，同时是 `Dispatchers.Default` 上的 `CoroutineScope`。`onDestroy` 里 `cancelAndJoinBlocking()`。`ClashService`、`RemoteService`、`ProfileWorker`、`McpService` 继承它。`TunService` 继承 `VpnService`，自己实现同一套作用域，不继承 `BaseService`。
 
 ## 组件
 
@@ -22,6 +22,7 @@ summary: ":background 中的服务与 Provider，以及 RemoteService 暴露的 
 | `RemoteService` | 否 | 绑定后交出 `IClashManager` 和 `IProfileManager`。不是前台服务 |
 | `ProfileWorker` | 否 | 按闹钟或立即请求更新已导入配置的前台服务，`specialUse` |
 | `FilesProvider` | 是 | `DocumentsProvider`。authority `${applicationId}.files`，权限 `MANAGE_DOCUMENTS`，`grantUriPermissions` |
+| `universe.agentic.device.clash.McpService` | 否 | 本机回环 MCP。`specialUse` 前台服务，通知重要性为低。行为见 [本地 MCP](../../docs/systems/mcp/INDEX.md) |
 | `StatusProvider` | 否 | authority `${applicationId}.status`。用 `call` 查询当前配置名 |
 | `PreferenceProvider` | 否 | authority `${applicationId}.settings`。多进程读写名为 `service` 的偏好 |
 | `ProfileReceiver` | 是 | 权限 `${applicationId}.permission.RECEIVE_BROADCASTS`。开机、换包、对时和配置更新闹钟 |
@@ -42,9 +43,11 @@ summary: ":background 中的服务与 Provider，以及 RemoteService 暴露的 
 
 `ProfileReceiver` 收到 `BOOT_COMPLETED`、`MY_PACKAGE_REPLACED`、`TIMEZONE_CHANGED` 或 `TIME_SET` 时，清掉进程内的 `initialized` 标记，再以前台服务启动 `ProfileWorker`，动作是 `ACTION_PROFILE_SCHEDULE_UPDATES`。收到 `ACTION_PROFILE_REQUEST_UPDATE` 时，把这个 Intent 的组件改成 `ProfileWorker` 再启动它。
 
-闹钟不靠清单里的隐式过滤器。`pendingIntentOf` 使用显式组件 `ProfileReceiver`，动作是 `Intents.ACTION_PROFILE_REQUEST_UPDATE`（`packageName.intent.action.REQUEST_UPDATE`），并用 `setUUID` 带上配置 UUID。清单里另一个过滤器写的是字面量 `{applicationId}.intent.action.PROFILE_REQUEST_UPDATE`，scheme 为 `uuid`，和 `Intents` 里的动作字符串不一样。
+同一分支里，如果 `ServiceStore.mcpEnabled` 为真，还会启动 `McpService`。界面进程的 `MainApplication` 在 `onCreate` 也做同样的检查。两者都用 `runCatching` 包住，拉起失败不影响配置更新或界面启动。
 
-`ProfileWorker.onStartCommand` 返回 `START_NOT_STICKY`。`ACTION_PROFILE_REQUEST_UPDATE` 为该 UUID 启动一个任务，调用 `ProfileProcessor.update`。`ACTION_PROFILE_SCHEDULE_UPDATES` 调用 `ProfileReceiver.rescheduleAll`，再延迟 30 秒。服务自己的循环先延迟 10 秒，再按顺序 `join` 已入队任务，队列空了就 `stopSelf()`。更新成功或失败会发结果通知，并分别广播 `ACTION_PROFILE_UPDATE_COMPLETED` 或 `ACTION_PROFILE_UPDATE_FAILED`。成功后 `scheduleNext`。
+闹钟不靠清单里的隐式过滤器。`pendingIntentOf` 使用显式组件 `ProfileReceiver`，动作是 `Intents.ACTION_PROFILE_REQUEST_UPDATE`（`packageName.intent.action.REQUEST_UPDATE`），并用 `setUUID` 带上配置 UUID。它还写 `EXTRA_PROFILE_UPDATE_NOTIFY`：界面手动更新传假，后台定时和失败重试传真。清单里另一个过滤器写的是字面量 `{applicationId}.intent.action.PROFILE_REQUEST_UPDATE`，scheme 为 `uuid`，和 `Intents` 里的动作字符串不一样。
+
+`ProfileWorker.onStartCommand` 返回 `START_NOT_STICKY`。`ACTION_PROFILE_REQUEST_UPDATE` 为该 UUID 启动一个任务，调用 `ProfileProcessor.update`。`ACTION_PROFILE_SCHEDULE_UPDATES` 调用 `ProfileReceiver.rescheduleAll`，再延迟 30 秒。服务自己的循环先延迟 10 秒，再按顺序 `join` 已入队任务，队列空了就 `stopSelf()`。更新成功或失败都分别广播 `ACTION_PROFILE_UPDATE_COMPLETED` 或 `ACTION_PROFILE_UPDATE_FAILED`；只有 `EXTRA_PROFILE_UPDATE_NOTIFY` 为真时才发进行中、成功或失败的系统通知，缺省为真。界面手动刷新传假，因此失败只回到页面 toast，不弹系统通知。成功后 `scheduleNext`。
 
 `app` 的 `RestartReceiver` 在开机和换包时读取 `StatusProvider.shouldStartClashOnBoot`，为真才调用 `startClashService()`。这个值看的是文件，不是界面进程里的内存字段。
 

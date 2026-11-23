@@ -3,8 +3,8 @@ title: "service 模块设计"
 type: index
 status: accepted
 phase: N/A
-updated: 2026-10-15
-summary: "service 模块内部的进程、ClashRuntime 和持久化面"
+updated: 2026-10-24
+summary: "service 模块内部的进程、ClashRuntime、持久化面和本地 MCP"
 ---
 
 # service 模块设计
@@ -17,6 +17,7 @@ summary: "service 模块内部的进程、ClashRuntime 和持久化面"
 | 配置的导入与当前选择 | [配置](../../docs/systems/profiles/INDEX.md) |
 | 名单与分流策略 | [访问控制](../../docs/systems/access-control/INDEX.md) |
 | 同步行为 | [WebDAV](../../docs/systems/webdav/INDEX.md) |
+| 本机回环 MCP | [本地 MCP](../../docs/systems/mcp/INDEX.md) |
 
 | 文档 | 内容 |
 |:-----|:-----|

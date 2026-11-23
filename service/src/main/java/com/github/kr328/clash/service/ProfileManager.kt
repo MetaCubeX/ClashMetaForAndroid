@@ -1,7 +1,10 @@
 package com.github.kr328.clash.service
 
 import android.content.Context
+import com.github.kr328.clash.core.Clash
+import com.github.kr328.clash.core.model.ProfilePreview
 import com.github.kr328.clash.service.data.Database
+import com.github.kr328.clash.service.data.Imported
 import com.github.kr328.clash.service.data.ImportedDao
 import com.github.kr328.clash.service.data.Pending
 import com.github.kr328.clash.service.data.PendingDao
@@ -22,12 +25,14 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.File
 import java.io.FileNotFoundException
 import java.util.*
 
 class ProfileManager(private val context: Context) : IProfileManager,
     CoroutineScope by CoroutineScope(Dispatchers.IO) {
     private val store = ServiceStore(context)
+    private val profileOrder = ProfileOrderStore(File(context.filesDir, "profile-order.txt"))
 
     init {
         launch {
@@ -132,8 +137,8 @@ class ProfileManager(private val context: Context) : IProfileManager,
         }
     }
 
-    override suspend fun update(uuid: UUID) {
-        scheduleUpdate(uuid, true)
+    override suspend fun update(uuid: UUID, notify: Boolean) {
+        scheduleUpdate(uuid, true, notify)
     }
 
     override suspend fun commit(uuid: UUID, callback: IFetchObserver?) {
@@ -145,20 +150,27 @@ class ProfileManager(private val context: Context) : IProfileManager,
 
     override suspend fun release(uuid: UUID) {
         ProfileProcessor.release(context, uuid)
+        WebdavAutoSync.enqueue(context)
     }
 
     override suspend fun delete(uuid: UUID) {
-        val imported = ImportedDao().queryByUUID(uuid)
-        if (imported != null) {
-            val updatedAt = context.importedDir.resolve(uuid.toString())
-                .walk()
-                .filter { it.isFile }
-                .maxOfOrNull { it.lastModified() } ?: 0L
-            WebdavAutoSync.noteDeleted(context, uuid, imported.source, imported.type.name, updatedAt)
-            ProfileReceiver.cancelNext(context, imported)
-        }
-
-        ProfileProcessor.delete(context, uuid)
+        var deleted: Imported? = null
+        var updatedAt = 0L
+        ProfileProcessor.deleteIf(
+            context,
+            uuid,
+            shouldDelete = {
+                deleted = ImportedDao().queryByUUID(uuid)
+                updatedAt = context.importedDir.resolve(uuid.toString())
+                    .walk().filter { it.isFile }.maxOfOrNull { it.lastModified() } ?: 0L
+                true
+            },
+            afterDelete = {
+                deleted?.let { WebdavAutoSync.noteDeleted(context, uuid, it.source, it.type.name, updatedAt) }
+            },
+        )
+        deleted?.let { ProfileReceiver.cancelNext(context, it) }
+        withContext(Dispatchers.IO) { profileOrder.remove(uuid) }
         WebdavAutoSync.enqueue(context)
     }
 
@@ -168,10 +180,33 @@ class ProfileManager(private val context: Context) : IProfileManager,
 
     override suspend fun queryAll(): List<Profile> {
         val uuids = withContext(Dispatchers.IO) {
-            (ImportedDao().queryAllUUIDs() + PendingDao().queryAllUUIDs()).distinct()
+            val existing = (ImportedDao().queryAllUUIDs() + PendingDao().queryAllUUIDs()).distinct()
+            mergeProfileOrder(profileOrder.read(), existing)
         }
 
         return uuids.mapNotNull { resolveProfile(it) }
+    }
+
+    override suspend fun preview(uuid: UUID): ProfilePreview? {
+        return withContext(Dispatchers.IO) {
+            val pending = PendingDao().queryByUUID(uuid)
+            val imported = if (pending == null) ImportedDao().queryByUUID(uuid) else null
+            val dir = when {
+                pending != null -> context.pendingDir.resolve(uuid.toString())
+                imported != null -> context.importedDir.resolve(uuid.toString())
+                else -> return@withContext null
+            }
+            if (!dir.resolve("config.yaml").isFile) return@withContext null
+            val key = pending?.ageSecretKey ?: imported?.ageSecretKey
+            Clash.queryProfilePreview(dir, key?.takeIf { it.isNotBlank() })
+        }
+    }
+
+    override suspend fun setProfileOrder(uuids: List<UUID>) {
+        withContext(Dispatchers.IO) {
+            val existing = (ImportedDao().queryAllUUIDs() + PendingDao().queryAllUUIDs()).distinct()
+            profileOrder.write(mergeProfileOrder(uuids, existing))
+        }
     }
 
     override suspend fun queryActive(): Profile? {
@@ -197,6 +232,10 @@ class ProfileManager(private val context: Context) : IProfileManager,
         remotePath: String,
         observer: IWebdavObserver?,
     ): String {
+        if (action == WebdavSync.ACTION_SCHEDULE) {
+            WebdavAutoSync.enqueue(context)
+            return ""
+        }
         return WebdavSync(context) { phase, current, total, label ->
             try {
                 observer?.onProgress(phase, current, total, label)
@@ -264,11 +303,15 @@ class ProfileManager(private val context: Context) : IProfileManager,
         s.copyRecursively(t)
     }
 
-    private suspend fun scheduleUpdate(uuid: UUID, startImmediately: Boolean) {
+    private suspend fun scheduleUpdate(
+        uuid: UUID,
+        startImmediately: Boolean,
+        notify: Boolean = true,
+    ) {
         val imported = ImportedDao().queryByUUID(uuid) ?: return
 
         if (startImmediately) {
-            ProfileReceiver.schedule(context, imported)
+            ProfileReceiver.schedule(context, imported, notify)
         } else {
             ProfileReceiver.scheduleNext(context, imported)
         }

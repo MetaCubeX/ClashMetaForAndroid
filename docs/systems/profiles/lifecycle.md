@@ -3,7 +3,7 @@ title: "配置生命周期"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-10-15
+updated: 2026-10-24
 summary: "从导入和待提交，到提交成已导入、按间隔更新，再把当前配置与本地覆盖送进内核。"
 ---
 
@@ -15,9 +15,9 @@ summary: "从导入和待提交，到提交成已导入、按间隔更新，再�
 
 ## 导入入口
 
-`ProfilesActivity` 进入前台或收到配置变更时 `queryAll()`，把 `Pending` 和 `Imported` 合成列表。新建请求打开 `NewProfileActivity`。未导入的配置不能直接设为当前：`ProfilesDesign.requestSave` 提示先去编辑。
+`ProfilesActivity` 进入前台或收到配置变更时 `queryAll()`，把 `Pending` 和 `Imported` 合成列表。没有本机顺序时按 `createdAt`。拖动排序后按 `filesDir/profile-order.txt`，还没出现在这份文件里的配置排在后面。这份顺序不进 WebDAV，也不改 `createdAt`。新建入口是配置页加号旁的菜单，不再打开单独的新建页。未导入的配置不能直接设为当前：`ProfilesDesign.requestSave` 提示先去编辑。
 
-`NewProfileActivity` 调用 `ProfileManager.create`。`create` 用 `generateProfileUUID()` 插入一行 `Pending`，并建好 `pending/<uuid>/config.yaml` 和 `providers/`。此时还没有 `Imported`。
+菜单选中来源后由 `ProfilesShell` 调用 `ProfileManager.create`。`create` 用 `generateProfileUUID()` 插入一行 `Pending`，并建好 `pending/<uuid>/config.yaml` 和 `providers/`。此时还没有 `Imported`。
 
 | 入口 | 类型 | 接着做什么 |
 |:-----|:-----|:-----------|
@@ -47,7 +47,7 @@ summary: "从导入和待提交，到提交成已导入、按间隔更新，再�
 5. 类型不是 `File` 时 `force` 为真。`Clash.fetchAndValid` 拉取并校验 `processing/`。`config.yaml` 已存在且 `force` 为假时不重新下载。
 6. `FetchStatus.Action.SubscriptionInfo` 不交给界面。其他状态调用 `IFetchObserver.updateStatus`。回调抛异常后不再继续回调。`ProfileWorker` 更新时传入的观察者是 null。
 7. 回到锁里。这行 `Pending` 已经不是刚才的快照时，放弃提交，不改 `imported/`，也不删 `Pending`。
-8. 否则用 `processing/` 换掉 `imported/<uuid>/`，插入或更新 `Imported`，删掉 `Pending` 和 `pending/` 目录，再广播 `ACTION_PROFILE_CHANGED`。
+8. 否则在新目录已经完整之后，用它换掉 `imported/<uuid>/`。替换前不删除已导入目录。插入或更新 `Imported`，删掉 `Pending` 和 `pending/` 目录，再广播 `ACTION_PROFILE_CHANGED`。校验失败时已导入目录保持调用前的内容。
 
 订阅响应头里的更新间隔只在「原先没有 `Imported`，且待提交间隔是 0」时写入新行。已有行保留原来的 `createdAt`。拉取或校验失败时 `apply` 抛异常，`commit` 不会排下一次更新。
 
@@ -57,7 +57,7 @@ summary: "从导入和待提交，到提交成已导入、按间隔更新，再�
 
 `ProfileReceiver.scheduleNext` 先取消该 UUID 的闹钟。间隔小于 15 分钟，或 `imported/<uuid>/config.yaml` 的 `lastModified` 小于 0，就不再设定。否则用 `AlarmManager.RTC`，触发点是现在加上「间隔减去文件年龄」，并且不小于 0。闹钟动作是 `Intents.ACTION_PROFILE_REQUEST_UPDATE`，数据是 `uuid:` 形式的该 UUID。
 
-到点后 `ProfileReceiver` 把这个 Intent 交给 `ProfileWorker`。`IProfileManager.update` 不直接拉配置。它经 `scheduleUpdate(uuid, true)` 调用 `ProfileReceiver.schedule`，取消旧闹钟并立刻发出同一个广播。`ProfilesActivity` 的单个更新就是这条路径。全部更新只对已导入、且类型不是 `Profile.Type.File` 的配置调用 `update`。
+到点后 `ProfileReceiver` 把这个 Intent 交给 `ProfileWorker`。`IProfileManager.update(uuid, notify)` 不直接拉配置。它经 `scheduleUpdate(uuid, true, notify)` 调用 `ProfileReceiver.schedule`，取消旧闹钟并立刻发出同一个广播。`ProfilesActivity` 的单个更新和全部更新都传 `notify = false`，只让页面上的转圈和 toast 反馈结果。后台闹钟用缺省的真，会发系统通知。全部更新只对已导入、且类型不是 `Profile.Type.File` 的配置调用 `update`。
 
 `ProfileWorker` 处理两个动作：
 
@@ -68,7 +68,13 @@ summary: "从导入和待提交，到提交成已导入、按间隔更新，再�
 
 `onStartCommand` 返回 `START_NOT_STICKY`。服务自己的循环先延迟 10 秒，再按顺序 `join` 已入队任务，队列空了就 `stopSelf()`。
 
-`ProfileProcessor.update` 从已导入目录复制到 `processing/`，`force` 恒为真。提交时若 `Imported` 还在，就替换目录。只有 `subscriptionInfo.subUpload` 非空才回写 `upload`、`download`、`total`、`expire`。它不改名字、类型、来源和间隔。成功后 `ProfileWorker` 发结果通知和 `ACTION_PROFILE_UPDATE_COMPLETED`，再 `scheduleNext`。失败发 `ACTION_PROFILE_UPDATE_FAILED`，不再排下一次。服务形态见 [进程与远程接口](../../../service/docs/process.md)。
+`ProfileProcessor.update` 从已导入目录复制到 `processing/`，`force` 恒为真。`FetchAndValid` 在配置和 provider 都校验通过之后才替换正式文件；失败时调用前已有的文件保持原字节，调用前没有的正式文件不会被留下。拉取用的暂存目录建在配置目录的上一级，名字以 `.cmfa-profile-` 开头，结束时删掉。不能用 `os.TempDir()`：Android 上它是 `/data/local/tmp`，应用没有创建权限，新建或更新配置会报 `permission denied`。提交时若 `Imported` 还在，就在新目录完整之后替换它，替换前不删除已导入目录。只有 `subscriptionInfo.subUpload` 非空才回写 `upload`、`download`、`total`、`expire`。它不改名字、类型、来源和间隔。成功时 `ProfileWorker` 广播 `ACTION_PROFILE_UPDATE_COMPLETED`，再 `scheduleNext`；失败时广播 `ACTION_PROFILE_UPDATE_FAILED`，不再排下一次。只有 `EXTRA_PROFILE_UPDATE_NOTIFY` 为真才发进行中、成功或失败的系统通知；界面手动刷新传假，失败只回到页面 toast。服务形态见 [进程与远程接口](../../../service/docs/process.md)。
+
+## 只读预览出口
+
+配置页的「预览出口」调用 `IProfileManager.preview(uuid)`。它只读目录：有 `pending/<uuid>/config.yaml` 时读待提交的那份，否则读 `imported/<uuid>/config.yaml`；没有这行或文件不存在时返回 null。Age 私钥取同一行的 `ageSecretKey`，空白当作不设。
+
+解析在 `core` 的 `config.PreviewProfile` 里完成，只做一次 YAML 解码。它列出 `proxies`、`proxy-groups` 和 `proxy-providers` 的名字与类型，组的成员来自 `proxies` 和 `use`。`include-all`、`include-all-proxies`、`include-all-providers` 只标成「包含全部节点」，不展开。节点段因此只含文件里写下的内联节点，不含 DIRECT、REJECT，也不含远程 provider 展开后的节点。远程 provider 的正文不下载、不解析。这里不调用 `Clash.load`，不建或改隧道，也不套持久或会话覆盖；因此预览看到的是文件本身声明的结构，不是当前运行时展开后的节点表。JSON 解析失败通过 `ClashException` 回到配置页的错误态。
 
 ## 当前配置与覆盖进内核
 
@@ -87,4 +93,8 @@ summary: "从导入和待提交，到提交成已导入、按间隔更新，再�
 
 ## WebDAV
 
-`ProfileManager.commit` 在 `apply` 返回后调用 `WebdavAutoSync.enqueue`，`ProfileProcessor.update` 在锁外也调用它；配置的拉取和推送见 [WebDAV](../webdav/INDEX.md)。
+`ProfileManager.commit` 在 `apply` 返回后调用 `WebdavAutoSync.enqueue`，`ProfileProcessor.update` 在锁外也调用它。这两次都是防抖后的同步。服务创建时的 `syncIfDue` 只拉取。配置的拉取和推送见 [WebDAV](../webdav/INDEX.md)。
+
+## 系统备份
+
+Android 云备份和设备迁移只包含 `app.xml`、`tips.xml`、`ui.xml` 三个偏好文件。配置库 `profiles`、`imported/`、`pending/`、`clash/override.json`、WebDAV 设置和 MCP 令牌都不在备份范围内。Android 12 及以上由 `data_extraction_rules.xml` 同时约束云备份和设备迁移，低版本由 `full_backup_content.xml` 约束。跨设备迁移配置使用应用自己的导出功能。

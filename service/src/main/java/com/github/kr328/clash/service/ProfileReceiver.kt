@@ -16,7 +16,9 @@ import com.github.kr328.clash.common.util.setUUID
 import com.github.kr328.clash.service.data.Imported
 import com.github.kr328.clash.service.data.ImportedDao
 import com.github.kr328.clash.service.model.Profile
+import com.github.kr328.clash.service.store.ServiceStore
 import com.github.kr328.clash.service.util.importedDir
+import universe.agentic.device.clash.McpService
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -34,6 +36,11 @@ class ProfileReceiver : BroadcastReceiver() {
                         .setComponent(ProfileWorker::class.componentName)
 
                     context.startForegroundServiceCompat(service)
+                    if (ServiceStore(context).mcpEnabled) {
+                        runCatching {
+                            context.startForegroundServiceCompat(Intent(context, McpService::class.java))
+                        }
+                    }
                 }
             }
             Intents.ACTION_PROFILE_REQUEST_UPDATE -> {
@@ -68,16 +75,16 @@ class ProfileReceiver : BroadcastReceiver() {
             context.getSystemService<AlarmManager>()?.cancel(intent)
         }
 
-        fun schedule(context: Context, imported: Imported) {
-            val intent = pendingIntentOf(context, imported)
+        fun schedule(context: Context, imported: Imported, notify: Boolean = true) {
+            val intent = pendingIntentOf(context, imported, notify)
 
             context.getSystemService<AlarmManager>()?.cancel(intent)
 
             intent.send(context, 0, null)
         }
 
-        fun scheduleNext(context: Context, imported: Imported) {
-            val intent = pendingIntentOf(context, imported)
+        fun scheduleNext(context: Context, imported: Imported, notify: Boolean = true) {
+            val intent = pendingIntentOf(context, imported, notify)
 
             context.getSystemService<AlarmManager>()?.cancel(intent)
 
@@ -104,10 +111,15 @@ class ProfileReceiver : BroadcastReceiver() {
             initialized = false
         }
 
-        private fun pendingIntentOf(context: Context, imported: Imported): PendingIntent {
+        private fun pendingIntentOf(
+            context: Context,
+            imported: Imported,
+            notify: Boolean = true,
+        ): PendingIntent {
             val intent = Intent(Intents.ACTION_PROFILE_REQUEST_UPDATE)
                 .setComponent(ProfileReceiver::class.componentName)
                 .setUUID(imported.uuid)
+                .putExtra(Intents.EXTRA_PROFILE_UPDATE_NOTIFY, notify)
 
             return PendingIntent.getBroadcast(
                 context,

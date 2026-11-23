@@ -3,7 +3,7 @@ title: "配置库与 ServiceStore"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-10-15
+updated: 2026-10-28
 summary: "Room 的 imported、pending、selections，以及 ServiceStore 的偏好键和策略文件"
 ---
 
@@ -34,7 +34,7 @@ summary: "Room 的 imported、pending、selections，以及 ServiceStore 的偏�
 | `createdAt` | `Long` |
 | `ageSecretKey` | `String?` |
 
-查询按 `createdAt` 列出 UUID。`remove` 按 UUID 删除。
+查询按 `createdAt` 列出 UUID。`remove` 按 UUID 删除。界面列表的拖动顺序不在这张表里，写在 `filesDir/profile-order.txt`，一行一个 UUID。删除配置时从这份文件去掉对应行。
 
 ### pending
 
@@ -73,21 +73,23 @@ summary: "Room 的 imported、pending、selections，以及 ServiceStore 的偏�
 
 `patch` 若还没有 `Pending`，先把已导入目录复制到同 UUID 的 `pending` 再插入；`upload`、`download`、`total`、`expire` 写成 0。已有 `Pending` 则只更新名字、来源、间隔和 `ageSecretKey`，这四列同样清 0。
 
-`release` 删 `Pending` 行和 `pending/<uuid>`，不动已导入目录。
+`release` 删 `Pending` 行和 `pending/<uuid>`，不动已导入目录；随后调度 WebDAV，唤醒曾因编辑而暂缓的远端应用。
 
-`delete` 在仍有已导入行时，用该目录下文件的最大 `lastModified` 调用 `WebdavAutoSync.noteDeleted`，并 `ProfileReceiver.cancelNext`。然后 `ProfileProcessor.delete`：两张表都删、两个目录都删、若 `activeProfile` 就是它则置空，再广播 `ACTION_PROFILE_CHANGED`。最后 `WebdavAutoSync.enqueue`。
+`delete` 通过 `ProfileProcessor.deleteIf`，在配置提交锁内捕获已导入行与目录时间；两张表、两个目录删除成功且当前引用处理完之后，才用 `afterDelete` 登记该 scope 已纳管对象的 WebDAV 删除意图，再广播。删除失败不能提前生成可发布 tombstone。远端应用使用同一接口的 `shouldDelete` 复核 Pending 与下载起点的本机版本，不回记本地删除。最后取消闹钟并调度同步。本地删除与同步意图的整体崩溃恢复仍未闭合。
 
 `setActive` 只在 `ImportedDao.exists` 时写 `activeProfile` 并广播变更。
 
 `queryAll` 合并两张表的 UUID。`resolveProfile` 的名字、类型、来源、间隔和流量优先用 `Pending`，没有再用 `Imported`。两边都没有则返回 null。`active` 仅当已导入行的 UUID 等于 `activeProfile`。`imported` / `pending` 两个布尔表示行是否存在。`ageSecretKey` 在有 `Pending` 时取待提交行，否则取已导入行。
 
-`commit` 调用 `ProfileProcessor.apply`，再 `scheduleUpdate(uuid, false)` 和 `WebdavAutoSync.enqueue`。`update` 走 `scheduleUpdate(uuid, true)`。
+`commit` 调用 `ProfileProcessor.apply`，再 `scheduleUpdate(uuid, false)` 和 `WebdavAutoSync.enqueue`。`update(uuid, notify)` 走 `scheduleUpdate(uuid, true, notify)`。界面传 `notify = false`，后台定时和失败重试用缺省的真。
+
+`preview(uuid)` 只读目录，不写表也不发广播。它先查 `Pending`，有就取 `pending/<uuid>/`；否则查 `Imported`，取 `imported/<uuid>/`。两边都没有，或该目录没有 `config.yaml`，返回 null。Age 私钥取同一行的 `ageSecretKey`，空白当成不设。随后调用 `Clash.queryProfilePreview`，由 `core` 只读解析；不经过 `ProfileProcessor`，不加载内核，也不改当前隧道。
 
 `ProfileProcessor.apply` 与 `ProfileProcessor.update` 共用 `processLock`，快照和提交再用 `profileLock`。拉取发生在两段 `profileLock` 之间，调用 `Clash.fetchAndValid`；`FetchStatus.Action.SubscriptionInfo` 不回调界面，其他状态交给 `IFetchObserver.updateStatus`，回调抛异常后不再继续回调。`IProfileManager.update` 不直接调用 `ProfileProcessor.update`，而是 `scheduleUpdate(uuid, true)`，由 `ProfileWorker` 再进来。
 
-`apply` 要求 `Pending` 仍在。非 `File` 才把 `force` 设为真。提交时若这行 `Pending` 已经变了就放弃。否则用 `processing` 换掉 `imported/<uuid>`，插入或更新 `Imported`，删掉 `Pending` 和 `pending` 目录。订阅里的更新间隔只在「原先没有 imported 行，且待提交间隔是 0」时采用。已存在的行保留原来的 `createdAt`。
+`apply` 要求 `Pending` 仍在。非 `File` 才把 `force` 设为真。提交时若这行 `Pending` 已经变了就放弃。否则用 `processing` 换掉 `imported/<uuid>`，插入或更新 `Imported`，删掉 `Pending` 和 `pending` 目录，并在锁内登记 WebDAV 纳管与待推送修订。订阅里的更新间隔只在「原先没有 imported 行，且待提交间隔是 0」时采用。已存在的行保留原来的 `createdAt`。配置文件、Room 与同步意图仍是多个持久化步骤；不能据此声称整体原子提交。
 
-`ProfileProcessor.update` 从已导入目录复制到 `processing`，`force` 恒为真。提交时若 imported 行还在，替换目录；只有 `subscriptionInfo.subUpload` 非空才回写 `upload`、`download`、`total`、`expire`。它不改名字、类型、来源和间隔。锁释放之后才 `WebdavAutoSync.enqueue`。
+`ProfileProcessor.update` 从已导入目录复制到 `processing`，`force` 恒为真。提交时若 imported 行还在，替换目录；只有 `subscriptionInfo.subUpload` 非空才回写 `upload`、`download`、`total`、`expire`。它不改名字、类型、来源和间隔。只有当前 scope 已纳管该配置时才登记并调度推送；后台更新不会自动把旧配置加入新目标。
 
 `Pending.enforceFieldValid` 在 `apply` 的快照阶段执行：名字空白、非文件型来源为空、来源 scheme 不是 `https` / `http` / `content`、或间隔非 0 且小于 15 分钟，都抛 `IllegalArgumentException`。
 
