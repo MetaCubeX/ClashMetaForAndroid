@@ -4,11 +4,16 @@ type: reference
 status: draft
 phase: N/A
 created: 2026-10-20
-updated: 2026-10-20
+updated: 2026-10-30
 summary: "Unix/管道外部控制与 debug 路由绕过 secret；LookupIP 会把空地址当成功，UDP fake-ip 缺失直接丢包，CMFA 下 UID 规则不命中。"
 ---
 
 # 审查发现 r16 clash-control
+
+状态：草案。
+
+覆盖需求：无（审查记录，不单列产品需求）。
+
 
 审查范围是内核控制面活码：规则匹配、DNS 解析、配置加载、hub 路由鉴权、tunnel 连接选择。下面 5 条都来自这次读到的源码。
 

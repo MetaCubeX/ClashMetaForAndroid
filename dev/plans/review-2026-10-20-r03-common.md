@@ -4,11 +4,16 @@ type: reference
 status: draft
 phase: N/A
 created: 2026-10-20
-updated: 2026-10-20
+updated: 2026-10-30
 summary: "common 有 5 条：动态广播默认导出、PendingIntent 可变标志在 API 31 以下被写成不可变、浅色系统栏在未 attach 时被丢弃、刘海模式未提交给 WindowManager、ticker 退出时不关闭 Channel。"
 ---
 
 # 审查发现 r03 common
+
+状态：草案。
+
+覆盖需求：无（审查记录，不单列产品需求）。
+
 
 范围：`common` 下 26 个 Kotlin 源文件。以下均来自当前活码。
 

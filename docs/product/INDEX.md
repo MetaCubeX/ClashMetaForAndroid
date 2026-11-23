@@ -3,8 +3,8 @@ title: "产品需求入口"
 type: index
 status: accepted
 phase: N/A
-updated: 2026-10-15
-summary: "ClashMetaX 对使用者的可观察承诺。每条需求在 requirements/ 下单独成文"
+updated: 2026-11-04
+summary: "AgenticClash 对使用者的可观察承诺。每条需求在 requirements/ 下单独成文"
 ---
 
 # 产品需求
@@ -15,7 +15,7 @@ summary: "ClashMetaX 对使用者的可观察承诺。每条需求在 requiremen
 
 1. 进程与模块边界以 [DESIGN.md](../../DESIGN.md) 和代码为准。
 2. 已写入本目录的承诺，以本目录为准。现行条目保持 `accepted`，不因为模块存在就升成 `implemented`。
-3. 根 `README.md` 是上游介绍，不是验收标准。
+3. 根 `README.md` 是英文项目介绍，不是验收标准。
 4. `dev/demand/` 只放调研。
 
 ## 阅读顺序
@@ -33,5 +33,5 @@ summary: "ClashMetaX 对使用者的可观察承诺。每条需求在 requiremen
 ## 相关入口
 
 - [文档索引](../INDEX.md)
-- [维护规则](../DOCUMENTATION.md)
+- [项目适配](../DOCUMENTATION.md)
 - [结构规范](../DOCS-SPEC.md)

@@ -4,11 +4,16 @@ type: reference
 status: draft
 phase: N/A
 created: 2026-10-20
-updated: 2026-10-20
+updated: 2026-10-30
 summary: "Hysteria 分片重组会丢包或崩溃，重连会把旧连接的 UDP 送进新会话；TUIC 把域名地址当成 IP；读超时会拆掉 Hysteria UDP 会话。"
 ---
 
 # 审查发现 r13 transport-heavy
+
+状态：草案。
+
+覆盖需求：无（审查记录，不单列产品需求）。
+
 
 本路只读了 `transport/sudoku`、`transport/tuic`、`transport/openvpn`、`transport/hysteria`。下面 5 条都来自这次打开的源码。openvpn 控制/数据信道在已读路径上没有达到同样确定的缺陷。
 

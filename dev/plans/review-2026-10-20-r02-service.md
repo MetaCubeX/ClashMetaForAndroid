@@ -4,11 +4,16 @@ type: reference
 status: draft
 phase: N/A
 created: 2026-10-20
-updated: 2026-10-20
+updated: 2026-10-30
 summary: "service 有 5 条缺陷：WebDAV 墓碑会删掉同源的本地 File 副本，策略文件读失败会被写空，订阅更新失败后不再排程，流量用量不会同步，保存配置会把用量写成 0。"
 ---
 
 # 审查发现 r02 service
+
+状态：草案。
+
+覆盖需求：无（审查记录，不单列产品需求）。
+
 
 范围只包括 `service` 活码。下面 5 条都是这次读到的源码。
 

@@ -4,11 +4,14 @@ type: plan
 status: implemented
 phase: N/A
 created: 2026-10-20
-updated: 2026-10-20
+updated: 2026-10-30
 summary: "hold 5、drop 0、weaken 0"
 ---
 
 # 审查方案 r10 clash-component
+
+状态：已完成。
+
 
 对照 `core/src/foss/golang/clash/component` 当前源码。五条引用的行号与行为一致，全部 hold。
 

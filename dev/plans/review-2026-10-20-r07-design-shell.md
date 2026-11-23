@@ -4,11 +4,16 @@ type: reference
 status: draft
 phase: N/A
 created: 2026-10-20
-updated: 2026-10-20
+updated: 2026-10-30
 summary: "覆盖项点确定会丢掉「不修改」；键值表取消或空确定后应用挂起，改动不写回；同键保存丢旧值；WebDAV 自动同步能写反并发同步。"
 ---
 
 # 审查发现 r07 design-shell
+
+状态：草案。
+
+覆盖需求：无（审查记录，不单列产品需求）。
+
 
 审查范围是 `design` 里除 `ios/`、`nota/`、`universe/` 以外的活码，以各 `*Design.kt` 和它们直接调用的输入、列表与开关逻辑为准。
 

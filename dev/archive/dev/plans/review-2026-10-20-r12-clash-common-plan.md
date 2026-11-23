@@ -4,11 +4,14 @@ type: plan
 status: implemented
 phase: N/A
 created: 2026-10-20
-updated: 2026-10-20
+updated: 2026-10-30
 summary: "hold 5、drop 0、weaken 0"
 ---
 
 # 审查方案 r12 clash-common
+
+状态：已完成。
+
 
 核对范围是 `core/src/foss/golang/clash/common`。五条引用的行为都还在，行号与发现稿一致。结论是 hold 5、drop 0、weaken 0。
 

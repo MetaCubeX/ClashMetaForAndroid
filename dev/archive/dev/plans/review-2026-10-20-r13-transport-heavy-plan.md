@@ -4,11 +4,14 @@ type: plan
 status: implemented
 phase: N/A
 created: 2026-10-20
-updated: 2026-10-20
+updated: 2026-10-30
 summary: "hold 5、drop 0、weaken 0"
 ---
 
 # 审查方案 r13 transport-heavy
+
+状态：已完成。
+
 
 核对范围是 `transport/hysteria` 与 `transport/tuic` 的当前源码。五条引用行上的行为都还在。
 

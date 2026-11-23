@@ -4,11 +4,16 @@ type: reference
 status: draft
 phase: N/A
 created: 2026-10-20
-updated: 2026-10-20
+updated: 2026-10-30
 summary: "VLESS UDP 短读会把后续数据报错位；SOCKS5 客户端把失败应答当成成功；SSR 两处混淆把一次 Read 当成完整握手；Shadowsocks AEAD 写失败仍计入未发出的字节。"
 ---
 
 # 审查发现 r14 transport-proxy
+
+状态：草案。
+
+覆盖需求：无（审查记录，不单列产品需求）。
+
 
 本路只读 `transport` 下 ssr、vless、anytls、shadowquic、vmess、shadowsocks、snell、trojan、socks4、socks5。下面 5 条都是这次读到的实现缺陷。
 

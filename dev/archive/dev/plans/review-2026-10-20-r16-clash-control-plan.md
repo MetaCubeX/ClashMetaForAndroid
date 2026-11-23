@@ -4,11 +4,14 @@ type: plan
 status: implemented
 phase: N/A
 created: 2026-10-20
-updated: 2026-10-20
+updated: 2026-10-30
 summary: "hold 4、drop 0、weaken 1"
 ---
 
 # 审查方案 r16 clash-control
+
+状态：已完成。
+
 
 核对范围是规则、DNS、配置、hub 路由、tunnel。r16-1、r16-2、r16-3、r16-4 维持原严重度。r16-5 降为低。没有 drop。
 

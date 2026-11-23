@@ -4,11 +4,14 @@ type: plan
 status: implemented
 phase: N/A
 created: 2026-10-20
-updated: 2026-10-20
+updated: 2026-10-30
 summary: "hold 4、drop 0、weaken 1"
 ---
 
 # 审查方案 r15 transport-misc
+
+状态：已完成。
+
 
 核对发现稿 5 条，引用行号与活码一致。hold 4、drop 0、weaken 1。
 

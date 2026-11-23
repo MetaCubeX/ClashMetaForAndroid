@@ -4,11 +4,14 @@ type: plan
 status: implemented
 phase: N/A
 created: 2026-10-20
-updated: 2026-10-20
+updated: 2026-10-30
 summary: "hold 5、drop 0、weaken 0"
 ---
 
 # 审查方案 r08 core-bridge
+
+状态：已完成。
+
 
 ## r08-1
 

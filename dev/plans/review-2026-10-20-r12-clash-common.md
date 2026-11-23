@@ -4,11 +4,16 @@ type: reference
 status: draft
 phase: N/A
 created: 2026-10-20
-updated: 2026-10-20
+updated: 2026-10-30
 summary: "clash/common 有 5 处确定缺陷：并发队列会 panic，订阅账号被改写或丢弃，重名会碰撞，超位宽整数会被截断。"
 ---
 
 # 审查发现 r12 clash-common
+
+状态：草案。
+
+覆盖需求：无（审查记录，不单列产品需求）。
+
 
 范围只包括 `core/src/foss/golang/clash/common`。下面 5 条都来自这次读到的源码。
 

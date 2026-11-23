@@ -4,11 +4,14 @@ type: plan
 status: implemented
 phase: N/A
 created: 2026-10-20
-updated: 2026-10-20
+updated: 2026-10-30
 summary: "hold 4、drop 0、weaken 1"
 ---
 
 # 审查方案 r06 design-ui
+
+状态：已完成。
+
 
 核对范围是 `design/.../ios` 活码。r06-1、r06-2、r06-3、r06-5 维持原严重度。r06-4 降为低。没有 drop。
 

@@ -4,11 +4,14 @@ type: plan
 status: implemented
 phase: N/A
 created: 2026-10-20
-updated: 2026-10-20
+updated: 2026-10-30
 summary: "hold 5、drop 0、weaken 0"
 ---
 
 # 审查方案 r14 transport-proxy
+
+状态：已完成。
+
 
 核对发现稿 5 条。引用行号上的行为仍在，且都是缺陷。hold 5、drop 0、weaken 0。
 

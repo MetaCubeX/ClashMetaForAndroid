@@ -3,7 +3,7 @@ title: "文档总览"
 type: concept
 status: accepted
 phase: N/A
-updated: 2026-10-16
+updated: 2026-11-04
 summary: "docs/ 的人类导航：产品、架构、系统、模块与指南"
 ---
 
@@ -60,12 +60,13 @@ docs/
 | [构建、配置与测试](guides/getting-started/build.md) | JDK、flavor、子模块、签名 |
 | [单元测试](guides/getting-started/testing.md) | service 与 design 的 JVM 测试任务 |
 | [文档规范](DOCS-SPEC.md) | 目录约定 |
-| [维护规则](DOCUMENTATION.md) | 提交前要更新什么 |
+| [项目适配](DOCUMENTATION.md) | 共享流程之外仍要遵守的约定 |
+| [共享流程](../scripts/wiki/workflow.md) | 需求、审查、归档和文档同步 |
 
-健康检查：
+文档检查的入口：
 
 ```bash
-python3 scripts/check-docs-health.py
+python3 scripts/wiki/wiki.py verify --root .
 ```
 
 ## 阅读路径

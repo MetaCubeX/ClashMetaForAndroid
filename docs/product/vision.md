@@ -3,15 +3,15 @@ title: "产品愿景"
 type: concept
 status: accepted
 phase: N/A
-updated: 2026-10-15
+updated: 2026-10-23
 summary: "在 Android 上提供 mihomo 的图形界面，并保留本 fork 的分流与同步"
 ---
 
 # 愿景
 
-ClashMetaX 让使用者在手机上运行 mihomo，导入配置，选择节点，并按应用决定谁走隧道。
+AgenticClash 让使用者在手机上运行 mihomo，导入配置，选择节点，并按应用决定谁走隧道。
 
-本 fork 在此之上保留三件使用者能区分的事：多份命名的应用分流策略、访问控制列表上的系统/国内应用集合，以及把配置和策略同步到 WebDAV。
+本 fork 在此之上保留三件使用者能区分的事：多份命名的应用分流策略、访问控制列表上的系统应用、国内应用和浏览器集合，以及把配置和策略同步到 WebDAV。
 
 ## 边界
 

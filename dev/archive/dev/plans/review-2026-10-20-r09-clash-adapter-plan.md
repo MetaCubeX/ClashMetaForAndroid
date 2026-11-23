@@ -4,11 +4,14 @@ type: plan
 status: implemented
 phase: N/A
 created: 2026-10-20
-updated: 2026-10-20
+updated: 2026-10-30
 summary: "hold 5、drop 0、weaken 0"
 ---
 
 # 审查方案 r09 clash-adapter
+
+状态：已完成。
+
 
 五条均 hold。行号与发现稿一致，行为仍在。drop 0，weaken 0。
 

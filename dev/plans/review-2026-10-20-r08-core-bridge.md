@@ -4,11 +4,16 @@ type: reference
 status: draft
 phase: N/A
 created: 2026-10-20
-updated: 2026-10-20
+updated: 2026-10-30
 summary: "覆写落盘和订阅下载会丢掉已有文件，节点切换、provider 更新和 TUN 启动会把失败当成成功。"
 ---
 
 # 审查发现 r08 core-bridge
+
+状态：草案。
+
+覆盖需求：无（审查记录，不单列产品需求）。
+
 
 只读 `core/src/main` 与 `core/build.gradle.kts` 的活码。下面 5 条都出在桥的状态或错误路径上。
 

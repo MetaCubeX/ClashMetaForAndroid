@@ -4,11 +4,16 @@ type: reference
 status: draft
 phase: N/A
 created: 2026-10-20
-updated: 2026-10-20
+updated: 2026-10-30
 summary: "packet-up 关闭会丢掉已接收的上行；mekya 满队列和 gost 大 UDP 包会静默丢数据；带 seed 的 mKCP 包超出 MTU；simple-obfs TLS 读失败会空转。"
 ---
 
 # 审查发现 r15 transport-misc
+
+状态：草案。
+
+覆盖需求：无（审查记录，不单列产品需求）。
+
 
 本路只读 `transport` 下 xhttp、tlsmirror、mkcp、trusttunnel、mekya、shadowtls、kcptun、simple-obfs、masque、jls、gun、v2ray-plugin、gost、restls。下面 5 条都来自这次打开的源码。
 

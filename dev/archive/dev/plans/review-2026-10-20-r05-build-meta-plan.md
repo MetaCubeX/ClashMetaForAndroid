@@ -4,11 +4,14 @@ type: plan
 status: implemented
 phase: N/A
 created: 2026-10-20
-updated: 2026-10-20
+updated: 2026-10-30
 summary: "hold 3、drop 0、weaken 0"
 ---
 
 # 审查方案 r05 build-meta
+
+状态：已完成。
+
 
 核对范围只覆盖发现稿点名的 `build.gradle.kts`、`gradle/libs.versions.toml`、`scripts/archive-status-overflow.sh`、`scripts/check-docs-health.py`。三条引用行上的行为都还在。
 

@@ -53,7 +53,7 @@ summary: "两端基础接入与设置页已落盘；Android 87 项、桌面 18 �
 - Android scope 当前按配置公共根（无公共根用 LAN）、账号、目录派生；无可跨公共根重命名的显式 endpointId。legacy 状态不自动认领，首次唯一同源既有条目仍需显式推送纳管，尚无单项关联入口。
 - Android WebDAV apply journal 不等于所有本地保存/删除及策略的整体事务；跨进程策略锁、本地意图的可恢复提交、故障注入和 Android 真实内核离线校验未完成。
 - 去重别名条件清理未实施；只保留别名并收敛正文/用量。独占 CAS 探测可能留下隐藏临时对象；Retry-After 不跨进程重启持久化。
-- 未安装 APK/桌面客户端、未做双端真实运行或崩溃故障注入、未接触实际 WebDAV 账号或远端数据。Mihomo 离线验证仅使用本机缓存可执行文件，不是目标打包 Sidecar；Service HTTP 播种仍暂缓。未提交，未修改 mihomo 子模块。
+- 未安装 APK/桌面客户端、未做双端真实运行或崩溃故障注入、未接触实际 WebDAV 账号或远端数据。Mihomo 离线验证仅使用本机缓存可执行文件，不是目标打包 Sidecar；Service HTTP 播种仍暂缓。Android 代码在 `be1bb6f`。这次 WebDAV 改动没有修改 mihomo 子模块。
 
 ## 验证
 

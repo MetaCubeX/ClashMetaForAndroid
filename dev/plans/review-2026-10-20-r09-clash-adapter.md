@@ -4,11 +4,16 @@ type: reference
 status: draft
 phase: N/A
 created: 2026-10-20
-updated: 2026-10-20
+updated: 2026-10-30
 summary: "fallback 会清掉固定节点并可能选中死代理，url-test 容差在首节点失效，分组 expected-status 与全局存活标记不一致，load-balance 的 UDP 选路不看成员能力。"
 ---
 
 # 审查发现 r09 clash-adapter
+
+状态：草案。
+
+覆盖需求：无（审查记录，不单列产品需求）。
+
 
 范围只包括 `core/src/foss/golang/clash/adapter`。下面 5 条都来自这次读到的源码。
 

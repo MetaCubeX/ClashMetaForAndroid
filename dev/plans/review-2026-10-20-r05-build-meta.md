@@ -4,11 +4,16 @@ type: reference
 status: draft
 phase: N/A
 created: 2026-10-20
-updated: 2026-10-20
+updated: 2026-10-30
 summary: "3 条：app 会打出没有对应 native 库的 ABI 分包，后注归档会从多行笔记中间切开，裸文件名链接会被算到仓库根。"
 ---
 
 # 审查发现 r05 build-meta
+
+状态：草案。
+
+覆盖需求：无（审查记录，不单列产品需求）。
+
 
 ## r05-1
 

@@ -4,9 +4,16 @@ type: reference
 status: draft
 phase: N/A
 created: 2026-10-20
-updated: 2026-10-20
+updated: 2026-10-30
 summary: "HTTP/SOCKS 入站鉴权可被绕过，监听失败后端口会停不掉或无法按原配置恢复。"
 ---
+
+# 审查发现 r11 clash-listener
+
+状态：草案。
+
+覆盖需求：无（审查记录，不单列产品需求）。
+
 
 本路只读 `core/src/foss/golang/clash/listener`。确认 5 条。
 

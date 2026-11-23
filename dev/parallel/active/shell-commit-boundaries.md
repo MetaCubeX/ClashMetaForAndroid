@@ -4,8 +4,8 @@ type: roadmap
 status: active
 phase: N/A
 created: 2026-10-24
-updated: 2026-10-30
-summary: "按 ADR 004 的六路代码都已落地，尚未提交。不动 mihomo 子模块。"
+updated: 2026-11-23
+summary: "按 ADR 004 的六路代码已进入 8f8cb66、be1bb6f、ba360f0 和 0bdd615。mihomo 修复在 8f8cb66 的 gitlink。"
 ---
 
 # 壳层四条边界 — 并行任务看板
@@ -33,12 +33,12 @@ summary: "按 ADR 004 的六路代码都已落地，尚未提交。不动 mihomo
 
 | ID | 任务描述 | 范围（文件/模块） | 负责人 | 状态 | 依赖 | 阻塞项 | Commit |
 |:---|:---------|:------------------|:-------|:-----|:-----|:-------|:-------|
-| T1 | 访问控制投影、代理页失败隔离、地理库提交点、编辑会话恢复 | `app/` | 并行 | ✅ 完成 | — | — | 未提交 |
-| T2 | etag 跳过时仍合并用量；配置目录完整后再替换 | `service/` 的 WebDAV 与 `ProfileProcessor` | 并行 | ✅ 完成 | — | — | 未提交 |
-| T3 | 应用集合编辑草稿随目标 id 作废 | `design/src/main/java/universe` | 并行 | ✅ 完成 | — | — | 未提交 |
-| T4 | 端口非法不写回、编辑不叠层、null 不写成空串 | `design/src/main/java/com` | 并行 | ✅ 完成 | — | — | 未提交 |
-| T5 | 配置校验后才替换、HTTP 监听成功后再切换、保护失败则拨号失败 | `core/src/main` | 并行 | ✅ 完成 | — | — | 未提交 |
-| T6 | 预发布在新资产发布前不删除旧 Release | `.github/workflows/build-pre-release.yaml` | 并行 | ✅ 完成 | — | — | 未提交 |
+| T1 | 访问控制投影、代理页失败隔离、地理库提交点、编辑会话恢复 | `app/` | 并行 | ✅ 完成 | — | — | `ba360f0` |
+| T2 | etag 跳过时仍合并用量；配置目录完整后再替换 | `service/` 的 WebDAV 与 `ProfileProcessor` | 并行 | ✅ 完成 | — | — | `be1bb6f` |
+| T3 | 应用集合编辑草稿随目标 id 作废 | `design/src/main/java/universe` | 并行 | ✅ 完成 | — | — | `ba360f0` |
+| T4 | 端口非法不写回、编辑不叠层、null 不写成空串 | `design/src/main/java/com` | 并行 | ✅ 完成 | — | — | `ba360f0` |
+| T5 | 配置校验后才替换、HTTP 监听成功后再切换、保护失败则拨号失败 | `core/src/main` | 并行 | ✅ 完成 | — | — | `8f8cb66` |
+| T6 | 预发布在新资产发布前不删除旧 Release | `.github/workflows/build-pre-release.yaml` | 并行 | ✅ 完成 | — | — | `0bdd615` |
 
 ## 执行时序
 

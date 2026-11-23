@@ -4,11 +4,14 @@ type: plan
 status: implemented
 phase: N/A
 created: 2026-10-20
-updated: 2026-10-20
+updated: 2026-10-30
 summary: "hold 4、drop 0、weaken 0"
 ---
 
 # 审查方案 r07 design-shell
+
+状态：已完成。
+
 
 四条都 hold。引用行与活码一致，没有 drop 或 weaken。
 

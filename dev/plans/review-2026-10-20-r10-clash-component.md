@@ -4,11 +4,16 @@ type: reference
 status: draft
 phase: N/A
 created: 2026-10-20
-updated: 2026-10-20
+updated: 2026-10-30
 summary: "进程识别会串到别的应用，地理库和外部 UI 更新会丢掉旧文件，订阅本地读失败和 Geo 坏下载会被当成成功。"
 ---
 
 # 审查发现 r10 clash-component
+
+状态：草案。
+
+覆盖需求：无（审查记录，不单列产品需求）。
+
 
 只读 `core/src/foss/golang/clash/component` 的当前源码。下面 5 条都是这条路径里会触发的行为错误。
 

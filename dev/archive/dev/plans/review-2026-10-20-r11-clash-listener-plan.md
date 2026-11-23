@@ -4,11 +4,14 @@ type: plan
 status: implemented
 phase: N/A
 created: 2026-10-20
-updated: 2026-10-20
+updated: 2026-10-30
 summary: "hold 5、drop 0、weaken 0"
 ---
 
 # 审查方案 r11 clash-listener
+
+状态：已完成。
+
 
 核对范围只限 `core/src/foss/golang/clash/listener`。五条引用处的行为都还在，结论都成立。hold 5、drop 0、weaken 0。
 

@@ -4,11 +4,16 @@ type: reference
 status: draft
 phase: N/A
 created: 2026-10-20
-updated: 2026-10-20
+updated: 2026-10-30
 summary: "发现 5 条：配置用量文案与进度条不一致、供应商零时间戳、脚本模式无选中、分组选择时测速被挡住、弹层关闭动画丢掉后续点击。"
 ---
 
 # 审查发现 r06 design-ui
+
+状态：草案。
+
+覆盖需求：无（审查记录，不单列产品需求）。
+
 
 范围只含 `design/.../ios`、`nota`、`universe` 的活码。下面 5 条都是这次读到的行为问题。
 

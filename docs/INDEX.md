@@ -3,13 +3,13 @@ title: "文档索引"
 type: concept
 status: accepted
 phase: N/A
-updated: 2026-10-15
+updated: 2026-11-04
 summary: "全局导航。模块列表与 settings.gradle.kts 的 include 一一对应，设计文档在各模块 docs/"
 ---
 
 # 文档索引
 
-> 人工维护。结构变化后同步本文件，并运行 `python3 scripts/check-docs-health.py`。[文档介绍](README.md)
+> 人工维护。结构变化后同步本文件，并运行 `python3 scripts/check-docs-health.py` 与 `python3 scripts/wiki/wiki.py check --root .`。[文档介绍](README.md)
 
 ## 快速入口
 
@@ -19,8 +19,8 @@ summary: "全局导航。模块列表与 settings.gradle.kts 的 include 一一�
 | 看模块怎么分 | [架构概览](architecture/overview.md) |
 | 看一个模块的入口 | [模块列表](#模块列表) |
 | 看构建和测试 | [构建指南](guides/getting-started/build.md) |
-| 看当前快照 | [status.md](../dev/progress/status.md) |
-| 看架构决策 | [ADR](../dev/decisions/INDEX.md) |
+| 看正在做的任务 | [开发入口](../dev/INDEX.md) |
+| 看架构决策 | [ADR](decisions/INDEX.md) |
 
 ## 模块列表
 
@@ -43,14 +43,15 @@ summary: "全局导航。模块列表与 settings.gradle.kts 的 include 一一�
 | 配置 | [索引](systems/profiles/INDEX.md) | 导入、提交、选择、覆盖 |
 | 访问控制 | [索引](systems/access-control/INDEX.md) | 包名名单、应用集合、分流策略 |
 | WebDAV | [索引](systems/webdav/INDEX.md) | 拉取、推送与合并 |
+| 本地 MCP | [索引](systems/mcp/INDEX.md) | 本机回环上的代理工具 |
 | 界面 | [索引](systems/ui/INDEX.md) | `app` 与 `design` 的分工 |
 
 ## 分类索引
 
 | 类别 | 链接 |
 |:-----|:-----|
-| 架构 | [概览](architecture/overview.md) · [DESIGN.md](../DESIGN.md) · [ADR](../dev/decisions/INDEX.md) |
+| 架构 | [概览](architecture/overview.md) · [DESIGN.md](../DESIGN.md) · [ADR](decisions/INDEX.md) |
 | 产品 | [入口](product/INDEX.md) |
-| 指南 | [构建](guides/getting-started/build.md) · [单元测试](guides/getting-started/testing.md) |
+| 指南 | [入门](guides/getting-started/INDEX.md) · [构建](guides/getting-started/build.md) · [单元测试](guides/getting-started/testing.md) |
 | 参考 | [术语表](glossary.md) |
-| 规范 | [DOCS-SPEC](DOCS-SPEC.md) · [维护规则](DOCUMENTATION.md) |
+| 规范 | [DOCS-SPEC](DOCS-SPEC.md) · [项目适配](DOCUMENTATION.md) · [开发规范](standards/development.md) · [共享流程](../scripts/wiki/workflow.md) · [wiki.json](wiki.json) |

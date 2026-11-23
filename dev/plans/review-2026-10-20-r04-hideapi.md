@@ -4,11 +4,16 @@ type: reference
 status: draft
 phase: N/A
 created: 2026-10-20
-updated: 2026-10-20
+updated: 2026-10-30
 summary: "hideapi 仅有编译期存根，未发现缺陷"
 ---
 
 # 审查发现 r04 hideapi
+
+状态：草案。
+
+覆盖需求：无（审查记录，不单列产品需求）。
+
 
 审查范围是 `hideapi` 的活码：`src/main/java/android/app/ActivityThread.java`、`src/main/AndroidManifest.xml`、`build.gradle.kts`、`consumer-rules.pro`、`proguard-rules.pro`。
 

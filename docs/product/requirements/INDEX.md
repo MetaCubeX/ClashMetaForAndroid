@@ -3,13 +3,13 @@ title: "产品需求目录"
 type: index
 status: accepted
 phase: N/A
-updated: 2026-10-25
-summary: "每条 PRD 单独一个文件。状态 accepted 表示代码已体现，尚未做设备验收"
+updated: 2026-10-30
+summary: "每条 PRD 单独一个文件。状态行「已接受」表示代码已体现，尚未做设备验收"
 ---
 
 # 需求
 
-一条需求一个文件，编号 `PRD-NNN`。本目录只写使用者能观察到的承诺。升到 `implemented` 前，要在 [追踪](../traceability.md) 记下一次对照运行或测试。
+一条需求一个文件，编号 `PRD-NNN`。本目录只写使用者能观察到的承诺。二级标题下写 `状态：已接受。`，验收条目写成 `- PRD-NNN.1 …`。这一行和 frontmatter 的 `accepted` 同义：代码已经体现该行为，还没有标成已验证。升到 `已实现` 前，要在 [追踪](../traceability.md) 记下一次对照运行或测试。
 
 | ID | 需求 | 状态 |
 |:---|:-----|:-----|
