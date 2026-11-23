@@ -6,7 +6,6 @@
     <string name="profile_process_result">プロファイルプロセスの結果</string>
     <string name="update_successfully">正常に更新されました</string>
     <string name="update_failure">更新に失敗しました</string>
-    <string name="format_update_complete">%sを更新しました</string>
     <string name="format_update_failure">更新 %1$s: %2$s </string>
     <string name="running">実行中</string>
     <string name="loading">読み込み中</string>
