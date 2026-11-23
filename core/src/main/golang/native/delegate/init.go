@@ -16,7 +16,10 @@ import (
 	"github.com/metacubex/mihomo/constant"
 )
 
-var errBlocked = errors.New("blocked")
+var (
+	errBlocked = errors.New("blocked")
+	errProtect = errors.New("socket protect failed")
+)
 
 func Init(home, versionName, gitVersion string, platformVersion int) {
 	log.Infoln("Init core, home: %s, versionName: %s, gitVersion: %s, platformVersion: %d", home, versionName, gitVersion, platformVersion)
@@ -52,8 +55,16 @@ func Init(home, versionName, gitVersion string, platformVersion int) {
 			return errBlocked
 		}
 
-		return conn.Control(func(fd uintptr) {
-			app.MarkSocket(int(fd))
-		})
+		var protected bool
+		if err := conn.Control(func(fd uintptr) {
+			protected = app.MarkSocket(int(fd))
+		}); err != nil {
+			return err
+		}
+		if !protected {
+			return errProtect
+		}
+
+		return nil
 	}
 }

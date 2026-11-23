@@ -3,7 +3,7 @@ title: "Kotlin 模型"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-10-15
+updated: 2026-10-24
 summary: "model 包的公开类型：字段、枚举，以及 Clash 与 Go 各在桥的哪一侧使用"
 ---
 
@@ -14,13 +14,13 @@ summary: "model 包的公开类型：字段、枚举，以及 Clash 与 Go 各�
 > Go 包：[native-layout.md](native-layout.md)
 > 谁加载这条桥：[运行时](../../docs/systems/runtime/INDEX.md)
 
-公开类型都在 `com.github.kr328.clash.core.model`。目录里是 12 个文件。嵌套类型写在所属文件里，没有额外文件。
+公开类型都在 `com.github.kr328.clash.core.model`。目录里是 13 个文件。嵌套类型写在所属文件里，没有额外文件。
 
 过桥的调用在 `Clash`。JNI 方法名、回调和流量打包不在这里重复。Go 侧没有一份同名模型包，JSON 由 `native` 里的函数现编。
 
-带 `@Serializable` 的是 `AgeKeyPair`、`ConfigurationOverride` 及其嵌套类型、`FetchStatus`、`LogMessage`（含 `Level`）、`Provider`、`Proxy`、`ProxyGroup`、`TunnelState`（含 `Mode`）、`UiConfiguration`。`FetchStatus.Action`、`Provider.Type`、`Provider.VehicleType` 没有这个注解。`ProxySort`、`Traffic`、`ProviderList`、`SliceProxyList` 不编 JSON。
+带 `@Serializable` 的是 `AgeKeyPair`、`ConfigurationOverride` 及其嵌套类型、`FetchStatus`、`LogMessage`（含 `Level`）、`ProfilePreview` 及其嵌套类型、`Provider`、`Proxy`、`ProxyGroup`、`TunnelState`（含 `Mode`）、`UiConfiguration`。`FetchStatus.Action`、`Provider.Type`、`Provider.VehicleType` 没有这个注解。`ProxySort`、`Traffic`、`ProviderList`、`SliceProxyList` 不编 JSON。
 
-`AgeKeyPair`、`ProxySort`、`Traffic` 不能 Parcel。其余顶层类型可以。`Clash` 自己不做 Parcel。
+`AgeKeyPair`、`ProxySort`、`Traffic` 不能 Parcel。其余顶层类型可以，`ProfilePreview` 的嵌套类型随它的 `CREATOR` 一起走。`Clash` 自己不做 Parcel。
 
 ## 桥的两侧
 
@@ -30,6 +30,7 @@ summary: "model 包的公开类型：字段、枚举，以及 Clash 与 Go 各�
 | `ConfigurationOverride` | `queryOverride`、`patchOverride` | `config.ReadOverride`、`WriteOverride` 存整段 JSON |
 | `FetchStatus` | `fetchAndValid` 的 `report` | `config.Status` |
 | `LogMessage` | `subscribeLogcat` | `log.go` 的 `message` |
+| `ProfilePreview` | `queryProfilePreview` | `config.ProfilePreview` |
 | `Provider` | `queryProviders`、`updateProvider` | `tunnel.Provider` |
 | `ProviderList` | 不进 JNI | 无 |
 | `Proxy` | `queryGroup` 解出的元素 | `tunnel.Proxy` |
@@ -246,6 +247,19 @@ summary: "model 包的公开类型：字段、枚举，以及 Clash 与 Go 各�
 `List<Provider>` 的 Parcel 包装。不参与 JNI。`Clash.queryProviders` 返回的是普通列表。
 
 从 Parcel 恢复时按块读，块大小是 20。
+
+## ProfilePreview
+
+配置页预览出口的只读结果。顶层字段是 `groups`、`proxies`、`providers` 和 `error`，前三项默认空列表，`error` 默认 null。正常结果不带 `error`；Go 解析失败时只带 `error`，Kotlin 在 `Clash.queryProfilePreview` 里抛出它。
+
+| 类型 | 字段 |
+|:-----|:-----|
+| `ProfilePreviewGroup` | `name`、`type`、`members`、`includeAll` |
+| `ProfilePreviewMember` | `name`、`type`、`kind` |
+| `ProfilePreviewProxy` | `name`、`type` |
+| `ProfilePreviewProvider` | `name`、`type` |
+
+`ProfilePreviewMember.kind` 是 `proxy`、`group` 或 `provider`。`includeAll` 对应配置里的 `include-all`、`include-all-proxies` 或 `include-all-providers`。远程 provider 只出现名字和类型，正文不在这个模型里。
 
 ## Proxy
 

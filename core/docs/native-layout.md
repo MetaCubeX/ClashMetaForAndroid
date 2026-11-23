@@ -3,7 +3,7 @@ title: "golang/native 包布局"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-10-15
+updated: 2026-10-24
 summary: "Android 桥的 Go 包：app、config、tun、tunnel、platform，不是 mihomo 本体"
 ---
 
@@ -27,7 +27,7 @@ summary: "Android 桥的 Go 包：app、config、tun、tunnel、platform，不�
 | `native/bridge.c`、`bridge.h` | C | 函数指针，见 [bridge.md](bridge.md) |
 | `native/trace.c`、`trace.h` | C | `ENABLE_TRACE` 为 0 |
 | `native/app` | `app` | 版本、DNS、时区、已装应用、套接字回调、`content:` fd、副标题正则 |
-| `native/config` | `config` | 拉取、修补、校验、加载配置；覆盖槽；age 密钥 |
+| `native/config` | `config` | 拉取、修补、校验、加载配置；只读预览；覆盖槽；age 密钥 |
 | `native/tun` | `tun` | 用已有 fd 启动 sing-tun |
 | `native/tunnel` | `tunnel` | 模式、流量、代理组、健康检查、provider、连接 |
 | `native/proxy` | `proxy` | 本机 HTTP 入站 |
@@ -45,7 +45,7 @@ summary: "Android 桥的 Go 包：app、config、tun、tunnel、platform，不�
 |:-----|:-----|:-----|
 | `main.go` | `coreInit`、`reset`、`forceGc` | `delegate.Init`；`config.LoadDefault`、清统计、关连接；异步 GC |
 | `app.go` | `notifyDnsChanged`、`notifyInstalledAppsChanged`、`notifyTimeZoneChanged`、`queryConfiguration` | `app`；最后一项编码空结构体 |
-| `config.go` | `fetchAndValid`、`load`、覆盖槽读写、age 密钥 | `config`，异步完成回调 |
+| `config.go` | `fetchAndValid`、`load`、`queryProfilePreview`、覆盖槽读写、age 密钥 | `config`，异步完成回调；预览同步返回 JSON |
 | `tun.go` | `startTun`、`stopTun` | `tun.Start`，并把 mark / UID 回调装进 `app` |
 | `tunnel.go` | 状态、流量、组、健康检查、selector、provider、`suspend` | `tunnel` |
 | `proxy.go` | `startHttp`、`stopHttp` | `proxy` |
@@ -97,6 +97,7 @@ DNS 未启用时写入的 nameserver 是 `223.5.5.5`、`119.29.29.29`、`8.8.4.4
 | `override.go` | 持久槽是 home 下的 `override.json`（`constant.Path.Resolve`），模式 `0600`。会话槽是内存字符串。缺省都是 `{}` |
 | `age.go` | 转到 `mihomo/component/age` 的同名函数 |
 | `provider.go` | 遍历 proxy / rule provider；`destroyProviders` 关闭实现了 `io.Closer` 的 provider |
+| `preview.go` | 读 `<profile>/config.yaml`，按需 age 解密，只解码一次 raw config，收集 `proxies`、`proxy-groups`、`proxy-providers`。不加载内核，不下载 provider |
 
 `FetchAndValid` 在验证阶段把进度写成 `0xffff`。订阅头 `subscription-userinfo` 和 `profile-update-interval` 放进 `SubscriptionInfo`。更新间隔按小时解析，再换成毫秒；大于 0 且小于 15 分钟时抬到 15 分钟。
 
@@ -131,7 +132,7 @@ DNS 未启用时写入的 nameserver 是 `223.5.5.5`、`119.29.29.29`、`8.8.4.4
 
 ## proxy
 
-`proxy.Start` 在互斥锁里先停掉旧的 `http.Listener`，再 `http.NewWithAuthenticate(listen, tunnel.Tunnel, false)`。成功时返回 `listener.Address()`。`Stop` 关闭并清空监听器。
+`proxy.Start` 在互斥锁里保留旧的 `http.Listener`，新地址绑定成功后再替换。失败时包级 listener 仍是原来的那个，若新建对象已经返回则关掉这个新对象。成功时返回 `listener.Address()`。`Stop` 关闭并清空监听器。
 
 ## platform
 

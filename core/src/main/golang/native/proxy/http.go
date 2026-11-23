@@ -14,14 +14,18 @@ func Start(listen string) (listenAt string, err error) {
 	lock.Lock()
 	defer lock.Unlock()
 
-	stopLocked()
-
-	listener, err = http.NewWithAuthenticate(listen, tunnel.Tunnel, false)
-	if err == nil {
-		listenAt = listener.Address()
+	next, err := http.NewWithAuthenticate(listen, tunnel.Tunnel, false)
+	if err != nil {
+		if next != nil {
+			_ = next.Close()
+		}
+		return "", err
 	}
 
-	return
+	listenAt = next.Address()
+	stopLocked()
+	listener = next
+	return listenAt, nil
 }
 
 func Stop() {

@@ -3,7 +3,7 @@ title: "core 桥接边界"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-10-15
+updated: 2026-10-24
 summary: "Clash 与 Bridge 暴露的调用，以及 JNI 如何接到 Go native"
 ---
 
@@ -69,7 +69,7 @@ cfa/native/*   再调用 mihomo
 | 通知 | `notifyDnsChanged`、`notifyTimeZoneChanged`、`notifyInstalledAppsChanged` | 字符串或 `(name, offset)` |
 | 隧道与 HTTP | `startTun`、`stopTun`、`startHttp`、`stopHttp` | fd、栈名、地址串；HTTP 返回实际监听地址或 null |
 | 代理组 | `queryGroupNames`、`queryGroup`、`healthCheck`、`healthCheckAll`、`patchSelector` | 组名 JSON；排序用 `ProxySort.name` |
-| 配置 | `fetchAndValid`、`load`、`queryProviders`、`updateProvider` | 路径、URL、provider 类型名 |
+| 配置 | `fetchAndValid`、`load`、`queryProviders`、`updateProvider`、`queryProfilePreview` | 路径、URL、provider 类型名；预览返回 JSON |
 | 覆盖 | `queryOverride`、`patchOverride`、`clearOverride` | slot 用枚举 `ordinal` |
 | 界面配置 | `queryConfiguration` | 见下面的空对象 |
 | 日志 | `subscribeLogcat` | 返回 `Channel<LogMessage>(32)` |
@@ -83,7 +83,7 @@ cfa/native/*   再调用 mihomo
 - Provider 更新：`Provider.Type.toString()`，Go 只认 `"Proxy"` 和 `"Rule"`。
 - 组排序：`ProxySort` 的 `Title`、`Delay`；其他字符串在 Go 里落到 `Default`。
 
-`startTun` 把 `markSocket` 和 `querySocketUid` 收成 `TunInterface`。UID 查询的地址是字符串，`Clash` 用 `parseInetSocketAddress` 转成 `InetSocketAddress`（按 `https://<地址>` 解析 host 和 port）。
+`startTun` 把 `markSocket` 和 `querySocketUid` 收成 `TunInterface`。`markSocket` 的布尔结果传到 Go：`VpnService.protect` 返回 false 时，这次拨号失败。UID 查询的地址是字符串，`Clash` 用 `parseInetSocketAddress` 转成 `InetSocketAddress`（按 `https://<地址>` 解析 host 和 port）。
 
 异步完成：
 
@@ -94,6 +94,8 @@ cfa/native/*   再调用 mihomo
 `queryGroup` 得到 null 时，`Clash` 返回 `ProxyGroup("Unknown", emptyList(), "")`。`queryOverride` 解码失败时返回空的 `ConfigurationOverride()`。
 
 `queryConfiguration` 在 Go 里编码一个空结构体，也就是 `{}`。`UiConfiguration` 没有任何属性，解码结果是空对象，不是当前已加载的配置。
+
+`queryProfilePreview` 把配置目录和 Age 私钥交给 Go 的 `queryProfilePreview`。Go 读该目录的 `config.yaml`，`age.DecryptBytes` 在文件不是 age armor 时原样返回，是 armor 时用传入的密钥解密。然后只解码一次 raw config，收集 `proxies`、`proxy-groups`、`proxy-providers`，返回 `ProfilePreview` JSON。它不调用 `Load`，不建隧道，也不套覆盖。解析失败时 Go 返回 `{"error": "..."}`，Kotlin 的 `Clash.queryProfilePreview` 解出后抛 `ClashException`。JNI 的 `ageSecretKey` 可以是 NULL，Kotlin 把空白密钥收成 null。
 
 `veritySecretKeys`、`verityPublicKeys`、`toPublicKeys` 的 Kotlin 签名是 `vararg`，但只把第一个字符串传过 JNI；没有参数时传空串。这三处以及 Go、JNI 的名字都是 `verity`，不是 `verify`。`setAgeSecretKey(null)` 在 JNI 里把 NULL 传给 Go，Go 调用不带参数的 `SetGlobalSecretKeys`。
 

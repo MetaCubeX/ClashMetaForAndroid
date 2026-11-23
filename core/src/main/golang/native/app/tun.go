@@ -7,11 +7,11 @@ import (
 	"cfa/native/platform"
 )
 
-var markSocketImpl func(fd int)
+var markSocketImpl func(fd int) bool
 var querySocketUidImpl func(protocol int, source, target string) int
 
-func MarkSocket(fd int) {
-	markSocketImpl(fd)
+func MarkSocket(fd int) bool {
+	return markSocketImpl(fd)
 }
 
 func QuerySocketUid(source, target net.Addr) int {
@@ -33,9 +33,9 @@ func QuerySocketUid(source, target net.Addr) int {
 	return querySocketUidImpl(protocol, source.String(), target.String())
 }
 
-func ApplyTunContext(markSocket func(fd int), querySocketUid func(int, string, string) int) {
+func ApplyTunContext(markSocket func(fd int) bool, querySocketUid func(int, string, string) int) {
 	if markSocket == nil {
-		markSocket = func(fd int) {}
+		markSocket = func(fd int) bool { return true }
 	}
 
 	if querySocketUid == nil {

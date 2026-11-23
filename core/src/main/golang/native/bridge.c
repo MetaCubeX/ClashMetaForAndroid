@@ -1,7 +1,7 @@
 #include "bridge.h"
 #include "trace.h"
 
-void (*mark_socket_func)(void *tun_interface, int fd);
+int (*mark_socket_func)(void *tun_interface, int fd);
 
 int (*query_socket_uid_func)(void *tun_interface, int protocol, const char *source, const char *target);
 
@@ -17,10 +17,10 @@ int (*open_content_func)(const char *url, char *error, int error_length);
 
 void (*release_object_func)(void *obj);
 
-void mark_socket(void *interface, int fd) {
+int mark_socket(void *interface, int fd) {
     TRACE_METHOD();
 
-    mark_socket_func(interface, fd);
+    return mark_socket_func(interface, fd);
 }
 
 int query_socket_uid(void *interface, int protocol, char *source, char *target) {

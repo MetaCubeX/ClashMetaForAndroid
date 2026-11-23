@@ -18,6 +18,21 @@ func (r *remoteValidCallback) reportStatus(json string) {
 	C.fetch_report(r.callback, marshalString(json))
 }
 
+//export queryProfilePreview
+func queryProfilePreview(path, ageSecretKey C.c_string) *C.char {
+	key := ""
+	if ageSecretKey != nil {
+		key = C.GoString(ageSecretKey)
+	}
+
+	preview, err := config.PreviewProfile(C.GoString(path), key)
+	if err != nil {
+		return marshalJson(&config.ProfilePreview{Error: err.Error()})
+	}
+
+	return marshalJson(preview)
+}
+
 type ageKeyPair struct {
 	SecretKey string `json:"secretKey"`
 	PublicKey string `json:"publicKey"`

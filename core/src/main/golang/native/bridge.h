@@ -9,7 +9,7 @@
 
 typedef const char *c_string;
 
-extern void (*mark_socket_func)(void *tun_interface, int fd);
+extern int (*mark_socket_func)(void *tun_interface, int fd);
 
 extern int (*query_socket_uid_func)(void *tun_interface, int protocol, const char *source, const char *target);
 
@@ -26,7 +26,7 @@ extern void (*release_object_func)(void *obj);
 extern int (*open_content_func)(const char *url, char *error, int error_length);
 
 // cgo
-extern void mark_socket(void *interface, int fd);
+extern int mark_socket(void *interface, int fd);
 
 extern int query_socket_uid(void *interface, int protocol, char *source, char *target);
 

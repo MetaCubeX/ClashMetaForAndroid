@@ -227,6 +227,25 @@ Java_com_github_kr328_clash_core_bridge_Bridge_nativeLoad(JNIEnv *env, jobject t
     load(_completable, _path);
 }
 
+JNIEXPORT jstring JNICALL
+Java_com_github_kr328_clash_core_bridge_Bridge_nativeQueryProfilePreview(JNIEnv *env, jobject thiz,
+                                                                         jstring path,
+                                                                         jstring age_secret_key) {
+    TRACE_METHOD();
+
+    scoped_string _path = get_string(path);
+    scoped_string _age_secret_key = NULL;
+    if (age_secret_key != NULL)
+        _age_secret_key = get_string(age_secret_key);
+
+    scoped_string response = queryProfilePreview(_path, _age_secret_key);
+
+    if (response == NULL)
+        return NULL;
+
+    return new_string(response);
+}
+
 JNIEXPORT void JNICALL
 Java_com_github_kr328_clash_core_bridge_Bridge_nativeFetchAndValid(JNIEnv *env, jobject thiz,
                                                                     jobject callback,
@@ -414,14 +433,19 @@ static jclass c_clash_exception;
 static jclass c_content;
 static jobject o_unit;
 
-static void call_tun_interface_mark_socket_impl(void *tun_interface, int fd) {
+static int call_tun_interface_mark_socket_impl(void *tun_interface, int fd) {
     TRACE_METHOD();
 
     ATTACH_JNI();
 
-    (*env)->CallVoidMethod(env, (jobject) tun_interface,
-                           (jmethodID) m_tun_interface_mark_socket,
-                           (jint) fd);
+    jboolean result = (*env)->CallBooleanMethod(env, (jobject) tun_interface,
+                                                (jmethodID) m_tun_interface_mark_socket,
+                                                (jint) fd);
+    if (jni_catch_exception(env)) {
+        return 0;
+    }
+
+    return result ? 1 : 0;
 }
 
 static int call_tun_interface_query_socket_uid_impl(void *tun_interface, int protocol,
@@ -569,7 +593,7 @@ JNI_OnLoad(JavaVM *vm, void *reserved) {
     jclass c_unit = find_class("kotlin/Unit");
 
     m_tun_interface_mark_socket = find_method(c_tun_interface, "markSocket",
-                                              "(I)V");
+                                              "(I)Z");
     m_tun_interface_query_socket_uid = find_method(c_tun_interface, "querySocketUid",
                                                    "(ILjava/lang/String;Ljava/lang/String;)I");
     m_completable_complete = find_method(c_completable, "complete",

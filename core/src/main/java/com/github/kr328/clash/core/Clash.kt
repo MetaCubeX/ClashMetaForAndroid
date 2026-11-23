@@ -74,8 +74,8 @@ object Clash {
         querySocketUid: (protocol: Int, source: InetSocketAddress, target: InetSocketAddress) -> Int
     ) {
         val started = Bridge.nativeStartTun(fd, stack, gateway, portal, dns, object : TunInterface {
-            override fun markSocket(fd: Int) {
-                markSocket(fd)
+            override fun markSocket(fd: Int): Boolean {
+                return markSocket(fd)
             }
 
             override fun querySocketUid(protocol: Int, source: String, target: String): Int {
@@ -172,6 +172,16 @@ object Clash {
         return CompletableDeferred<Unit>().apply {
             Bridge.nativeLoad(this, path.absolutePath)
         }
+    }
+
+    fun queryProfilePreview(path: File, ageSecretKey: String?): ProfilePreview {
+        val json = Bridge.nativeQueryProfilePreview(
+            path.absolutePath,
+            ageSecretKey?.takeIf { it.isNotBlank() },
+        ) ?: throw ClashException("preview failed")
+        val preview = Json.decodeFromString(ProfilePreview.serializer(), json)
+        preview.error?.let { throw ClashException(it) }
+        return preview
     }
 
     fun queryProviders(): List<Provider> {

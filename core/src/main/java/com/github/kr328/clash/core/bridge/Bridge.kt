@@ -36,6 +36,7 @@ object Bridge {
     )
 
     external fun nativeLoad(completable: CompletableDeferred<Unit>, path: String)
+    external fun nativeQueryProfilePreview(path: String, ageSecretKey: String?): String?
     external fun nativeQueryProviders(): String
     external fun nativeUpdateProvider(
         completable: CompletableDeferred<Unit>,

@@ -1,3 +1,5 @@
+//go:build android && cmfa
+
 package app
 
 import (
