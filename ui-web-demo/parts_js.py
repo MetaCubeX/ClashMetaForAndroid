@@ -19,10 +19,10 @@ JS_BLOCK = r"""
         id: "hk01",
         group: "PROXY",
         flag: "🇭🇰",
-        name: "香港 BGP 01 [IEPL专线]",
+        name: "示例节点 01",
         type: "SS",
-        ip: "104.28.198.42",
-        geo: "Cloudflare HK",
+        ip: "192.0.2.1",
+        geo: "示例机房",
         ping: 38
       },
       currentGroup: "PROXY",
@@ -35,18 +35,18 @@ JS_BLOCK = r"""
 
       // Proxies List
       nodes: [
-        { id: "hk01", group: "PROXY", flag: "🇭🇰", name: "香港 BGP 01 [IEPL专线]", type: "SS", ping: 38, ip: "104.28.198.42", geo: "Cloudflare HK" },
-        { id: "hk02", group: "PROXY", flag: "🇭🇰", name: "香港 BGP 02 [直连优化]", type: "Vmess", ping: 45, ip: "104.28.198.50", geo: "HKIX" },
-        { id: "hk03", group: "PROXY", flag: "🇭🇰", name: "香港 03 [Netflix/Disney+]", type: "Trojan", ping: 52, ip: "103.21.244.12", geo: "HK Datacenter" },
-        { id: "jp01", group: "PROXY", flag: "🇯🇵", name: "日本 东京 01 [低延迟专线]", type: "SS", ping: 68, ip: "172.67.142.11", geo: "Tokyo Equinix" },
-        { id: "jp02", group: "PROXY", flag: "🇯🇵", name: "日本 大阪 02 [原生IP]", type: "VLESS", ping: 75, ip: "172.67.142.88", geo: "Osaka Sakura" },
-        { id: "sg01", group: "PROXY", flag: "🇸🇬", name: "新加坡 01 [BGP多线]", type: "SS", ping: 62, ip: "104.21.33.19", geo: "Singapore Singtel" },
-        { id: "sg02", group: "PROXY", flag: "🇸🇬", name: "新加坡 02 [流媒体解锁]", type: "Hysteria2", ping: 59, ip: "104.21.33.20", geo: "Singapore AWS" },
-        { id: "us01", group: "PROXY", flag: "🇺🇸", name: "美国 洛杉矶 01 [GIA优质线路]", type: "SS", ping: 142, ip: "198.41.214.10", geo: "Los Angeles Cera" },
-        { id: "us02", group: "PROXY", flag: "🇺🇸", name: "美国 硅谷 02 [ChatGPT专用]", type: "Trojan", ping: 156, ip: "198.41.214.22", geo: "San Jose Equinix" },
-        { id: "tw01", group: "PROXY", flag: "🇹🇼", name: "台湾 台北 01 [动画疯解锁]", type: "SS", ping: 48, ip: "104.28.156.12", geo: "Taipei Chunghwa" },
-        { id: "de01", group: "🇩🇪", flag: "🇩🇪", name: "德国 法兰克福 01 [欧洲节点]", type: "Vmess", ping: 210, ip: "188.114.97.10", geo: "Frankfurt" },
-        { id: "kr01", group: "PROXY", flag: "🇰🇷", name: "韩国 首尔 01 [低延迟]", type: "Trojan", ping: 64, ip: "104.28.12.90", geo: "Seoul KINX" }
+        { id: "node01", group: "PROXY", flag: "🌐", name: "示例节点 01", type: "SS", ping: 38, ip: "192.0.2.1", geo: "示例机房" },
+        { id: "node02", group: "PROXY", flag: "🌐", name: "示例节点 02", type: "Vmess", ping: 45, ip: "192.0.2.2", geo: "示例机房" },
+        { id: "node03", group: "PROXY", flag: "🌐", name: "示例节点 03", type: "Trojan", ping: 52, ip: "192.0.2.3", geo: "示例机房" },
+        { id: "node04", group: "PROXY", flag: "🌐", name: "示例节点 04", type: "SS", ping: 68, ip: "192.0.2.4", geo: "示例机房" },
+        { id: "node05", group: "PROXY", flag: "🌐", name: "示例节点 05", type: "VLESS", ping: 75, ip: "192.0.2.5", geo: "示例机房" },
+        { id: "node06", group: "PROXY", flag: "🌐", name: "示例节点 06", type: "SS", ping: 62, ip: "192.0.2.6", geo: "示例机房" },
+        { id: "node07", group: "PROXY", flag: "🌐", name: "示例节点 07", type: "Hysteria2", ping: 59, ip: "192.0.2.7", geo: "示例机房" },
+        { id: "node08", group: "PROXY", flag: "🌐", name: "示例节点 08", type: "SS", ping: 142, ip: "192.0.2.8", geo: "示例机房" },
+        { id: "node09", group: "PROXY", flag: "🌐", name: "示例节点 09", type: "Trojan", ping: 156, ip: "192.0.2.9", geo: "示例机房" },
+        { id: "node10", group: "PROXY", flag: "🌐", name: "示例节点 10", type: "SS", ping: 48, ip: "192.0.2.10", geo: "示例机房" },
+        { id: "node11", group: "PROXY", flag: "🌐", name: "示例节点 11", type: "Vmess", ping: 210, ip: "192.0.2.11", geo: "示例机房" },
+        { id: "node12", group: "PROXY", flag: "🌐", name: "示例节点 12", type: "Trojan", ping: 64, ip: "192.0.2.12", geo: "示例机房" }
       ],
 
       // PRD-003 App Definitions (Package Name, Label, isSystem, isDomestic)
@@ -54,7 +54,9 @@ JS_BLOCK = r"""
         { id: "tg", name: "Telegram", pkg: "org.telegram.messenger", icon: "✈️", isSystem: false, isDomestic: false },
         { id: "yt", name: "YouTube", pkg: "com.google.android.youtube", icon: "▶️", isSystem: false, isDomestic: false },
         { id: "tw", name: "X (Twitter)", pkg: "com.twitter.android", icon: "🐦", isSystem: false, isDomestic: false },
-        { id: "chrome", name: "Google Chrome", pkg: "com.android.chrome", icon: "🌐", isSystem: true, isDomestic: false },
+        { id: "chrome", name: "Google Chrome", pkg: "com.android.chrome", icon: "🌐", isSystem: false, isDomestic: false },
+        { id: "firefox", name: "Firefox", pkg: "org.mozilla.firefox", icon: "🦊", isSystem: false, isDomestic: false },
+        { id: "via", name: "Via", pkg: "mark.via", icon: "🧭", isSystem: false, isDomestic: false },
         { id: "netflix", name: "Netflix", pkg: "com.netflix.mediaclient", icon: "🎬", isSystem: false, isDomestic: false },
         { id: "discord", name: "Discord", pkg: "com.discord", icon: "💬", isSystem: false, isDomestic: false },
         { id: "github", name: "GitHub", pkg: "com.github.android", icon: "🐙", isSystem: false, isDomestic: false },
@@ -79,7 +81,7 @@ JS_BLOCK = r"""
           icon: "⚙️",
           isBuiltin: true,
           description: "Android 系统底层及系统服务组件 (自动按系统标识归类)",
-          packages: ["chrome", "settings", "play", "systemui"]
+          packages: ["settings", "play", "systemui"]
         },
         {
           id: "domestic",
@@ -88,6 +90,14 @@ JS_BLOCK = r"""
           isBuiltin: true,
           description: "基于 domestic_packages.txt 目录，可扩充自定义包名",
           packages: ["wx", "alipay", "bili", "taobao"]
+        },
+        {
+          id: "browsers",
+          name: "浏览器",
+          icon: "🌐",
+          isBuiltin: true,
+          description: "国内和国外网页浏览器，按 browser_packages.txt 匹配已安装应用",
+          packages: ["chrome", "firefox", "via"]
         },
         {
           id: "social",
@@ -146,10 +156,10 @@ JS_BLOCK = r"""
 
       // Active Connections
       connections: [
-        { host: "api.openai.com:443", process: "ChatGPT", group: "🤖 AI 智能", node: "香港 BGP 01", speed: "128 KB/s" },
-        { host: "rr3---sn-4g5ednks.googlevideo.com:443", process: "YouTube", group: "🎬 流媒体", node: "香港 BGP 02", speed: "3.2 MB/s" },
-        { host: "api.telegram.org:443", process: "Telegram", group: "🚀 节点选择", node: "新加坡 01", speed: "14 KB/s" },
-        { host: "gateway.discord.gg:443", process: "Discord", group: "🚀 节点选择", node: "日本 东京 01", speed: "42 KB/s" }
+        { host: "api.example.com:443", process: "ChatGPT", group: "🤖 AI 智能", node: "示例节点 01", speed: "128 KB/s" },
+        { host: "video.example.com:443", process: "YouTube", group: "🎬 流媒体", node: "示例节点 02", speed: "3.2 MB/s" },
+        { host: "chat.example.com:443", process: "Telegram", group: "🚀 节点选择", node: "示例节点 06", speed: "14 KB/s" },
+        { host: "voice.example.com:443", process: "Discord", group: "🚀 节点选择", node: "示例节点 04", speed: "42 KB/s" }
       ]
     };
 
@@ -311,12 +321,21 @@ JS_BLOCK = r"""
     }
 
     // Main Tab Switching
+    const pageScroll = {};
+
     function switchTab(tabId, subTab) {
+      const screen = document.getElementById("appScreen");
+      const currentPage = document.querySelector(".page-view.active");
+      if (currentPage) pageScroll[currentPage.id] = screen.scrollTop;
+
       document.querySelectorAll(".page-view").forEach(p => p.classList.remove("active"));
       document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active"));
       
       const targetPage = document.getElementById("page-" + tabId);
-      if (targetPage) targetPage.classList.add("active");
+      if (targetPage) {
+        targetPage.classList.add("active");
+        screen.scrollTop = pageScroll[targetPage.id] || 0;
+      }
 
       const navIndices = { dashboard: 0, proxies: 1, profiles: 2, apps: 3, settings: 4 };
       const items = document.querySelectorAll(".nav-item");
@@ -481,11 +500,11 @@ JS_BLOCK = r"""
               规则/节点数: <b style="color:var(--text-primary);">${p.count}</b> 条 · 更新于 ${p.updated}
             </div>
             <div style="display:flex; gap:6px;">
-              <button class="demo-btn" style="padding:4px 8px; font-size:11px;" onclick="updateSingleProvider('${p.id}')">
-                健康检查
+              <button class="icon-btn" style="width:30px; height:30px;" onclick="updateSingleProvider('${p.id}')" title="健康检查 / 测延迟">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
               </button>
-              <button class="demo-btn" style="padding:4px 8px; font-size:11px; background:var(--accent-blue-subtle); color:var(--accent-blue);" onclick="updateSingleProvider('${p.id}', true)">
-                更新
+              <button class="icon-btn icon-btn-primary" style="width:30px; height:30px;" onclick="updateSingleProvider('${p.id}', true)" title="立即更新 Provider">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
               </button>
             </div>
           </div>
@@ -517,7 +536,7 @@ JS_BLOCK = r"""
     }
 
     // =========================================================================
-    // APPS STRATEGY & ACCESS CONTROL (PRD-003 & PRD-004 TIIEHenry Fork Core)
+    // APPS STRATEGY & ACCESS CONTROL (PRD-003 & PRD-004 AgenticClash Core)
     // =========================================================================
 
     function selectActiveStrategy(uuid) {
@@ -548,7 +567,7 @@ JS_BLOCK = r"""
         globalCard.classList.toggle("active-strat", isGlobalActive);
       }
       if (globalRadio) {
-        globalRadio.textContent = isGlobalActive ? "●" : "";
+        globalRadio.innerHTML = isGlobalActive ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="width:11px; height:11px; display:block;"><polyline points="20 6 9 17 4 12"/></svg>' : "";
       }
       if (globalDesc) {
         globalDesc.textContent = `模式：仅允许选中的应用进入隧道 (白名单) · 已选 ${state.globalPackages.length} 个应用`;
@@ -596,23 +615,23 @@ JS_BLOCK = r"""
                   <span class="demo-tag" style="background:${modeBadgeBg}; color:${modeBadgeClass}; font-weight:700;">
                     ${strat.mode === "AcceptSelected" ? "白名单" : strat.mode === "DenySelected" ? "黑名单直连" : "全局放行"}
                   </span>
-                  ${isActive ? '<span class="demo-tag" style="background:rgba(48,209,88,0.15); color:var(--accent-green); font-weight:700;">● 生效中</span>' : ''}
+                  ${isActive ? '<span class="demo-tag" style="background:var(--accent-green-subtle); color:var(--accent-green); font-weight:600;">生效中</span>' : ''}
                 </div>
                 <div style="font-size:11px; color:var(--text-secondary); margin-top:3px;">${strat.modeDesc}</div>
               </div>
-              <div class="radio-indicator">${isActive ? "●" : ""}</div>
+              <div class="radio-indicator">${isActive ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="width:11px; height:11px; display:block;"><polyline points="20 6 9 17 4 12"/></svg>' : ""}</div>
             </div>
 
             <div style="display:flex; justify-content:space-between; align-items:center; margin-top:12px; padding-top:8px; border-top:1px solid var(--card-border); font-size:11px;">
               <span style="color:var(--text-tertiary);">
                 已勾选 <b style="color:var(--text-primary);">${strat.packages.length}</b> 款应用${setHint}
               </span>
-              <div style="display:flex; gap:6px;">
-                <button class="demo-btn" style="padding:4px 8px; font-size:11px;" onclick="event.stopPropagation(); openEditStrategyModal('${strat.id}')">
-                  编辑/管理
+              <div style="display:flex; gap:6px;" onclick="event.stopPropagation()">
+                <button class="icon-btn" style="width:30px; height:30px;" onclick="openEditStrategyModal('${strat.id}')" title="策略配置与模式">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
                 </button>
-                <button class="demo-btn" style="padding:4px 8px; font-size:11px; background:var(--accent-blue); color:#fff;" onclick="event.stopPropagation(); editStrategyApps('${strat.id}')">
-                  配置名单
+                <button class="icon-btn icon-btn-primary" style="width:30px; height:30px;" onclick="editStrategyApps('${strat.id}')" title="配置应用与集合名单">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
                 </button>
               </div>
             </div>
@@ -658,12 +677,12 @@ JS_BLOCK = r"""
             <div class="app-set-mgmt-footer">
               <span>共包含 <b style="color:var(--text-primary);">${set.packages.length}</b> 款应用</span>
               <div style="display:flex; gap:6px;">
-                <button class="app-set-edit-btn" onclick="openEditAppSetModal('${set.id}')">
-                  ✏️ 编辑成员与属性
+                <button class="icon-btn" style="width:30px; height:30px;" onclick="openEditAppSetModal('${set.id}')" title="编辑成员与集合属性">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
                 </button>
                 ${!set.isBuiltin ? `
-                  <button class="app-set-edit-btn" style="color:var(--accent-red); border-color:var(--accent-red-subtle);" onclick="deleteAppSetDirect('${set.id}')">
-                    🗑️ 删除
+                  <button class="icon-btn icon-btn-danger" style="width:30px; height:30px;" onclick="deleteAppSetDirect('${set.id}')" title="删除集合">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
                   </button>
                 ` : ''}
               </div>
@@ -968,8 +987,8 @@ JS_BLOCK = r"""
                 </div>
               </div>
               <div class="app-set-actions" onclick="event.stopPropagation()">
-                <button class="app-set-edit-btn" onclick="openEditAppSetModal('${set.id}')" title="编辑该集合成员与属性">
-                  ✏️ 编辑
+                <button class="icon-btn" style="width:28px; height:28px;" onclick="openEditAppSetModal('${set.id}')" title="编辑该集合成员与属性">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px; height:13px;"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
                 </button>
                 <div class="checkbox ${stateClass}" onclick="toggleAppSet('${set.id}')">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
@@ -1250,14 +1269,14 @@ JS_BLOCK = r"""
       openSheet("profilePropsSheet");
     }
 
-    // WebDAV Controls (TIIEHenry Fork Core)
+    // WebDAV Controls (AgenticClash Core)
     function openWebdavModal() {
       openSheet("webdavSheet");
     }
 
     function testWebdav() {
       showToast("正在连接 WebDAV 服务器...");
-      addLog("[WebDAV] Testing PROPFIND https://dav.jianguoyun.com/dav/clash-sync/");
+      addLog("[WebDAV] Testing PROPFIND https://example.com/dav/clash-meta/");
       setTimeout(() => {
         showToast("✅ WebDAV 连接测试成功，认证有效！");
         addLog("[WebDAV] Connection test passed (HTTP 207 Multi-Status)", "info");
@@ -1389,11 +1408,11 @@ JS_BLOCK = r"""
     });
 
     // Initial Logs
-    addLog("[Core] Clash.Meta v1.18.9 initiated with Android TUN stack");
+    addLog("[Core] mihomo v1.18.9 initiated with Android TUN stack");
     addLog("[TUN] gVisor virtual network device bound to tun0 at 198.18.0.1/16");
     addLog("[Strategy] Active strategy: [海外应用加速] (AcceptSelected: 7 apps)");
     addLog("[DNS] Sniffing enabled for TLS SNI and HTTP Host header");
-    addLog("[Rule] Matching api.openai.com -> Route to [🤖 AI 智能]");
+    addLog("[Rule] Matching api.example.com -> Route to [🤖 AI 智能]");
 
     // Active Connections
     document.getElementById("btnActiveConn").addEventListener("click", () => {
@@ -1414,13 +1433,13 @@ JS_BLOCK = r"""
       }
 
       const simulatedRaw = [
-        { host: "api.openai.com:443", appId: "tg", process: "Telegram", speed: "142 KB/s" },
-        { host: "rr3---sn-4g5ednks.googlevideo.com:443", appId: "yt", process: "YouTube", speed: "3.4 MB/s" },
-        { host: "api.twitter.com:443", appId: "tw", process: "X (Twitter)", speed: "84 KB/s" },
-        { host: "szextshort.weixin.qq.com:443", appId: "wx", process: "微信", speed: "12 KB/s" },
-        { host: "mobilegw.alipay.com:443", appId: "alipay", process: "支付宝", speed: "8 KB/s" },
-        { host: "api.bilibili.com:443", appId: "bili", process: "哔哩哔哩", speed: "2.1 MB/s" },
-        { host: "api.github.com:443", appId: "github", process: "GitHub", speed: "45 KB/s" }
+        { host: "chat.example.com:443", appId: "tg", process: "Telegram", speed: "142 KB/s" },
+        { host: "video.example.com:443", appId: "yt", process: "YouTube", speed: "3.4 MB/s" },
+        { host: "social.example.com:443", appId: "tw", process: "X (Twitter)", speed: "84 KB/s" },
+        { host: "message.example.com:443", appId: "wx", process: "微信", speed: "12 KB/s" },
+        { host: "payment.example.com:443", appId: "alipay", process: "支付宝", speed: "8 KB/s" },
+        { host: "media.example.com:443", appId: "bili", process: "哔哩哔哩", speed: "2.1 MB/s" },
+        { host: "code.example.com:443", appId: "github", process: "GitHub", speed: "45 KB/s" }
       ];
 
       const simulated = simulatedRaw.map(c => {
@@ -1500,9 +1519,16 @@ JS_BLOCK = r"""
     window.addEventListener("resize", resizeCanvas);
     setTimeout(resizeCanvas, 100);
 
+    function themeColor(name, fallback) {
+      const value = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+      return value || fallback;
+    }
+
     function drawWave() {
       const w = canvas.getBoundingClientRect().width;
       const h = canvas.getBoundingClientRect().height;
+      const accentBlue = themeColor("--accent-blue", "#5b8cff");
+      const accentGreen = themeColor("--accent-green", "#3ddb86");
       ctx.clearRect(0, 0, w, h);
 
       if (!state.running) {
@@ -1531,11 +1557,11 @@ JS_BLOCK = r"""
       ctx.lineTo(w, h);
       ctx.closePath();
       
-      const gradDown = ctx.createLinearGradient(0, 0, 0, h);
-      gradDown.addColorStop(0, "rgba(10, 132, 255, 0.28)");
-      gradDown.addColorStop(1, "rgba(10, 132, 255, 0.0)");
-      ctx.fillStyle = gradDown;
+      ctx.save();
+      ctx.globalAlpha = 0.18;
+      ctx.fillStyle = accentBlue;
       ctx.fill();
+      ctx.restore();
 
       ctx.beginPath();
       points.forEach((p, idx) => {
@@ -1545,7 +1571,7 @@ JS_BLOCK = r"""
         if (idx === 0) ctx.moveTo(x, y);
         else ctx.lineTo(x, y);
       });
-      ctx.strokeStyle = "#0a84ff";
+      ctx.strokeStyle = accentBlue;
       ctx.lineWidth = 2;
       ctx.stroke();
 
@@ -1558,7 +1584,7 @@ JS_BLOCK = r"""
         if (idx === 0) ctx.moveTo(x, y);
         else ctx.lineTo(x, y);
       });
-      ctx.strokeStyle = "#30d158";
+      ctx.strokeStyle = accentGreen;
       ctx.lineWidth = 1.5;
       ctx.stroke();
     }
@@ -1627,7 +1653,7 @@ JS_BLOCK = r"""
       state.trafficDown = 18.5 * 1024 * 1024;
       state.trafficUp = 3.2 * 1024 * 1024;
       showToast("🔥 模拟突发流量飙升: 18.5 MB/s");
-      addLog("[Traffic] Inbound traffic burst detected: 18.5 MB/s via [香港 BGP 01]", "warn");
+      addLog("[Traffic] Inbound traffic burst detected: 18.5 MB/s via [示例节点 01]", "warn");
     });
 
     // Initial render
@@ -1650,8 +1676,10 @@ JS_BLOCK = r"""
       const tab = params.get('tab') || (hash ? hash.split('/')[0] : null);
       const sub = params.get('sub') || (hash && hash.includes('/') ? hash.split('/')[1] : null);
       if (tab) {
-        switchTab(tab);
-        if (sub) toggleStrategySubTab(sub);
+        switchTab(tab, sub);
+        if (tab === 'apps' && sub) toggleStrategySubTab(sub);
+        if (tab === 'proxies' && sub) toggleProxySubTab(sub);
+        if (tab === 'profiles' && sub) toggleProfileSubTab(sub);
         const modal = params.get('modal');
         if (modal === 'editAppSet') {
           const setId = params.get('id') || 'domestic';

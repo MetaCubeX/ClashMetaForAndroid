@@ -5,7 +5,7 @@ html = """<!DOCTYPE html>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ClashMetaX UI Redesign - Interactive Prototype</title>
+  <title>AgenticClash UI Redesign - Interactive Prototype</title>
   <style>
     :root {
       --bg: #0c0d11;
@@ -251,8 +251,8 @@ html = """<!DOCTYPE html>
     }
 
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(6px); }
-      to { opacity: 1; transform: translateY(0); }
+      from { opacity: 0; }
+      to { opacity: 1; }
     }
 
     /* Navigation Bar */
@@ -1230,7 +1230,7 @@ html = """<!DOCTYPE html>
   <header class="demo-control-bar">
     <div class="demo-title-group">
       <h1>
-        <span>ClashMetaX</span>
+        <span>AgenticClash</span>
         <span class="demo-tag">UI 2.0 REDESIGN</span>
       </h1>
       <span style="font-size:12px; color:#aaa;">交互式高保真 Web 原型</span>
@@ -1282,7 +1282,7 @@ html = """<!DOCTYPE html>
         <!-- ================= TAB 1: 仪表盘 DASHBOARD ================= -->
         <section class="page-view active" id="page-dashboard">
           <div class="page-header">
-            <h2 class="page-title">ClashMetaX</h2>
+            <h2 class="page-title">AgenticClash</h2>
             <div class="page-header-actions">
               <button class="icon-btn" id="btnFastLogs" title="实时日志">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -1342,11 +1342,11 @@ html = """<!DOCTYPE html>
             </div>
             <div class="outbound-node-name">
               <span id="outboundFlag">🇭🇰</span>
-              <span id="outboundName">香港 BGP 01 [IEPL专线]</span>
+              <span id="outboundName">示例节点 01</span>
             </div>
             <div class="outbound-meta-row">
-              <span>出站 IP: <span class="outbound-ip-tag" id="outboundIp">104.28.198.42</span></span>
-              <span>数据中心: <b id="outboundGeo">Cloudflare HK</b></span>
+              <span>出站 IP: <span class="outbound-ip-tag" id="outboundIp">192.0.2.1</span></span>
+              <span>数据中心: <b id="outboundGeo">示例机房</b></span>
             </div>
           </div>
 
@@ -1479,11 +1479,11 @@ html = """<!DOCTYPE html>
             <div class="profile-header">
               <div>
                 <div class="profile-title">
-                  <span>香港 IEPL 专线 · 年付</span>
+                  <span>示例订阅 · 年付</span>
                   <span class="active-badge">生效中</span>
                 </div>
                 <div style="font-size:12px; color:var(--text-secondary); margin-top:2px;">
-                  https://sub.airport.io/api/v1/client/subscribe...
+                  https://example.com/subscribe...
                 </div>
               </div>
               <button class="icon-btn" onclick="updateSingleProfile(event, 'prof1')" title="刷新订阅">
@@ -1639,7 +1639,7 @@ html = """<!DOCTYPE html>
             </div>
             <div class="settings-item">
               <div class="settings-main">
-                <div class="settings-title">关于 ClashMetaX</div>
+                <div class="settings-title">关于 AgenticClash</div>
                 <div class="settings-desc">版本 2.11.35 · Mihomo Core 90a5afcc</div>
               </div>
               <span style="font-size:12px; color:var(--text-secondary);">v2.11</span>
@@ -1738,10 +1738,10 @@ html = """<!DOCTYPE html>
       uptimeSeconds: 5072,
       currentNode: {
         flag: "🇭🇰",
-        name: "香港 BGP 01 [IEPL专线]",
+        name: "示例节点 01",
         type: "SS",
-        ip: "104.28.198.42",
-        geo: "Cloudflare HK",
+        ip: "192.0.2.1",
+        geo: "示例机房",
         ping: 38
       },
       currentGroup: "PROXY",
@@ -1752,18 +1752,18 @@ html = """<!DOCTYPE html>
       samples: Array.from({ length: 40 }, () => ({ up: 200 + Math.random() * 300, down: 1200 + Math.random() * 2000 })),
       isGrid: true,
       nodes: [
-        { id: "hk01", group: "PROXY", flag: "🇭🇰", name: "香港 BGP 01 [IEPL专线]", type: "SS", ping: 38, ip: "104.28.198.42", geo: "Cloudflare HK" },
-        { id: "hk02", group: "PROXY", flag: "🇭🇰", name: "香港 BGP 02 [直连优化]", type: "Vmess", ping: 45, ip: "104.28.198.50", geo: "HKIX" },
-        { id: "hk03", group: "PROXY", flag: "🇭🇰", name: "香港 03 [Netflix/Disney+]", type: "Trojan", ping: 52, ip: "103.21.244.12", geo: "HK Datacenter" },
-        { id: "jp01", group: "PROXY", flag: "🇯🇵", name: "日本 东京 01 [低延迟专线]", type: "SS", ping: 68, ip: "172.67.142.11", geo: "Tokyo Equinix" },
-        { id: "jp02", group: "PROXY", flag: "🇯🇵", name: "日本 大阪 02 [原生IP]", type: "VLESS", ping: 75, ip: "172.67.142.88", geo: "Osaka Sakura" },
-        { id: "sg01", group: "PROXY", flag: "🇸🇬", name: "新加坡 01 [BGP多线]", type: "SS", ping: 62, ip: "104.21.33.19", geo: "Singapore Singtel" },
-        { id: "sg02", group: "PROXY", flag: "🇸🇬", name: "新加坡 02 [流媒体解锁]", type: "Hysteria2", ping: 59, ip: "104.21.33.20", geo: "Singapore AWS" },
-        { id: "us01", group: "PROXY", flag: "🇺🇸", name: "美国 洛杉矶 01 [GIA优质线路]", type: "SS", ping: 142, ip: "198.41.214.10", geo: "Los Angeles Cera" },
-        { id: "us02", group: "PROXY", flag: "🇺🇸", name: "美国 硅谷 02 [ChatGPT专用]", type: "Trojan", ping: 156, ip: "198.41.214.22", geo: "San Jose Equinix" },
-        { id: "tw01", group: "PROXY", flag: "🇹🇼", name: "台湾 台北 01 [动画疯解锁]", type: "SS", ping: 48, ip: "104.28.156.12", geo: "Taipei Chunghwa" },
-        { id: "de01", group: "PROXY", flag: "🇩🇪", name: "德国 法兰克福 01 [欧洲节点]", type: "Vmess", ping: 210, ip: "188.114.97.10", geo: "Frankfurt" },
-        { id: "kr01", group: "PROXY", flag: "🇰🇷", name: "韩国 首尔 01 [低延迟]", type: "Trojan", ping: 64, ip: "104.28.12.90", geo: "Seoul KINX" }
+        { id: "node01", group: "PROXY", flag: "🌐", name: "示例节点 01", type: "SS", ping: 38, ip: "192.0.2.1", geo: "示例机房" },
+        { id: "node02", group: "PROXY", flag: "🌐", name: "示例节点 02", type: "Vmess", ping: 45, ip: "192.0.2.2", geo: "示例机房" },
+        { id: "node03", group: "PROXY", flag: "🌐", name: "示例节点 03", type: "Trojan", ping: 52, ip: "192.0.2.3", geo: "示例机房" },
+        { id: "node04", group: "PROXY", flag: "🌐", name: "示例节点 04", type: "SS", ping: 68, ip: "192.0.2.4", geo: "示例机房" },
+        { id: "node05", group: "PROXY", flag: "🌐", name: "示例节点 05", type: "VLESS", ping: 75, ip: "192.0.2.5", geo: "示例机房" },
+        { id: "node06", group: "PROXY", flag: "🌐", name: "示例节点 06", type: "SS", ping: 62, ip: "192.0.2.6", geo: "示例机房" },
+        { id: "node07", group: "PROXY", flag: "🌐", name: "示例节点 07", type: "Hysteria2", ping: 59, ip: "192.0.2.7", geo: "示例机房" },
+        { id: "node08", group: "PROXY", flag: "🌐", name: "示例节点 08", type: "SS", ping: 142, ip: "192.0.2.8", geo: "示例机房" },
+        { id: "node09", group: "PROXY", flag: "🌐", name: "示例节点 09", type: "Trojan", ping: 156, ip: "192.0.2.9", geo: "示例机房" },
+        { id: "node10", group: "PROXY", flag: "🌐", name: "示例节点 10", type: "SS", ping: 48, ip: "192.0.2.10", geo: "示例机房" },
+        { id: "node11", group: "PROXY", flag: "🌐", name: "示例节点 11", type: "Vmess", ping: 210, ip: "192.0.2.11", geo: "示例机房" },
+        { id: "node12", group: "PROXY", flag: "🌐", name: "示例节点 12", type: "Trojan", ping: 64, ip: "192.0.2.12", geo: "示例机房" }
       ],
       apps: [
         { id: "tg", name: "Telegram", pkg: "org.telegram.messenger", icon: "✈️", checked: true },
@@ -1777,10 +1777,10 @@ html = """<!DOCTYPE html>
         { id: "bili", name: "哔哩哔哩", pkg: "tv.danmaku.bili", icon: "📺", checked: false }
       ],
       connections: [
-        { host: "api.openai.com:443", process: "ChatGPT", group: "🤖 AI 智能", node: "香港 BGP 01", speed: "128 KB/s" },
-        { host: "rr3---sn-4g5ednks.googlevideo.com", process: "YouTube", group: "🎬 流媒体", node: "香港 BGP 02", speed: "3.2 MB/s" },
-        { host: "api.telegram.org:443", process: "Telegram", group: "🚀 节点选择", node: "新加坡 01", speed: "14 KB/s" },
-        { host: "gateway.discord.gg:443", process: "Discord", group: "🚀 节点选择", node: "日本 东京 01", speed: "42 KB/s" }
+        { host: "api.example.com:443", process: "ChatGPT", group: "🤖 AI 智能", node: "示例节点 01", speed: "128 KB/s" },
+        { host: "video.example.com:443", process: "YouTube", group: "🎬 流媒体", node: "示例节点 02", speed: "3.2 MB/s" },
+        { host: "chat.example.com:443", process: "Telegram", group: "🚀 节点选择", node: "示例节点 06", speed: "14 KB/s" },
+        { host: "voice.example.com:443", process: "Discord", group: "🚀 节点选择", node: "示例节点 04", speed: "42 KB/s" }
       ]
     };
 
@@ -2105,10 +2105,10 @@ html = """<!DOCTYPE html>
     });
 
     // Initial Logs
-    addLog("[Core] Clash.Meta v1.18.9 initiated with Android TUN stack");
+    addLog("[Core] mihomo v1.18.9 initiated with Android TUN stack");
     addLog("[TUN] gVisor virtual network device bound to tun0 at 198.18.0.1/16");
     addLog("[DNS] Sniffing enabled for TLS SNI and HTTP Host header");
-    addLog("[Rule] Matching api.openai.com -> Route to [🤖 AI 智能]");
+    addLog("[Rule] Matching api.example.com -> Route to [🤖 AI 智能]");
 
     // Active Connections
     document.getElementById("btnActiveConn").addEventListener("click", () => {
@@ -2280,7 +2280,7 @@ html = """<!DOCTYPE html>
       state.trafficDown = 18.5 * 1024 * 1024;
       state.trafficUp = 3.2 * 1024 * 1024;
       showToast("🔥 模拟突发流量飙升: 18.5 MB/s");
-      addLog("[Traffic] Inbound traffic burst detected: 18.5 MB/s via [香港 BGP 01]", "warn");
+      addLog("[Traffic] Inbound traffic burst detected: 18.5 MB/s via [示例节点 01]", "warn");
     });
 
     // Initial render

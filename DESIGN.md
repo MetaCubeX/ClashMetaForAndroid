@@ -1,10 +1,10 @@
 ---
-title: "ClashMetaX 高层设计"
+title: "AgenticClash 高层设计"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-10-15
-summary: "UI 进程与 :background 进程的边界，以及六个 Gradle 模块的职责"
+updated: 2026-10-30
+summary: "UI 进程与 :background 进程的边界，以及壳层写入、名单投影和失败隔离"
 ---
 
 # 高层设计
@@ -15,7 +15,7 @@ summary: "UI 进程与 :background 进程的边界，以及六个 Gradle 模块�
 
 界面跑在默认进程。`ClashService`、`TunService`、`RemoteService`、配置处理与状态 Provider 声明在 `:background`。界面通过 `service` 模块的远程接口读写配置和隧道状态，不在 UI 进程里加载 `libclash.so` 的业务循环。
 
-`TunService` 持有 `android.net.VpnService`。流量是否进入隧道，由当前配置、访问控制名单，以及可选的应用分流策略决定。
+`TunService` 持有 `android.net.VpnService`。流量是否进入隧道，由当前配置、访问控制名单，以及可选的应用分流策略决定。有生效策略时用策略的模式和包名；没有时用应用分流页「默认回退」里的全局名单。
 
 ## 模块
 
@@ -36,6 +36,15 @@ mihomo 以 Git 子模块放在 `core/src/foss/golang/clash`。`core/src/main/gol
 
 ## Fork 行为
 
-相对上游界面，本 fork 增加三类用户可见行为：命名的应用分流策略、访问控制里的系统/国内应用集合、配置与策略的 WebDAV 同步。契约分别见 [访问控制](docs/systems/access-control/INDEX.md) 与 [WebDAV](docs/systems/webdav/INDEX.md)。
+相对上游界面，本 fork 增加三类用户可见行为：命名的应用分流策略、访问控制里的系统应用、国内应用和浏览器集合、配置与策略的 WebDAV 同步。契约分别见 [访问控制](docs/systems/access-control/INDEX.md) 与 [WebDAV](docs/systems/webdav/INDEX.md)。
 
 产品承诺见 [docs/product/](docs/product/INDEX.md)。这里不写验收步骤。
+
+## 写入与失败
+
+壳层遵守 [ADR 004](docs/decisions/commit-projection-session.md)：
+
+- 正式文件在新内容完整校验之后才替换。失败保留上一份完整内容。
+- 访问控制里看得见的名单是投影。全选、反选和剪贴板导入不删掉当前看不见的已选项。
+- 未按返回离开的编辑在重建后还在，存储仍只在 `finish()` 时写。
+- 代理页的一次失败不取消主界面。新的 HTTP 监听成功后才关掉旧的。套接字保护失败则这次拨号失败。

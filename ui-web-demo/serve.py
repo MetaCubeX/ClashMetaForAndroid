@@ -15,7 +15,7 @@ if __name__ == "__main__":
     socketserver.TCPServer.allow_reuse_address = True
     try:
         with socketserver.TCPServer(("", port), Handler) as httpd:
-            print(f"ClashMetaX UI Web Demo running at: http://localhost:{port}")
+            print(f"AgenticClash UI Web Demo running at: http://localhost:{port}")
             httpd.serve_forever()
     except OSError as e:
         print(f"Port {port} is busy, try another port. Error: {e}")

@@ -1,74 +1,66 @@
 """
-parts_css.py - CSS styles for ClashMetaX (CMFA) UI 2.0 Web Demo
-Theme: 现代极简原生 (Modern Minimalist Native)
-Style Principles:
-- True system dark & light grouped palettes (OLED #000000 / Grouped #F2F2F7)
-- Clean flat surfaces, 0.5px/1px hairline separation, zero gaudy gradients or neon glow
-- Native system ergonomics: Grouped lists, iOS/Material segmented controls, native switches
-- Restrained, purposeful color accents (System Blue, System Emerald Green, Orange, Red)
-- Clean typographic scale with native system font stacks
+parts_css.py - CSS styles for AgenticClash UI 2.0 Web Demo
+Theme: 现代极简原生。浅色中性灰底，深色抬升灰，一个强调色。
 """
 
 CSS_BLOCK = """
     :root {
-      /* OLED Dark System Palette */
-      --bg: #000000;
-      --card-bg: #15161a;
-      --card-subtle: #1f2026;
-      --card-border: rgba(255, 255, 255, 0.08);
-      --card-border-active: #0a84ff;
-      --card-border-green: #30d158;
-      --text-primary: #ffffff;
-      --text-secondary: #8e8e93;
-      --text-tertiary: #636366;
-      --accent-blue: #0a84ff;
-      --accent-blue-subtle: rgba(10, 132, 255, 0.12);
-      --accent-green: #30d158;
-      --accent-green-subtle: rgba(48, 209, 88, 0.12);
-      --accent-orange: #ff9f0a;
-      --accent-orange-subtle: rgba(255, 159, 10, 0.12);
-      --accent-red: #ff453a;
-      --accent-red-subtle: rgba(255, 69, 58, 0.12);
-      --accent-purple: #bf5af2;
-      --nav-bg: rgba(21, 22, 26, 0.85);
-      --nav-border: rgba(255, 255, 255, 0.06);
-      --sheet-bg: #18191e;
+      --bg: #121212;
+      --card-bg: #1e1e1e;
+      --card-subtle: #2a2a2a;
+      --card-border: transparent;
+      --card-border-active: #5b8cff;
+      --card-border-green: #3ddb86;
+      --text-primary: #f5f5f5;
+      --text-secondary: #9a9a9a;
+      --text-tertiary: #6e6e6e;
+      --accent-blue: #5b8cff;
+      --accent-blue-subtle: rgba(91, 140, 255, 0.14);
+      --accent-green: #3ddb86;
+      --accent-green-subtle: rgba(61, 219, 134, 0.14);
+      --accent-orange: #ff9a4a;
+      --accent-orange-subtle: rgba(255, 154, 74, 0.14);
+      --accent-red: #ff6b63;
+      --accent-red-subtle: rgba(255, 107, 99, 0.14);
+      --accent-purple: #3dcfb6;
+      --nav-bg: #1a1a1a;
+      --nav-border: transparent;
+      --sheet-bg: #1e1e1e;
       --badge-bg: rgba(255, 255, 255, 0.06);
       --shadow: none;
-      --radius-xs: 6px;
-      --radius-sm: 8px;
-      --radius-md: 12px;
-      --radius-lg: 16px;
-      --radius-xl: 22px;
-      --font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Roboto", "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
-      --font-mono: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Monaco, Consolas, monospace;
+      --radius-xs: 8px;
+      --radius-sm: 12px;
+      --radius-md: 16px;
+      --radius-lg: 20px;
+      --radius-xl: 24px;
+      --font-family: Roboto, "Noto Sans SC", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      --font-mono: ui-monospace, "Roboto Mono", "Cascadia Code", Menlo, Monaco, Consolas, monospace;
     }
 
     [data-theme="light"] {
-      /* Native Light Grouped Palette */
-      --bg: #f2f2f7;
+      --bg: #f3f4f6;
       --card-bg: #ffffff;
-      --card-subtle: #e9e9eb;
-      --card-border: rgba(0, 0, 0, 0.07);
-      --card-border-active: #007aff;
-      --card-border-green: #34c759;
-      --text-primary: #000000;
-      --text-secondary: #6c6c70;
-      --text-tertiary: #aeaeb2;
-      --accent-blue: #007aff;
-      --accent-blue-subtle: rgba(0, 122, 255, 0.1);
-      --accent-green: #34c759;
-      --accent-green-subtle: rgba(52, 199, 89, 0.1);
-      --accent-orange: #ff9500;
-      --accent-orange-subtle: rgba(255, 149, 0, 0.1);
-      --accent-red: #ff3b30;
-      --accent-red-subtle: rgba(255, 59, 48, 0.1);
-      --accent-purple: #af52de;
-      --nav-bg: rgba(255, 255, 255, 0.88);
-      --nav-border: rgba(0, 0, 0, 0.06);
+      --card-subtle: #eeeeee;
+      --card-border: transparent;
+      --card-border-active: #2b6cff;
+      --card-border-green: #12a150;
+      --text-primary: #1a1a1a;
+      --text-secondary: #8a8a8a;
+      --text-tertiary: #b0b0b0;
+      --accent-blue: #2b6cff;
+      --accent-blue-subtle: rgba(43, 108, 255, 0.10);
+      --accent-green: #12a150;
+      --accent-green-subtle: rgba(18, 161, 80, 0.10);
+      --accent-orange: #ff7a1a;
+      --accent-orange-subtle: rgba(255, 122, 26, 0.10);
+      --accent-red: #e5484d;
+      --accent-red-subtle: rgba(229, 72, 77, 0.10);
+      --accent-purple: #0e9f8a;
+      --nav-bg: #ffffff;
+      --nav-border: transparent;
       --sheet-bg: #ffffff;
       --badge-bg: rgba(0, 0, 0, 0.05);
-      --shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+      --shadow: none;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; user-select: none; }
@@ -86,12 +78,12 @@ CSS_BLOCK = """
 
     /* Phone Shell (Ultra-Slim Minimalist Bezel) */
     .device-wrapper { position: relative; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
-    .device-phone { width: 400px; height: 860px; background: var(--bg); border-radius: 44px; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), 0 0 0 4px #1c1d22, 0 0 0 5px rgba(255,255,255,0.06); overflow: hidden; display: flex; flex-direction: column; position: relative; }
+    .device-phone { width: 400px; height: 860px; background: var(--bg); border-radius: 28px; box-shadow: 0 18px 48px rgba(0, 0, 0, 0.28); overflow: hidden; display: flex; flex-direction: column; position: relative; }
     .device-phone.fullscreen-mode { width: 100vw; max-width: 480px; height: 94vh; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); border: 1px solid var(--card-border); }
     
     /* Native Status Bar */
     .status-bar { height: 42px; padding: 0 22px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: 600; color: var(--text-primary); z-index: 50; position: relative; }
-    .status-notch { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); width: 104px; height: 22px; background: #000; border-radius: 14px; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 0 8px; }
+    .status-notch { display: none; }
     .status-camera { width: 9px; height: 9px; border-radius: 50%; background: #0d0d0f; border: 1px solid #1a1a1f; }
     .status-island-icon { font-size: 9px; color: var(--accent-green); opacity: 0; transition: opacity 0.25s; }
     .status-island-icon.active { opacity: 1; }
@@ -101,20 +93,20 @@ CSS_BLOCK = """
     .app-screen::-webkit-scrollbar { display: none; }
     .page-view { display: none; animation: fadeIn 0.2s ease-out; }
     .page-view.active { display: block; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
     /* Native Segmented Switcher (Top of Apps & elsewhere) */
-    .sub-page-switcher { background: var(--card-subtle); border: 1px solid var(--card-border); border-radius: 9px; display: flex; padding: 2px; margin-bottom: 14px; }
-    .sub-switch-btn { flex: 1; text-align: center; padding: 6px 0; font-size: 12px; font-weight: 500; color: var(--text-secondary); border-radius: 7px; cursor: pointer; transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1); }
-    .sub-switch-btn.active { background: var(--card-bg); color: var(--text-primary); font-weight: 600; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12); border: 0.5px solid var(--card-border); }
+    .sub-page-switcher { background: var(--card-subtle); border: none; border-radius: 12px; display: flex; padding: 3px; margin-bottom: 14px; min-height: 40px; }
+    .sub-switch-btn { flex: 1; text-align: center; padding: 8px 0; font-size: 14px; font-weight: 500; color: var(--text-secondary); border-radius: 10px; cursor: pointer; transition: background 0.18s ease, color 0.18s ease; }
+    .sub-switch-btn.active { background: var(--card-bg); color: var(--text-primary); font-weight: 600; box-shadow: none; border: none; }
 
     /* Native Bottom Tab Navigation Bar */
-    .bottom-nav { position: absolute; bottom: 0; left: 0; right: 0; height: 74px; background: var(--nav-bg); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border-top: 0.5px solid var(--nav-border); display: flex; justify-content: space-around; align-items: flex-start; padding-top: 7px; z-index: 40; }
+    .bottom-nav { position: absolute; bottom: 0; left: 0; right: 0; height: 74px; background: var(--nav-bg); backdrop-filter: none; -webkit-backdrop-filter: none; border-top: none; display: flex; justify-content: space-around; align-items: flex-start; padding-top: 7px; z-index: 40; }
     .nav-item { display: flex; flex-direction: column; align-items: center; gap: 2px; color: var(--text-secondary); font-size: 10px; font-weight: 500; cursor: pointer; width: 58px; transition: color 0.15s; }
     .nav-item svg { width: 21px; height: 21px; stroke-width: 1.8; transition: transform 0.15s; }
     .nav-item:active svg { transform: scale(0.9); }
     .nav-item.active { color: var(--accent-blue); font-weight: 600; }
-    .nav-indicator { position: absolute; bottom: 5px; left: 50%; transform: translateX(-50%); width: 120px; height: 4px; background: var(--text-primary); opacity: 0.22; border-radius: 2px; }
+    .nav-indicator { display: none; }
 
     /* Native Flat Cards */
     .card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: var(--radius-lg); padding: 14px 16px; margin-bottom: 10px; box-shadow: var(--shadow); transition: transform 0.15s, border-color 0.15s; }
@@ -122,13 +114,20 @@ CSS_BLOCK = """
     
     /* Page Headers */
     .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; padding: 2px 2px; }
-    .page-title { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
+    .page-title { font-size: 22px; font-weight: 600; letter-spacing: -0.3px; }
     .page-header-actions { display: flex; gap: 8px; }
-    .icon-btn { width: 34px; height: 34px; border-radius: 50%; background: var(--card-subtle); border: 1px solid var(--card-border); color: var(--text-primary); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s; }
+        .icon-btn { width: 36px; height: 36px; border-radius: 50%; background: var(--card-subtle); border: none; color: var(--text-primary); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s; flex-shrink: 0; }
+    .icon-btn svg { width: 18px; height: 18px; display: block; flex-shrink: 0; }
+    .icon-btn:hover { background: var(--badge-bg); color: var(--text-primary); }
+    .icon-btn:active { transform: scale(0.92); }
+    .icon-btn-primary { background: var(--accent-blue); color: #ffffff; border-color: var(--accent-blue); }
+    .icon-btn-primary:hover { opacity: 0.9; }
+    .icon-btn-danger { color: var(--accent-red); border-color: rgba(255, 69, 58, 0.25); }
+    .icon-btn-danger:hover { background: var(--accent-red-subtle); }
     .icon-btn:active { transform: scale(0.92); }
 
     /* Hero Master Connect Card (Clean Minimalist Native) */
-    .hero-connect-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: var(--radius-xl); padding: 18px 16px; position: relative; overflow: hidden; margin-bottom: 12px; }
+    .hero-connect-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: var(--radius-lg); padding: 18px 16px; position: relative; overflow: hidden; margin-bottom: 12px; }
     .connect-top-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
     .connect-status-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; background: var(--card-subtle); border: 1px solid var(--card-border); color: var(--text-secondary); transition: all 0.2s; }
     .connect-status-badge.running { background: var(--accent-green-subtle); border-color: rgba(48, 209, 88, 0.25); color: var(--accent-green); }
@@ -138,19 +137,19 @@ CSS_BLOCK = """
     
     /* Native Tactile Master Power Button */
     .connect-center { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 4px 0 14px; }
-    .power-button { width: 74px; height: 74px; border-radius: 50%; background: var(--card-subtle); border: 1.5px solid var(--card-border); color: var(--text-secondary); display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative; transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1); }
+    .power-button { width: 72px; height: 72px; border-radius: 50%; background: var(--card-subtle); border: none; color: var(--text-secondary); display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative; transition: transform 0.18s ease, background 0.18s ease; }
     .power-button svg { width: 32px; height: 32px; transition: all 0.2s; }
     .power-button:active { transform: scale(0.92); }
-    .power-button.running { background: var(--accent-green); border-color: var(--accent-green); color: #ffffff; box-shadow: 0 4px 16px rgba(48, 209, 88, 0.28); }
+    .power-button.running { background: var(--accent-green); border-color: var(--accent-green); color: #ffffff; box-shadow: none; }
     .power-button.connecting { border-color: var(--accent-blue); color: var(--accent-blue); animation: spinBorder 1.2s linear infinite; }
     @keyframes spinBorder { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     .power-hint { margin-top: 10px; font-size: 14px; font-weight: 600; color: var(--text-primary); letter-spacing: -0.2px; }
     .power-subhint { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
 
     /* Native iOS / Material Segmented Mode Picker */
-    .mode-segmented-control { background: var(--card-subtle); border: 1px solid var(--card-border); border-radius: 9px; display: flex; padding: 2px; margin-top: 12px; }
-    .mode-tab { flex: 1; text-align: center; padding: 6px 0; font-size: 12px; font-weight: 500; color: var(--text-secondary); border-radius: 7px; cursor: pointer; transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1); }
-    .mode-tab.active { background: var(--card-bg); color: var(--text-primary); font-weight: 600; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12); border: 0.5px solid var(--card-border); }
+    .mode-segmented-control { background: var(--card-subtle); border: none; border-radius: 12px; display: flex; padding: 3px; margin-top: 12px; min-height: 40px; }
+    .mode-tab { flex: 1; text-align: center; padding: 8px 0; font-size: 14px; font-weight: 500; color: var(--text-secondary); border-radius: 10px; cursor: pointer; transition: background 0.18s ease, color 0.18s ease; }
+    .mode-tab.active { background: var(--card-bg); color: var(--text-primary); font-weight: 600; box-shadow: none; border: none; }
 
     /* Outbound Node & Egress Perception Card */
     .outbound-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: var(--radius-lg); padding: 13px 15px; margin-bottom: 10px; cursor: pointer; transition: all 0.18s; }
@@ -191,7 +190,7 @@ CSS_BLOCK = """
     .proxy-grid.list-view { grid-template-columns: 1fr; }
     .node-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: var(--radius-md); padding: 11px 12px; cursor: pointer; transition: all 0.15s; position: relative; display: flex; flex-direction: column; justify-content: space-between; }
     .node-card:active { transform: scale(0.98); }
-    .node-card.selected { border-color: var(--accent-blue); background: var(--card-bg); box-shadow: 0 0 0 1px var(--accent-blue); }
+    .node-card.selected { border-color: var(--accent-blue); background: var(--card-bg); }
     .node-name { font-size: 12px; font-weight: 600; color: var(--text-primary); margin-bottom: 8px; line-height: 1.35; }
     .node-footer { display: flex; align-items: center; justify-content: space-between; }
     .node-type-pill { font-size: 9px; font-weight: 600; text-transform: uppercase; padding: 2px 5px; border-radius: 4px; background: var(--badge-bg); color: var(--text-secondary); }
@@ -205,7 +204,7 @@ CSS_BLOCK = """
     .provider-info h4 { font-size: 13px; font-weight: 600; margin-bottom: 2px; display: flex; align-items: center; gap: 6px; }
     .provider-info p { font-size: 11px; color: var(--text-secondary); }
     .profile-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: var(--radius-lg); padding: 14px 16px; margin-bottom: 10px; position: relative; cursor: pointer; }
-    .profile-card.active-profile { border-color: var(--accent-blue); box-shadow: 0 0 0 1px var(--accent-blue); }
+    .profile-card.active-profile { border-color: var(--accent-blue); background: var(--card-bg); }
     .profile-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
     .progress-bar-track { width: 100%; height: 5px; background: var(--card-subtle); border-radius: 3px; overflow: hidden; margin: 6px 0; }
     .progress-bar-fill { height: 100%; background: var(--accent-blue); border-radius: 3px; }
@@ -213,17 +212,27 @@ CSS_BLOCK = """
     .expiry-tag { color: var(--accent-orange); font-weight: 600; }
     .file-row { display: flex; align-items: center; justify-content: space-between; padding: 11px 13px; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: var(--radius-md); margin-bottom: 8px; }
 
-    /* Strategy Cards & Radio (PRD-004) */
-    .strategy-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: var(--radius-md); padding: 13px 15px; margin-bottom: 10px; transition: all 0.15s ease; cursor: pointer; position: relative; }
-    .strategy-card.active-strat { border-color: var(--accent-green); background: var(--card-bg); box-shadow: 0 0 0 1px var(--accent-green); }
-    .strategy-card.active-strat::before { content: ""; position: absolute; left: 0; top: 10px; bottom: 10px; width: 3px; border-radius: 0 3px 3px 0; background: var(--accent-green); }
-    .radio-indicator { width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid var(--card-border); display: flex; align-items: center; justify-content: center; font-size: 12px; color: transparent; transition: all 0.15s ease; }
-    .strategy-card.active-strat .radio-indicator { border-color: var(--accent-green); background: var(--accent-green); color: #fff; }
+    /* Strategy Cards & Radio (PRD-004 - Modern Minimalist Native) */
+    .strategy-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: var(--radius-lg); padding: 14px 16px; margin-bottom: 10px; transition: all 0.15s ease; cursor: pointer; position: relative; }
+    .strategy-card.active-strat { border-color: var(--card-border-green); background: var(--card-bg); }
+    .radio-indicator { width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid var(--text-tertiary); display: flex; align-items: center; justify-content: center; transition: all 0.15s ease; background: transparent; flex-shrink: 0; }
+    .strategy-card.active-strat .radio-indicator { border-color: var(--accent-green); background: var(--accent-green); color: #ffffff; }
+
+    /* Inset Grouped Lists (Apple HIG & Material 3 Native) */
+    .grouped-list { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: var(--radius-lg); overflow: hidden; margin-bottom: 12px; }
+    .grouped-list .app-item-row { margin-bottom: 0; border: none; border-radius: 0; border-bottom: 1px solid rgba(128, 128, 128, 0.12); padding: 12px 14px; background: transparent; }
+    .grouped-list .app-item-row:last-child { border-bottom: none; }
+    .grouped-list .app-item-row:hover { background: var(--card-subtle); }
+    .grouped-list .app-item-row:active { background: var(--card-subtle); }
+    .grouped-list .app-set-card { margin-bottom: 0; border: none; border-radius: 0; border-bottom: 1px solid rgba(128, 128, 128, 0.12); padding: 12px 14px; background: transparent; }
+    .grouped-list .app-set-card:last-child { border-bottom: none; }
+    .grouped-list .app-set-card:hover { background: var(--card-subtle); }
+    .grouped-list .app-set-card:active { background: var(--card-subtle); }
 
     /* App Items & Native Checkbox */
     .app-item-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: var(--radius-sm); margin-bottom: 6px; cursor: pointer; transition: background 0.15s; }
     .app-item-row:hover { background: var(--card-subtle); }
-    .checkbox { width: 20px; height: 20px; border-radius: 5px; border: 1.5px solid var(--card-border); display: flex; align-items: center; justify-content: center; transition: all 0.15s; background: transparent; }
+    .checkbox { width: 20px; height: 20px; border-radius: 6px; border: 1.5px solid var(--text-tertiary); display: flex; align-items: center; justify-content: center; transition: all 0.15s; background: transparent; }
     .checkbox.checked { background: var(--accent-blue); border-color: var(--accent-blue); }
     .checkbox svg { width: 13px; height: 13px; color: #fff; display: none; }
     .checkbox.checked svg { display: block; }
@@ -233,21 +242,21 @@ CSS_BLOCK = """
 
     /* Native Grouped Settings (iOS / Material 3 Style) */
     .settings-group { margin-bottom: 16px; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: var(--radius-md); overflow: hidden; }
-    .settings-group-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-secondary); margin: 14px 4px 6px; }
-    .settings-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; background: transparent; border: none; border-bottom: 0.5px solid var(--card-border); cursor: pointer; transition: background 0.12s; }
+    .settings-group-title { font-size: 14px; font-weight: 500; text-transform: none; letter-spacing: 0; color: var(--text-secondary); margin: 14px 4px 8px; }
+    .settings-item { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; background: transparent; border: none; border-bottom: none; cursor: pointer; transition: background 0.12s; }
     .settings-item:last-child { border-bottom: none; }
     .settings-item:active { background: var(--card-subtle); }
     .settings-main { display: flex; flex-direction: column; gap: 2px; }
-    .settings-title { font-size: 13px; font-weight: 500; color: var(--text-primary); }
+    .settings-title { font-size: 16px; font-weight: 500; color: var(--text-primary); }
     .settings-desc { font-size: 11px; color: var(--text-secondary); }
 
     /* Native Switch Control */
-    .switch { position: relative; display: inline-block; width: 44px; height: 25px; }
+    .switch { position: relative; display: inline-block; width: 40px; height: 22px; }
     .switch input { opacity: 0; width: 0; height: 0; }
-    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--card-subtle); border: 1px solid var(--card-border); transition: 0.25s cubic-bezier(0.16, 1, 0.3, 1); border-radius: 25px; }
-    .slider:before { position: absolute; content: ""; height: 19px; width: 19px; left: 2px; bottom: 2px; background-color: white; transition: 0.25s cubic-bezier(0.16, 1, 0.3, 1); border-radius: 50%; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
-    input:checked + .slider { background-color: var(--accent-green); border-color: var(--accent-green); }
-    input:checked + .slider:before { transform: translateX(19px); }
+    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--card-subtle); border: none; transition: 0.2s ease; border-radius: 22px; }
+    .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: white; transition: 0.2s ease; border-radius: 50%; box-shadow: none; }
+    input:checked + .slider { background-color: var(--accent-blue); border-color: var(--accent-blue); }
+    input:checked + .slider:before { transform: translateX(18px); }
 
     /* Native Bottom Sheets & Modals */
     .bottom-sheet-backdrop { position: absolute; inset: 0; background: rgba(0, 0, 0, 0.55); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 90; opacity: 0; pointer-events: none; transition: opacity 0.25s ease; }
@@ -262,7 +271,7 @@ CSS_BLOCK = """
     /* Toast */
     .toast-container { position: absolute; top: 48px; left: 50%; transform: translateX(-50%); z-index: 120; display: flex; flex-direction: column; gap: 6px; pointer-events: none; width: 90%; max-width: 320px; }
     .toast { background: rgba(26, 27, 34, 0.94); color: #fff; backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); padding: 8px 14px; border-radius: 10px; font-size: 12px; font-weight: 500; display: flex; align-items: center; gap: 8px; border: 1px solid rgba(255, 255, 255, 0.08); animation: toastIn 0.25s cubic-bezier(0.16, 1, 0.3, 1); box-shadow: 0 4px 14px rgba(0,0,0,0.25); }
-    [data-theme="light"] .toast { background: rgba(255, 255, 255, 0.95); color: #1c1c1e; border-color: rgba(0,0,0,0.08); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); }
+    [data-theme="light"] .toast { background: #ffffff; color: #1a1a1a; border-color: transparent; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); }
     @keyframes toastIn { from { opacity: 0; transform: translateY(-10px) scale(0.96); } to { opacity: 1; transform: translateY(0); } }
 
     /* Form Inputs */

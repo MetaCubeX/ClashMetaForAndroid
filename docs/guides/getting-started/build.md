@@ -3,17 +3,17 @@ title: "构建、配置与测试"
 type: guide
 status: accepted
 phase: N/A
-updated: 2026-10-15
-summary: "Gradle 8.10.2、JDK 21、meta/alpha flavor、地理数据、签名回退和 mihomo 子模块 pin"
+updated: 2026-10-25
+summary: "Gradle 8.10.2、JDK 21、共用 applicationId 的 meta/alpha flavor、地理数据、签名回退和 mihomo 子模块 pin"
 ---
 
 # 构建、配置与测试
 
-数字来自当前 Gradle 文件与子模块检出。根 [README.md](../../../README.md) 仍写 OpenJDK 11 和 `assembleAlphaRelease`，那是上游步骤。本文件是本仓库的构建说明。
+数字来自当前 Gradle 文件与子模块检出。根 [README.md](../../../README.md) 是英文项目介绍，构建细节以本文件为准。
 
 ## 远程
 
-当前只配置了 `origin`：`git@github.com:TIIEHenry/ClashMetaForAndroid.git`。没有名为 `upstream` 的远程。
+开源发布仓库是 `https://github.com/TIIEHenry/AgenticClash`。它从当前工作区重新初始化，不带旧 Git 历史；旧仓库 `TIIEHenry/ClashMetaForAndroid` 只作为上游对照，不作为发布远程。
 
 ## 工具链
 
@@ -32,14 +32,14 @@ summary: "Gradle 8.10.2、JDK 21、meta/alpha flavor、地理数据、签名回�
 
 ## Flavor 与包名
 
-`productFlavors` 的维度是 `feature`。`alpha` 是默认 flavor。未设置 `local.properties` 的 `remove.suffix=true` 时：
+`productFlavors` 的维度是 `feature`。`alpha` 是默认 flavor。两个 flavor 共用同一个 `applicationId`，不再加包名后缀：
 
-| Flavor | applicationId 后缀 | versionName 后缀 |
-|:-------|:-------------------|:-----------------|
-| alpha | `.alpha` | `.Alpha` |
-| meta | `.meta` | `.Meta` |
+| Flavor | applicationId | versionName 后缀 |
+|:-------|:--------------|:-----------------|
+| alpha | `universe.agentic.device.clash` | `.Alpha` |
+| meta | `universe.agentic.device.clash` | `.Meta` |
 
-基名是 `com.github.metacubex.clash`。meta 包名是 `com.github.metacubex.clash.meta`。应用的 `namespace` 是 `com.github.kr328.clash`，其他模块是 `com.github.kr328.clash.<模块名>`。`namespace` 与 `applicationId` 不是同一个字段。
+`local.properties` 的 `custom.application.id` 仍可覆盖它。`remove.suffix=true` 只去掉 versionName 后缀。应用的 `namespace` 是 `com.github.kr328.clash`，其他模块是 `com.github.kr328.clash.<模块名>`。`namespace` 与 `applicationId` 不是同一个字段。定制界面、本地 MCP 的源码包名是 `universe.agentic.clash` 与 `universe.agentic.device.clash`。
 
 两个 flavor 的 Java 源都使用 `src/foss/java`。`core` 的 Go 源也都指向 `core/src/foss/golang`。
 
@@ -60,7 +60,7 @@ summary: "Gradle 8.10.2、JDK 21、meta/alpha flavor、地理数据、签名回�
 - `ASN.mmdb`（上游文件名 `GeoLite2-ASN.mmdb`）
 - `BundleMRS.7z`
 
-来源是 `MetaCubeX/meta-rules-dat` 的 `latest` release。`:app:clean` 会删除整个 `app/src/main/assets`。国内应用名单不放这里，因为它会被 clean 清掉；名单在 `app/src/main/res/raw/domestic_packages.txt`。
+来源是 `MetaCubeX/meta-rules-dat` 的 `latest` release。`:app:clean` 会删除整个 `app/src/main/assets`。国内应用名单和浏览器名单不放这里，因为会被 clean 清掉；名单在 `app/src/main/res/raw/domestic_packages.txt` 和 `app/src/main/res/raw/browser_packages.txt`。
 
 ## 本地配置与签名
 
@@ -77,11 +77,17 @@ custom.application.id=com.example.clash
 remove.suffix=true
 ```
 
-`signing.properties` 存在时，release 使用仓库根的 `release.keystore`，并读取 `keystore.password`、`key.alias`、`key.password`。文件不存在时，release 的 `signingConfig` 回退到 debug keystore。`*.keystore` 也被忽略。
+`signing.properties` 存在时，release 读取 `keystore.password`、`key.alias`、`key.password`，密钥库文件固定为仓库根的 `release.keystore`，与上游相同。这份 `release.keystore` 继续进 Git。文件不存在时，release 的 `signingConfig` 回退到 debug keystore。其它 `*.keystore` 仍被忽略。
+
+发布工作流不覆盖仓库里的 `release.keystore`，也不把 `signing.properties` 打到日志。`Build Release` 和 `Build Pre-Release` 调用 `scripts/write-signing-properties.py`，按 `java.util.Properties` 的转义规则写入口令、别名和 key 口令。口令里的反斜杠、`$`、反引号、`=`、`:` 和空白都能原样读回。三个 secret 缺一个，工作流在构建前失败：
+
+- `SIGNING_STORE_PASSWORD`
+- `SIGNING_KEY_ALIAS`
+- `SIGNING_KEY_PASSWORD`
 
 ## mihomo 子模块
 
-`.gitmodules` 把 `core/src/foss/golang/clash` 指向 `https://github.com/MetaCubeX/mihomo` 的 `Alpha` 分支。`core/src/main/golang/go.mod` 用下面这一行替换模块：
+`.gitmodules` 把 `core/src/foss/golang/clash` 指向 `https://github.com/TIIEHenry/mihomo` 的 `ca-bundle` 分支。这是 [MetaCubeX/mihomo](https://github.com/MetaCubeX/mihomo) 的 fork。`core/src/main/golang/go.mod` 用下面这一行替换模块：
 
 ```
 replace github.com/metacubex/mihomo => ../../foss/golang/clash
@@ -91,7 +97,9 @@ replace github.com/metacubex/mihomo => ../../foss/golang/clash
 
 CMake 在 `core/src/main/cpp/CMakeLists.txt` 里执行 `git submodule foreach git branch -r --contains <commit>`。检出处于游离 HEAD，且没有任何远程跟踪分支包含该提交时，这一步拿不到分支名，配置失败。
 
-当前子模块提交是 `90a5afcc06a174033538aa7c844917cf0933cade`，由本仓库里的 `origin/ca-bundle` 包含。它不一定在 GitHub 上的 `Alpha` 顶端。初始化后如果 CMake 报分支为空，需要有一个包含该提交的远程跟踪引用，而不是只留下游离 HEAD。
+对这个子模块的修改，提交或推送前要经过子代理审查。审查只看这次内核 diff。
+
+当前子模块提交是 `e4c61f30d8011aa3eb6a0f8cb46b1d9356018c9a`，在 fork 的 `ca-bundle` 上。它修了 SOCKS UDP 关联、粘性会话、探活状态、Hysteria 重组、分享链接用户信息和 `http_simple` 空读。其下 `563a0da461ab1cdae3dd9c943d85fcd3ff4700f1` 记录 Android 构建已经在用的内核修改，父提交 `90a5afcc06a174033538aa7c844917cf0933cade` 加入 CA 证书包。`ca-bundle` 不是上游 `Alpha`。初始化后如果 CMake 报分支为空，在子模块里执行 `git fetch origin ca-bundle`，让 `origin/ca-bundle` 包含该提交。不要把 fork 的默认分支改成 `ca-bundle`：CMake 取 `git branch -r --contains` 的第一行，`origin/HEAD` 排在前面时版本字符串会带上 `HEAD`。
 
 ## 测试
 

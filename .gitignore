@@ -69,3 +69,9 @@ __pycache__/
 
 # MacOS
 .DS_Store
+
+# local agent and build verification caches
+.mimocode/
+.gradle-verify/
+.kotlin-verify/
+*.stale-*/

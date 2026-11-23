@@ -3,7 +3,7 @@ HTML_BODY = """
   <header class="demo-control-bar">
     <div class="demo-title-group">
       <h1>
-        <span>ClashMetaX</span>
+        <span>AgenticClash</span>
         <span class="demo-tag">UI 2.0 FULL</span>
       </h1>
       <div style="display:flex; gap:6px; flex-wrap:wrap; margin-top:4px;">
@@ -15,14 +15,20 @@ HTML_BODY = """
     </div>
 
     <div class="demo-actions">
-      <button class="demo-btn" id="btnThemeToggle">
-        <span id="themeIcon">☀️</span> <span>主题</span>
+      <button class="icon-btn" id="btnThemeToggle" title="切换深色/浅色主题">
+        <span id="themeIcon" style="font-size:13px;">☀️</span>
       </button>
-      <button class="demo-btn" id="btnPhoneMode">
-        <span>📱</span> <span id="phoneModeText">全屏平铺</span>
+      <button class="icon-btn" id="btnPhoneMode" title="切换全屏/手机外壳视图">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="5" y="2" width="14" height="20" rx="2" ry="2"/>
+          <line x1="12" y1="18" x2="12.01" y2="18"/>
+        </svg>
+        <span id="phoneModeText" style="display:none;">全屏平铺</span>
       </button>
-      <button class="demo-btn" id="btnRandomSpike">
-        <span>⚡</span> <span>突发流量</span>
+      <button class="icon-btn" id="btnRandomSpike" title="模拟突发流量压测">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+        </svg>
       </button>
     </div>
   </header>
@@ -61,8 +67,8 @@ HTML_BODY = """
         <section class="page-view active" id="page-dashboard">
           <div class="page-header">
             <div>
-              <h2 class="page-title">ClashMetaX</h2>
-              <div style="font-size:11px; color:var(--text-secondary); margin-top:1px;">Mihomo Core · TIIEHenry Fork</div>
+              <h2 class="page-title">AgenticClash</h2>
+              <div style="font-size:11px; color:var(--text-secondary); margin-top:1px;">Mihomo Core</div>
             </div>
             <div class="page-header-actions">
               <button class="icon-btn" id="btnFastLogs" title="实时日志">
@@ -97,7 +103,7 @@ HTML_BODY = """
                 </svg>
               </button>
               <div class="power-hint" id="powerHintText">安全网络已守护</div>
-              <div class="power-subhint" id="powerSubhintText">生效配置：香港 IEPL 专线 · 规则模式</div>
+              <div class="power-subhint" id="powerSubhintText">生效配置：示例订阅 · 规则模式</div>
             </div>
 
             <!-- Mode Selector -->
@@ -122,11 +128,11 @@ HTML_BODY = """
             </div>
             <div class="outbound-node-name">
               <span id="outboundFlag">🇭🇰</span>
-              <span id="outboundName">香港 BGP 01 [IEPL专线]</span>
+              <span id="outboundName">示例节点 01</span>
             </div>
             <div class="outbound-meta-row">
-              <span>出站 IP: <span class="outbound-ip-tag" id="outboundIp">104.28.198.42</span></span>
-              <span>数据中心: <b id="outboundGeo">Cloudflare HK</b></span>
+              <span>出站 IP: <span class="outbound-ip-tag" id="outboundIp">192.0.2.1</span></span>
+              <span>数据中心: <b id="outboundGeo">示例机房</b></span>
             </div>
           </div>
 
@@ -260,7 +266,9 @@ HTML_BODY = """
           <div id="proxySectionB" style="display:none;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
               <span style="font-size:13px; color:var(--text-secondary); font-weight:600;">已加载 3 个提供者源</span>
-              <button class="demo-btn" style="padding:4px 10px; font-size:12px;" onclick="updateAllProviders()">全量健康检查</button>
+              <button class="icon-btn" onclick="updateAllProviders()" title="全量健康检查 (Health Check)">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+              </button>
             </div>
             
             <div id="providersListContainer"></div>
@@ -293,15 +301,15 @@ HTML_BODY = """
 
           <!-- Section A: Profiles -->
           <div id="profileSectionA">
-            <div class="profile-card active-profile" id="profCard1" onclick="openProfileProps('香港 IEPL 专线 · 年付', 'https://sub.airport.io/api/v1/subscribe', 1440, true)">
+            <div class="profile-card active-profile" id="profCard1" onclick="openProfileProps('示例订阅 · 年付', 'https://example.com/subscribe', 1440, true)">
               <div class="profile-header">
                 <div>
                   <div style="font-size:15px; font-weight:700; display:flex; align-items:center; gap:6px;">
-                    <span>香港 IEPL 专线 · 年付</span>
+                    <span>示例订阅 · 年付</span>
                     <span style="font-size:10px; font-weight:700; background:var(--accent-blue); color:#fff; padding:2px 6px; border-radius:6px;">生效中</span>
                   </div>
                   <div style="font-size:11px; color:var(--text-secondary); margin-top:2px;">
-                    https://sub.airport.io/api/v1/subscribe...
+                    https://example.com/subscribe...
                   </div>
                 </div>
                 <button class="icon-btn" onclick="updateSingleProfile(event, 'profCard1')" title="刷新">
@@ -344,7 +352,11 @@ HTML_BODY = """
           <div id="profileSectionB" style="display:none;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
               <span style="font-size:13px; color:var(--text-secondary); font-weight:600;">配置目录 (/clash/...)</span>
-              <button class="demo-btn" style="padding:4px 10px; font-size:12px;" onclick="showToast('新建自定义配置或规则文件')">+ 新建文件</button>
+              <button class="icon-btn" onclick="showToast('新建自定义配置或规则文件')" title="新建文件">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                </svg>
+              </button>
             </div>
             
             <div class="file-row">
@@ -352,7 +364,9 @@ HTML_BODY = """
                 <div style="font-size:13px; font-weight:700;">config.yaml</div>
                 <div style="font-size:11px; color:var(--text-secondary);">主配置文件 · 24.5 KB · 今天 11:20</div>
               </div>
-              <span style="font-size:11px; color:var(--accent-blue); font-weight:600; cursor:pointer;" onclick="showToast('打开文本编辑器')">编辑</span>
+              <button class="icon-btn" style="width:28px; height:28px; color:var(--accent-blue);" onclick="showToast('打开文本编辑器')" title="编辑文件">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+              </button>
             </div>
             <div class="file-row">
               <div>
@@ -383,7 +397,7 @@ HTML_BODY = """
           <div class="page-header">
             <div>
               <h2 class="page-title">应用分流与名单</h2>
-              <div style="font-size:11px; color:var(--text-secondary); margin-top:1px;">TIIEHenry Fork 核心特性 · PRD-003 & PRD-004 规范实现</div>
+              <div style="font-size:11px; color:var(--text-secondary); margin-top:1px;">AgenticClash 核心特性 · PRD-003 & PRD-004 规范实现</div>
             </div>
             <div class="page-header-actions">
               <button class="icon-btn" id="btnActiveConn" title="活跃连接实时监控">
@@ -412,18 +426,22 @@ HTML_BODY = """
                   </div>
                   <div style="font-size:11px; color:var(--text-secondary); margin-top:3px;" id="globalAccessDesc">模式：仅允许选中的应用 (白名单) · 已选 8 个</div>
                 </div>
-                <div class="radio-indicator" id="globalAccessRadio">●</div>
+                <div class="radio-indicator" id="globalAccessRadio"></div>
               </div>
               <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px; padding-top:8px; border-top:1px solid var(--card-border);">
                 <span style="font-size:11px; color:var(--text-tertiary);">未启用任何策略时由全局名单接管</span>
-                <button class="demo-btn" style="padding:4px 10px; font-size:11px;" onclick="event.stopPropagation(); editStrategyApps(null)">编辑名单</button>
+                <button class="icon-btn" style="width:28px; height:28px; color:var(--accent-blue);" onclick="event.stopPropagation(); editStrategyApps(null)" title="配置全局名单应用">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                </button>
               </div>
             </div>
 
             <!-- Custom Named Strategies Header -->
             <div style="display:flex; justify-content:space-between; align-items:center; margin:16px 2px 10px;">
               <span style="font-size:13px; color:var(--text-secondary); font-weight:700;">多策略方案 (单选生效)</span>
-              <button class="demo-btn" style="padding:4px 10px; font-size:12px; background:var(--accent-blue);" onclick="openNewStrategyModal()">+ 新建策略</button>
+              <button class="icon-btn icon-btn-primary" onclick="openNewStrategyModal()" title="新建分流策略">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              </button>
             </div>
 
             <div id="strategyConfigsContainer"></div>
@@ -440,13 +458,15 @@ HTML_BODY = """
                 <span style="font-size:13px; color:var(--text-secondary); font-weight:700;">应用集合管理 (APP SETS)</span>
                 <div style="font-size:11px; color:var(--text-tertiary); margin-top:2px;">支持创建自定义集合、增删包名及跨策略快速复用</div>
               </div>
-              <button class="demo-btn" style="padding:4px 10px; font-size:12px; background:var(--accent-blue);" onclick="openNewAppSetModal()">+ 新建应用集</button>
+              <button class="icon-btn icon-btn-primary" onclick="openNewAppSetModal()" title="新建应用集">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              </button>
             </div>
 
             <div id="appSetsManagementContainer"></div>
 
             <div style="font-size:11px; color:var(--text-tertiary); line-height:1.5; margin-top:14px; padding:0 4px;">
-              💡 <b>说明</b>：系统应用与国内应用为内置集合，国内目录由 <code>domestic_packages.txt</code> 提供并支持用户追加。自定义应用集（如海外社交、流媒体、游戏等）可自由编辑包名并在任意分流策略中一键勾选。
+              💡 <b>说明</b>：系统应用、国内应用和浏览器是内置集合。国内目录由 <code>domestic_packages.txt</code> 提供，浏览器目录由 <code>browser_packages.txt</code> 提供，含国内和国外浏览器。自定义应用集可自由编辑包名，并在分流策略里一次勾选。
             </div>
           </div>
 
@@ -457,7 +477,9 @@ HTML_BODY = """
               <div style="display:flex; justify-content:space-between; align-items:center;">
                 <div>
                   <div style="display:flex; align-items:center; gap:8px;">
-                    <button class="demo-btn" style="padding:3px 8px; font-size:11px;" onclick="toggleStrategySubTab('strategies')">← 返回</button>
+                    <button class="icon-btn" style="width:28px; height:28px;" onclick="toggleStrategySubTab('strategies')" title="返回策略方案">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+                    </button>
                     <div style="font-size:13px; font-weight:700;" id="currentEditingStrategyTitle">海外应用代理 · 应用名单</div>
                   </div>
                   <div style="font-size:11px; color:var(--text-secondary); margin-top:4px;" id="currentEditingStrategyModeDesc">当前模式：仅代理已选应用 (白名单)</div>
@@ -486,13 +508,13 @@ HTML_BODY = """
                 <div style="font-size:12px; font-weight:700; color:var(--text-secondary);">
                   应用集合联动 (点击一键全选/取消 · 支持直接编辑)
                 </div>
-                <button class="demo-btn" style="padding:2px 8px; font-size:11px;" onclick="toggleStrategySubTab('appsets')">
-                  管理集合
+                <button class="icon-btn" style="width:28px; height:28px;" onclick="toggleStrategySubTab('appsets')" title="前往管理应用集合">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
                 </button>
               </div>
               
               <!-- Container for all dynamic app set cards with tri-state selection & edit button -->
-              <div id="appSetsQuickBarContainer"></div>
+              <div id="appSetsQuickBarContainer" class="grouped-list"></div>
             </div>
 
             <!-- App List Action Row -->
@@ -500,15 +522,21 @@ HTML_BODY = """
               <span style="font-size:12px; font-weight:700; color:var(--text-secondary);">
                 应用名单 (<span id="selectedAppCount">0</span> / <span id="totalAppCount">15</span> 已选)
               </span>
-              <div style="display:flex; gap:12px; font-size:12px; font-weight:600; color:var(--accent-blue);">
-                <span style="cursor:pointer;" onclick="selectAllApps(true)">全选</span>
-                <span style="cursor:pointer;" onclick="selectAllApps(false)">全不选</span>
-                <span style="cursor:pointer;" onclick="invertAppSelection()">反选</span>
+              <div style="display:flex; gap:6px;">
+                <button class="icon-btn" style="width:28px; height:28px; color:var(--accent-blue);" onclick="selectAllApps(true)" title="全选所有应用">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                </button>
+                <button class="icon-btn" style="width:28px; height:28px;" onclick="selectAllApps(false)" title="全部取消勾选">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+                <button class="icon-btn" style="width:28px; height:28px;" onclick="invertAppSelection()" title="反向反选应用">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+                </button>
               </div>
             </div>
 
             <!-- Apps List -->
-            <div id="appListContainer"></div>
+            <div id="appListContainer" class="grouped-list"></div>
           </div>
         </section>
         
@@ -520,11 +548,11 @@ HTML_BODY = """
 
           <!-- WebDAV Cloud Sync Group -->
           <div class="settings-group">
-            <div class="settings-group-title">WebDAV 云端同步 (TIIEHenry 特性)</div>
+            <div class="settings-group-title">WebDAV 云端同步 (AgenticClash 特性)</div>
             <div class="settings-item" onclick="openWebdavModal()">
               <div class="settings-main">
                 <div class="settings-title">WebDAV 同步控制台</div>
-                <div class="settings-desc">https://dav.jianguoyun.com/dav/ · 自动双向同步</div>
+                <div class="settings-desc">https://example.com/dav/ · 自动双向同步</div>
               </div>
               <span style="font-size:12px; color:var(--accent-blue); font-weight:600;">已就绪 →</span>
             </div>
@@ -601,7 +629,7 @@ HTML_BODY = """
             </div>
             <div class="settings-item" onclick="showAboutDialog()">
               <div class="settings-main">
-                <div class="settings-title">关于 ClashMetaX</div>
+                <div class="settings-title">关于 AgenticClash</div>
                 <div class="settings-desc">版本 2.11.35 · Mihomo Core 90a5afcc</div>
               </div>
               <span style="font-size:12px; color:var(--text-secondary);">v2.11.35</span>
@@ -629,8 +657,10 @@ HTML_BODY = """
         <div class="sheet-handle"></div>
         <div class="sheet-title-row">
           <div class="sheet-title">实时内核日志流 (Logcat)</div>
-          <div style="display:flex; gap:8px;">
-            <button class="demo-btn" style="padding:4px 8px; font-size:11px;" onclick="clearLogs()">清空</button>
+          <div style="display:flex; gap:8px; align-items:center;">
+            <button class="icon-btn" onclick="clearLogs()" title="清空日志">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            </button>
             <button class="icon-btn" onclick="closeSheet()">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
             </button>
@@ -644,7 +674,14 @@ HTML_BODY = """
         <div class="sheet-handle"></div>
         <div class="sheet-title-row">
           <div class="sheet-title">活跃连接实时监控 (<span id="connCount">4</span>)</div>
-          <button class="demo-btn" style="padding:4px 10px; font-size:11px;" onclick="clearAllConnections()">全部切断</button>
+          <div style="display:flex; gap:8px; align-items:center;">
+            <button class="icon-btn icon-btn-danger" style="width:30px; height:30px;" onclick="clearAllConnections()" title="全部切断活跃连接">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+            </button>
+            <button class="icon-btn" onclick="closeSheet()">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
         </div>
         <div class="sheet-content" id="connListContainer"></div>
       </div>
@@ -661,7 +698,7 @@ HTML_BODY = """
         <div class="sheet-content">
           <div class="form-group">
             <label class="form-label">WebDAV 服务器地址 (URL)</label>
-            <input type="text" class="form-input" value="https://dav.jianguoyun.com/dav/clash-sync/">
+            <input type="text" class="form-input" value="https://example.com/dav/clash-meta/">
           </div>
           <div class="form-group">
             <label class="form-label">备用局域网地址 (LAN URL，可选)</label>
@@ -677,7 +714,7 @@ HTML_BODY = """
           </div>
           <div class="form-group">
             <label class="form-label">远程备份路径</label>
-            <input type="text" class="form-input" value="/clash-meta-backups/">
+            <input type="text" class="form-input" value="/clash-meta/">
           </div>
           <div class="settings-item" style="border-radius:var(--radius-sm); margin-bottom:14px;">
             <div class="settings-main">
@@ -717,7 +754,9 @@ HTML_BODY = """
             <label class="form-label">age 敏感配置加密密钥</label>
             <div style="display:flex; justify-content:space-between; align-items:center; background:var(--card-subtle); padding:10px 12px; border-radius:var(--radius-sm); border:1px solid var(--card-border);">
               <span id="ageKeyStatus">已设置 (age1ql3z7h68...)</span>
-              <button class="demo-btn" style="padding:4px 8px; font-size:11px;" onclick="showToast('已更新 age 加密配置密钥')">变更</button>
+              <button class="icon-btn" style="width:28px; height:28px;" onclick="showToast('已更新 age 加密配置密钥')" title="变更 age 密钥">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-1.5 1.5L14 9l-1.5-1.5L10 10l2 2-7 7H2v-3l7-7 2 2 2.5-2.5L14 9l3.5-3.5L19 4z"/></svg>
+              </button>
             </div>
           </div>
           <button class="demo-btn" style="width:100%; justify-content:center; padding:12px; margin-top:10px; background:var(--accent-blue);" onclick="showToast('配置属性已保存'); closeSheet();">保存配置属性</button>
@@ -864,7 +903,7 @@ HTML_BODY = """
           </div>
           <div class="form-group">
             <label class="form-label">订阅 URL 地址</label>
-            <input type="text" id="newProfUrl" class="form-input" placeholder="https://airport.com/sub?token=...">
+            <input type="text" id="newProfUrl" class="form-input" placeholder="https://example.com/sub?token=...">
           </div>
           <div class="form-group">
             <label class="form-label">自动更新间隔 (分钟)</label>
@@ -882,7 +921,7 @@ HTML_BODY = """
       <div class="bottom-sheet" id="newStrategySheet">
         <div class="sheet-handle"></div>
         <div class="sheet-title-row">
-          <div class="sheet-title">新建应用分流策略 (TIIEHenry)</div>
+          <div class="sheet-title">新建应用分流策略 (AgenticClash)</div>
           <button class="icon-btn" onclick="closeSheet()">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>
@@ -915,7 +954,7 @@ HTML_BODY = """
       <div class="bottom-sheet" id="aboutSheet">
         <div class="sheet-handle"></div>
         <div class="sheet-title-row">
-          <div class="sheet-title">关于 ClashMetaX UI 2.0</div>
+          <div class="sheet-title">关于 AgenticClash UI 2.0</div>
           <button class="icon-btn" onclick="closeSheet()">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>
@@ -923,7 +962,7 @@ HTML_BODY = """
         <div class="sheet-content">
           <div style="text-align:center; padding:10px 0 16px;">
             <div style="font-size:32px; margin-bottom:4px;">⚡</div>
-            <div style="font-size:17px; font-weight:800;">ClashMetaX · TIIEHenry Fork</div>
+            <div style="font-size:17px; font-weight:800;">AgenticClash</div>
             <div style="font-size:12px; color:var(--text-secondary); margin-top:2px;">版本: v2.10.8-meta · 内核: Mihomo v1.18.9</div>
           </div>
           <div class="card" style="padding:12px; font-size:12px; line-height:1.6; margin-bottom:12px; background:var(--card-subtle);">
@@ -963,9 +1002,11 @@ HTML_BODY = """
               <option value="AcceptAll">全部应用允许进入隧道 (AcceptAll / 全局模式)</option>
             </select>
           </div>
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:14px;">
-            <button class="demo-btn" style="justify-content:center; padding:10px; color:var(--accent-red); border-color:var(--accent-red-subtle);" onclick="deleteCurrentStrategy()">删除此策略</button>
-            <button class="demo-btn" style="justify-content:center; padding:10px; background:var(--accent-blue);" onclick="saveStrategyEdits()">保存修改</button>
+          <div style="display:flex; gap:10px; margin-top:14px; align-items:center;">
+            <button class="icon-btn icon-btn-danger" style="width:42px; height:42px;" onclick="deleteCurrentStrategy()" title="删除此分流策略">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            </button>
+            <button class="demo-btn" style="flex:1; justify-content:center; padding:12px; background:var(--accent-blue);" onclick="saveStrategyEdits()">保存修改</button>
           </div>
         </div>
       </div>
@@ -1039,9 +1080,11 @@ HTML_BODY = """
             </div>
             <div class="app-pick-list" id="editAppSetPickList"></div>
           </div>
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:14px;">
-            <button class="demo-btn" id="btnDeleteAppSet" style="justify-content:center; padding:10px; color:var(--accent-red); border-color:var(--accent-red-subtle);" onclick="deleteCurrentAppSet()">删除此集合</button>
-            <button class="demo-btn" style="justify-content:center; padding:10px; background:var(--accent-blue);" onclick="saveAppSetEdits()">保存修改</button>
+          <div style="display:flex; gap:10px; margin-top:14px; align-items:center;">
+            <button class="icon-btn icon-btn-danger" id="btnDeleteAppSet" style="width:42px; height:42px;" onclick="deleteCurrentAppSet()" title="删除此集合">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            </button>
+            <button class="demo-btn" style="flex:1; justify-content:center; padding:12px; background:var(--accent-blue);" onclick="saveAppSetEdits()">保存修改</button>
           </div>
         </div>
       </div>

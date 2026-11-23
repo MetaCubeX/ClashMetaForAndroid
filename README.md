@@ -1,91 +1,59 @@
-## Clash Meta for Android
+## AgenticClash
 
-A Graphical user interface of [Clash.Meta](https://github.com/MetaCubeX/Clash.Meta) for Android
+An Android graphical interface for [mihomo](https://github.com/MetaCubeX/mihomo), based on
+[ClashMetaForAndroid](https://github.com/MetaCubeX/ClashMetaForAndroid).
+
+This fork keeps the upstream profile engine and adds app routing strategies, reusable app sets,
+WebDAV sync, and a loopback-only MCP server for local automation.
 
 ### Documentation
 
-Architecture, build constraints, and product behavior for this fork are in the documentation system. Start at [docs/INDEX.md](docs/INDEX.md). The agent guide is [AGENTS.md](AGENTS.md).
+Architecture, build constraints, and product behavior live in the documentation system. Start at
+[docs/INDEX.md](docs/INDEX.md). The agent guide is [AGENTS.md](AGENTS.md).
 
-### Feature
+### Features
 
-Feature of [Clash.Meta](https://github.com/MetaCubeX/Clash.Meta)
+- mihomo core with the upstream Clash Meta feature set
+- Per-app routing strategies and named app sets
+- WebDAV sync for profiles and routing configuration
+- Local MCP server bound to `127.0.0.1` for on-device agent tools
+- Five-tab shell: Proxies, Profiles, Dashboard, Apps, Settings
 
-[<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png"
-     alt="Get it on F-Droid"
-     height="80">](https://f-droid.org/packages/com.github.metacubex.clash.meta/)
+### Requirements
 
-### Requirement
-
-- Android 5.0+ (minimum)
-- Android 7.0+ (recommend)
-- `armeabi-v7a` , `arm64-v8a`, `x86` or `x86_64` Architecture
+- Android 5.0+ (minimum), Android 7.0+ (recommended)
+- `arm64-v8a`
+- JDK 21, Android SDK, CMake, and Go for building the native core
 
 ### Build
 
-1. Update submodules
+```bash
+git submodule update --init --recursive
+./gradlew :app:assembleMetaRelease
+```
 
-   ```bash
-   git submodule update --init --recursive
-   ```
+Create `local.properties` with `sdk.dir=/path/to/android-sdk`. Release signing reads
+`signing.properties`; without it the release build falls back to the debug keystore. See the
+[build guide](docs/guides/getting-started/build.md) for flavor names, signing keys, and the mihomo
+submodule pin.
 
-2. Install **OpenJDK 11**, **Android SDK**, **CMake** and **Golang**
-
-3. Create `local.properties` in project root with
-
-   ```properties
-   sdk.dir=/path/to/android-sdk
-   ```
-
-4. (Optional) Custom app package name. Add the following configuration to `local.properties`.
-
-   ```properties
-   # config your ownn applicationId, or it will be 'com.github.metacubex.clash'
-   custom.application.id=com.my.compile.clash
-   # remove application id suffix, or the applicaion id will be 'com.github.metacubex.clash.alpha'
-   remove.suffix=true
-
-5. Create `signing.properties` in project root with
-
-   ```properties
-   keystore.path=/path/to/keystore/file
-   keystore.password=<key store password>
-   key.alias=<key alias>
-   key.password=<key password>
-   ```
-
-6. Build
-
-   ```bash
-   ./gradlew app:assembleAlphaRelease
-   ```
+The application ID is `universe.agentic.device.clash` for both the `alpha` and `meta` flavors.
 
 ### Automation
 
-APP package name is `com.github.metacubex.clash.meta`
+- Toggle: action `universe.agentic.device.clash.action.TOGGLE_CLASH` on
+  `com.github.kr328.clash.ExternalControlActivity`
+- Start: action `universe.agentic.device.clash.action.START_CLASH`
+- Stop: action `universe.agentic.device.clash.action.STOP_CLASH`
+- Import a profile: `clash://install-config?url=<encoded URI>` or
+  `clashmeta://install-config?url=<encoded URI>`
 
-- Toggle Clash.Meta service status
-  - Send intent to activity `com.github.kr328.clash.ExternalControlActivity` with action `com.github.metacubex.clash.meta.action.TOGGLE_CLASH`
-- Start Clash.Meta service
-  - Send intent to activity `com.github.kr328.clash.ExternalControlActivity` with action `com.github.metacubex.clash.meta.action.START_CLASH`
-- Stop Clash.Meta service
-  - Send intent to activity `com.github.kr328.clash.ExternalControlActivity` with action `com.github.metacubex.clash.meta.action.STOP_CLASH`
-- Import a profile
-  - URL Scheme `clash://install-config?url=<encoded URI>` or `clashmeta://install-config?url=<encoded URI>`
+### Community
 
-### Contribution and Project Maintenance
+- Author: Clarence Henry, [Coolapk](https://www.coolapk.com/u/469700)
+- WeChat Official Account: 超越观
+- Telegram channel: [t.me/universesoftware](https://t.me/universesoftware)
 
-#### Meta Kernel
+### License
 
-- CMFA uses the kernel from `android-real` branch under `MetaCubeX/Clash.Meta`, which is a merge of the main `Alpha` branch and `android-open`.
-  - If you want to contribute to the kernel, make PRs to `Alpha` branch of the Meta kernel repository.
-  - If you want to contribute Android-specific patches to the kernel, make PRs to  `android-open` branch of the Meta kernel repository.
-
-#### Maintenance
-
-- When `MetaCubeX/Clash.Meta` kernel is updated to a new version, the `Update Dependencies` actions in this repo will be triggered automatically.
-  - It will pull the new version of the meta kernel, update all the golang dependencies, and create a PR without manual intervention.
-  - If there is any compile error in PR, you need to fix it before merging. Alternatively, you may merge the PR directly.
-- Manually triggering `Build Pre-Release` actions will compile and publish a `PreRelease` version.
-- Manually triggering `Build Release` actions will compile, tag and publish a `Release` version.
-  - You must fill the blank `Release Tag` with the tag you want to release in the format of `v1.2.3`.
-  - `versionName` and `versionCode` in `build.gradle.kts` will be automatically bumped to the tag you filled above.
+GPL-3.0. See [LICENSE](LICENSE) and [NOTICE](NOTICE).

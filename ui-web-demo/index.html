@@ -3,68 +3,66 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>ClashMetaX UI 2.0 - 交互式网页原型系统</title>
+  <title>AgenticClash UI 2.0 - 交互式网页原型系统</title>
   <style>
 
     :root {
-      /* OLED Dark System Palette */
-      --bg: #000000;
-      --card-bg: #15161a;
-      --card-subtle: #1f2026;
-      --card-border: rgba(255, 255, 255, 0.08);
-      --card-border-active: #0a84ff;
-      --card-border-green: #30d158;
-      --text-primary: #ffffff;
-      --text-secondary: #8e8e93;
-      --text-tertiary: #636366;
-      --accent-blue: #0a84ff;
-      --accent-blue-subtle: rgba(10, 132, 255, 0.12);
-      --accent-green: #30d158;
-      --accent-green-subtle: rgba(48, 209, 88, 0.12);
-      --accent-orange: #ff9f0a;
-      --accent-orange-subtle: rgba(255, 159, 10, 0.12);
-      --accent-red: #ff453a;
-      --accent-red-subtle: rgba(255, 69, 58, 0.12);
-      --accent-purple: #bf5af2;
-      --nav-bg: rgba(21, 22, 26, 0.85);
-      --nav-border: rgba(255, 255, 255, 0.06);
-      --sheet-bg: #18191e;
+      --bg: #121212;
+      --card-bg: #1e1e1e;
+      --card-subtle: #2a2a2a;
+      --card-border: transparent;
+      --card-border-active: #5b8cff;
+      --card-border-green: #3ddb86;
+      --text-primary: #f5f5f5;
+      --text-secondary: #9a9a9a;
+      --text-tertiary: #6e6e6e;
+      --accent-blue: #5b8cff;
+      --accent-blue-subtle: rgba(91, 140, 255, 0.14);
+      --accent-green: #3ddb86;
+      --accent-green-subtle: rgba(61, 219, 134, 0.14);
+      --accent-orange: #ff9a4a;
+      --accent-orange-subtle: rgba(255, 154, 74, 0.14);
+      --accent-red: #ff6b63;
+      --accent-red-subtle: rgba(255, 107, 99, 0.14);
+      --accent-purple: #3dcfb6;
+      --nav-bg: #1a1a1a;
+      --nav-border: transparent;
+      --sheet-bg: #1e1e1e;
       --badge-bg: rgba(255, 255, 255, 0.06);
       --shadow: none;
-      --radius-xs: 6px;
-      --radius-sm: 8px;
-      --radius-md: 12px;
-      --radius-lg: 16px;
-      --radius-xl: 22px;
-      --font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Roboto", "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
-      --font-mono: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Monaco, Consolas, monospace;
+      --radius-xs: 8px;
+      --radius-sm: 12px;
+      --radius-md: 16px;
+      --radius-lg: 20px;
+      --radius-xl: 24px;
+      --font-family: Roboto, "Noto Sans SC", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      --font-mono: ui-monospace, "Roboto Mono", "Cascadia Code", Menlo, Monaco, Consolas, monospace;
     }
 
     [data-theme="light"] {
-      /* Native Light Grouped Palette */
-      --bg: #f2f2f7;
+      --bg: #f3f4f6;
       --card-bg: #ffffff;
-      --card-subtle: #e9e9eb;
-      --card-border: rgba(0, 0, 0, 0.07);
-      --card-border-active: #007aff;
-      --card-border-green: #34c759;
-      --text-primary: #000000;
-      --text-secondary: #6c6c70;
-      --text-tertiary: #aeaeb2;
-      --accent-blue: #007aff;
-      --accent-blue-subtle: rgba(0, 122, 255, 0.1);
-      --accent-green: #34c759;
-      --accent-green-subtle: rgba(52, 199, 89, 0.1);
-      --accent-orange: #ff9500;
-      --accent-orange-subtle: rgba(255, 149, 0, 0.1);
-      --accent-red: #ff3b30;
-      --accent-red-subtle: rgba(255, 59, 48, 0.1);
-      --accent-purple: #af52de;
-      --nav-bg: rgba(255, 255, 255, 0.88);
-      --nav-border: rgba(0, 0, 0, 0.06);
+      --card-subtle: #eeeeee;
+      --card-border: transparent;
+      --card-border-active: #2b6cff;
+      --card-border-green: #12a150;
+      --text-primary: #1a1a1a;
+      --text-secondary: #8a8a8a;
+      --text-tertiary: #b0b0b0;
+      --accent-blue: #2b6cff;
+      --accent-blue-subtle: rgba(43, 108, 255, 0.10);
+      --accent-green: #12a150;
+      --accent-green-subtle: rgba(18, 161, 80, 0.10);
+      --accent-orange: #ff7a1a;
+      --accent-orange-subtle: rgba(255, 122, 26, 0.10);
+      --accent-red: #e5484d;
+      --accent-red-subtle: rgba(229, 72, 77, 0.10);
+      --accent-purple: #0e9f8a;
+      --nav-bg: #ffffff;
+      --nav-border: transparent;
       --sheet-bg: #ffffff;
       --badge-bg: rgba(0, 0, 0, 0.05);
-      --shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+      --shadow: none;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; user-select: none; }
@@ -82,12 +80,12 @@
 
     /* Phone Shell (Ultra-Slim Minimalist Bezel) */
     .device-wrapper { position: relative; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
-    .device-phone { width: 400px; height: 860px; background: var(--bg); border-radius: 44px; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), 0 0 0 4px #1c1d22, 0 0 0 5px rgba(255,255,255,0.06); overflow: hidden; display: flex; flex-direction: column; position: relative; }
+    .device-phone { width: 400px; height: 860px; background: var(--bg); border-radius: 28px; box-shadow: 0 18px 48px rgba(0, 0, 0, 0.28); overflow: hidden; display: flex; flex-direction: column; position: relative; }
     .device-phone.fullscreen-mode { width: 100vw; max-width: 480px; height: 94vh; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); border: 1px solid var(--card-border); }
     
     /* Native Status Bar */
     .status-bar { height: 42px; padding: 0 22px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: 600; color: var(--text-primary); z-index: 50; position: relative; }
-    .status-notch { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); width: 104px; height: 22px; background: #000; border-radius: 14px; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 0 8px; }
+    .status-notch { display: none; }
     .status-camera { width: 9px; height: 9px; border-radius: 50%; background: #0d0d0f; border: 1px solid #1a1a1f; }
     .status-island-icon { font-size: 9px; color: var(--accent-green); opacity: 0; transition: opacity 0.25s; }
     .status-island-icon.active { opacity: 1; }
@@ -97,20 +95,20 @@
     .app-screen::-webkit-scrollbar { display: none; }
     .page-view { display: none; animation: fadeIn 0.2s ease-out; }
     .page-view.active { display: block; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
     /* Native Segmented Switcher (Top of Apps & elsewhere) */
-    .sub-page-switcher { background: var(--card-subtle); border: 1px solid var(--card-border); border-radius: 9px; display: flex; padding: 2px; margin-bottom: 14px; }
-    .sub-switch-btn { flex: 1; text-align: center; padding: 6px 0; font-size: 12px; font-weight: 500; color: var(--text-secondary); border-radius: 7px; cursor: pointer; transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1); }
-    .sub-switch-btn.active { background: var(--card-bg); color: var(--text-primary); font-weight: 600; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12); border: 0.5px solid var(--card-border); }
+    .sub-page-switcher { background: var(--card-subtle); border: none; border-radius: 12px; display: flex; padding: 3px; margin-bottom: 14px; min-height: 40px; }
+    .sub-switch-btn { flex: 1; text-align: center; padding: 8px 0; font-size: 14px; font-weight: 500; color: var(--text-secondary); border-radius: 10px; cursor: pointer; transition: background 0.18s ease, color 0.18s ease; }
+    .sub-switch-btn.active { background: var(--card-bg); color: var(--text-primary); font-weight: 600; box-shadow: none; border: none; }
 
     /* Native Bottom Tab Navigation Bar */
-    .bottom-nav { position: absolute; bottom: 0; left: 0; right: 0; height: 74px; background: var(--nav-bg); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border-top: 0.5px solid var(--nav-border); display: flex; justify-content: space-around; align-items: flex-start; padding-top: 7px; z-index: 40; }
+    .bottom-nav { position: absolute; bottom: 0; left: 0; right: 0; height: 74px; background: var(--nav-bg); backdrop-filter: none; -webkit-backdrop-filter: none; border-top: none; display: flex; justify-content: space-around; align-items: flex-start; padding-top: 7px; z-index: 40; }
     .nav-item { display: flex; flex-direction: column; align-items: center; gap: 2px; color: var(--text-secondary); font-size: 10px; font-weight: 500; cursor: pointer; width: 58px; transition: color 0.15s; }
     .nav-item svg { width: 21px; height: 21px; stroke-width: 1.8; transition: transform 0.15s; }
     .nav-item:active svg { transform: scale(0.9); }
     .nav-item.active { color: var(--accent-blue); font-weight: 600; }
-    .nav-indicator { position: absolute; bottom: 5px; left: 50%; transform: translateX(-50%); width: 120px; height: 4px; background: var(--text-primary); opacity: 0.22; border-radius: 2px; }
+    .nav-indicator { display: none; }
 
     /* Native Flat Cards */
     .card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: var(--radius-lg); padding: 14px 16px; margin-bottom: 10px; box-shadow: var(--shadow); transition: transform 0.15s, border-color 0.15s; }
@@ -118,13 +116,20 @@
     
     /* Page Headers */
     .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; padding: 2px 2px; }
-    .page-title { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
+    .page-title { font-size: 22px; font-weight: 600; letter-spacing: -0.3px; }
     .page-header-actions { display: flex; gap: 8px; }
-    .icon-btn { width: 34px; height: 34px; border-radius: 50%; background: var(--card-subtle); border: 1px solid var(--card-border); color: var(--text-primary); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s; }
+        .icon-btn { width: 36px; height: 36px; border-radius: 50%; background: var(--card-subtle); border: none; color: var(--text-primary); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s; flex-shrink: 0; }
+    .icon-btn svg { width: 18px; height: 18px; display: block; flex-shrink: 0; }
+    .icon-btn:hover { background: var(--badge-bg); color: var(--text-primary); }
+    .icon-btn:active { transform: scale(0.92); }
+    .icon-btn-primary { background: var(--accent-blue); color: #ffffff; border-color: var(--accent-blue); }
+    .icon-btn-primary:hover { opacity: 0.9; }
+    .icon-btn-danger { color: var(--accent-red); border-color: rgba(255, 69, 58, 0.25); }
+    .icon-btn-danger:hover { background: var(--accent-red-subtle); }
     .icon-btn:active { transform: scale(0.92); }
 
     /* Hero Master Connect Card (Clean Minimalist Native) */
-    .hero-connect-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: var(--radius-xl); padding: 18px 16px; position: relative; overflow: hidden; margin-bottom: 12px; }
+    .hero-connect-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: var(--radius-lg); padding: 18px 16px; position: relative; overflow: hidden; margin-bottom: 12px; }
     .connect-top-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
     .connect-status-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; background: var(--card-subtle); border: 1px solid var(--card-border); color: var(--text-secondary); transition: all 0.2s; }
     .connect-status-badge.running { background: var(--accent-green-subtle); border-color: rgba(48, 209, 88, 0.25); color: var(--accent-green); }
@@ -134,19 +139,19 @@
     
     /* Native Tactile Master Power Button */
     .connect-center { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 4px 0 14px; }
-    .power-button { width: 74px; height: 74px; border-radius: 50%; background: var(--card-subtle); border: 1.5px solid var(--card-border); color: var(--text-secondary); display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative; transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1); }
+    .power-button { width: 72px; height: 72px; border-radius: 50%; background: var(--card-subtle); border: none; color: var(--text-secondary); display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative; transition: transform 0.18s ease, background 0.18s ease; }
     .power-button svg { width: 32px; height: 32px; transition: all 0.2s; }
     .power-button:active { transform: scale(0.92); }
-    .power-button.running { background: var(--accent-green); border-color: var(--accent-green); color: #ffffff; box-shadow: 0 4px 16px rgba(48, 209, 88, 0.28); }
+    .power-button.running { background: var(--accent-green); border-color: var(--accent-green); color: #ffffff; box-shadow: none; }
     .power-button.connecting { border-color: var(--accent-blue); color: var(--accent-blue); animation: spinBorder 1.2s linear infinite; }
     @keyframes spinBorder { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     .power-hint { margin-top: 10px; font-size: 14px; font-weight: 600; color: var(--text-primary); letter-spacing: -0.2px; }
     .power-subhint { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
 
     /* Native iOS / Material Segmented Mode Picker */
-    .mode-segmented-control { background: var(--card-subtle); border: 1px solid var(--card-border); border-radius: 9px; display: flex; padding: 2px; margin-top: 12px; }
-    .mode-tab { flex: 1; text-align: center; padding: 6px 0; font-size: 12px; font-weight: 500; color: var(--text-secondary); border-radius: 7px; cursor: pointer; transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1); }
-    .mode-tab.active { background: var(--card-bg); color: var(--text-primary); font-weight: 600; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12); border: 0.5px solid var(--card-border); }
+    .mode-segmented-control { background: var(--card-subtle); border: none; border-radius: 12px; display: flex; padding: 3px; margin-top: 12px; min-height: 40px; }
+    .mode-tab { flex: 1; text-align: center; padding: 8px 0; font-size: 14px; font-weight: 500; color: var(--text-secondary); border-radius: 10px; cursor: pointer; transition: background 0.18s ease, color 0.18s ease; }
+    .mode-tab.active { background: var(--card-bg); color: var(--text-primary); font-weight: 600; box-shadow: none; border: none; }
 
     /* Outbound Node & Egress Perception Card */
     .outbound-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: var(--radius-lg); padding: 13px 15px; margin-bottom: 10px; cursor: pointer; transition: all 0.18s; }
@@ -187,7 +192,7 @@
     .proxy-grid.list-view { grid-template-columns: 1fr; }
     .node-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: var(--radius-md); padding: 11px 12px; cursor: pointer; transition: all 0.15s; position: relative; display: flex; flex-direction: column; justify-content: space-between; }
     .node-card:active { transform: scale(0.98); }
-    .node-card.selected { border-color: var(--accent-blue); background: var(--card-bg); box-shadow: 0 0 0 1px var(--accent-blue); }
+    .node-card.selected { border-color: var(--accent-blue); background: var(--card-bg); }
     .node-name { font-size: 12px; font-weight: 600; color: var(--text-primary); margin-bottom: 8px; line-height: 1.35; }
     .node-footer { display: flex; align-items: center; justify-content: space-between; }
     .node-type-pill { font-size: 9px; font-weight: 600; text-transform: uppercase; padding: 2px 5px; border-radius: 4px; background: var(--badge-bg); color: var(--text-secondary); }
@@ -201,7 +206,7 @@
     .provider-info h4 { font-size: 13px; font-weight: 600; margin-bottom: 2px; display: flex; align-items: center; gap: 6px; }
     .provider-info p { font-size: 11px; color: var(--text-secondary); }
     .profile-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: var(--radius-lg); padding: 14px 16px; margin-bottom: 10px; position: relative; cursor: pointer; }
-    .profile-card.active-profile { border-color: var(--accent-blue); box-shadow: 0 0 0 1px var(--accent-blue); }
+    .profile-card.active-profile { border-color: var(--accent-blue); background: var(--card-bg); }
     .profile-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
     .progress-bar-track { width: 100%; height: 5px; background: var(--card-subtle); border-radius: 3px; overflow: hidden; margin: 6px 0; }
     .progress-bar-fill { height: 100%; background: var(--accent-blue); border-radius: 3px; }
@@ -209,17 +214,27 @@
     .expiry-tag { color: var(--accent-orange); font-weight: 600; }
     .file-row { display: flex; align-items: center; justify-content: space-between; padding: 11px 13px; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: var(--radius-md); margin-bottom: 8px; }
 
-    /* Strategy Cards & Radio (PRD-004) */
-    .strategy-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: var(--radius-md); padding: 13px 15px; margin-bottom: 10px; transition: all 0.15s ease; cursor: pointer; position: relative; }
-    .strategy-card.active-strat { border-color: var(--accent-green); background: var(--card-bg); box-shadow: 0 0 0 1px var(--accent-green); }
-    .strategy-card.active-strat::before { content: ""; position: absolute; left: 0; top: 10px; bottom: 10px; width: 3px; border-radius: 0 3px 3px 0; background: var(--accent-green); }
-    .radio-indicator { width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid var(--card-border); display: flex; align-items: center; justify-content: center; font-size: 12px; color: transparent; transition: all 0.15s ease; }
-    .strategy-card.active-strat .radio-indicator { border-color: var(--accent-green); background: var(--accent-green); color: #fff; }
+    /* Strategy Cards & Radio (PRD-004 - Modern Minimalist Native) */
+    .strategy-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: var(--radius-lg); padding: 14px 16px; margin-bottom: 10px; transition: all 0.15s ease; cursor: pointer; position: relative; }
+    .strategy-card.active-strat { border-color: var(--card-border-green); background: var(--card-bg); }
+    .radio-indicator { width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid var(--text-tertiary); display: flex; align-items: center; justify-content: center; transition: all 0.15s ease; background: transparent; flex-shrink: 0; }
+    .strategy-card.active-strat .radio-indicator { border-color: var(--accent-green); background: var(--accent-green); color: #ffffff; }
+
+    /* Inset Grouped Lists (Apple HIG & Material 3 Native) */
+    .grouped-list { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: var(--radius-lg); overflow: hidden; margin-bottom: 12px; }
+    .grouped-list .app-item-row { margin-bottom: 0; border: none; border-radius: 0; border-bottom: 1px solid rgba(128, 128, 128, 0.12); padding: 12px 14px; background: transparent; }
+    .grouped-list .app-item-row:last-child { border-bottom: none; }
+    .grouped-list .app-item-row:hover { background: var(--card-subtle); }
+    .grouped-list .app-item-row:active { background: var(--card-subtle); }
+    .grouped-list .app-set-card { margin-bottom: 0; border: none; border-radius: 0; border-bottom: 1px solid rgba(128, 128, 128, 0.12); padding: 12px 14px; background: transparent; }
+    .grouped-list .app-set-card:last-child { border-bottom: none; }
+    .grouped-list .app-set-card:hover { background: var(--card-subtle); }
+    .grouped-list .app-set-card:active { background: var(--card-subtle); }
 
     /* App Items & Native Checkbox */
     .app-item-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: var(--radius-sm); margin-bottom: 6px; cursor: pointer; transition: background 0.15s; }
     .app-item-row:hover { background: var(--card-subtle); }
-    .checkbox { width: 20px; height: 20px; border-radius: 5px; border: 1.5px solid var(--card-border); display: flex; align-items: center; justify-content: center; transition: all 0.15s; background: transparent; }
+    .checkbox { width: 20px; height: 20px; border-radius: 6px; border: 1.5px solid var(--text-tertiary); display: flex; align-items: center; justify-content: center; transition: all 0.15s; background: transparent; }
     .checkbox.checked { background: var(--accent-blue); border-color: var(--accent-blue); }
     .checkbox svg { width: 13px; height: 13px; color: #fff; display: none; }
     .checkbox.checked svg { display: block; }
@@ -229,21 +244,21 @@
 
     /* Native Grouped Settings (iOS / Material 3 Style) */
     .settings-group { margin-bottom: 16px; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: var(--radius-md); overflow: hidden; }
-    .settings-group-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-secondary); margin: 14px 4px 6px; }
-    .settings-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; background: transparent; border: none; border-bottom: 0.5px solid var(--card-border); cursor: pointer; transition: background 0.12s; }
+    .settings-group-title { font-size: 14px; font-weight: 500; text-transform: none; letter-spacing: 0; color: var(--text-secondary); margin: 14px 4px 8px; }
+    .settings-item { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; background: transparent; border: none; border-bottom: none; cursor: pointer; transition: background 0.12s; }
     .settings-item:last-child { border-bottom: none; }
     .settings-item:active { background: var(--card-subtle); }
     .settings-main { display: flex; flex-direction: column; gap: 2px; }
-    .settings-title { font-size: 13px; font-weight: 500; color: var(--text-primary); }
+    .settings-title { font-size: 16px; font-weight: 500; color: var(--text-primary); }
     .settings-desc { font-size: 11px; color: var(--text-secondary); }
 
     /* Native Switch Control */
-    .switch { position: relative; display: inline-block; width: 44px; height: 25px; }
+    .switch { position: relative; display: inline-block; width: 40px; height: 22px; }
     .switch input { opacity: 0; width: 0; height: 0; }
-    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--card-subtle); border: 1px solid var(--card-border); transition: 0.25s cubic-bezier(0.16, 1, 0.3, 1); border-radius: 25px; }
-    .slider:before { position: absolute; content: ""; height: 19px; width: 19px; left: 2px; bottom: 2px; background-color: white; transition: 0.25s cubic-bezier(0.16, 1, 0.3, 1); border-radius: 50%; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
-    input:checked + .slider { background-color: var(--accent-green); border-color: var(--accent-green); }
-    input:checked + .slider:before { transform: translateX(19px); }
+    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--card-subtle); border: none; transition: 0.2s ease; border-radius: 22px; }
+    .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: white; transition: 0.2s ease; border-radius: 50%; box-shadow: none; }
+    input:checked + .slider { background-color: var(--accent-blue); border-color: var(--accent-blue); }
+    input:checked + .slider:before { transform: translateX(18px); }
 
     /* Native Bottom Sheets & Modals */
     .bottom-sheet-backdrop { position: absolute; inset: 0; background: rgba(0, 0, 0, 0.55); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 90; opacity: 0; pointer-events: none; transition: opacity 0.25s ease; }
@@ -258,7 +273,7 @@
     /* Toast */
     .toast-container { position: absolute; top: 48px; left: 50%; transform: translateX(-50%); z-index: 120; display: flex; flex-direction: column; gap: 6px; pointer-events: none; width: 90%; max-width: 320px; }
     .toast { background: rgba(26, 27, 34, 0.94); color: #fff; backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); padding: 8px 14px; border-radius: 10px; font-size: 12px; font-weight: 500; display: flex; align-items: center; gap: 8px; border: 1px solid rgba(255, 255, 255, 0.08); animation: toastIn 0.25s cubic-bezier(0.16, 1, 0.3, 1); box-shadow: 0 4px 14px rgba(0,0,0,0.25); }
-    [data-theme="light"] .toast { background: rgba(255, 255, 255, 0.95); color: #1c1c1e; border-color: rgba(0,0,0,0.08); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); }
+    [data-theme="light"] .toast { background: #ffffff; color: #1a1a1a; border-color: transparent; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); }
     @keyframes toastIn { from { opacity: 0; transform: translateY(-10px) scale(0.96); } to { opacity: 1; transform: translateY(0); } }
 
     /* Form Inputs */
@@ -321,7 +336,7 @@
   <header class="demo-control-bar">
     <div class="demo-title-group">
       <h1>
-        <span>ClashMetaX</span>
+        <span>AgenticClash</span>
         <span class="demo-tag">UI 2.0 FULL</span>
       </h1>
       <div style="display:flex; gap:6px; flex-wrap:wrap; margin-top:4px;">
@@ -333,14 +348,20 @@
     </div>
 
     <div class="demo-actions">
-      <button class="demo-btn" id="btnThemeToggle">
-        <span id="themeIcon">☀️</span> <span>主题</span>
+      <button class="icon-btn" id="btnThemeToggle" title="切换深色/浅色主题">
+        <span id="themeIcon" style="font-size:13px;">☀️</span>
       </button>
-      <button class="demo-btn" id="btnPhoneMode">
-        <span>📱</span> <span id="phoneModeText">全屏平铺</span>
+      <button class="icon-btn" id="btnPhoneMode" title="切换全屏/手机外壳视图">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="5" y="2" width="14" height="20" rx="2" ry="2"/>
+          <line x1="12" y1="18" x2="12.01" y2="18"/>
+        </svg>
+        <span id="phoneModeText" style="display:none;">全屏平铺</span>
       </button>
-      <button class="demo-btn" id="btnRandomSpike">
-        <span>⚡</span> <span>突发流量</span>
+      <button class="icon-btn" id="btnRandomSpike" title="模拟突发流量压测">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+        </svg>
       </button>
     </div>
   </header>
@@ -379,8 +400,8 @@
         <section class="page-view active" id="page-dashboard">
           <div class="page-header">
             <div>
-              <h2 class="page-title">ClashMetaX</h2>
-              <div style="font-size:11px; color:var(--text-secondary); margin-top:1px;">Mihomo Core · TIIEHenry Fork</div>
+              <h2 class="page-title">AgenticClash</h2>
+              <div style="font-size:11px; color:var(--text-secondary); margin-top:1px;">Mihomo Core</div>
             </div>
             <div class="page-header-actions">
               <button class="icon-btn" id="btnFastLogs" title="实时日志">
@@ -415,7 +436,7 @@
                 </svg>
               </button>
               <div class="power-hint" id="powerHintText">安全网络已守护</div>
-              <div class="power-subhint" id="powerSubhintText">生效配置：香港 IEPL 专线 · 规则模式</div>
+              <div class="power-subhint" id="powerSubhintText">生效配置：示例订阅 · 规则模式</div>
             </div>
 
             <!-- Mode Selector -->
@@ -440,11 +461,11 @@
             </div>
             <div class="outbound-node-name">
               <span id="outboundFlag">🇭🇰</span>
-              <span id="outboundName">香港 BGP 01 [IEPL专线]</span>
+              <span id="outboundName">示例节点 01</span>
             </div>
             <div class="outbound-meta-row">
-              <span>出站 IP: <span class="outbound-ip-tag" id="outboundIp">104.28.198.42</span></span>
-              <span>数据中心: <b id="outboundGeo">Cloudflare HK</b></span>
+              <span>出站 IP: <span class="outbound-ip-tag" id="outboundIp">192.0.2.1</span></span>
+              <span>数据中心: <b id="outboundGeo">示例机房</b></span>
             </div>
           </div>
 
@@ -578,7 +599,9 @@
           <div id="proxySectionB" style="display:none;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
               <span style="font-size:13px; color:var(--text-secondary); font-weight:600;">已加载 3 个提供者源</span>
-              <button class="demo-btn" style="padding:4px 10px; font-size:12px;" onclick="updateAllProviders()">全量健康检查</button>
+              <button class="icon-btn" onclick="updateAllProviders()" title="全量健康检查 (Health Check)">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+              </button>
             </div>
             
             <div id="providersListContainer"></div>
@@ -611,15 +634,15 @@
 
           <!-- Section A: Profiles -->
           <div id="profileSectionA">
-            <div class="profile-card active-profile" id="profCard1" onclick="openProfileProps('香港 IEPL 专线 · 年付', 'https://sub.airport.io/api/v1/subscribe', 1440, true)">
+            <div class="profile-card active-profile" id="profCard1" onclick="openProfileProps('示例订阅 · 年付', 'https://example.com/subscribe', 1440, true)">
               <div class="profile-header">
                 <div>
                   <div style="font-size:15px; font-weight:700; display:flex; align-items:center; gap:6px;">
-                    <span>香港 IEPL 专线 · 年付</span>
+                    <span>示例订阅 · 年付</span>
                     <span style="font-size:10px; font-weight:700; background:var(--accent-blue); color:#fff; padding:2px 6px; border-radius:6px;">生效中</span>
                   </div>
                   <div style="font-size:11px; color:var(--text-secondary); margin-top:2px;">
-                    https://sub.airport.io/api/v1/subscribe...
+                    https://example.com/subscribe...
                   </div>
                 </div>
                 <button class="icon-btn" onclick="updateSingleProfile(event, 'profCard1')" title="刷新">
@@ -662,7 +685,11 @@
           <div id="profileSectionB" style="display:none;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
               <span style="font-size:13px; color:var(--text-secondary); font-weight:600;">配置目录 (/clash/...)</span>
-              <button class="demo-btn" style="padding:4px 10px; font-size:12px;" onclick="showToast('新建自定义配置或规则文件')">+ 新建文件</button>
+              <button class="icon-btn" onclick="showToast('新建自定义配置或规则文件')" title="新建文件">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                </svg>
+              </button>
             </div>
             
             <div class="file-row">
@@ -670,7 +697,9 @@
                 <div style="font-size:13px; font-weight:700;">config.yaml</div>
                 <div style="font-size:11px; color:var(--text-secondary);">主配置文件 · 24.5 KB · 今天 11:20</div>
               </div>
-              <span style="font-size:11px; color:var(--accent-blue); font-weight:600; cursor:pointer;" onclick="showToast('打开文本编辑器')">编辑</span>
+              <button class="icon-btn" style="width:28px; height:28px; color:var(--accent-blue);" onclick="showToast('打开文本编辑器')" title="编辑文件">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+              </button>
             </div>
             <div class="file-row">
               <div>
@@ -701,7 +730,7 @@
           <div class="page-header">
             <div>
               <h2 class="page-title">应用分流与名单</h2>
-              <div style="font-size:11px; color:var(--text-secondary); margin-top:1px;">TIIEHenry Fork 核心特性 · PRD-003 & PRD-004 规范实现</div>
+              <div style="font-size:11px; color:var(--text-secondary); margin-top:1px;">AgenticClash 核心特性 · PRD-003 & PRD-004 规范实现</div>
             </div>
             <div class="page-header-actions">
               <button class="icon-btn" id="btnActiveConn" title="活跃连接实时监控">
@@ -730,18 +759,22 @@
                   </div>
                   <div style="font-size:11px; color:var(--text-secondary); margin-top:3px;" id="globalAccessDesc">模式：仅允许选中的应用 (白名单) · 已选 8 个</div>
                 </div>
-                <div class="radio-indicator" id="globalAccessRadio">●</div>
+                <div class="radio-indicator" id="globalAccessRadio"></div>
               </div>
               <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px; padding-top:8px; border-top:1px solid var(--card-border);">
                 <span style="font-size:11px; color:var(--text-tertiary);">未启用任何策略时由全局名单接管</span>
-                <button class="demo-btn" style="padding:4px 10px; font-size:11px;" onclick="event.stopPropagation(); editStrategyApps(null)">编辑名单</button>
+                <button class="icon-btn" style="width:28px; height:28px; color:var(--accent-blue);" onclick="event.stopPropagation(); editStrategyApps(null)" title="配置全局名单应用">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                </button>
               </div>
             </div>
 
             <!-- Custom Named Strategies Header -->
             <div style="display:flex; justify-content:space-between; align-items:center; margin:16px 2px 10px;">
               <span style="font-size:13px; color:var(--text-secondary); font-weight:700;">多策略方案 (单选生效)</span>
-              <button class="demo-btn" style="padding:4px 10px; font-size:12px; background:var(--accent-blue);" onclick="openNewStrategyModal()">+ 新建策略</button>
+              <button class="icon-btn icon-btn-primary" onclick="openNewStrategyModal()" title="新建分流策略">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              </button>
             </div>
 
             <div id="strategyConfigsContainer"></div>
@@ -758,13 +791,15 @@
                 <span style="font-size:13px; color:var(--text-secondary); font-weight:700;">应用集合管理 (APP SETS)</span>
                 <div style="font-size:11px; color:var(--text-tertiary); margin-top:2px;">支持创建自定义集合、增删包名及跨策略快速复用</div>
               </div>
-              <button class="demo-btn" style="padding:4px 10px; font-size:12px; background:var(--accent-blue);" onclick="openNewAppSetModal()">+ 新建应用集</button>
+              <button class="icon-btn icon-btn-primary" onclick="openNewAppSetModal()" title="新建应用集">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              </button>
             </div>
 
             <div id="appSetsManagementContainer"></div>
 
             <div style="font-size:11px; color:var(--text-tertiary); line-height:1.5; margin-top:14px; padding:0 4px;">
-              💡 <b>说明</b>：系统应用与国内应用为内置集合，国内目录由 <code>domestic_packages.txt</code> 提供并支持用户追加。自定义应用集（如海外社交、流媒体、游戏等）可自由编辑包名并在任意分流策略中一键勾选。
+              💡 <b>说明</b>：系统应用、国内应用和浏览器是内置集合。国内目录由 <code>domestic_packages.txt</code> 提供，浏览器目录由 <code>browser_packages.txt</code> 提供，含国内和国外浏览器。自定义应用集可自由编辑包名，并在分流策略里一次勾选。
             </div>
           </div>
 
@@ -775,7 +810,9 @@
               <div style="display:flex; justify-content:space-between; align-items:center;">
                 <div>
                   <div style="display:flex; align-items:center; gap:8px;">
-                    <button class="demo-btn" style="padding:3px 8px; font-size:11px;" onclick="toggleStrategySubTab('strategies')">← 返回</button>
+                    <button class="icon-btn" style="width:28px; height:28px;" onclick="toggleStrategySubTab('strategies')" title="返回策略方案">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+                    </button>
                     <div style="font-size:13px; font-weight:700;" id="currentEditingStrategyTitle">海外应用代理 · 应用名单</div>
                   </div>
                   <div style="font-size:11px; color:var(--text-secondary); margin-top:4px;" id="currentEditingStrategyModeDesc">当前模式：仅代理已选应用 (白名单)</div>
@@ -804,13 +841,13 @@
                 <div style="font-size:12px; font-weight:700; color:var(--text-secondary);">
                   应用集合联动 (点击一键全选/取消 · 支持直接编辑)
                 </div>
-                <button class="demo-btn" style="padding:2px 8px; font-size:11px;" onclick="toggleStrategySubTab('appsets')">
-                  管理集合
+                <button class="icon-btn" style="width:28px; height:28px;" onclick="toggleStrategySubTab('appsets')" title="前往管理应用集合">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
                 </button>
               </div>
               
               <!-- Container for all dynamic app set cards with tri-state selection & edit button -->
-              <div id="appSetsQuickBarContainer"></div>
+              <div id="appSetsQuickBarContainer" class="grouped-list"></div>
             </div>
 
             <!-- App List Action Row -->
@@ -818,15 +855,21 @@
               <span style="font-size:12px; font-weight:700; color:var(--text-secondary);">
                 应用名单 (<span id="selectedAppCount">0</span> / <span id="totalAppCount">15</span> 已选)
               </span>
-              <div style="display:flex; gap:12px; font-size:12px; font-weight:600; color:var(--accent-blue);">
-                <span style="cursor:pointer;" onclick="selectAllApps(true)">全选</span>
-                <span style="cursor:pointer;" onclick="selectAllApps(false)">全不选</span>
-                <span style="cursor:pointer;" onclick="invertAppSelection()">反选</span>
+              <div style="display:flex; gap:6px;">
+                <button class="icon-btn" style="width:28px; height:28px; color:var(--accent-blue);" onclick="selectAllApps(true)" title="全选所有应用">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                </button>
+                <button class="icon-btn" style="width:28px; height:28px;" onclick="selectAllApps(false)" title="全部取消勾选">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+                <button class="icon-btn" style="width:28px; height:28px;" onclick="invertAppSelection()" title="反向反选应用">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+                </button>
               </div>
             </div>
 
             <!-- Apps List -->
-            <div id="appListContainer"></div>
+            <div id="appListContainer" class="grouped-list"></div>
           </div>
         </section>
         
@@ -838,11 +881,11 @@
 
           <!-- WebDAV Cloud Sync Group -->
           <div class="settings-group">
-            <div class="settings-group-title">WebDAV 云端同步 (TIIEHenry 特性)</div>
+            <div class="settings-group-title">WebDAV 云端同步 (AgenticClash 特性)</div>
             <div class="settings-item" onclick="openWebdavModal()">
               <div class="settings-main">
                 <div class="settings-title">WebDAV 同步控制台</div>
-                <div class="settings-desc">https://dav.jianguoyun.com/dav/ · 自动双向同步</div>
+                <div class="settings-desc">https://example.com/dav/ · 自动双向同步</div>
               </div>
               <span style="font-size:12px; color:var(--accent-blue); font-weight:600;">已就绪 →</span>
             </div>
@@ -919,7 +962,7 @@
             </div>
             <div class="settings-item" onclick="showAboutDialog()">
               <div class="settings-main">
-                <div class="settings-title">关于 ClashMetaX</div>
+                <div class="settings-title">关于 AgenticClash</div>
                 <div class="settings-desc">版本 2.11.35 · Mihomo Core 90a5afcc</div>
               </div>
               <span style="font-size:12px; color:var(--text-secondary);">v2.11.35</span>
@@ -947,8 +990,10 @@
         <div class="sheet-handle"></div>
         <div class="sheet-title-row">
           <div class="sheet-title">实时内核日志流 (Logcat)</div>
-          <div style="display:flex; gap:8px;">
-            <button class="demo-btn" style="padding:4px 8px; font-size:11px;" onclick="clearLogs()">清空</button>
+          <div style="display:flex; gap:8px; align-items:center;">
+            <button class="icon-btn" onclick="clearLogs()" title="清空日志">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            </button>
             <button class="icon-btn" onclick="closeSheet()">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
             </button>
@@ -962,7 +1007,14 @@
         <div class="sheet-handle"></div>
         <div class="sheet-title-row">
           <div class="sheet-title">活跃连接实时监控 (<span id="connCount">4</span>)</div>
-          <button class="demo-btn" style="padding:4px 10px; font-size:11px;" onclick="clearAllConnections()">全部切断</button>
+          <div style="display:flex; gap:8px; align-items:center;">
+            <button class="icon-btn icon-btn-danger" style="width:30px; height:30px;" onclick="clearAllConnections()" title="全部切断活跃连接">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+            </button>
+            <button class="icon-btn" onclick="closeSheet()">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
         </div>
         <div class="sheet-content" id="connListContainer"></div>
       </div>
@@ -979,7 +1031,7 @@
         <div class="sheet-content">
           <div class="form-group">
             <label class="form-label">WebDAV 服务器地址 (URL)</label>
-            <input type="text" class="form-input" value="https://dav.jianguoyun.com/dav/clash-sync/">
+            <input type="text" class="form-input" value="https://example.com/dav/clash-meta/">
           </div>
           <div class="form-group">
             <label class="form-label">备用局域网地址 (LAN URL，可选)</label>
@@ -995,7 +1047,7 @@
           </div>
           <div class="form-group">
             <label class="form-label">远程备份路径</label>
-            <input type="text" class="form-input" value="/clash-meta-backups/">
+            <input type="text" class="form-input" value="/clash-meta/">
           </div>
           <div class="settings-item" style="border-radius:var(--radius-sm); margin-bottom:14px;">
             <div class="settings-main">
@@ -1035,7 +1087,9 @@
             <label class="form-label">age 敏感配置加密密钥</label>
             <div style="display:flex; justify-content:space-between; align-items:center; background:var(--card-subtle); padding:10px 12px; border-radius:var(--radius-sm); border:1px solid var(--card-border);">
               <span id="ageKeyStatus">已设置 (age1ql3z7h68...)</span>
-              <button class="demo-btn" style="padding:4px 8px; font-size:11px;" onclick="showToast('已更新 age 加密配置密钥')">变更</button>
+              <button class="icon-btn" style="width:28px; height:28px;" onclick="showToast('已更新 age 加密配置密钥')" title="变更 age 密钥">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-1.5 1.5L14 9l-1.5-1.5L10 10l2 2-7 7H2v-3l7-7 2 2 2.5-2.5L14 9l3.5-3.5L19 4z"/></svg>
+              </button>
             </div>
           </div>
           <button class="demo-btn" style="width:100%; justify-content:center; padding:12px; margin-top:10px; background:var(--accent-blue);" onclick="showToast('配置属性已保存'); closeSheet();">保存配置属性</button>
@@ -1182,7 +1236,7 @@
           </div>
           <div class="form-group">
             <label class="form-label">订阅 URL 地址</label>
-            <input type="text" id="newProfUrl" class="form-input" placeholder="https://airport.com/sub?token=...">
+            <input type="text" id="newProfUrl" class="form-input" placeholder="https://example.com/sub?token=...">
           </div>
           <div class="form-group">
             <label class="form-label">自动更新间隔 (分钟)</label>
@@ -1200,7 +1254,7 @@
       <div class="bottom-sheet" id="newStrategySheet">
         <div class="sheet-handle"></div>
         <div class="sheet-title-row">
-          <div class="sheet-title">新建应用分流策略 (TIIEHenry)</div>
+          <div class="sheet-title">新建应用分流策略 (AgenticClash)</div>
           <button class="icon-btn" onclick="closeSheet()">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>
@@ -1233,7 +1287,7 @@
       <div class="bottom-sheet" id="aboutSheet">
         <div class="sheet-handle"></div>
         <div class="sheet-title-row">
-          <div class="sheet-title">关于 ClashMetaX UI 2.0</div>
+          <div class="sheet-title">关于 AgenticClash UI 2.0</div>
           <button class="icon-btn" onclick="closeSheet()">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>
@@ -1241,7 +1295,7 @@
         <div class="sheet-content">
           <div style="text-align:center; padding:10px 0 16px;">
             <div style="font-size:32px; margin-bottom:4px;">⚡</div>
-            <div style="font-size:17px; font-weight:800;">ClashMetaX · TIIEHenry Fork</div>
+            <div style="font-size:17px; font-weight:800;">AgenticClash</div>
             <div style="font-size:12px; color:var(--text-secondary); margin-top:2px;">版本: v2.10.8-meta · 内核: Mihomo v1.18.9</div>
           </div>
           <div class="card" style="padding:12px; font-size:12px; line-height:1.6; margin-bottom:12px; background:var(--card-subtle);">
@@ -1281,9 +1335,11 @@
               <option value="AcceptAll">全部应用允许进入隧道 (AcceptAll / 全局模式)</option>
             </select>
           </div>
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:14px;">
-            <button class="demo-btn" style="justify-content:center; padding:10px; color:var(--accent-red); border-color:var(--accent-red-subtle);" onclick="deleteCurrentStrategy()">删除此策略</button>
-            <button class="demo-btn" style="justify-content:center; padding:10px; background:var(--accent-blue);" onclick="saveStrategyEdits()">保存修改</button>
+          <div style="display:flex; gap:10px; margin-top:14px; align-items:center;">
+            <button class="icon-btn icon-btn-danger" style="width:42px; height:42px;" onclick="deleteCurrentStrategy()" title="删除此分流策略">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            </button>
+            <button class="demo-btn" style="flex:1; justify-content:center; padding:12px; background:var(--accent-blue);" onclick="saveStrategyEdits()">保存修改</button>
           </div>
         </div>
       </div>
@@ -1357,9 +1413,11 @@
             </div>
             <div class="app-pick-list" id="editAppSetPickList"></div>
           </div>
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:14px;">
-            <button class="demo-btn" id="btnDeleteAppSet" style="justify-content:center; padding:10px; color:var(--accent-red); border-color:var(--accent-red-subtle);" onclick="deleteCurrentAppSet()">删除此集合</button>
-            <button class="demo-btn" style="justify-content:center; padding:10px; background:var(--accent-blue);" onclick="saveAppSetEdits()">保存修改</button>
+          <div style="display:flex; gap:10px; margin-top:14px; align-items:center;">
+            <button class="icon-btn icon-btn-danger" id="btnDeleteAppSet" style="width:42px; height:42px;" onclick="deleteCurrentAppSet()" title="删除此集合">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            </button>
+            <button class="demo-btn" style="flex:1; justify-content:center; padding:12px; background:var(--accent-blue);" onclick="saveAppSetEdits()">保存修改</button>
           </div>
         </div>
       </div>
@@ -1430,10 +1488,10 @@
         id: "hk01",
         group: "PROXY",
         flag: "🇭🇰",
-        name: "香港 BGP 01 [IEPL专线]",
+        name: "示例节点 01",
         type: "SS",
-        ip: "104.28.198.42",
-        geo: "Cloudflare HK",
+        ip: "192.0.2.1",
+        geo: "示例机房",
         ping: 38
       },
       currentGroup: "PROXY",
@@ -1446,18 +1504,18 @@
 
       // Proxies List
       nodes: [
-        { id: "hk01", group: "PROXY", flag: "🇭🇰", name: "香港 BGP 01 [IEPL专线]", type: "SS", ping: 38, ip: "104.28.198.42", geo: "Cloudflare HK" },
-        { id: "hk02", group: "PROXY", flag: "🇭🇰", name: "香港 BGP 02 [直连优化]", type: "Vmess", ping: 45, ip: "104.28.198.50", geo: "HKIX" },
-        { id: "hk03", group: "PROXY", flag: "🇭🇰", name: "香港 03 [Netflix/Disney+]", type: "Trojan", ping: 52, ip: "103.21.244.12", geo: "HK Datacenter" },
-        { id: "jp01", group: "PROXY", flag: "🇯🇵", name: "日本 东京 01 [低延迟专线]", type: "SS", ping: 68, ip: "172.67.142.11", geo: "Tokyo Equinix" },
-        { id: "jp02", group: "PROXY", flag: "🇯🇵", name: "日本 大阪 02 [原生IP]", type: "VLESS", ping: 75, ip: "172.67.142.88", geo: "Osaka Sakura" },
-        { id: "sg01", group: "PROXY", flag: "🇸🇬", name: "新加坡 01 [BGP多线]", type: "SS", ping: 62, ip: "104.21.33.19", geo: "Singapore Singtel" },
-        { id: "sg02", group: "PROXY", flag: "🇸🇬", name: "新加坡 02 [流媒体解锁]", type: "Hysteria2", ping: 59, ip: "104.21.33.20", geo: "Singapore AWS" },
-        { id: "us01", group: "PROXY", flag: "🇺🇸", name: "美国 洛杉矶 01 [GIA优质线路]", type: "SS", ping: 142, ip: "198.41.214.10", geo: "Los Angeles Cera" },
-        { id: "us02", group: "PROXY", flag: "🇺🇸", name: "美国 硅谷 02 [ChatGPT专用]", type: "Trojan", ping: 156, ip: "198.41.214.22", geo: "San Jose Equinix" },
-        { id: "tw01", group: "PROXY", flag: "🇹🇼", name: "台湾 台北 01 [动画疯解锁]", type: "SS", ping: 48, ip: "104.28.156.12", geo: "Taipei Chunghwa" },
-        { id: "de01", group: "🇩🇪", flag: "🇩🇪", name: "德国 法兰克福 01 [欧洲节点]", type: "Vmess", ping: 210, ip: "188.114.97.10", geo: "Frankfurt" },
-        { id: "kr01", group: "PROXY", flag: "🇰🇷", name: "韩国 首尔 01 [低延迟]", type: "Trojan", ping: 64, ip: "104.28.12.90", geo: "Seoul KINX" }
+        { id: "node01", group: "PROXY", flag: "🌐", name: "示例节点 01", type: "SS", ping: 38, ip: "192.0.2.1", geo: "示例机房" },
+        { id: "node02", group: "PROXY", flag: "🌐", name: "示例节点 02", type: "Vmess", ping: 45, ip: "192.0.2.2", geo: "示例机房" },
+        { id: "node03", group: "PROXY", flag: "🌐", name: "示例节点 03", type: "Trojan", ping: 52, ip: "192.0.2.3", geo: "示例机房" },
+        { id: "node04", group: "PROXY", flag: "🌐", name: "示例节点 04", type: "SS", ping: 68, ip: "192.0.2.4", geo: "示例机房" },
+        { id: "node05", group: "PROXY", flag: "🌐", name: "示例节点 05", type: "VLESS", ping: 75, ip: "192.0.2.5", geo: "示例机房" },
+        { id: "node06", group: "PROXY", flag: "🌐", name: "示例节点 06", type: "SS", ping: 62, ip: "192.0.2.6", geo: "示例机房" },
+        { id: "node07", group: "PROXY", flag: "🌐", name: "示例节点 07", type: "Hysteria2", ping: 59, ip: "192.0.2.7", geo: "示例机房" },
+        { id: "node08", group: "PROXY", flag: "🌐", name: "示例节点 08", type: "SS", ping: 142, ip: "192.0.2.8", geo: "示例机房" },
+        { id: "node09", group: "PROXY", flag: "🌐", name: "示例节点 09", type: "Trojan", ping: 156, ip: "192.0.2.9", geo: "示例机房" },
+        { id: "node10", group: "PROXY", flag: "🌐", name: "示例节点 10", type: "SS", ping: 48, ip: "192.0.2.10", geo: "示例机房" },
+        { id: "node11", group: "PROXY", flag: "🌐", name: "示例节点 11", type: "Vmess", ping: 210, ip: "192.0.2.11", geo: "示例机房" },
+        { id: "node12", group: "PROXY", flag: "🌐", name: "示例节点 12", type: "Trojan", ping: 64, ip: "192.0.2.12", geo: "示例机房" }
       ],
 
       // PRD-003 App Definitions (Package Name, Label, isSystem, isDomestic)
@@ -1465,7 +1523,9 @@
         { id: "tg", name: "Telegram", pkg: "org.telegram.messenger", icon: "✈️", isSystem: false, isDomestic: false },
         { id: "yt", name: "YouTube", pkg: "com.google.android.youtube", icon: "▶️", isSystem: false, isDomestic: false },
         { id: "tw", name: "X (Twitter)", pkg: "com.twitter.android", icon: "🐦", isSystem: false, isDomestic: false },
-        { id: "chrome", name: "Google Chrome", pkg: "com.android.chrome", icon: "🌐", isSystem: true, isDomestic: false },
+        { id: "chrome", name: "Google Chrome", pkg: "com.android.chrome", icon: "🌐", isSystem: false, isDomestic: false },
+        { id: "firefox", name: "Firefox", pkg: "org.mozilla.firefox", icon: "🦊", isSystem: false, isDomestic: false },
+        { id: "via", name: "Via", pkg: "mark.via", icon: "🧭", isSystem: false, isDomestic: false },
         { id: "netflix", name: "Netflix", pkg: "com.netflix.mediaclient", icon: "🎬", isSystem: false, isDomestic: false },
         { id: "discord", name: "Discord", pkg: "com.discord", icon: "💬", isSystem: false, isDomestic: false },
         { id: "github", name: "GitHub", pkg: "com.github.android", icon: "🐙", isSystem: false, isDomestic: false },
@@ -1490,7 +1550,7 @@
           icon: "⚙️",
           isBuiltin: true,
           description: "Android 系统底层及系统服务组件 (自动按系统标识归类)",
-          packages: ["chrome", "settings", "play", "systemui"]
+          packages: ["settings", "play", "systemui"]
         },
         {
           id: "domestic",
@@ -1499,6 +1559,14 @@
           isBuiltin: true,
           description: "基于 domestic_packages.txt 目录，可扩充自定义包名",
           packages: ["wx", "alipay", "bili", "taobao"]
+        },
+        {
+          id: "browsers",
+          name: "浏览器",
+          icon: "🌐",
+          isBuiltin: true,
+          description: "国内和国外网页浏览器，按 browser_packages.txt 匹配已安装应用",
+          packages: ["chrome", "firefox", "via"]
         },
         {
           id: "social",
@@ -1557,10 +1625,10 @@
 
       // Active Connections
       connections: [
-        { host: "api.openai.com:443", process: "ChatGPT", group: "🤖 AI 智能", node: "香港 BGP 01", speed: "128 KB/s" },
-        { host: "rr3---sn-4g5ednks.googlevideo.com:443", process: "YouTube", group: "🎬 流媒体", node: "香港 BGP 02", speed: "3.2 MB/s" },
-        { host: "api.telegram.org:443", process: "Telegram", group: "🚀 节点选择", node: "新加坡 01", speed: "14 KB/s" },
-        { host: "gateway.discord.gg:443", process: "Discord", group: "🚀 节点选择", node: "日本 东京 01", speed: "42 KB/s" }
+        { host: "api.example.com:443", process: "ChatGPT", group: "🤖 AI 智能", node: "示例节点 01", speed: "128 KB/s" },
+        { host: "video.example.com:443", process: "YouTube", group: "🎬 流媒体", node: "示例节点 02", speed: "3.2 MB/s" },
+        { host: "chat.example.com:443", process: "Telegram", group: "🚀 节点选择", node: "示例节点 06", speed: "14 KB/s" },
+        { host: "voice.example.com:443", process: "Discord", group: "🚀 节点选择", node: "示例节点 04", speed: "42 KB/s" }
       ]
     };
 
@@ -1722,12 +1790,21 @@
     }
 
     // Main Tab Switching
+    const pageScroll = {};
+
     function switchTab(tabId, subTab) {
+      const screen = document.getElementById("appScreen");
+      const currentPage = document.querySelector(".page-view.active");
+      if (currentPage) pageScroll[currentPage.id] = screen.scrollTop;
+
       document.querySelectorAll(".page-view").forEach(p => p.classList.remove("active"));
       document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active"));
       
       const targetPage = document.getElementById("page-" + tabId);
-      if (targetPage) targetPage.classList.add("active");
+      if (targetPage) {
+        targetPage.classList.add("active");
+        screen.scrollTop = pageScroll[targetPage.id] || 0;
+      }
 
       const navIndices = { dashboard: 0, proxies: 1, profiles: 2, apps: 3, settings: 4 };
       const items = document.querySelectorAll(".nav-item");
@@ -1892,11 +1969,11 @@
               规则/节点数: <b style="color:var(--text-primary);">${p.count}</b> 条 · 更新于 ${p.updated}
             </div>
             <div style="display:flex; gap:6px;">
-              <button class="demo-btn" style="padding:4px 8px; font-size:11px;" onclick="updateSingleProvider('${p.id}')">
-                健康检查
+              <button class="icon-btn" style="width:30px; height:30px;" onclick="updateSingleProvider('${p.id}')" title="健康检查 / 测延迟">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
               </button>
-              <button class="demo-btn" style="padding:4px 8px; font-size:11px; background:var(--accent-blue-subtle); color:var(--accent-blue);" onclick="updateSingleProvider('${p.id}', true)">
-                更新
+              <button class="icon-btn icon-btn-primary" style="width:30px; height:30px;" onclick="updateSingleProvider('${p.id}', true)" title="立即更新 Provider">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
               </button>
             </div>
           </div>
@@ -1928,7 +2005,7 @@
     }
 
     // =========================================================================
-    // APPS STRATEGY & ACCESS CONTROL (PRD-003 & PRD-004 TIIEHenry Fork Core)
+    // APPS STRATEGY & ACCESS CONTROL (PRD-003 & PRD-004 AgenticClash Core)
     // =========================================================================
 
     function selectActiveStrategy(uuid) {
@@ -1959,7 +2036,7 @@
         globalCard.classList.toggle("active-strat", isGlobalActive);
       }
       if (globalRadio) {
-        globalRadio.textContent = isGlobalActive ? "●" : "";
+        globalRadio.innerHTML = isGlobalActive ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="width:11px; height:11px; display:block;"><polyline points="20 6 9 17 4 12"/></svg>' : "";
       }
       if (globalDesc) {
         globalDesc.textContent = `模式：仅允许选中的应用进入隧道 (白名单) · 已选 ${state.globalPackages.length} 个应用`;
@@ -2007,23 +2084,23 @@
                   <span class="demo-tag" style="background:${modeBadgeBg}; color:${modeBadgeClass}; font-weight:700;">
                     ${strat.mode === "AcceptSelected" ? "白名单" : strat.mode === "DenySelected" ? "黑名单直连" : "全局放行"}
                   </span>
-                  ${isActive ? '<span class="demo-tag" style="background:rgba(48,209,88,0.15); color:var(--accent-green); font-weight:700;">● 生效中</span>' : ''}
+                  ${isActive ? '<span class="demo-tag" style="background:var(--accent-green-subtle); color:var(--accent-green); font-weight:600;">生效中</span>' : ''}
                 </div>
                 <div style="font-size:11px; color:var(--text-secondary); margin-top:3px;">${strat.modeDesc}</div>
               </div>
-              <div class="radio-indicator">${isActive ? "●" : ""}</div>
+              <div class="radio-indicator">${isActive ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="width:11px; height:11px; display:block;"><polyline points="20 6 9 17 4 12"/></svg>' : ""}</div>
             </div>
 
             <div style="display:flex; justify-content:space-between; align-items:center; margin-top:12px; padding-top:8px; border-top:1px solid var(--card-border); font-size:11px;">
               <span style="color:var(--text-tertiary);">
                 已勾选 <b style="color:var(--text-primary);">${strat.packages.length}</b> 款应用${setHint}
               </span>
-              <div style="display:flex; gap:6px;">
-                <button class="demo-btn" style="padding:4px 8px; font-size:11px;" onclick="event.stopPropagation(); openEditStrategyModal('${strat.id}')">
-                  编辑/管理
+              <div style="display:flex; gap:6px;" onclick="event.stopPropagation()">
+                <button class="icon-btn" style="width:30px; height:30px;" onclick="openEditStrategyModal('${strat.id}')" title="策略配置与模式">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
                 </button>
-                <button class="demo-btn" style="padding:4px 8px; font-size:11px; background:var(--accent-blue); color:#fff;" onclick="event.stopPropagation(); editStrategyApps('${strat.id}')">
-                  配置名单
+                <button class="icon-btn icon-btn-primary" style="width:30px; height:30px;" onclick="editStrategyApps('${strat.id}')" title="配置应用与集合名单">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
                 </button>
               </div>
             </div>
@@ -2069,12 +2146,12 @@
             <div class="app-set-mgmt-footer">
               <span>共包含 <b style="color:var(--text-primary);">${set.packages.length}</b> 款应用</span>
               <div style="display:flex; gap:6px;">
-                <button class="app-set-edit-btn" onclick="openEditAppSetModal('${set.id}')">
-                  ✏️ 编辑成员与属性
+                <button class="icon-btn" style="width:30px; height:30px;" onclick="openEditAppSetModal('${set.id}')" title="编辑成员与集合属性">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
                 </button>
                 ${!set.isBuiltin ? `
-                  <button class="app-set-edit-btn" style="color:var(--accent-red); border-color:var(--accent-red-subtle);" onclick="deleteAppSetDirect('${set.id}')">
-                    🗑️ 删除
+                  <button class="icon-btn icon-btn-danger" style="width:30px; height:30px;" onclick="deleteAppSetDirect('${set.id}')" title="删除集合">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
                   </button>
                 ` : ''}
               </div>
@@ -2379,8 +2456,8 @@
                 </div>
               </div>
               <div class="app-set-actions" onclick="event.stopPropagation()">
-                <button class="app-set-edit-btn" onclick="openEditAppSetModal('${set.id}')" title="编辑该集合成员与属性">
-                  ✏️ 编辑
+                <button class="icon-btn" style="width:28px; height:28px;" onclick="openEditAppSetModal('${set.id}')" title="编辑该集合成员与属性">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px; height:13px;"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
                 </button>
                 <div class="checkbox ${stateClass}" onclick="toggleAppSet('${set.id}')">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
@@ -2661,14 +2738,14 @@
       openSheet("profilePropsSheet");
     }
 
-    // WebDAV Controls (TIIEHenry Fork Core)
+    // WebDAV Controls (AgenticClash Core)
     function openWebdavModal() {
       openSheet("webdavSheet");
     }
 
     function testWebdav() {
       showToast("正在连接 WebDAV 服务器...");
-      addLog("[WebDAV] Testing PROPFIND https://dav.jianguoyun.com/dav/clash-sync/");
+      addLog("[WebDAV] Testing PROPFIND https://example.com/dav/clash-meta/");
       setTimeout(() => {
         showToast("✅ WebDAV 连接测试成功，认证有效！");
         addLog("[WebDAV] Connection test passed (HTTP 207 Multi-Status)", "info");
@@ -2800,11 +2877,11 @@
     });
 
     // Initial Logs
-    addLog("[Core] Clash.Meta v1.18.9 initiated with Android TUN stack");
+    addLog("[Core] mihomo v1.18.9 initiated with Android TUN stack");
     addLog("[TUN] gVisor virtual network device bound to tun0 at 198.18.0.1/16");
     addLog("[Strategy] Active strategy: [海外应用加速] (AcceptSelected: 7 apps)");
     addLog("[DNS] Sniffing enabled for TLS SNI and HTTP Host header");
-    addLog("[Rule] Matching api.openai.com -> Route to [🤖 AI 智能]");
+    addLog("[Rule] Matching api.example.com -> Route to [🤖 AI 智能]");
 
     // Active Connections
     document.getElementById("btnActiveConn").addEventListener("click", () => {
@@ -2825,13 +2902,13 @@
       }
 
       const simulatedRaw = [
-        { host: "api.openai.com:443", appId: "tg", process: "Telegram", speed: "142 KB/s" },
-        { host: "rr3---sn-4g5ednks.googlevideo.com:443", appId: "yt", process: "YouTube", speed: "3.4 MB/s" },
-        { host: "api.twitter.com:443", appId: "tw", process: "X (Twitter)", speed: "84 KB/s" },
-        { host: "szextshort.weixin.qq.com:443", appId: "wx", process: "微信", speed: "12 KB/s" },
-        { host: "mobilegw.alipay.com:443", appId: "alipay", process: "支付宝", speed: "8 KB/s" },
-        { host: "api.bilibili.com:443", appId: "bili", process: "哔哩哔哩", speed: "2.1 MB/s" },
-        { host: "api.github.com:443", appId: "github", process: "GitHub", speed: "45 KB/s" }
+        { host: "chat.example.com:443", appId: "tg", process: "Telegram", speed: "142 KB/s" },
+        { host: "video.example.com:443", appId: "yt", process: "YouTube", speed: "3.4 MB/s" },
+        { host: "social.example.com:443", appId: "tw", process: "X (Twitter)", speed: "84 KB/s" },
+        { host: "message.example.com:443", appId: "wx", process: "微信", speed: "12 KB/s" },
+        { host: "payment.example.com:443", appId: "alipay", process: "支付宝", speed: "8 KB/s" },
+        { host: "media.example.com:443", appId: "bili", process: "哔哩哔哩", speed: "2.1 MB/s" },
+        { host: "code.example.com:443", appId: "github", process: "GitHub", speed: "45 KB/s" }
       ];
 
       const simulated = simulatedRaw.map(c => {
@@ -2911,9 +2988,16 @@
     window.addEventListener("resize", resizeCanvas);
     setTimeout(resizeCanvas, 100);
 
+    function themeColor(name, fallback) {
+      const value = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+      return value || fallback;
+    }
+
     function drawWave() {
       const w = canvas.getBoundingClientRect().width;
       const h = canvas.getBoundingClientRect().height;
+      const accentBlue = themeColor("--accent-blue", "#5b8cff");
+      const accentGreen = themeColor("--accent-green", "#3ddb86");
       ctx.clearRect(0, 0, w, h);
 
       if (!state.running) {
@@ -2942,11 +3026,11 @@
       ctx.lineTo(w, h);
       ctx.closePath();
       
-      const gradDown = ctx.createLinearGradient(0, 0, 0, h);
-      gradDown.addColorStop(0, "rgba(10, 132, 255, 0.28)");
-      gradDown.addColorStop(1, "rgba(10, 132, 255, 0.0)");
-      ctx.fillStyle = gradDown;
+      ctx.save();
+      ctx.globalAlpha = 0.18;
+      ctx.fillStyle = accentBlue;
       ctx.fill();
+      ctx.restore();
 
       ctx.beginPath();
       points.forEach((p, idx) => {
@@ -2956,7 +3040,7 @@
         if (idx === 0) ctx.moveTo(x, y);
         else ctx.lineTo(x, y);
       });
-      ctx.strokeStyle = "#0a84ff";
+      ctx.strokeStyle = accentBlue;
       ctx.lineWidth = 2;
       ctx.stroke();
 
@@ -2969,7 +3053,7 @@
         if (idx === 0) ctx.moveTo(x, y);
         else ctx.lineTo(x, y);
       });
-      ctx.strokeStyle = "#30d158";
+      ctx.strokeStyle = accentGreen;
       ctx.lineWidth = 1.5;
       ctx.stroke();
     }
@@ -3038,7 +3122,7 @@
       state.trafficDown = 18.5 * 1024 * 1024;
       state.trafficUp = 3.2 * 1024 * 1024;
       showToast("🔥 模拟突发流量飙升: 18.5 MB/s");
-      addLog("[Traffic] Inbound traffic burst detected: 18.5 MB/s via [香港 BGP 01]", "warn");
+      addLog("[Traffic] Inbound traffic burst detected: 18.5 MB/s via [示例节点 01]", "warn");
     });
 
     // Initial render
@@ -3061,8 +3145,10 @@
       const tab = params.get('tab') || (hash ? hash.split('/')[0] : null);
       const sub = params.get('sub') || (hash && hash.includes('/') ? hash.split('/')[1] : null);
       if (tab) {
-        switchTab(tab);
-        if (sub) toggleStrategySubTab(sub);
+        switchTab(tab, sub);
+        if (tab === 'apps' && sub) toggleStrategySubTab(sub);
+        if (tab === 'proxies' && sub) toggleProxySubTab(sub);
+        if (tab === 'profiles' && sub) toggleProfileSubTab(sub);
         const modal = params.get('modal');
         if (modal === 'editAppSet') {
           const setId = params.get('id') || 'domestic';

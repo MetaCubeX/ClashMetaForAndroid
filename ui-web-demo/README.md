@@ -1,6 +1,6 @@
-# ClashMetaX (CMFA) UI 2.0 重构方案与交互式 Web 原型
+# AgenticClash UI 2.0 重构方案与交互式 Web 原型
 
-本目录包含 **ClashMetaForAndroid (ClashMetaX)** 界面全新设计的交互式 Web Demo。
+本目录包含 **AgenticClash** 界面全新设计的交互式 Web Demo。
 
 ## 1. 快速启动与体验方式
 
@@ -43,3 +43,19 @@ python3 ui-web-demo/serve.py 8888
    - **深色暗夜 (Dark Mode)**：深邃黑 `#0C0D11` 与卡片 `#16181F`，配合精细 0.5px 微透明描边与霓虹高亮。
    - **浅色明亮 (Light Mode)**：柔和护眼灰底 `#F2F4F8` 与纯白卡片，清晰自然的对比度。
    - **双视图容器**：支持真机模型外壳（灵动岛、前摄打孔、状态栏）与全屏平铺模式自由切换。
+
+## 3. 切页动效与状态保留
+
+底栏五个 tab 共用 `#appScreen` 一个滚动容器。切页时新页淡入 200ms（`ease-out`），旧页同帧移除，不做位移和横滑。
+
+每个 tab 的滚动位置按页面 id 记在 `pageScroll` 里：切走前写入当前 `scrollTop`，切回来时直接恢复，不回到顶部。分段、展开项和搜索词本来就是各自页面的 DOM 状态，`display: none` 不会清掉，切回来仍在。
+
+## 4. 修改与重新生成
+
+`index.html` 由 `assemble.py` 拼接 `parts_css.py`、`parts_html.py` 和 `parts_js.py` 生成，不要直接改 `index.html`：
+
+```bash
+python3 ui-web-demo/assemble.py
+```
+
+`generate.py` 是早期的单文件生成器，输出的是旧版页面，会覆盖 `index.html`。不要再运行它；改页面只改 `parts_*.py` 再重新拼接。

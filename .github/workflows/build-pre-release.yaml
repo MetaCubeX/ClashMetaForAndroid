@@ -56,24 +56,12 @@ jobs:
           SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
           SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
         run: |
-          touch signing.properties
-          echo keystore.password="$SIGNING_STORE_PASSWORD" > signing.properties
-          echo key.alias="$SIGNING_KEY_ALIAS" >> signing.properties
-          echo key.password="$SIGNING_KEY_PASSWORD" >> signing.properties
-            
-          echo "cat signing.properties"
-          cat signing.properties
+          python3 scripts/write-signing-properties.py
+          chmod 600 signing.properties
 
       - name: Pre-release Build
         if: success()
         run: ./gradlew --no-daemon app:assembleAlphaRelease
-
-      # Delete old Prerelease-alpha
-      - uses: dev-drprasad/delete-tag-and-release@v1.1
-        with:
-          tag_name: Prerelease-alpha
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          delete_release: true
 
       - name: Tag Repo
         uses: richardsimko/update-tag@v3

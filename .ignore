@@ -1,0 +1,3 @@
+# 日常检索默认排除归档；结构检查仍覆盖 dev/archive（见 docs/wiki.json）
+/dev/archive/
+/dev/archive/**

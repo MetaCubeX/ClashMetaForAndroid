@@ -63,9 +63,6 @@ jobs:
       #     echo key.alias="$SIGNING_KEY_ALIAS" >> signing.properties
       #     echo key.password="$SIGNING_KEY_PASSWORD" >> signing.properties
             
-      #     echo "cat signing.properties"
-      #     cat signing.properties
-
       - name: Build
         if: success()
         run: ./gradlew --no-daemon app:assembleAlphaRelease

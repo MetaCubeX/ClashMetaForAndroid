@@ -13,7 +13,7 @@ html = f"""<!DOCTYPE html>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>ClashMetaX UI 2.0 - 交互式网页原型系统</title>
+  <title>AgenticClash UI 2.0 - 交互式网页原型系统</title>
   <style>
 {CSS_BLOCK}
   </style>
