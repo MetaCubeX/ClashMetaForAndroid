@@ -44,10 +44,15 @@
 | `append-proxy-groups` | `proxy-groups` | **尾部** | 向代理组列表的最后面追加自定义代理组 |
 | `prepend-rules` | `rules` | **头部** | 向分流规则列表的最前面插入高优先级规则 |
 | `append-rules` | `rules` | **尾部** | 向分流规则列表的最后面追加兜底/低优先级规则 |
-| `prepend-to-group` | 指定 `proxy-group` 的 `proxies` | **头部** | 将指定节点名称插入到目标代理组节点列表的最前面 |
-| `append-to-group` | 指定 `proxy-group` 的 `proxies` | **尾部** | 将指定节点名称追加到目标代理组节点列表的最后面 |
+| `prepend-to-group` | 指定 `proxy-group` 的 `proxies` | **头部** | 按名称 (`group`) 或索引 (`index`) 定位代理组，向其节点列表最前面插入节点 |
+| `append-to-group` | 指定 `proxy-group` 的 `proxies` | **尾部** | 按名称 (`group`) 或索引 (`index`) 定位代理组，向其节点列表最后面追加节点 |
 
-> **执行顺序说明**：`prepend-proxy-groups` 和 `append-proxy-groups` 会在 `prepend-to-group` 和 `append-to-group` 之前执行。因此，你既可以向原订阅已有的代理组中添加节点，也可以向刚刚通过 parser 新增的代理组中添加节点。
+> **执行顺序与 `group` / `index` 匹配机制**：
+> 1. **执行顺序**：`prepend-proxy-groups` 和 `append-proxy-groups` 会在 `prepend-to-group` 和 `append-to-group` **之前**执行。
+> 2. **三种定位方式**（`prepend-to-group` 与 `append-to-group` 均支持）：
+>    - **仅指定 `group`**：按代理组名称精确匹配（如 `group: "Proxy"`）。
+>    - **仅指定 `index`**：按代理组在 `proxy-groups` 中的下标位置匹配（**从 `0` 开始计数**，且**基于插入新代理组之后**的顺序计算。例如前面通过 `prepend-proxy-groups` 插入了 1 个新代理组，则原订阅的第 1 个代理组此时下标为 `index: 1`）。
+>    - **同时指定 `group` 和 `index`（推荐通用写法）**：**优先按 `group` 名称查找**；如果当前订阅中不存在该名称的代理组，则**自动使用 `index` 兜底**。非常适合同一份 Parser 跨多个不同命名的机场订阅通用。
 
 ---
 
@@ -86,7 +91,7 @@ parsers:
         cipher: "aes-256-gcm"
         password: "your_ss_password_here"
 
-    # 3. 在代理组列表头部插入自定义代理组
+    # 3. 在代理组列表头部插入自定义代理组（执行后该组位于 index: 0，原订阅第一个组顺延为 index: 1）
     prepend-proxy-groups:
       - name: "Custom-Group-A"
         type: "select"
@@ -104,19 +109,23 @@ parsers:
           - "custom-node-alpha"
           - "custom-node-gamma"
 
-    # 5. 将指定节点插入到订阅原有的指定代理组【头部】
+    # 5. 将指定节点插入到目标代理组【头部】
     prepend-to-group:
+      # 写法 A（通用推荐）：优先找名为 "Proxy" 的组；若订阅中没有该名字，则兜底插入到 index 为 1 的组
       - group: "Proxy"
+        index: 1
         proxies:
           - "custom-node-alpha"
           - "Custom-Group-B"
 
-    # 6. 将指定节点追加到订阅原有的指定代理组【尾部】
+    # 6. 将指定节点追加到目标代理组【尾部】
     append-to-group:
-      - group: "Proxy"
+      # 写法 B：仅通过 index 指定（例如直接指定下标为 1 的代理组）
+      - index: 1
         proxies:
           - "custom-node-gamma"
           - "DIRECT"
+      # 写法 C：仅通过 group 名称指定
       - group: "Streaming"
         proxies:
           - "custom-node-alpha"
@@ -137,8 +146,13 @@ parsers:
 ## 4. 常见问题与调试
 
 1. **为什么 `append-rules` 追加的规则没有生效？**
-   绝大多数机场订阅的 `rules` 列表最后一条都是 `MATCH,🚀 节点选择`（兜底规则）。由于 Clash 规则是自上而下按顺序匹配的，追加在 `MATCH` 之后的规则永远不会被触发。自定义分流规则通常建议使用 `prepend-rules` 插入到头部。
-2. **如果 `prepend-to-group` / `append-to-group` 指定的 `group` 名称在订阅中不存在会怎样？**
-   如果目标代理组名称在订阅的 `proxy-groups` 中找不到，该条规则会被安全忽略，不会导致订阅更新报错。请确保 `group` 的名称（包括 Emoji 和空格）与订阅中的代理组名称完全一致。
-3. **如何排查 Parser 是否生效？**
-   在开启 Debug 日志的情况下，可以在日志中搜索关键字 `[ApplyParsers]`，即可查看从拉取 `parsers` URL、匹配各个操作指令到最终生成完整 YAML 的详细过程。
+   绝大多数机场订阅的 `rules` 列表最后一条都是 `MATCH,...`（兜底规则）。由于 Clash 规则是自上而下按顺序匹配的，追加在 `MATCH` 之后的规则永远不会被触发。自定义分流规则通常建议使用 `prepend-rules` 插入到头部。
+2. **如何计算 `prepend-to-group` / `append-to-group` 中的 `index`？**
+   `index` 从 `0` 开始，且是**在 `prepend-proxy-groups` 和 `append-proxy-groups` 执行完毕之后**计算的：
+   - 如果你没有使用 `prepend-proxy-groups`，那么原订阅的第 1 个代理组就是 `index: 0`。
+   - 如果你在 `prepend-proxy-groups` 中插入了 `N` 个代理组，那么原订阅的第 1 个代理组下标就会顺延变成 `index: N`。
+3. **如果指定的 `group` 不存在或 `index` 超出范围会怎样？**
+   - 同时配置了 `group` 和 `index` 时：先按 `group` 名称匹配；找不到时自动 fallback 按 `index` 匹配。
+   - 若仅配置了 `group` 但名称不存在，或 fallback 的 `index` 超出了当前 `proxy-groups` 的长度范围，该条规则会被安全忽略并在 Debug 日志中输出提示，不会导致订阅更新报错。
+4. **如何排查 Parser 是否生效？**
+   在开启 Debug 日志的情况下，可以在日志中搜索关键字 `[ApplyParsers]`，即可查看从拉取 `parsers` URL、匹配各个操作指令（按 `group` 还是按 `index` 命中）到最终生成完整 YAML 的详细过程。

@@ -168,6 +168,34 @@ func modifyArr(subscribe map[string]interface{}, subscribeKey string, parsers ma
 	return subscribe
 }
 
+func parseGroupIndex(raw interface{}) (int, bool) {
+	switch v := raw.(type) {
+	case int:
+		return v, true
+	case int64:
+		return int(v), true
+	case float64:
+		return int(v), true
+	default:
+		return 0, false
+	}
+}
+
+func addProxiesToGroupMap(groupMap map[string]interface{}, proxiesToAdd []interface{}, isPrepend bool) map[string]interface{} {
+	if originalProxies, exists := groupMap["proxies"].([]interface{}); exists {
+		if isPrepend {
+			groupMap["proxies"] = append(proxiesToAdd, originalProxies...)
+		} else {
+			groupMap["proxies"] = append(originalProxies, proxiesToAdd...)
+		}
+	} else {
+		copied := make([]interface{}, len(proxiesToAdd))
+		copy(copied, proxiesToAdd)
+		groupMap["proxies"] = copied
+	}
+	return groupMap
+}
+
 func modifyGroupProxies(subscribe map[string]interface{}, parsers map[string]interface{}, parserKey string, isPrepend bool) map[string]interface{} {
 	rules, rulesExist := parsers[parserKey].([]interface{})
 	if !rulesExist {
@@ -187,35 +215,46 @@ func modifyGroupProxies(subscribe map[string]interface{}, parsers map[string]int
 		if !ok {
 			continue
 		}
-		targetGroupName, nameOk := ruleMap["group"].(string)
 		proxiesToAdd, proxiesOk := ruleMap["proxies"].([]interface{})
-		if !nameOk || !proxiesOk || len(proxiesToAdd) == 0 {
+		if !proxiesOk || len(proxiesToAdd) == 0 {
 			continue
 		}
 
-		for i, groupItem := range proxyGroups {
-			groupMap, ok := groupItem.(map[string]interface{})
-			if !ok {
-				continue
-			}
-			groupName, ok := groupMap["name"].(string)
-			if !ok || groupName != targetGroupName {
-				continue
-			}
+		targetGroupName, nameOk := ruleMap["group"].(string)
+		nameOk = nameOk && strings.TrimSpace(targetGroupName) != ""
+		targetIndex, indexOk := parseGroupIndex(ruleMap["index"])
 
-			if originalProxies, exists := groupMap["proxies"].([]interface{}); exists {
-				if isPrepend {
-					groupMap["proxies"] = append(proxiesToAdd, originalProxies...)
-				} else {
-					groupMap["proxies"] = append(originalProxies, proxiesToAdd...)
+		if !nameOk && !indexOk {
+			continue
+		}
+
+		matchedByName := false
+		if nameOk {
+			for i, groupItem := range proxyGroups {
+				groupMap, ok := groupItem.(map[string]interface{})
+				if !ok {
+					continue
+				}
+				groupName, ok := groupMap["name"].(string)
+				if !ok || groupName != targetGroupName {
+					continue
+				}
+
+				proxyGroups[i] = addProxiesToGroupMap(groupMap, proxiesToAdd, isPrepend)
+				matchedByName = true
+				log.Debugln("[ApplyParsers] subscribe按group[%s]编辑后proxy-group:%v", targetGroupName, groupMap["proxies"])
+			}
+		}
+
+		if !matchedByName && indexOk {
+			if targetIndex >= 0 && targetIndex < len(proxyGroups) {
+				if groupMap, ok := proxyGroups[targetIndex].(map[string]interface{}); ok {
+					proxyGroups[targetIndex] = addProxiesToGroupMap(groupMap, proxiesToAdd, isPrepend)
+					log.Debugln("[ApplyParsers] subscribe按index[%d]编辑后proxy-group[%v]:%v", targetIndex, groupMap["name"], groupMap["proxies"])
 				}
 			} else {
-				copied := make([]interface{}, len(proxiesToAdd))
-				copy(copied, proxiesToAdd)
-				groupMap["proxies"] = copied
+				log.Debugln("[ApplyParsers] index[%d]超出proxy-groups范围(len=%d)", targetIndex, len(proxyGroups))
 			}
-			proxyGroups[i] = groupMap
-			log.Debugln("[ApplyParsers] subscribe编辑后proxy-group[%s]:%v", targetGroupName, groupMap["proxies"])
 		}
 	}
 
