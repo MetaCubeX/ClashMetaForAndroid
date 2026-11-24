@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="parser_url">远程脚本链接</string>
+    <string name="parser_url_hint">http(s)://…（可选）</string>
+    <string name="parser_url_error">仅支持 http:// 或 https:// 链接</string>
+</resources>
+

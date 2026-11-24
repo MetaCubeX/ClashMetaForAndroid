@@ -2,6 +2,7 @@ package com.github.kr328.clash.design
 
 import android.content.Context
 import android.view.View
+import android.view.ViewGroup
 import com.github.kr328.clash.core.model.FetchStatus
 import com.github.kr328.clash.design.databinding.DesignPropertiesBinding
 import com.github.kr328.clash.design.dialog.ModelProgressBarConfigure
@@ -26,6 +27,8 @@ class PropertiesDesign(context: Context) : Design<PropertiesDesign.Request>(cont
     private val binding = DesignPropertiesBinding
         .inflate(context.layoutInflater, context.root, false)
 
+    val parserHelper = PropertiesParserHelper(this, binding.scrollRoot.getChildAt(0) as ViewGroup)
+
     override val root: View
         get() = binding.root
 
@@ -33,6 +36,7 @@ class PropertiesDesign(context: Context) : Design<PropertiesDesign.Request>(cont
         get() = binding.profile!!
         set(value) {
             binding.profile = value
+            parserHelper.onProfileChanged(value)
         }
 
     val progressing: Boolean

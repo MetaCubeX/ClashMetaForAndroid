@@ -176,6 +176,8 @@ func FetchAndValid(
 			return err
 		}
 
+		applyParsersToConfig(path, configPath, url)
+
 		reportSubscriptionInfo(header, reportStatus)
 	}
 

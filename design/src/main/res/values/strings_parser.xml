@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
+    <string name="parser_url">Parser URL</string>
+    <string name="parser_url_hint">http(s)://… (optional)</string>
+    <string name="parser_url_error">Only http:// or https:// URLs are supported</string>
+</resources>
+
