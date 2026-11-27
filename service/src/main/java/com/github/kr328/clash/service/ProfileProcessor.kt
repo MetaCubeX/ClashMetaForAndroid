@@ -70,7 +70,8 @@ object ProfileProcessor {
                             subscriptionInfo?.subTotal ?: 0,
                             subscriptionInfo?.subExpire ?: 0,
                             old?.createdAt ?: System.currentTimeMillis(),
-                            ageSecretKey = snapshot.ageSecretKey
+                            ageSecretKey = snapshot.ageSecretKey,
+                            announce = subscriptionInfo?.subAnnounce,
                         )
                         if (old != null) {
                             ImportedDao().update(new)
@@ -116,13 +117,15 @@ object ProfileProcessor {
                         context.processingDir.copyRecursively(context.importedDir.resolve(snapshot.uuid.toString()))
 
                         val upload = subscriptionInfo?.subUpload
-                        if (upload != null) {
+                        val announce = subscriptionInfo?.subAnnounce
+                        if (upload != null || announce != imported.announce) {
                             ImportedDao().update(
                                 imported.copy(
-                                    upload = upload,
-                                    download = subscriptionInfo.subDownload ?: 0,
-                                    total = subscriptionInfo.subTotal ?: 0,
-                                    expire = subscriptionInfo.subExpire ?: 0,
+                                    upload = upload ?: imported.upload,
+                                    download = subscriptionInfo?.subDownload ?: imported.download,
+                                    total = subscriptionInfo?.subTotal ?: imported.total,
+                                    expire = subscriptionInfo?.subExpire ?: imported.expire,
+                                    announce = announce,
                                 )
                             )
                         }
