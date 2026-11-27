@@ -29,8 +29,8 @@ github.com/dunglas/httpsfv v1.0.2 h1:iERDp/YAfnojSDJ7PW3dj1AReJz4MrwbECSSE59JWL0
 github.com/dunglas/httpsfv v1.0.2/go.mod h1:zID2mqw9mFsnt7YC3vYQ9/cjq30q41W+1AnDwH8TiMg=
 github.com/easytier/easytier/easytier-go v0.0.0-20261111015056-2abb1676b475 h1:L5C1yfYJyzcX7lCWi6aEX8H/0gBKqnlGcVxaBfQVTY8=
 github.com/easytier/easytier/easytier-go v0.0.0-20261111015056-2abb1676b475/go.mod h1:fCEi5+K2yt+sPDONSWO1uNpOifrwPgFGvm3J0YrFRvk=
-github.com/enfein/mieru/v3 v3.39.0 h1:22WJN9i7I4FrY1cTAVp5KfKOFm4sWrXVOXhqf5fkdr8=
-github.com/enfein/mieru/v3 v3.39.0/go.mod h1:zJBUCsi5rxyvHM8fjFf+GLaEl4OEjjBXr1s5F6Qd3hM=
+github.com/enfein/mieru/v3 v3.40.0 h1:J4M+g7YWi4eU2rYKPvEE3IdY8VB8Kw4xuybLCf+h6PU=
+github.com/enfein/mieru/v3 v3.40.0/go.mod h1:zJBUCsi5rxyvHM8fjFf+GLaEl4OEjjBXr1s5F6Qd3hM=
 github.com/ericlagergren/aegis v0.0.0-20250325060835-cd0defd64358 h1:kXYqH/sL8dS/FdoFjr12ePjnLPorPo2FsnrHNuXSDyo=
 github.com/ericlagergren/aegis v0.0.0-20250325060835-cd0defd64358/go.mod h1:hkIFzoiIPZYxdFOOLyDho59b7SrDfo+w3h+yWdlg45I=
 github.com/ericlagergren/polyval v0.0.0-20220411101811-e25bc10ba391 h1:8j2RH289RJplhA6WfdaPqzg1MjH2K8wX5e0uhAxrw2g=
@@ -159,8 +159,8 @@ github.com/metacubex/sing-mux v0.3.12 h1:80jrJsGgRW7ZHpJCRpwJhG3yzT5muEHIWjaOsDJ
 github.com/metacubex/sing-mux v0.3.12/go.mod h1:8bT7ZKT3clRrJjYc/x5CRYibC1TX/bK73a3r3+2E+Fc=
 github.com/metacubex/sing-quic v0.0.0-20260904234848-1c242664697a h1:qZzQwtWDrPU1LXoMow0/iLHY3mb7uauS/mho8hYcenE=
 github.com/metacubex/sing-quic v0.0.0-20260904234848-1c242664697a/go.mod h1:6ayFGfzzBE85csgQkM3gf4neFq6s0losHlPRSxY+nuk=
-github.com/metacubex/sing-shadowsocks v0.2.13 h1:PKmInHy9+4nY3FLhmKcWdASUBo9WZ/KrSPWjNpGaUTQ=
-github.com/metacubex/sing-shadowsocks v0.2.13/go.mod h1:2e5EIaw0rxKrm1YTRmiMnDulwbGxH9hAFlrwQLQMQkU=
+github.com/metacubex/sing-shadowsocks v0.2.14 h1:P9HUtAPRVa24sB0dHwwTUkaEu5V0A8FGXJ35zdNAbN4=
+github.com/metacubex/sing-shadowsocks v0.2.14/go.mod h1:kUDOwF06u5/zSkwPQa0BSdYLa1a7XtGVFik1/VSTkN0=
 github.com/metacubex/sing-shadowsocks2 v0.2.8 h1:6MoODu7BAcnwIC0w9muq+2LZVz01wWD07L5IRhOty9Q=
 github.com/metacubex/sing-shadowsocks2 v0.2.8/go.mod h1:vOEbfKC60txi0ca+yUlqEwOGc3Obl6cnSgx9Gf45KjE=
 github.com/metacubex/sing-tun v0.4.29 h1:KIULEuW0iFXxLegOgrW8orq5Sx4TCBBhwo6j8+CIFBs=

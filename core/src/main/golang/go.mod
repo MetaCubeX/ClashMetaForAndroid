@@ -23,7 +23,7 @@ require (
 	github.com/coreos/go-iptables v0.8.0 // indirect
 	github.com/dunglas/httpsfv v1.0.2 // indirect
 	github.com/easytier/easytier/easytier-go v0.0.0-20261111015056-2abb1676b475 // indirect
-	github.com/enfein/mieru/v3 v3.39.0 // indirect
+	github.com/enfein/mieru/v3 v3.40.0 // indirect
 	github.com/ericlagergren/aegis v0.0.0-20250325060835-cd0defd64358 // indirect
 	github.com/ericlagergren/polyval v0.0.0-20220411101811-e25bc10ba391 // indirect
 	github.com/ericlagergren/siv v0.0.0-20220507050439-0b757b3aa5f1 // indirect
@@ -83,7 +83,7 @@ require (
 	github.com/metacubex/sing v0.5.9 // indirect
 	github.com/metacubex/sing-mux v0.3.12 // indirect
 	github.com/metacubex/sing-quic v0.0.0-20260904234848-1c242664697a // indirect
-	github.com/metacubex/sing-shadowsocks v0.2.13 // indirect
+	github.com/metacubex/sing-shadowsocks v0.2.14 // indirect
 	github.com/metacubex/sing-shadowsocks2 v0.2.8 // indirect
 	github.com/metacubex/sing-tun v0.4.29 // indirect
 	github.com/metacubex/sing-vmess v0.2.5 // indirect
