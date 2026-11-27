@@ -16,6 +16,7 @@ data class FetchStatus(
     val subTotal: Long? = null,
     val subExpire: Long? = null,
     val subUpdateInterval: Long? = null,
+    val subAnnounce: String? = null,
 ) : Parcelable {
     enum class Action {
         FetchConfiguration,

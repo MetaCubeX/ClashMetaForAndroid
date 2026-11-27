@@ -2,6 +2,7 @@ package config
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -13,6 +14,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"cfa/native/app"
 
@@ -31,11 +33,13 @@ type Status struct {
 	SubTotal          *int64   `json:"subTotal,omitempty"`
 	SubExpire         *int64   `json:"subExpire,omitempty"`
 	SubUpdateInterval *int64   `json:"subUpdateInterval,omitempty"`
+	SubAnnounce       string   `json:"subAnnounce,omitempty"`
 }
 
 type fetchHeader struct {
 	SubscriptionUserInfo  string
 	ProfileUpdateInterval string
+	Announce              string
 }
 
 func openUrl(ctx context.Context, url string) (io.ReadCloser, fetchHeader, error) {
@@ -48,6 +52,7 @@ func openUrl(ctx context.Context, url string) (io.ReadCloser, fetchHeader, error
 	return response.Body, fetchHeader{
 		SubscriptionUserInfo:  response.Header.Get("subscription-userinfo"),
 		ProfileUpdateInterval: response.Header.Get("profile-update-interval"),
+		Announce:              response.Header.Get("Announce"),
 	}, nil
 }
 
@@ -117,10 +122,29 @@ func parseProfileUpdateInterval(value string) (int64, bool) {
 	return int64(interval / time.Millisecond), true
 }
 
+func parseAnnounce(value string) string {
+	value = strings.TrimSpace(value)
+	if encoded, ok := strings.CutPrefix(value, "base64:"); ok {
+		decoded, err := base64.StdEncoding.DecodeString(encoded)
+		if err != nil {
+			return ""
+		}
+		value = strings.TrimSpace(string(decoded))
+	}
+
+	// Profile metadata is sent to the UI over Binder.
+	const maxAnnounceBytes = 4096
+	if len(value) > maxAnnounceBytes || !utf8.ValidString(value) {
+		return ""
+	}
+	return value
+}
+
 func reportSubscriptionInfo(header fetchHeader, reportStatus func(string)) {
 	userinfo := header.SubscriptionUserInfo
 	updateIntervalHeader := header.ProfileUpdateInterval
-	if userinfo == "" && updateIntervalHeader == "" {
+	announce := parseAnnounce(header.Announce)
+	if userinfo == "" && updateIntervalHeader == "" && announce == "" {
 		return
 	}
 
@@ -129,6 +153,7 @@ func reportSubscriptionInfo(header fetchHeader, reportStatus func(string)) {
 		Args:        []string{},
 		Progress:    -1,
 		MaxProgress: -1,
+		SubAnnounce: announce,
 	}
 
 	if userinfo != "" {
