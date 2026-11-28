@@ -11,6 +11,7 @@ import com.github.kr328.clash.design.util.applyFrom
 import com.github.kr328.clash.design.util.bindAppBarElevation
 import com.github.kr328.clash.design.util.layoutInflater
 import com.github.kr328.clash.design.util.root
+import com.github.kr328.clash.service.StatusProvider
 import com.github.kr328.clash.service.model.AccessControlMode
 import com.github.kr328.clash.service.store.ServiceStore
 import kotlinx.coroutines.launch
@@ -20,9 +21,11 @@ class NetworkSettingsDesign(
     uiStore: UiStore,
     srvStore: ServiceStore,
     running: Boolean,
+    vpnState: StatusProvider.VpnState?,
 ) : Design<NetworkSettingsDesign.Request>(context) {
     enum class Request {
-        StartAccessControlList
+        StartAccessControlList,
+        OpenSystemVpnSettings,
     }
 
     private val binding = DesignSettingsCommonBinding
@@ -129,6 +132,32 @@ class NetworkSettingsDesign(
             ) {
                 clicked {
                     requests.trySend(Request.StartAccessControlList)
+                }
+            }
+
+            switch(
+                value = srvStore::killSwitch,
+                title = R.string.kill_switch,
+                summary = R.string.kill_switch_summary,
+                configure = vpnDependencies::add,
+            )
+
+            clickable(
+                title = R.string.always_on_vpn,
+            ) {
+                summary = when {
+                    vpnState == null ->
+                        null
+                    vpnState.alwaysOn && vpnState.lockdown ->
+                        context.getText(R.string.always_on_vpn_summary_lockdown)
+                    vpnState.alwaysOn ->
+                        context.getText(R.string.always_on_vpn_summary_no_lockdown)
+                    else ->
+                        context.getText(R.string.always_on_vpn_summary_off)
+                }
+
+                clicked {
+                    requests.trySend(Request.OpenSystemVpnSettings)
                 }
             }
 

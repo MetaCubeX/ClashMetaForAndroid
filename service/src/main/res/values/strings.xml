@@ -18,4 +18,8 @@
     <string name="provider_files">Provider Files</string>
     <string name="profile_updater">Profile Updater</string>
     <string name="profile_updating">Profile Updating</string>
+    <string name="kill_switch_active">Kill switch active</string>
+    <string name="kill_switch_active_content">Network blocked: %s</string>
+    <string name="kill_switch_active_content_unknown">Network blocked</string>
+    <string name="kill_switch_stop">Stop</string>
 </resources>

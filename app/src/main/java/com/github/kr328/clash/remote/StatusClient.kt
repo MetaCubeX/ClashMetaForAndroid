@@ -15,6 +15,27 @@ class StatusClient(private val context: Context) {
                 .build()
         }
 
+    /** Always-on / lockdown state, only known while the VPN service is running (API 29+). */
+    fun vpnState(): StatusProvider.VpnState? {
+        return try {
+            val result = context.contentResolver.call(
+                uri,
+                StatusProvider.METHOD_VPN_STATE,
+                null,
+                null
+            ) ?: return null
+
+            StatusProvider.VpnState(
+                alwaysOn = result.getBoolean(StatusProvider.KEY_ALWAYS_ON),
+                lockdown = result.getBoolean(StatusProvider.KEY_LOCKDOWN),
+            )
+        } catch (e: Exception) {
+            Log.w("Query vpn state: $e", e)
+
+            null
+        }
+    }
+
     fun currentProfile(): String? {
         return try {
             val result = context.contentResolver.call(

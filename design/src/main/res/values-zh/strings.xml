@@ -282,4 +282,34 @@
     <string name="shortcut_start_long">启动 Clash 服务</string>
     <string name="shortcut_stop_short">停止 Clash</string>
     <string name="shortcut_stop_long">停止 Clash 服务</string>
+
+    <string name="kill_switch">Kill Switch</string>
+    <string name="kill_switch_summary">VPN 意外停止时阻断网络</string>
+    <string name="always_on_vpn">始终开启的 VPN 与锁定模式</string>
+    <string name="always_on_vpn_summary_lockdown">已开启 · 已屏蔽未使用 VPN 的连接</string>
+    <string name="always_on_vpn_summary_no_lockdown">已开启 · 未屏蔽未使用 VPN 的连接</string>
+    <string name="always_on_vpn_summary_off">未开启</string>
+
+    <string name="landing_proxy">落地代理</string>
+    <string name="landing_proxy_enable">启用落地代理</string>
+    <string name="landing_proxy_incomplete">请填写服务器和端口</string>
+    <string name="landing_server_category">服务器</string>
+    <string name="landing_type">协议</string>
+    <string name="landing_type_http">HTTP</string>
+    <string name="landing_type_https">HTTPS</string>
+    <string name="landing_type_socks5">SOCKS5</string>
+    <string name="landing_server">服务器</string>
+    <string name="landing_port">端口</string>
+    <string name="landing_username">用户名</string>
+    <string name="landing_password">密码</string>
+    <string name="landing_not_set">未设置</string>
+    <string name="landing_auth_none">无</string>
+    <string name="landing_front_group">前置组</string>
+    <string name="landing_front_group_auto">自动</string>
+    <string name="landing_front_group_custom">自定义…</string>
+    <string name="landing_skip_cert_verify">跳过证书验证</string>
+    <string name="landing_skip_cert_verify_summary">不安全，仅用于自签名证书</string>
+    <string name="landing_sni">SNI</string>
+    <string name="landing_sni_default">默认</string>
+    <string name="landing_udp">UDP 转发</string>
 </resources>

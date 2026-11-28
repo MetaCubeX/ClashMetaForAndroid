@@ -4,12 +4,14 @@ import android.content.Context
 import com.github.kr328.clash.common.log.Log
 import com.github.kr328.clash.core.Clash
 import com.github.kr328.clash.core.model.*
+import com.github.kr328.clash.service.clash.ClashPreview
 import com.github.kr328.clash.service.data.Selection
 import com.github.kr328.clash.service.data.SelectionDao
 import com.github.kr328.clash.service.remote.IClashManager
 import com.github.kr328.clash.service.remote.ILogObserver
 import com.github.kr328.clash.service.store.ServiceStore
 import com.github.kr328.clash.service.util.sendOverrideChanged
+import com.github.kr328.clash.service.util.sendProfileLoaded
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.ReceiveChannel
 
@@ -62,6 +64,24 @@ class ClashManager(private val context: Context) : IClashManager,
         Clash.patchOverride(slot, configuration)
 
         context.sendOverrideChanged()
+
+        launch {
+            if (ClashPreview.reloadIfLoaded(context)) {
+                store.activeProfile?.let(context::sendProfileLoaded)
+            }
+        }
+    }
+
+    override suspend fun preparePreview(): String? {
+        return ClashPreview.prepare(context)
+    }
+
+    override suspend fun reloadPreview(): String? {
+        return ClashPreview.prepare(context, hold = false)
+    }
+
+    override fun releasePreview() {
+        ClashPreview.scheduleRelease()
     }
 
     override fun clearOverride(slot: Clash.OverrideSlot) {

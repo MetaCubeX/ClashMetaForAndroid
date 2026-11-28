@@ -373,4 +373,34 @@
     <string name="shortcut_start_long">Start Clash service</string>
     <string name="shortcut_stop_short">Stop Clash</string>
     <string name="shortcut_stop_long">Stop Clash service</string>
+
+    <string name="kill_switch">Kill Switch</string>
+    <string name="kill_switch_summary">Block network traffic if the VPN stops unexpectedly</string>
+    <string name="always_on_vpn">Always-on VPN &amp; lockdown</string>
+    <string name="always_on_vpn_summary_lockdown">On · Connections without VPN blocked</string>
+    <string name="always_on_vpn_summary_no_lockdown">On · Connections without VPN not blocked</string>
+    <string name="always_on_vpn_summary_off">Off</string>
+
+    <string name="landing_proxy">Landing Proxy</string>
+    <string name="landing_proxy_enable">Enable Landing Proxy</string>
+    <string name="landing_proxy_incomplete">Enter the server and port</string>
+    <string name="landing_server_category">Server</string>
+    <string name="landing_type">Protocol</string>
+    <string name="landing_type_http">HTTP</string>
+    <string name="landing_type_https">HTTPS</string>
+    <string name="landing_type_socks5">SOCKS5</string>
+    <string name="landing_server">Server</string>
+    <string name="landing_port">Port</string>
+    <string name="landing_username">Username</string>
+    <string name="landing_password">Password</string>
+    <string name="landing_not_set">Not set</string>
+    <string name="landing_auth_none">None</string>
+    <string name="landing_front_group">Front Group</string>
+    <string name="landing_front_group_auto">Auto</string>
+    <string name="landing_front_group_custom">Custom…</string>
+    <string name="landing_skip_cert_verify">Skip Certificate Verification</string>
+    <string name="landing_skip_cert_verify_summary">Insecure, only for self-signed certificates</string>
+    <string name="landing_sni">SNI</string>
+    <string name="landing_sni_default">Default</string>
+    <string name="landing_udp">UDP Relay</string>
 </resources>
