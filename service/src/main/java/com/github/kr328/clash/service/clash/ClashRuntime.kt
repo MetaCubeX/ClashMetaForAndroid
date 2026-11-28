@@ -7,7 +7,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
-private val globalLock = Mutex()
+internal val globalLock = Mutex()
 
 interface ClashRuntimeScope {
     fun <E, T : Module<E>> install(module: T): T
@@ -24,6 +24,9 @@ fun CoroutineScope.clashRuntime(block: suspend ClashRuntimeScope.() -> Unit): Cl
             launch(Dispatchers.IO) {
                 globalLock.withLock {
                     Log.d("ClashRuntime: initialize")
+
+                    // the runtime takes over the core, drop any preview state
+                    ClashPreview.invalidate()
 
                     try {
                         val modules = mutableListOf<Module<*>>()

@@ -39,14 +39,23 @@ func fetchAndValid(callback unsafe.Pointer, path, url C.c_string, force C.int) {
 }
 
 //export load
-func load(completable unsafe.Pointer, path C.c_string) {
-	go func(path string) {
-		C.complete(completable, marshalString(config.Load(path)))
+func load(completable unsafe.Pointer, path C.c_string, preview C.int) {
+	go func(path string, preview bool) {
+		C.complete(completable, marshalString(config.Load(path, preview)))
 
 		C.release_object(completable)
 
 		runtime.GC()
-	}(C.GoString(path))
+	}(C.GoString(path), preview != 0)
+}
+
+//export setLandingProxy
+func setLandingProxy(content C.c_string) *C.char {
+	if content == nil {
+		return marshalString(config.SetLandingProxy(""))
+	}
+
+	return marshalString(config.SetLandingProxy(C.GoString(content)))
 }
 
 //export readOverride

@@ -35,7 +35,8 @@ object Bridge {
         force: Boolean
     )
 
-    external fun nativeLoad(completable: CompletableDeferred<Unit>, path: String)
+    external fun nativeLoad(completable: CompletableDeferred<Unit>, path: String, preview: Boolean)
+    external fun nativeSetLandingProxy(content: String?): String?
     external fun nativeQueryProviders(): String
     external fun nativeUpdateProvider(
         completable: CompletableDeferred<Unit>,

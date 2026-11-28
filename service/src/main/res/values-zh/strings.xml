@@ -16,4 +16,8 @@
     <string name="profile_updating">配置更新中</string>
     <string name="profile_service_status">配置文件服务状态</string>
     <string name="profile_process_result">配置文件处理结果</string>
+    <string name="kill_switch_active">Kill Switch 已生效</string>
+    <string name="kill_switch_active_content">网络已阻断：%s</string>
+    <string name="kill_switch_active_content_unknown">网络已阻断</string>
+    <string name="kill_switch_stop">停止</string>
 </resources>

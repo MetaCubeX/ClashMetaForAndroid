@@ -83,6 +83,12 @@ class ProxyDesign(
         }
     }
 
+    suspend fun updateMode(mode: TunnelState.Mode?) {
+        withContext(Dispatchers.Main) {
+            menu.updateMode(mode)
+        }
+    }
+
     suspend fun showModeSwitchTips() {
         withContext(Dispatchers.Main) {
             Toast.makeText(context, R.string.mode_switch_tips, Toast.LENGTH_LONG).show()

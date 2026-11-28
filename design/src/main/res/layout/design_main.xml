@@ -95,9 +95,9 @@
                     android:layout_height="wrap_content"
                     android:layout_marginVertical="@dimen/main_card_margin_vertical"
                     android:onClick="@{() -> self.request(Request.OpenProxy)}"
-                    android:visibility="@{clashRunning ? View.VISIBLE : View.GONE}"
+                    android:visibility="@{clashRunning || profileName != null ? View.VISIBLE : View.GONE}"
                     app:icon="@drawable/ic_baseline_apps"
-                    app:subtext="@{mode}"
+                    app:subtext="@{clashRunning ? mode : null}"
                     app:text="@string/proxy" />
 
                 <com.github.kr328.clash.design.view.LargeActionCard

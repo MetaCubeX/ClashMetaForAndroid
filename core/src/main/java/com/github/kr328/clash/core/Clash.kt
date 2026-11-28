@@ -165,10 +165,25 @@ object Clash {
         }
     }
 
-    fun load(path: File): CompletableDeferred<Unit> {
+    /**
+     * Load the profile at [path].
+     *
+     * With [preview] set, every inbound (ports, listeners, DNS listener,
+     * external controller) is stripped, so proxies can be browsed and
+     * health-checked while the service is stopped.
+     */
+    fun load(path: File, preview: Boolean = false): CompletableDeferred<Unit> {
         return CompletableDeferred<Unit>().apply {
-            Bridge.nativeLoad(this, path.absolutePath)
+            Bridge.nativeLoad(this, path.absolutePath, preview)
         }
+    }
+
+    /**
+     * Set the landing (exit) proxy applied by subsequent [load] calls,
+     * as JSON, or clear it with null.
+     */
+    fun setLandingProxy(json: String?) {
+        Bridge.nativeSetLandingProxy(json)?.let { throw ClashException(it) }
     }
 
     fun queryProviders(): List<Provider> {
